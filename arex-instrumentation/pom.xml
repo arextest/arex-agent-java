@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>io.arex</groupId>
+        <artifactId>arex-agent-parent</artifactId>
+        <version>0.0.1</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>arex-instrumentation-parent</artifactId>
+    <packaging>pom</packaging>
+    <version>0.0.1</version>
+    <modules>
+        <module>internal/arex-executors</module>
+        <module>internal/arex-loader</module>
+        <module>servlet/arex-servlet-v3</module>
+        <module>servlet/arex-servlet-v5</module>
+        <module>apache-httpclient/arex-apache-httpclient-async</module>
+        <module>apache-httpclient/arex-apache-httpclient-common</module>
+        <module>apache-httpclient/arex-apache-httpclient-sync</module>
+        <module>database/arex-database-common</module>
+        <module>database/arex-database-hibernate</module>
+        <module>database/arex-database-mybatis3</module>
+    </modules>
+    <dependencies>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>arex-instrumentation-foundation</artifactId>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/com.google.auto.service/auto-service -->
+        <dependency>
+            <groupId>com.google.auto.service</groupId>
+            <artifactId>auto-service</artifactId>
+            <version>${auto-service.version}</version>
+        </dependency>
+    </dependencies>
+
+</project>
