@@ -15,25 +15,17 @@ As your application evolves more complex, the effort required to thoroughly test
 
 Arex provides an out-of-box agent file that could be attached to any applications with Java 8+ and dynamically weaves solid  bytecode into your existing code to record the real data of live traffic, and further use and replay it for mocking, testing, and debugging purpose.
 
-Arex is implemented with an unique mechanism for recording. Instead of being a proxy like other similar framework, `Arex` sits in the background without awareness of your application to record realistic data in live traffic which means that no intrusive code changes are required when integrating it to your exising application.
+Arex is implemented with an unique mechanism for recording. Instead of being a proxy like other similar framework, `Arex` sits in the background without awareness of your application to record realistic data in live traffic which means that no intrusive code changes are required when integrating it to your existing application.
 
 Arex utilizes the advanced Java technique, Instrument API, and is capable of instrumenting various libraries and frameworks which are widely used.
 
-##### Libraries and frameworks supported by Arex (to be added...) #####
-
-- ###### Java Executors ######
-
-- ###### Apache HttpAsyncClient 4.x ######
-
-- ###### Apache HttpClient 4.x ######
-
-- ###### Hibernate 5.x ######
-
-- ###### MyBatis 3.x ######
-
-- ###### Spring Boot 1.4+-2.x+, Servlet API 3+ ######
-
-
+**Libraries and frameworks supported by Arex (to be added...)**
+- Java Executors
+- Apache HttpAsyncClient 4.x 
+- Apache HttpClient 4.x 
+- Hibernate 5.x 
+- MyBatis 3.x 
+- Spring Boot 1.4+-2.x+, Servlet API 3+ 
 
 ## Installation
 
@@ -49,7 +41,7 @@ arex-agent-bootstrap-<version>.jar
 
 You can get arex started by：
 
-**Enable the instrumentation agent by configuring a `javaagent` flag to the JVM to run arex in local mode:**
+***Enable the instrumentation agent by configuring a `javaagent` flag to the JVM to run arex in local mode:***
 
 ```
  java -javaagent:/path/to/arex-agent-<version>.jar
@@ -60,7 +52,7 @@ You can get arex started by：
 
 By default, Arex uses [H2](https://www.h2database.com) as a local storage to save the recorded data for testing purpose.
 
-**Run with CLI**
+***Run with CLI***
 
 Simply click the [script]("http://www.google.com") in the `arex-agent-java/bin` directory to start the command line tool, or run it by following `java` command
 
@@ -74,7 +66,7 @@ The supported commands are as follows:
 - **debug**- local debugging of specific cases  
   `[option: -r/--recordId]` record id, required Option
 
-**Run with entire AREX solution, refer to [arex-dev-ops](https://github.com/arextest/dev-ops/wiki):**
+***Run with entire AREX solution, refer to [arex-dev-ops](https://github.com/arextest/dev-ops/wiki):***
 
 AREX agent works along with the [AREX config service](https://github.com/arextest/arex-config) and the [AREX storage service](https://github.com/arextest/arex-storage).
 You could just configure the host and port of them respectively, like below
@@ -103,14 +95,12 @@ java -javaagent:/path/to/arex-agent-<version>.jar
  ```
 
 
-
 ## Contributing
 
 1. Fork it
 2. Create your feature branch
 3. Commit your code changes and push to your feature branch
 4. Create a new Pull Request
-
 
 
 ## License
