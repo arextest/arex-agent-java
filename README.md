@@ -1,16 +1,12 @@
-<h1 align="center" style="border-bottom: none">
-    <b>
-        <a href="">Arex</a><br>
-    </b>
-</h1>
+# <img src="https://avatars.githubusercontent.com/u/103105168?s=200&v=4" alt="Arex Icon" width="27" height=""> AREX
 
-##### An Open Source Testing Framework with Realistic Data
+##### An Open Source Testing Framework with Real World Data
 
 ## Introduction
 
-As your application evolves more complex, the effort required to thoroughtly test against it also becomes tremendous. Arex is a framework designed around a quite straightforward principle of leveraging your realistic data(i.e. database record, service payload, cache items etc.) for regression testing. Simple is powerful. The idea behind makes it incredibly powerful.
+As your application evolves more complex, the effort required to thoroughly test against it also becomes tremendous. Arex is a framework designed around a quite straightforward principle of leveraging your real world data(i.e. database record, service payload, cache items etc.) for regression testing. Simple is powerful. The idea behind makes it incredibly powerful.
 
-Arex provides an out-of-box agent file that could be attached to any applications with Java 8+ and dynamically weaves solid  bytecode into your existing code to record the relistic data of live traffic, and further use and replay it for mocking, testing, and debugging purpose.
+Arex provides an out-of-box agent file that could be attached to any applications with Java 8+ and dynamically weaves solid  bytecode into your existing code to record the real data of live traffic, and further use and replay it for mocking, testing, and debugging purpose.
 
 Arex is implemented with an unique mechanism for recording. Instead of being a proxy like other similar framework, `Arex` sits in the background without awareness of your application to record realistic data in live traffic which means that no intrusive code changes are required when integrating it to your exising application.
 
@@ -46,7 +42,7 @@ arex-agent-bootstrap-<version>.jar
 
 You can get arex started by：
 
-##### Enable the instrumentation agent by configuring a `javaagent` flag to the JVM to run arex in local mode:
+#### Enable the instrumentation agent by configuring a `javaagent` flag to the JVM to run arex in local mode:
 
 ```java
  java -javaagent:/path/to/arex-agent-<version>.jar
@@ -54,42 +50,61 @@ You can get arex started by：
       -Darex.storge.model=local
       -jar your-application.jar
 ```
-By default, Arex use the local storage with h2 save the recorded data.
 
-### Run with Command Tool
-Click the script file in the arex-agent-java/bin directory to start the command line tool, or start it through the command line tool of the system with java command:
- ```
+By default, Arex uses [H2](https://www.h2database.com) as a local storage to save the recorded data for testing purpose.
+
+#### Run with CLI
+
+Simply click the [script]("http://www.google.com") in the `arex-agent-java/bin` directory to start the command line tool, or run it by following `java` command
+
+ ```java
 java -cp "/path/to/arex-client/target/arex-client-<version>-jar-with-dependencies.jar" io.arex.cli.ArexCli
  ```
+The supported commands are as follows:
+- **replay**- replay recorded data and view differences  
+  `[option: -n/--num]` replay numbers, default the latest 10
+  `[option: -r/--replayId]` replay id, multiple are separated by spaces
+- **debug**- local debugging of specific cases  
+  `[option: -r/--recordId]` record id, required Option
 
-### Run entire arex solution, see [arex-dev-ops](https://github.com/arextest/dev-ops/wiki):
+#### Run with entire AREX solution, refer to [arex-dev-ops](https://github.com/arextest/dev-ops/wiki):
 
-AREX Agents work in conjunction with the [AREX config service](https://github.com/arextest/arex-config), [AREX storage service](https://github.com/arextest/arex-storage).
+AREX agent works along with the [AREX config service](https://github.com/arextest/arex-config) and the [AREX storage service](https://github.com/arextest/arex-storage).
+You could just configure the host and port of them respectively, like below
+
  ```
 java -javaagent:/path/to/arex-agent-<version>.jar
         -Darex.service.name=your-service-name
         -Darex.storage.service.host=[storage.service.host:port](storage.service.host:port) 
         -Darex.config.service.host=[config.service.host:port](config.service.host:port)
         -jar your-application.jar
-```
+ ```
 
-Also, you can add the agent configuration at the bottom of the `arex.agent.conf` file:
+Alternatively, you can put those configuration item in `arex.agent.conf` file, like below
+
 ```
 arex.service.name=your-service-name  
 arex.storage.service.host=<storage.service.host:port> 
 arex.config.service.host=<config.service.host:port> 
 ```
-Then run:
+
+Then simply run:
+
  ```
- java -javaagent:/path/to/arex-agent-<version>.jar
+java -javaagent:/path/to/arex-agent-<version>.jar
       -Darex.config.path=/path/to/arex.agent.conf
  ```
+
+
+
 ## Contributing
 
 1. Fork it
 2. Create your feature branch
-3. Commit your changes and push to the branch
-4. Create new Pull Request
+3. Commit your code changes and push to your feature branch
+4. Create a new Pull Request
+
+
 
 ## License
 - Code: [Apache-2.0](https://github.com/arextest/arex-agent-java/blob/LICENSE)
