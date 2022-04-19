@@ -7,6 +7,8 @@ public class SequenceProvider {
     static final int OFFSET_BASIS = 0x811C9DC5;
     static final int FNV_PRIME = 16777619;
 
+    public static final SequenceProvider DEFAULT = new SequenceProvider();
+
     private final ConcurrentHashMap<Integer, AtomicInteger> sequence = new ConcurrentHashMap<>(10);
 
     public int get(String target) {
