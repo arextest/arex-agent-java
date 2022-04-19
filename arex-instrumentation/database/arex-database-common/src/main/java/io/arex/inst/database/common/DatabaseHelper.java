@@ -29,7 +29,7 @@ public class DatabaseHelper {
             DatabaseMetaData metaData = connection.getMetaData();
             String url = metaData.getURL();
             if (StringUtil.isEmpty(url) || !url.startsWith("jdbc:")) {
-                LogUtil.warn("parseConnection, " + url);
+                LogUtil.warn("parseConnection failed, " + url);
                 return null;
             }
             return getDbName(url, connection.getClientInfo());

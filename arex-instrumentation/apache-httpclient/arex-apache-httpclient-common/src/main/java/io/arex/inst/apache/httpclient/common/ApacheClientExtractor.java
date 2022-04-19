@@ -31,20 +31,24 @@ public class ApacheClientExtractor {
         if (request instanceof HttpPost) {
             try {
                 HttpPost post = (HttpPost) request;
-                Header header = post.getFirstHeader("Content-Type");
-                if (header != null) {
-                    contentType = header.getValue();
-                }
+                contentType = getContentType(post);
 
                 HttpEntity entity = post.getEntity();
                 byte[] content = EntityUtils.toByteArray(entity);
                 this.request = Base64.getEncoder().encodeToString(content);
-                LogUtil.warn("AREX content-type:" + this.contentType + ", Content:" + new String(content));
                 post.setEntity(new ByteArrayEntity(content));
             } catch (Exception ex) {
                 LogUtil.warn("extract request content failed.", ex);
             }
         }
+    }
+
+    private String getContentType(HttpPost post) {
+        Header header = post.getFirstHeader("Content-Type");
+        if (header != null) {
+            return header.getValue();
+        }
+        return null;
     }
 
     public void record(HttpResponse response) {
@@ -76,7 +80,6 @@ public class ApacheClientExtractor {
     public HttpResponse replay() throws ClientProtocolException {
         HttpResponseWrapper wrapped = mock();
         if (wrapped == null) {
-            LogUtil.warn("mock data failed.");
             throw new ClientProtocolException(new ArexDataException("mock data failed."));
         }
 
@@ -88,12 +91,8 @@ public class ApacheClientExtractor {
     }
 
     public HttpResponseWrapper mock() {
-        try {
-            HttpClientMocker mocker = new HttpClientMocker(this.target, this.contentType, this.request);
-            return (HttpResponseWrapper) mocker.replay();
-        } catch (Exception ex) {
-            return null;
-        }
+        HttpClientMocker mocker = new HttpClientMocker(this.target, this.contentType, this.request);
+        return (HttpResponseWrapper) mocker.replay();
     }
 
     public boolean isMockEnabled() {
