@@ -2,6 +2,12 @@
 
 ##### An Open Source Testing Framework with Real World Data
 
+* [Introduction](#Introduction)
+* [Installation](#Installation)
+* [Getting Started](#Getting-Started)
+* [Contributing](#contributing)
+* [License](#license)
+
 ## Introduction
 
 As your application evolves more complex, the effort required to thoroughly test against it also becomes tremendous. Arex is a framework designed around a quite straightforward principle of leveraging your real world data(i.e. database record, service payload, cache items etc.) for regression testing. Simple is powerful. The idea behind makes it incredibly powerful.
@@ -62,7 +68,7 @@ java -cp "/path/to/arex-client/target/arex-client-<version>-jar-with-dependencie
  ```
 The supported commands are as follows:
 - **replay**- replay recorded data and view differences  
-  `[option: -n/--num]` replay numbers, default the latest 10
+  `[option: -n/--num]` replay numbers, default the latest 10 \
   `[option: -r/--replayId]` replay id, multiple are separated by spaces
 - **debug**- local debugging of specific cases  
   `[option: -r/--recordId]` record id, required Option
@@ -74,10 +80,10 @@ You could just configure the host and port of them respectively, like below
 
  ```
 java -javaagent:/path/to/arex-agent-<version>.jar
-        -Darex.service.name=your-service-name
-        -Darex.storage.service.host=[storage.service.host:port](storage.service.host:port) 
-        -Darex.config.service.host=[config.service.host:port](config.service.host:port)
-        -jar your-application.jar
+      -Darex.service.name=your-service-name
+      -Darex.storage.service.host=[storage.service.host:port](storage.service.host:port) 
+      -Darex.config.service.host=[config.service.host:port](config.service.host:port)
+      -jar your-application.jar
  ```
 
 Alternatively, you can put those configuration item in `arex.agent.conf` file, like below
