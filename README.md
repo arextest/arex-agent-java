@@ -1,39 +1,54 @@
-# Arex Java Agent
-Trace-based testing with JavaAgent：open source traffic playback test tool.
-* [About](#About)
-* [Installation](#Installation)
-* [Getting Started](#Getting Started)
-* [Contributing](#Contributing)
-* [License](#License)
+<h1 align="center" style="border-bottom: none">
+    <b>
+        <a href="">Arex</a><br>
+    </b>
+</h1>
 
-## About
+##### An Open Source Testing Framework with Realistic Data
 
-As your application grows, the effort required to test it also grows exponentially. AREX offer you the simple idea of using your existing traffic for testing, witch makes it incredibly powerful.\
-This project provides a Java agent JAR that can be attached to any Java 8+ application and dynamically injects bytecode to record your live traffic, and use it for shadowing, testing, and debugging.\
-AREX offers a unique approach for shadowing. Instead of being a proxy, AREX listens in the background for traffic on your network interfaces from a number of popular libraries and frameworks, requiring no changes in your production infrastructure.
+## Introduction
 
-The AREX Java Agent automatically instruments various APIs, frameworks and application servers. This section lists all supported technologies:
-- Java Executors
-- Apache HttpAsyncClient 4.x
-- Apache HttpClient 4.x
-- Hibernate 5.x
-- MyBatis 3.x
-- Spring Boot 1.4+-2.x+, Servlet API 3+
+As your application evolves more complex, the effort required to thoroughtly test against it also becomes tremendous. Arex is a framework designed around a quite straightforward principle of leveraging your realistic data(i.e. database record, service payload, cache items etc.) for regression testing. Simple is powerful. The idea behind makes it incredibly powerful.
+
+Arex provides an out-of-box agent file that could be attached to any applications with Java 8+ and dynamically weaves solid  bytecode into your existing code to record the relistic data of live traffic, and further use and replay it for mocking, testing, and debugging purpose.
+
+Arex is implemented with an unique mechanism for recording. Instead of being a proxy like other similar framework, `Arex` sits in the background without awareness of your application to record realistic data in live traffic which means that no intrusive code changes are required when integrating it to your exising application.
+
+Arex utilizes the advanced Java technique, Instrument API, and is capable of instrumenting various libraries and framworks which are widely used.
+
+##### Libraries and frameworks supported by Arex (to be added...) #####
+
+- ###### Java Executors ######
+
+- ###### Apache HttpAsyncClient 4.x ######
+
+- ###### Apache HttpClient 4.x ######
+
+- ###### Hibernate 5.x ######
+
+- ###### MyBatis 3.x ######
+
+- ###### Spring Boot 1.4+-2.x+, Servlet API 3+ ######
+
+
 
 ## Installation
 
-Download the latest binary from https://github.com/arextest/releases or compile by yourself.\
-Their will be two JARs in the arex-agent-jar folder:
+Simply download the latest binary from [github]( https://github.com/arextest/releases) or compile it by yourself.\
+There are two agent files provided in the `arex-agent-jar` folder like below. They must be placed in the same directory.
+
+```java
+arex-agent-<version>.jar
+arex-agent-bootstrap-<version>.jar
 ```
- arex-agent-<version>.jar
- arex-agent-bootstrap-<version>.jar
-```
-These two JARs must be placed in the same directory.
 
 ## Getting Started
-You can start arex by：
-### Enable the instrumentation agent using the `-javaagent` flag to the JVM, and run in local mode:
-```
+
+You can get arex started by：
+
+##### Enable the instrumentation agent by configuring a `javaagent` flag to the JVM to run arex in local mode:
+
+```java
  java -javaagent:/path/to/arex-agent-<version>.jar
       -Darex.service.name=your-service-name (should be unique)
       -Darex.storge.model=local
@@ -46,14 +61,6 @@ Click the script file in the arex-agent-java/bin directory to start the command 
  ```
 java -cp "/path/to/arex-client/target/arex-client-<version>-jar-with-dependencies.jar" io.arex.cli.ArexCli
  ```
-The supported commands are as follows:
-- **replay** replay recorded data and view differences  
-  `[option: -n/--num]` replay numbers, default the latest 10
-- **watch** view replay result and differences  
-  `[option: -r/--replayId]` replay id, multiple are separated by spaces
-- **debug** local debugging of specific cases  
-  `[option: -r/--recordId]` record id, required Option
-
 
 ### Run entire arex solution, see [arex-dev-ops](https://github.com/arextest/dev-ops/wiki):
 
