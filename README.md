@@ -60,6 +60,7 @@ Simply click the [script]("http://www.google.com") in the `arex-agent-java/bin` 
 java -cp "/path/to/arex-client/target/arex-client-<version>-jar-with-dependencies.jar" io.arex.cli.ArexCli
  ```
 The supported commands are as follows:
+- **record**- choose a running application and start recording live traffic
 - **replay**- replay recorded data and view differences  
   `[option: -n/--num]` replay numbers, default the latest 10 \
   `[option: -r/--replayId]` replay id, multiple are separated by spaces
@@ -92,6 +93,7 @@ Then simply run:
  ```
 java -javaagent:/path/to/arex-agent-<version>.jar
       -Darex.config.path=/path/to/arex.agent.conf
+      -jar your-application.jar
  ```
 
 
@@ -104,4 +106,4 @@ java -javaagent:/path/to/arex-agent-<version>.jar
 
 
 ## License
-- Code: [Apache-2.0](https://github.com/arextest/arex-agent-java/blob/LICENSE)
+- Code: [Apache-2.0](https://github.com/arextest/arex-agent-java/blob/main/LICENSE)
