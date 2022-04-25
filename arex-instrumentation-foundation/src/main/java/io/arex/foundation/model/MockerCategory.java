@@ -9,7 +9,7 @@ public enum MockerCategory {
     SERVLET_ENTRANCE(1, "ServletEntrance"),
     SERVICE_CALL(2, "ServiceCall"),
     DATABASE(3, "Database"),
-    REDIS(4, "Redis");
+    REDIS(4, "redis");
 
     private final static Map<Integer, MockerCategory> CODE_VALUE_MAP = asMap(MockerCategory::getType);
 

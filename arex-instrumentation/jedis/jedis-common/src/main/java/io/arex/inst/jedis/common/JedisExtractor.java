@@ -19,7 +19,7 @@ public class JedisExtractor {
     }
 
     public void record(Object response) {
-        JedisMocker mocker = new JedisMocker(this.clusterName, this.method, this.key, this.value, response);
+        JedisMocker mocker = new JedisMocker(this.clusterName, this.key, this.value, this.method, response);
         mocker.record();
     }
 
@@ -35,11 +35,11 @@ public class JedisExtractor {
     }
 
     static class RedisCluster {
-        private final static ConcurrentHashMap<String, String> map = new ConcurrentHashMap<>(5);
+        private final static ConcurrentHashMap<String, String> REDIS_CLUSTER_CACHE = new ConcurrentHashMap<>(5);
         private final static AtomicInteger sequence = new AtomicInteger();
 
         static String get(String key) {
-            return map.computeIfAbsent(key, k -> "Cluster" + sequence.addAndGet(1));
+            return REDIS_CLUSTER_CACHE.computeIfAbsent(key, k -> "Cluster" + sequence.addAndGet(1));
         }
     }
 }

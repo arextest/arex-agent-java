@@ -9,6 +9,7 @@ import redis.clients.jedis.JedisClientConfig;
 import redis.clients.jedis.JedisSocketFactory;
 import redis.clients.jedis.params.SetParams;
 
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
@@ -330,13 +331,13 @@ public class JedisWrapper extends Jedis {
 
     @Override
     public long setnx(final byte[] key, final byte[] value) {
-        return call("setnx", String.valueOf(key),
+        return call("setnx", Arrays.toString(key),
                 Base64.getEncoder().encodeToString(value), () -> super.setnx(key, value));
     }
 
     @Override
     public String setex(final byte[] key, final long seconds, final byte[] value) {
-        return call("setex", String.valueOf(key),
+        return call("setex", Arrays.toString(key),
                 Base64.getEncoder().encodeToString(value), () -> super.setex(key, seconds, value));
     }
 
@@ -346,7 +347,7 @@ public class JedisWrapper extends Jedis {
         }
 
         if (keysValues.length == 2) {
-            return call(keysValues[0], keysValues[1], callable);
+            return call(methodName, keysValues[0], keysValues[1], callable);
         }
 
         StringBuilder keyBuilder = new StringBuilder();

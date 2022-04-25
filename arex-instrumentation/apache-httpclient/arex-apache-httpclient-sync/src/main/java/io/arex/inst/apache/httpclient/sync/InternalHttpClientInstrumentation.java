@@ -40,28 +40,38 @@ public class InternalHttpClientInstrumentation implements TypeInstrumentation {
     public static class ExecuteAdvice {
 
         @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class, suppress = Throwable.class)
-        public static boolean onEnter() {
-            return ContextManager.needReplay();
+        public static boolean onEnter(
+            @Advice.Argument(1) HttpRequest request,
+            @Advice.Local("wrapped") ApacheClientExtractor extractor) {
+            ArexContext context = ContextManager.currentContext();
+            if (context != null) {
+                boolean needReplay = context.isReplay() && extractor.isMockEnabled();
+                if (needReplay) {
+                    extractor = new ApacheClientExtractor(request);
+                }
+            }
+
+            return false;
         }
 
         @Advice.OnMethodExit(onThrowable = ClientProtocolException.class)
         public static void onExit(
-                @Advice.Argument(1) HttpRequest request,
+                @Advice.Local("wrapped") ApacheClientExtractor extractor,
                 @Advice.Thrown(readOnly = false) Exception throwable,
                 @Advice.Return(readOnly = false) CloseableHttpResponse response) throws IOException {
-            ArexContext context = ContextManager.currentContext();
-            if (context != null) {
-                ApacheClientExtractor extractor = new ApacheClientExtractor(request);
-                if (context.isReplay() && response == null) {
-                    response = (CloseableHttpResponse) extractor.replay();
-                    return;
-                }
+            if (extractor == null) {
+                return;
+            }
 
-                if (throwable != null) {
-                    extractor.record(throwable);
-                } else {
-                    extractor.record(response);
-                }
+            if (ContextManager.needReplay() && response == null) {
+                response = (CloseableHttpResponse) extractor.replay();
+                return;
+            }
+
+            if (throwable != null) {
+                extractor.record(throwable);
+            } else {
+                extractor.record(response);
             }
         }
     }

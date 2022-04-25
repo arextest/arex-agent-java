@@ -15,9 +15,9 @@ public class JedisMocker extends AbstractMocker {
     private String clusterName;
     @JsonProperty("redisKey")
     private String redisKey;
-    @JsonProperty("response")
+    @JsonProperty("operationResult")
     private String response;
-    @JsonProperty("responseType")
+    @JsonProperty("resultClazz")
     private String responseType;
 
     @SuppressWarnings("deserialize")

@@ -20,8 +20,7 @@ public class CompressUtil {
     private static final Logger LOGGER = LoggerFactory.getLogger(CompressUtil.class);
 
     public static byte[] zstdCompress(String original, Charset charsetName) {
-        return original.getBytes(charsetName);
-        //return zstdCompress(original.getBytes(charsetName));
+        return zstdCompress(original.getBytes(charsetName));
     }
 
     /**

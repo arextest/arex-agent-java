@@ -44,9 +44,11 @@ public class InternalHttpAsyncClientInstrumentation implements TypeInstrumentati
                 @Advice.Local("wrapped") FutureCallbackWrapper wrapped) {
             ArexContext context = ContextManager.currentContext();
             if (context != null) {
-                wrapped = FutureCallbackWrapper.get(producer, callback);
-                callback = wrapped;
-                return context.isReplay();
+                boolean needReplay = context.isReplay() && wrapped.isMockEnabled();
+                if (needReplay) {
+                    wrapped = FutureCallbackWrapper.get(producer, callback);
+                    callback = wrapped;
+                }
             }
 
             return false;
@@ -56,6 +58,10 @@ public class InternalHttpAsyncClientInstrumentation implements TypeInstrumentati
         public static void onExit(
                 @Advice.Local("wrapped") FutureCallbackWrapper wrapped,
                 @Advice.Return(readOnly = false) Future<?> future) {
+            if (wrapped == null) {
+                return;
+            }
+
             if (ContextManager.needReplay()) {
                 wrapped.replay();
                 future = new BasicFuture<>(wrapped);
