@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 public class DatabaseMocker extends AbstractMocker {
     private static final Logger LOGGER = LoggerFactory.getLogger(DatabaseMocker.class);
+
     @JsonProperty("dbName")
     private String dbName;
     @JsonProperty("response")
@@ -22,7 +23,9 @@ public class DatabaseMocker extends AbstractMocker {
     private String sql;
 
     @SuppressWarnings("deserialize")
-    public DatabaseMocker() { }
+    public DatabaseMocker() {
+        super(MockerCategory.DATABASE);
+    }
 
     public DatabaseMocker(String dbName, String sql, String parameters) {
         this(dbName, sql, parameters, null, null);
@@ -48,7 +51,6 @@ public class DatabaseMocker extends AbstractMocker {
     @Override
     public Object parseMockResponse(AbstractMocker requestMocker) {
         Object response = SerializeUtils.deserialize(this.response, this.responseType);
-
         if (response == null) {
             LOGGER.warn("{}deserialize response is null. response type:{}, response: {}", getReplayLogTitle(), this.responseType, this.response);
             return null;

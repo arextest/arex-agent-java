@@ -48,7 +48,7 @@ public class ClassLoaderInstrumentation implements TypeInstrumentation {
                         this.getClass().getName() + "$Constructor2Advice"));
     }
 
-    static URL[] addUcp(String agentJarPath, URL[] urls) {
+    public static URL[] addUcp(String agentJarPath, URL[] urls) {
         if (urls == null || urls.length == 0) {
             return urls;
         }
