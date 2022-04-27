@@ -7,30 +7,30 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class JedisExtractor {
     private final String clusterName;
-    private final String method;
+    private final String command;
     private final String key;
-    private final String value;
+    private final String field;
 
-    public JedisExtractor(String url, String method, String key, String value) {
+    public JedisExtractor(String url, String method, String key, String field) {
         this.clusterName = RedisCluster.get(url);
-        this.method = method;
+        this.command = method;
         this.key = key;
-        this.value = value;
+        this.field = field;
     }
 
     public void record(Object response) {
-        JedisMocker mocker = new JedisMocker(this.clusterName, this.key, this.value, this.method, response);
+        JedisMocker mocker = new JedisMocker(this.clusterName, this.key, this.command, this.field, response);
         mocker.record();
     }
 
     public void record(Exception exception) {
-        JedisMocker mocker = new JedisMocker(this.clusterName, this.key, this.value, this.method);
+        JedisMocker mocker = new JedisMocker(this.clusterName, this.key, this.command, this.field, null);
         mocker.setExceptionMessage(exception.getMessage());
         mocker.record();
     }
 
     public Object replay() {
-        JedisMocker mocker = new JedisMocker(this.clusterName, this.key, this.value, this.method);
+        JedisMocker mocker = new JedisMocker(this.clusterName, this.key, this.command, this.field);
         return mocker.replay();
     }
 

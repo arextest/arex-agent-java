@@ -25,18 +25,18 @@ public class JedisMocker extends AbstractMocker {
         super(MockerCategory.REDIS);
     }
 
-    public JedisMocker(String clusterName, String key, String value, String method) {
+    public JedisMocker(String clusterName, String key, String command, String field) {
         super(MockerCategory.REDIS);
 
         this.clusterName = clusterName;
-        this.redisKey = SerializeUtils.serialize(RedisMultiKey.of(key, value, method));
+        this.redisKey = SerializeUtils.serialize(RedisMultiKey.of(key, field, command));
     }
 
-    public JedisMocker(String clusterName, String key, String value, String method, Object result) {
-        this(clusterName, key, value, method);
+    public JedisMocker(String clusterName, String key, String command, String field, Object response) {
+        this(clusterName, key, command, field);
 
-        this.response = SerializeUtils.serialize(result);
-        this.responseType = normalizeTypename(TypeUtil.getName(result));
+        this.response = SerializeUtils.serialize(response);
+        this.responseType = normalizeTypename(TypeUtil.getName(response));
     }
 
     @Override
@@ -59,17 +59,17 @@ public class JedisMocker extends AbstractMocker {
 
     static class RedisMultiKey {
         @JsonProperty("key")
-        private Object key;
+        private String key;
         @JsonProperty("filed")
-        private Object filed;
+        private String field;
         @JsonProperty("act")
-        private String act;
+        private String command;
 
-        public static RedisMultiKey of(Object key, String filed, String act) {
+        public static RedisMultiKey of(String key, String field, String command) {
             RedisMultiKey redisMultiKey = new RedisMultiKey();
             redisMultiKey.key = key;
-            redisMultiKey.filed = filed;
-            redisMultiKey.act = act;
+            redisMultiKey.field = field;
+            redisMultiKey.command = command;
             return redisMultiKey;
         }
     }

@@ -5,6 +5,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import java.util.*;
 
 public class StringUtil {
+    public static final String EMPTY = "";
 
     public static boolean isEmpty(String value) {
         return value == null || value.length() == 0;
