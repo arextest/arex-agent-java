@@ -57,17 +57,15 @@ By default, Arex uses [H2](https://www.h2database.com) as a local storage to sav
 Simply click the [script]("http://www.google.com") in the `arex-agent-java/bin` directory to start the command line tool, or run it by following `java` command
 
  ```
-java -cp "/path/to/arex-client/target/arex-client-<version>-jar-with-dependencies.jar" io.arex.cli.ArexCli
+java -cp "/path/to/arex-cli-parent/arex-cli/target/arex-cli.jar" io.arex.cli.ArexCli
  ```
 The supported commands are as follows:
-- **record**- choose a running application and start recording live traffic
 - **replay**- replay recorded data and view differences  
-  `[option: -n/--num]` replay numbers, default the latest 10 \
-  `[option: -r/--replayId]` replay id, multiple are separated by spaces
+  `[option: -n/--num]` replay numbers, default the latest 10  
+- **watch**- view replay result and differences  
+  `[option: -r/--replayId]` replay id, multiple are separated by spaces  
 - **debug**- local debugging of specific cases  
-  `[option: -r/--recordId]` record id, required Option
-
-***Run with entire AREX solution, refer to [arex-dev-ops](https://github.com/arextest/dev-ops/wiki):***
+  `[option: -r/--recordId]` record id, required Option  
 
 AREX agent works along with the [AREX config service](https://github.com/arextest/arex-config) and the [AREX storage service](https://github.com/arextest/arex-storage).
 You could just configure the host and port of them respectively, like below

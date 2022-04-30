@@ -26,10 +26,6 @@
             <groupId>${project.groupId}</groupId>
             <artifactId>arex-instrumentation-foundation</artifactId>
         </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>arex-storage-extension</artifactId>
-        </dependency>
 
         <!--Agent instrumentation start-->
         <dependency>
@@ -177,10 +173,6 @@
                                     <pattern>guava</pattern>
                                     <shadedPattern>io.arex.agent.guava</shadedPattern>
                                 </relocation>
-                                <relocation>
-                                    <pattern>org.h2</pattern>
-                                    <shadedPattern>io.arex.agent.h2database</shadedPattern>
-                                </relocation>
                             </relocations>
                             <transformers>
                                 <transformers implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
@@ -207,7 +199,6 @@
                             <include>com.google.guava:guava</include>
                             <include>com.fasterxml.jackson.core:**</include>
                             <include>commons-logging:**</include>
-                            <include>com.h2database:h2</include>
                         </includes>
                     </artifactSet>
                 </configuration>
@@ -237,6 +228,4 @@
             </plugin>
         </plugins>
     </build>
-
-
 </project>

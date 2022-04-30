@@ -15,8 +15,8 @@
         <module>arex-agent-core</module>
         <module>arex-instrumentation</module>
         <module>arex-instrumentation-foundation</module>
-        <module>arex-storage-extension</module>
-        <module>arex-client</module>
+        <module>arex-cli-parent</module>
+        <module>arex-attacher</module>
     </modules>
 
     <properties>
@@ -30,10 +30,7 @@
         <maven-shade-plugin.version>3.2.1</maven-shade-plugin.version>
         <auto-service.version>1.0</auto-service.version>
         <enforcer.qBanDuplicateClasses.skip>true</enforcer.qBanDuplicateClasses.skip>
-        <h2.version>2.1.210</h2.version>
         <commons-lang3.version>3.7</commons-lang3.version>
-        <picocli-shell-jline3.version>4.6.3</picocli-shell-jline3.version>
-        <jansi.version>2.1.0</jansi.version>
     </properties>
 
     <dependencyManagement>
@@ -64,6 +61,11 @@
                 <version>${project.version}</version>
             </dependency>
             <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>arex-server-extension</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
                 <version>${slf4j.version}</version>
@@ -84,24 +86,9 @@
                 <version>${byte-buddy.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.h2database</groupId>
-                <artifactId>h2</artifactId>
-                <version>${h2.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-lang3</artifactId>
                 <version>${commons-lang3.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>info.picocli</groupId>
-                <artifactId>picocli-shell-jline3</artifactId>
-                <version>${picocli-shell-jline3.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.fusesource.jansi</groupId>
-                <artifactId>jansi</artifactId>
-                <version>${jansi.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -126,6 +113,4 @@
             </resource>
         </resources>
     </build>
-
-
 </project>

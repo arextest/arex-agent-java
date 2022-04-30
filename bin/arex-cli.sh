@@ -6,12 +6,12 @@
 #  version : 0.1
 # ----------------------------------------------------------------------------
 
-CLASS_PATH="arex-client/target/"
+CLASS_PATH="arex-cli-parent/arex-cli/target/"
 
-CLIENT_JAR="../${CLASS_PATH}arex-client-*-jar-with-dependencies.jar"
+CLIENT_JAR="../${CLASS_PATH}arex-cli.jar"
 
 if [[ ! -x ${CLIENT_JAR} ]]; then
-    echo "Can not find arex client jar under ${CLASS_PATH}, you can run: mvn clean install,to generate jar."
+    echo "Can not find arex-cli jar under ${CLASS_PATH}, you can run: mvn clean install,to generate jar."
     exit 1
 fi
 

@@ -6,11 +6,12 @@ REM     date : 2022-3-16
 REM  version : 0.1
 REM ----------------------------------------------------------------------------
 
-set CLASS_PATH="arex-client/target/"
+set CLASS_PATH="arex-cli-parent/arex-cli/target/"
 
-if not exist "../%CLASS_PATH%arex-client-*-jar-with-dependencies.jar" (
+if not exist "../%CLASS_PATH%arex-cli.jar" (
     echo.
-    echo Can not find dependencies jar under %CLASS_PATH%, you can run "mvn clean install" to generate jar.
+    echo Can not find arex-cli.jar under %CLASS_PATH%, you can run "mvn clean install" to generate jar.
+    pause
     goto :eof
 )
 

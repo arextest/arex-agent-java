@@ -21,11 +21,10 @@ public class ArexJavaAgent {
 
     private static void init(Instrumentation inst, String agentArgs) {
         try {
-            ConfigService.INSTANCE.loadAgentConfig();
+            ConfigService.INSTANCE.loadAgentConfig(agentArgs);
             DataService.INSTANCE.start();
             installBootstrapJar(inst);
             AgentInitializer.initialize(inst, getJarFile(ArexJavaAgent.class), agentArgs);
-            ConfigService.INSTANCE.parseAgentArgs(agentArgs);
             System.out.println("ArexJavaAgent installed.");
         } catch (Exception ex) {
             System.out.println("ArexJavaAgent start failed.");

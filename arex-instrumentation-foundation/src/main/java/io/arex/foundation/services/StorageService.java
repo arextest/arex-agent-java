@@ -5,9 +5,11 @@ import io.arex.foundation.model.AbstractMocker;
 import io.arex.foundation.model.DiffMocker;
 import io.arex.foundation.model.MockDataType;
 import io.arex.foundation.model.MockerCategory;
+import io.arex.foundation.util.SPIUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
@@ -30,12 +32,17 @@ public abstract class StorageService {
     public static void init() {
         try {
             if (RUNNING.compareAndSet(false, true)) {
-                ServiceLoader<StorageService> services = ServiceLoader.load(StorageService.class);
-                for (StorageService service : services) {
-                    service.start();
-                    INSTANCE = service;
+                ServiceLoader<StorageService> services = SPIUtil.load(StorageService.class,
+                        "arex-cli-parent" + File.separator + "arex-storage-extension", "arex-storage-extension");
+                if (services != null) {
+                    for (StorageService service : services) {
+                        service.start();
+                        INSTANCE = service;
+                    }
+                    if (INSTANCE != null) {
+                        LOGGER.info("storage service load success");
+                    }
                 }
-                LOGGER.info("storage service load success");
             }
         } catch (Throwable e) {
             RUNNING.set(false);
@@ -74,6 +81,8 @@ public abstract class StorageService {
     public abstract int save(AbstractMocker mocker, String postJson);
 
     public abstract int save(DiffMocker mocker);
+
+    public abstract int saveList(List<DiffMocker> mockers);
 
     public abstract String query(AbstractMocker mocker, MockDataType type);
 

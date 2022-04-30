@@ -4,6 +4,7 @@ import io.arex.foundation.config.ConfigManager;
 import io.arex.foundation.serializer.SerializeUtils;
 import io.arex.foundation.util.AsyncHttpClientUtil;
 import io.arex.foundation.util.NetUtils;
+import io.arex.foundation.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,8 +25,13 @@ public class ConfigService {
 
     }
 
-    public void loadAgentConfig() {
+    public void loadAgentConfig(String agentArgs) {
         try {
+            // agentmain
+            if (StringUtil.isNotEmpty(agentArgs)) {
+                ConfigManager.INSTANCE.parseAgentConfig(agentArgs);
+                return;
+            }
             ConfigQueryRequest request = new ConfigQueryRequest();
             request.appId = ConfigManager.INSTANCE.getServiceName();
             request.agentExtVersion = ConfigManager.INSTANCE.getAgentVersion();
@@ -47,10 +53,6 @@ public class ConfigService {
         } catch (Throwable e) {
             LOGGER.warn("loadAgentConfig error", e);
         }
-    }
-
-    public void parseAgentArgs(String agentArgs) {
-        ConfigManager.INSTANCE.parseArgs(agentArgs);
     }
 
     public static class ConfigQueryResponse {

@@ -39,6 +39,7 @@ public class ConfigManager {
     private String storageServiceUsername;
     private String storageServicePassword;
     private String storageServiceWebPort;
+    private String serverServiceTcpPort;
 
     private static List<ConfigListener> listeners = new ArrayList<ConfigListener>();
 
@@ -109,11 +110,12 @@ public class ConfigManager {
         configServiceHost = System.getProperty(CONFIG_SERVICE_HOST);
         configPath = System.getProperty(CONFIG_PATH);
 
-        storageServiceMode = System.getProperty("arex.storage.mode", PropertyUtil.getProperty("arex.storage.mode"));
+        storageServiceMode = System.getProperty("arex.storage.mode");
         storageServiceJdbcUrl = System.getProperty("arex.storage.jdbc.url", PropertyUtil.getProperty("arex.storage.jdbc.url"));
         storageServiceUsername = System.getProperty("arex.storage.username", PropertyUtil.getProperty("arex.storage.username"));
         storageServicePassword = System.getProperty("arex.storage.password", PropertyUtil.getProperty("arex.storage.password"));
         storageServiceWebPort = System.getProperty("arex.storage.web.port", PropertyUtil.getProperty("arex.storage.web.port"));
+        serverServiceTcpPort = System.getProperty("arex.server.tcp.port", PropertyUtil.getProperty("arex.server.tcp.port"));
 
         TimerService.scheduleAtFixedRate(ConfigManager::update, 300, 300, TimeUnit.SECONDS);
     }
@@ -204,14 +206,55 @@ public class ConfigManager {
         return storageServiceWebPort;
     }
 
-    public void parseArgs(String args) {
+    public String getServerServiceTcpPort() {
+        return serverServiceTcpPort;
+    }
+
+    public void parseAgentConfig(String args) {
         Map<String, String> agentMap = StringUtil.asMap(args);
         if (agentMap != null && agentMap.size() > 0) {
-            storageServiceMode = agentMap.get("arex.storage.mode");
-            storageServiceJdbcUrl = agentMap.get("arex.storage.jdbc.url");
-            storageServiceUsername = agentMap.get("arex.storage.username");
-            storageServicePassword = agentMap.get("arex.storage.password");
-            storageServiceWebPort = agentMap.get("arex.storage.web.port");
+            String mode = agentMap.get("arex.storage.mode");
+            if (StringUtil.isNotEmpty(mode)) {
+                storageServiceMode = mode;
+            }
+            String url = agentMap.get("arex.storage.jdbc.url");
+            if (StringUtil.isNotEmpty(url)) {
+                storageServiceJdbcUrl = url;
+            }
+            String userName = agentMap.get("arex.storage.username");
+            if (StringUtil.isNotEmpty(userName)) {
+                storageServiceUsername = userName;
+            }
+            String password = agentMap.get("arex.storage.password");
+            if (StringUtil.isNotEmpty(password)) {
+                storageServicePassword = password;
+            }
+            String webPort = agentMap.get("arex.storage.web.port");
+            if (StringUtil.isNotEmpty(webPort)) {
+                storageServiceWebPort = webPort;
+            }
+            String tcpPort = agentMap.get("arex.server.tcp.port");
+            if (StringUtil.isNotEmpty(tcpPort)) {
+                serverServiceTcpPort = tcpPort;
+            }
         }
+    }
+
+    @Override
+    public String toString() {
+        return "ConfigManager{" +
+                "enableDebug=" + enableDebug +
+                ", agentVersion='" + agentVersion + '\'' +
+                ", serviceName='" + serviceName + '\'' +
+                ", storageServiceHost='" + storageServiceHost + '\'' +
+                ", configServiceHost='" + configServiceHost + '\'' +
+                ", configPath='" + configPath + '\'' +
+                ", storageServiceMode='" + storageServiceMode + '\'' +
+                ", storageServiceJdbcUrl='" + storageServiceJdbcUrl + '\'' +
+                ", storageServiceUsername='" + storageServiceUsername + '\'' +
+                ", storageServicePassword='" + storageServicePassword + '\'' +
+                ", storageServiceWebPort='" + storageServiceWebPort + '\'' +
+                ", serverServiceTcpPort='" + serverServiceTcpPort + '\'' +
+                '}';
     }
 }

@@ -63,6 +63,7 @@ public class DataService {
         executeFuture = executor.submit(this::loop);
         if (ConfigManager.INSTANCE.isLocalStorage()) {
             StorageService.init();
+            ServerService.init();
         }
     }
 
