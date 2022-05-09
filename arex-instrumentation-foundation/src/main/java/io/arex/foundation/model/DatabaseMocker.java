@@ -24,7 +24,7 @@ public class DatabaseMocker extends AbstractMocker {
 
     @SuppressWarnings("deserialize")
     public DatabaseMocker() {
-        super(MockerCategory.DATABASE);
+        super();
     }
 
     public DatabaseMocker(String dbName, String sql, String parameters) {
@@ -36,7 +36,7 @@ public class DatabaseMocker extends AbstractMocker {
     }
     
     public DatabaseMocker(String dbName, String sql, String parameters, String tables, Object response) {
-        super(MockerCategory.DATABASE);
+        super();
 
         this.dbName = dbName;
         this.parameters = parameters;
@@ -49,14 +49,24 @@ public class DatabaseMocker extends AbstractMocker {
     }
 
     @Override
-    public Object parseMockResponse(AbstractMocker requestMocker) {
+    public Object parseMockResponse() {
         Object response = SerializeUtils.deserialize(this.response, this.responseType);
         if (response == null) {
-            LOGGER.warn("{}deserialize response is null. response type:{}, response: {}", getReplayLogTitle(), this.responseType, this.response);
+            LOGGER.warn("deserialize response is null. response type:{}, response: {}", this.responseType, this.response);
             return null;
         }
 
         return response;
+    }
+
+    @Override
+    public int getCategoryType() {
+        return 3;
+    }
+
+    @Override
+    public String getCategoryName() {
+        return "Database";
     }
 
     public String getParameters() {

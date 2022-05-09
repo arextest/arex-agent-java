@@ -45,11 +45,6 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>arex-servlet-v5</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
             <artifactId>arex-apache-httpclient-async</artifactId>
             <version>${project.version}</version>
         </dependency>

@@ -2,9 +2,9 @@ package io.arex.inst.loader;
 
 import io.arex.agent.bootstrap.DecorateOnlyOnce;
 import io.arex.agent.bootstrap.cache.LoadedModuleCache;
-import io.arex.foundation.api.MethodInstrumentation;
-import io.arex.foundation.api.TypeInstrumentation;
-import io.arex.foundation.matcher.HasSuperTypeMatcher;
+import io.arex.api.instrumentation.MethodInstrumentation;
+import io.arex.api.instrumentation.TypeInstrumentation;
+import io.arex.api.matcher.HasSuperTypeMatcher;
 import io.arex.foundation.util.StringUtil;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;

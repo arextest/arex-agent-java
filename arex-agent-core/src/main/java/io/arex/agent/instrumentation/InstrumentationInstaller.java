@@ -1,9 +1,10 @@
 package io.arex.agent.instrumentation;
 
-import io.arex.foundation.api.MethodInstrumentation;
-import io.arex.foundation.api.ModuleInstrumentation;
-import io.arex.foundation.api.TypeInstrumentation;
+import io.arex.api.instrumentation.MethodInstrumentation;
+import io.arex.api.instrumentation.ModuleInstrumentation;
+import io.arex.api.instrumentation.TypeInstrumentation;
 import io.arex.foundation.util.LogUtil;
+import io.arex.foundation.util.SPIUtil;
 import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.agent.builder.ResettableClassFileTransformer;
 import net.bytebuddy.description.type.TypeDescription;
@@ -43,7 +44,7 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
     }
 
     private List<ModuleInstrumentation> loadInstrumentationModules() {
-        return load(ModuleInstrumentation.class);
+        return SPIUtil.load(ModuleInstrumentation.class);
     }
 
     private AgentBuilder installModule(AgentBuilder builder, ModuleInstrumentation instrumentation) {
@@ -110,20 +111,6 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
         // config used here to avoid warning of unused
         LOGGER.info("AgentBuilder use time: {}", (System.currentTimeMillis() - buildBegin));
         return builder;
-    }
-
-    @SuppressWarnings("ForEachIterable")
-    private static <T> List<T> load(Class<T> serviceClass) {
-        List<T> result = new ArrayList<>();
-        java.util.ServiceLoader<T> services = ServiceLoader.load(serviceClass);
-        for (Iterator<T> iter = services.iterator(); iter.hasNext(); ) {
-            try {
-                result.add(iter.next());
-            } catch (Throwable e) {
-                LOGGER.warn(String.format("Unable to load instrumentation class: %s", serviceClass.getName()), e);
-            }
-        }
-        return result;
     }
 
     static class TransformListener extends AgentBuilder.Listener.Adapter {

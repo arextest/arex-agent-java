@@ -28,7 +28,7 @@ public class ServletMocker extends AbstractMocker {
 
     @SuppressWarnings("deserilize")
     public ServletMocker() {
-        super(MockerCategory.SERVLET_ENTRANCE);
+        super();
     }
 
     public String getMethod() {
@@ -87,8 +87,19 @@ public class ServletMocker extends AbstractMocker {
         this.response = response;
     }
 
+
     @Override
-    public Object parseMockResponse(AbstractMocker requestMocker) {
+    public int getCategoryType() {
+        return 1;
+    }
+
+    @Override
+    public String getCategoryName() {
+        return "ServletEntrance";
+    }
+
+    @Override
+    public Object parseMockResponse() {
         return response;
     }
 }

@@ -24,7 +24,7 @@ public class HttpClientMocker extends AbstractMocker {
     }
 
     public HttpClientMocker(String target, String contentType, String request, Object response) {
-        super(MockerCategory.SERVICE_CALL);
+        super();
 
         this.contentType = contentType;
         this.request = request;
@@ -43,8 +43,19 @@ public class HttpClientMocker extends AbstractMocker {
         this.contentType = contentType;
     }
 
+
     @Override
-    public Object parseMockResponse(AbstractMocker requestMocker) {
+    public int getCategoryType() {
+        return 3;
+    }
+
+    @Override
+    public String getCategoryName() {
+        return "ServiceCall";
+    }
+
+    @Override
+    public Object parseMockResponse() {
         return response;
     }
 }

@@ -16,7 +16,6 @@
         <module>internal/arex-executors</module>
         <module>internal/arex-loader</module>
         <module>servlet/arex-servlet-v3</module>
-        <module>servlet/arex-servlet-v5</module>
         <module>apache-httpclient/arex-apache-httpclient-async</module>
         <module>apache-httpclient/arex-apache-httpclient-common</module>
         <module>apache-httpclient/arex-apache-httpclient-sync</module>

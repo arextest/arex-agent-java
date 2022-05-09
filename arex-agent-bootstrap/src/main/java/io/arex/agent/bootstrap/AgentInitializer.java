@@ -22,16 +22,16 @@ public class AgentInitializer {
     }
 
     private static AgentClassLoader createAgentClassLoader(File agentFile) throws Exception {
-        ClassLoader parent;
-        if (System.getProperty("java.version").startsWith("1.")) {
-            // java8
-            parent = null;
-        } else {
-            // java9
-            Method method = ClassLoader.class.getDeclaredMethod("getPlatformClassLoader");
-            parent = (ClassLoader) method.invoke(null);
+        return new AgentClassLoader(agentFile, getAgentClassLoaderParent(), null);
+    }
+
+
+    private static ClassLoader getAgentClassLoaderParent() {
+        try {
+            return (ClassLoader) ClassLoader.class.getDeclaredMethod("getPlatformClassLoader").invoke(null);
+        } catch (Exception e) {
+            return null;
         }
-        return new AgentClassLoader(agentFile, parent, null);
     }
 
     private static AgentInstaller createAgentInstaller(Instrumentation inst, File file, String agentArgs) throws Exception {

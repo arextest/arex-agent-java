@@ -15,8 +15,27 @@
 
     <modules>
         <module>arex-cli</module>
-        <module>arex-storage-extension</module>
-        <module>arex-server-extension</module>
+        <module>arex-cli-extension</module>
+        <module>arex-cli-api</module>
     </modules>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>io.arex</groupId>
+                <artifactId>arex-cli</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.arex</groupId>
+                <artifactId>arex-cli-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.arex</groupId>
+                <artifactId>arex-cli-extension</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 </project>

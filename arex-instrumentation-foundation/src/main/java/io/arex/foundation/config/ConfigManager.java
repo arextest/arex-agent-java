@@ -48,6 +48,10 @@ public class ConfigManager {
         readConfigFromFile(configPath);
     }
 
+    public boolean isLocalMode() {
+        return STORAGE_MODE.equalsIgnoreCase(getStorageServiceMode());
+    }
+
     public boolean isEnableDebug() {
         return enableDebug;
     }
@@ -180,10 +184,6 @@ public class ConfigManager {
 
     public String getStorageServicePassword() {
         return storageServicePassword;
-    }
-
-    public boolean isLocalStorage(){
-        return STORAGE_MODE.equalsIgnoreCase(storageServiceMode);
     }
 
     public void setStorageServiceMode(String storageServiceMode) {

@@ -10,6 +10,7 @@
     <version>0.0.1</version>
 
     <modules>
+        <module>arex-api</module>
         <module>arex-agent</module>
         <module>arex-agent-bootstrap</module>
         <module>arex-agent-core</module>
@@ -37,6 +38,11 @@
         <dependencies>
             <dependency>
                 <groupId>${project.groupId}</groupId>
+                <artifactId>arex-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
                 <artifactId>arex-agent</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -53,16 +59,6 @@
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>arex-instrumentation-foundation</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>${project.groupId}</groupId>
-                <artifactId>arex-storage-extension</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>${project.groupId}</groupId>
-                <artifactId>arex-server-extension</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

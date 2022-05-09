@@ -1,7 +1,7 @@
 package io.arex.inst.loader;
 
-import io.arex.foundation.api.ModuleInstrumentation;
-import io.arex.foundation.api.TypeInstrumentation;
+import io.arex.api.instrumentation.ModuleInstrumentation;
+import io.arex.api.instrumentation.TypeInstrumentation;
 import com.google.auto.service.AutoService;
 
 import java.util.Arrays;
