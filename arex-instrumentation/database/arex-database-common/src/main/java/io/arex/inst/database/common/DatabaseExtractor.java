@@ -54,7 +54,7 @@ public class DatabaseExtractor {
 
     public boolean isMockEnabled() {
         // todo
-        return IgnoreService.isTargetMockEnabled(this.dbName);
+        return IgnoreService.isServiceEnabled(this.dbName);
     }
 
     public void record(Object response) {

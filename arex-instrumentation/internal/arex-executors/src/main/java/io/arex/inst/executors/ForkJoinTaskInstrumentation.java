@@ -14,7 +14,8 @@ import static java.util.Arrays.asList;
 import static io.arex.foundation.matcher.HasSuperTypeMatcher.hasSuperType;
 import static net.bytebuddy.matcher.ElementMatchers.*;
 
-public class ForkJoinTaskInstrumentation implements TypeInstrumentation {
+public class ForkJoinTaskInstrumentation extends TypeInstrumentation {
+
     @Override
     public ElementMatcher<TypeDescription> typeMatcher() {
         return hasSuperType(named("java.util.concurrent.ForkJoinTask"));

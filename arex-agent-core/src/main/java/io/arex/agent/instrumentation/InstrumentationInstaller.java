@@ -66,7 +66,7 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
         }
 
         AgentBuilder.Transformer transformer = inst.transform();
-        AgentBuilder.Identified identified = builder.type(inst.typeMatcher());
+        AgentBuilder.Identified identified = builder.type(inst.matcher());
         if (transformer != null) {
             identified = identified.transform(transformer);
         }
@@ -120,7 +120,7 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
             try {
                 result.add(iter.next());
             } catch (Throwable e) {
-                LogUtil.warn(String.format("Unable to load instrumentation class: %s", serviceClass.getName()), e);
+                LOGGER.warn(String.format("Unable to load instrumentation class: %s", serviceClass.getName()), e);
             }
         }
         return result;

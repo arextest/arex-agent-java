@@ -14,7 +14,7 @@ import java.util.concurrent.Callable;
 import static java.util.Arrays.asList;
 import static net.bytebuddy.matcher.ElementMatchers.*;
 
-public class ThreadPoolInstrumentation implements TypeInstrumentation {
+public class ThreadPoolInstrumentation extends TypeInstrumentation {
     private List<String> includeExecutors = null;
 
     public ThreadPoolInstrumentation() {

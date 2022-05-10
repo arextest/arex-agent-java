@@ -1,6 +1,7 @@
 package io.arex.inst.database.hibernate;
 
 import io.arex.foundation.api.MethodInstrumentation;
+import io.arex.foundation.api.ModuleDescription;
 import io.arex.foundation.api.TypeInstrumentation;
 import io.arex.foundation.context.ContextManager;
 import net.bytebuddy.asm.Advice;
@@ -23,7 +24,11 @@ import static net.bytebuddy.matcher.ElementMatchers.takesArgument;
  *
  * @date 2022/03/16
  */
-public class AbstractProducedQueryInstrumentation implements TypeInstrumentation {
+public class AbstractProducedQueryInstrumentation extends TypeInstrumentation {
+    public AbstractProducedQueryInstrumentation(ModuleDescription module) {
+        super(module);
+    }
+
     @Override
     public ElementMatcher<TypeDescription> typeMatcher() {
         return named("org.hibernate.query.internal.AbstractProducedQuery");

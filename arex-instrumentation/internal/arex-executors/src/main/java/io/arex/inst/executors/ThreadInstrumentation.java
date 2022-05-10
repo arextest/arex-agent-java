@@ -18,7 +18,7 @@ import static net.bytebuddy.matcher.ElementMatchers.isMethod;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 import static net.bytebuddy.matcher.ElementMatchers.takesArguments;
 
-public class ThreadInstrumentation implements TypeInstrumentation {
+public class ThreadInstrumentation extends TypeInstrumentation {
     @Override
     public ElementMatcher<TypeDescription> typeMatcher() {
         return is(Thread.class);
