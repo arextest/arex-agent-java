@@ -14,7 +14,7 @@ import java.util.concurrent.Callable;
 import static java.util.Arrays.asList;
 import static net.bytebuddy.matcher.ElementMatchers.*;
 
-public class FutureTaskInstrumentation implements TypeInstrumentation {
+public class FutureTaskInstrumentation extends TypeInstrumentation {
     @Override
     public ElementMatcher<TypeDescription> typeMatcher() {
         return named("java.util.concurrent.FutureTask");

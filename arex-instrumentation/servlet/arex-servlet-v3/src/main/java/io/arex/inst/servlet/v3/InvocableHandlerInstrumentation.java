@@ -1,6 +1,7 @@
 package io.arex.inst.servlet.v3;
 
 import io.arex.foundation.api.MethodInstrumentation;
+import io.arex.foundation.api.ModuleDescription;
 import io.arex.foundation.api.TypeInstrumentation;
 import io.arex.foundation.context.ContextManager;
 import net.bytebuddy.asm.Advice;
@@ -29,7 +30,10 @@ import static net.bytebuddy.matcher.ElementMatchers.takesArgument;
  *
  * @date 2022/03/10
  */
-public class InvocableHandlerInstrumentation implements TypeInstrumentation {
+public class InvocableHandlerInstrumentation extends TypeInstrumentation {
+    public InvocableHandlerInstrumentation(ModuleDescription module) {
+        super(module);
+    }
     @Override
     public ElementMatcher<TypeDescription> typeMatcher() {
         return named("org.springframework.web.method.support.InvocableHandlerMethod");

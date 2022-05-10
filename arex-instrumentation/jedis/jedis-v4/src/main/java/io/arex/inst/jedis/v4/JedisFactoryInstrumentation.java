@@ -1,6 +1,7 @@
 package io.arex.inst.jedis.v4;
 
 import io.arex.foundation.api.MethodInstrumentation;
+import io.arex.foundation.api.ModuleDescription;
 import io.arex.foundation.api.TypeInstrumentation;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
@@ -17,7 +18,10 @@ import java.util.List;
 import static java.util.Collections.singletonList;
 import static net.bytebuddy.matcher.ElementMatchers.*;
 
-public class JedisFactoryInstrumentation implements TypeInstrumentation {
+public class JedisFactoryInstrumentation extends TypeInstrumentation {
+    public JedisFactoryInstrumentation(ModuleDescription module) {
+        super(module);
+    }
     @Override
     public ElementMatcher<TypeDescription> typeMatcher() {
         return named("redis.clients.jedis.JedisFactory");

@@ -14,10 +14,10 @@ import java.util.List;
  * @date 2022/03/03
  */
 @AutoService(ModuleInstrumentation.class)
-public class LoaderSpringModuleInstrumentation extends ModuleInstrumentation {
+public class ClassLoaderModuleInstrumentation extends ModuleInstrumentation {
 
-    public LoaderSpringModuleInstrumentation() {
-        super("loader-spring");
+    public ClassLoaderModuleInstrumentation() {
+        super("class-loader", null);
     }
 
     @Override

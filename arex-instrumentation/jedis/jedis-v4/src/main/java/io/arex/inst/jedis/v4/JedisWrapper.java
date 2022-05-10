@@ -349,7 +349,7 @@ public class JedisWrapper extends Jedis {
 
     @Override
     public String psetex(String key, long milliseconds, String value) {
-        return call("psetex", key, value, () -> super.psetex(key, milliseconds, value), null);
+        return call("psetex", key, value, () -> super.psetex(key, milliseconds, value), null);    
     }
 
     @Override

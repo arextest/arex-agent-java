@@ -1,6 +1,7 @@
 package io.arex.inst.servlet.v3;
 
 import io.arex.foundation.api.MethodInstrumentation;
+import io.arex.foundation.api.ModuleDescription;
 import io.arex.foundation.api.TypeInstrumentation;
 import io.arex.foundation.context.ContextManager;
 import io.arex.foundation.util.LogUtil;
@@ -28,7 +29,10 @@ import static net.bytebuddy.matcher.ElementMatchers.takesArgument;
  *
  * @date 2022/03/03
  */
-public class ServletInstrumentation implements TypeInstrumentation {
+public class ServletInstrumentation extends TypeInstrumentation {
+    public ServletInstrumentation(ModuleDescription module) {
+        super(module);
+    }
     @Override
     public ElementMatcher<TypeDescription> typeMatcher() {
         return named("javax.servlet.http.HttpServlet");

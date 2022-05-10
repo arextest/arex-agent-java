@@ -1,18 +1,23 @@
 package io.arex.inst.loader;
 
 import io.arex.agent.bootstrap.DecorateOnlyOnce;
+import io.arex.agent.bootstrap.cache.LoadedModuleCache;
 import io.arex.foundation.api.MethodInstrumentation;
 import io.arex.foundation.api.TypeInstrumentation;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
+import sun.misc.Resource;
+import sun.misc.URLClassPath;
 
+import java.io.InputStream;
+import java.net.URLClassLoader;
+import java.util.Enumeration;
 import java.util.List;
+import java.util.jar.Manifest;
 
 import static java.util.Collections.singletonList;
-import static net.bytebuddy.matcher.ElementMatchers.isMethod;
-import static net.bytebuddy.matcher.ElementMatchers.named;
-import static net.bytebuddy.matcher.ElementMatchers.takesArguments;
+import static net.bytebuddy.matcher.ElementMatchers.*;
 
 /**
  * AppClassLoaderInstrumentation
@@ -20,7 +25,7 @@ import static net.bytebuddy.matcher.ElementMatchers.takesArguments;
  *
  * @date 2022/03/29
  */
-public class AppClassLoaderInstrumentation implements TypeInstrumentation {
+public class AppClassLoaderInstrumentation extends TypeInstrumentation {
     @Override
     public ElementMatcher<TypeDescription> typeMatcher() {
         return named("sun.misc.Launcher$AppClassLoader").or(named("jdk.internal.loader.ClassLoaders$AppClassLoader"));
@@ -30,17 +35,48 @@ public class AppClassLoaderInstrumentation implements TypeInstrumentation {
     public List<MethodInstrumentation> methodAdvices() {
         return singletonList(
             new MethodInstrumentation(
-                isMethod().and(named("loadClass").and(takesArguments(2))),
+                    isMethod().and(named("loadClass").and(takesArguments(2))),
                 this.getClass().getName() + "$LoadClassAdvice"));
     }
 
     @SuppressWarnings("unused")
     public static class LoadClassAdvice {
-        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class)
-        public static boolean onEnter(@Advice.Argument(value = 0, readOnly = false) String name) {
-            DecorateOnlyOnce call = DecorateOnlyOnce.forClass(ClassLoader.class);
-            if (call.hasDecorated()) {
+        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class, suppress = Throwable.class)
+        public static boolean onEnter(@Advice.Argument(value = 0, readOnly = false) String name,
+                                      @Advice.FieldValue("ucp") URLClassPath ucp) {
+            if (DecorateOnlyOnce.forClass(ClassLoader.class).hasDecorated()) {
                 return name.startsWith("io.arex.inst.");
+            }
+
+            DecorateOnlyOnce call = DecorateOnlyOnce.forClass(URLClassLoader.class);
+            if (call.hasDecorated()) {
+                return false;
+            }
+            call.setDecorated();
+
+            Enumeration<Resource> files = ucp.getResources("META-INF/MANIFEST.MF");
+            while (files.hasMoreElements()) {
+                try (InputStream inputStream = files.nextElement().getInputStream()) {
+                    Manifest mf = new Manifest(inputStream);
+                    String packageName = mf.getMainAttributes().getValue("Bundle-Name");
+                    if (packageName == null || packageName == "") {
+                        packageName = mf.getMainAttributes().getValue("Automatic-Module-Name");
+                    }
+                    if (packageName == null || packageName == "") {
+                        continue;
+                    }
+
+                    String version = mf.getMainAttributes().getValue("Bundle-Version");
+                    if (version == null || version == "") {
+                        version = mf.getMainAttributes().getValue("Implementation-Version");
+                    }
+                    if (version == null || version == "") {
+                        continue;
+                    }
+                    LoadedModuleCache.registerResource(packageName, version);
+                } catch (Exception e) {
+                    continue;
+                }
             }
             return false;
         }

@@ -2,25 +2,32 @@ package io.arex.foundation.api;
 
 import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.description.type.TypeDescription;
-import net.bytebuddy.dynamic.DynamicType;
 import net.bytebuddy.matcher.ElementMatcher;
 
 import java.util.List;
 
-import static net.bytebuddy.matcher.ElementMatchers.takesArgument;
-import static net.bytebuddy.matcher.ElementMatchers.takesArguments;
+import static io.arex.foundation.matcher.ModuleVersionMatcher.moduleMatch;
 
-public interface TypeInstrumentation {
+public abstract class TypeInstrumentation {
+    private final ModuleDescription module;
 
-    ElementMatcher<TypeDescription> typeMatcher();
+    public TypeInstrumentation() {
+        this(null);
+    }
 
-    List<MethodInstrumentation> methodAdvices();
+    public TypeInstrumentation(ModuleDescription module) {
+        this.module = module;
+    }
 
-    default AgentBuilder.Transformer transform() {
+    public ElementMatcher<TypeDescription> matcher() {
+        return module != null ? moduleMatch(module, typeMatcher()) : typeMatcher();
+    }
+
+    public AgentBuilder.Transformer transform() {
         return null;
     }
 
-    default DynamicType.Builder test(AgentBuilder builder) {
-        return null;
-    }
+    protected abstract ElementMatcher<TypeDescription> typeMatcher();
+
+    public abstract List<MethodInstrumentation> methodAdvices();
 }

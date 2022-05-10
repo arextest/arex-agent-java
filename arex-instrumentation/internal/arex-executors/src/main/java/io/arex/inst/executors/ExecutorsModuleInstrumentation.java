@@ -12,7 +12,7 @@ import static java.util.Arrays.asList;
 @AutoService(ModuleInstrumentation.class)
 public class ExecutorsModuleInstrumentation extends ModuleInstrumentation {
     public ExecutorsModuleInstrumentation() {
-        super("internal-executors");
+        super("internal-executors", null);
     }
 
     @Override
