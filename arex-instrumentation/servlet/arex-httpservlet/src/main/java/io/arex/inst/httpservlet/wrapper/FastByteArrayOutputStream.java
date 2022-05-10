@@ -1,4 +1,4 @@
-package io.arex.inst.servlet.v3;
+package io.arex.inst.httpservlet.wrapper;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -126,7 +126,7 @@ public class FastByteArrayOutputStream extends OutputStream {
     }
 
     public InputStream getInputStream() {
-        return new FastByteArrayOutputStream.FastByteArrayInputStream(this);
+        return new FastByteArrayInputStream(this);
     }
 
     public void writeTo(OutputStream out) throws IOException {

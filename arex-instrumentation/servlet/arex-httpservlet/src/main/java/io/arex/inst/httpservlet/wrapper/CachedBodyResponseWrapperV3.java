@@ -1,19 +1,23 @@
-package io.arex.inst.servlet.v3;
+package io.arex.inst.httpservlet.wrapper;
 
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.WriteListener;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletResponseWrapper;
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 
 /**
- * CachedBodyResponseWrapper
+ * CachedBodyResponseWrapperV3
  *
  *
  * @date 2022/03/03
  */
-public class CachedBodyResponseWrapper extends HttpServletResponseWrapper {
+public class CachedBodyResponseWrapperV3 extends HttpServletResponseWrapper {
 
     private final FastByteArrayOutputStream content = new FastByteArrayOutputStream(1024);
 
@@ -28,7 +32,7 @@ public class CachedBodyResponseWrapper extends HttpServletResponseWrapper {
      * Create a new CachedBodyResponseWrapper for the given servlet response.
      * @param response the original servlet response
      */
-    public CachedBodyResponseWrapper(HttpServletResponse response) {
+    public CachedBodyResponseWrapperV3(HttpServletResponse response) {
         super(response);
     }
 
@@ -67,7 +71,7 @@ public class CachedBodyResponseWrapper extends HttpServletResponseWrapper {
     @Override
     public ServletOutputStream getOutputStream() throws IOException {
         if (this.outputStream == null) {
-            this.outputStream = new CachedBodyResponseWrapper.ResponseServletOutputStream(getResponse().getOutputStream());
+            this.outputStream = new ResponseServletOutputStream(getResponse().getOutputStream());
         }
         return this.outputStream;
     }
@@ -76,8 +80,8 @@ public class CachedBodyResponseWrapper extends HttpServletResponseWrapper {
     public PrintWriter getWriter() throws IOException {
         if (this.writer == null) {
             String characterEncoding = getCharacterEncoding();
-            this.writer = (characterEncoding != null ? new CachedBodyResponseWrapper.ResponsePrintWriter(characterEncoding) :
-                new CachedBodyResponseWrapper.ResponsePrintWriter("ISO-8859-1"));
+            this.writer = (characterEncoding != null ? new ResponsePrintWriter(characterEncoding) :
+                new ResponsePrintWriter("ISO-8859-1"));
         }
         return this.writer;
     }
