@@ -2,16 +2,16 @@ package io.arex.inst.executors;
 
 import io.arex.agent.bootstrap.cache.WeakMap;
 import io.arex.agent.bootstrap.ctx.ArexThreadLocal;
-import io.arex.foundation.api.MethodInstrumentation;
-import io.arex.foundation.api.TypeInstrumentation;
+import io.arex.api.instrumentation.MethodInstrumentation;
+import io.arex.api.instrumentation.TypeInstrumentation;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
 
+import java.util.Arrays;
 import java.util.List;
 
-import static java.util.Arrays.asList;
-import static io.arex.foundation.matcher.HasSuperTypeMatcher.hasSuperType;
+import static io.arex.api.matcher.HasSuperTypeMatcher.hasSuperType;
 import static net.bytebuddy.matcher.ElementMatchers.*;
 
 public class ForkJoinTaskInstrumentation extends TypeInstrumentation {
@@ -23,7 +23,7 @@ public class ForkJoinTaskInstrumentation extends TypeInstrumentation {
 
     @Override
     public List<MethodInstrumentation> methodAdvices() {
-        return asList(buildConstructorMethodInstrumentation(),
+        return Arrays.asList(buildConstructorMethodInstrumentation(),
                 buildExecInstrumentation());
     }
 

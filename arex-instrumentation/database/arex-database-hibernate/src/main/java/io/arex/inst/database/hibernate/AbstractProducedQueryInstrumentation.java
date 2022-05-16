@@ -1,8 +1,8 @@
 package io.arex.inst.database.hibernate;
 
-import io.arex.foundation.api.MethodInstrumentation;
-import io.arex.foundation.api.ModuleDescription;
-import io.arex.foundation.api.TypeInstrumentation;
+import io.arex.api.instrumentation.MethodInstrumentation;
+import io.arex.api.instrumentation.ModuleDescription;
+import io.arex.api.instrumentation.TypeInstrumentation;
 import io.arex.foundation.context.ContextManager;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.method.MethodDescription;

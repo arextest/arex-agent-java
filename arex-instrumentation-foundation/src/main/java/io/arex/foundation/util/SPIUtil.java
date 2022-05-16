@@ -8,12 +8,27 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.security.CodeSource;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.ServiceLoader;
 
 public class SPIUtil {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(SPIUtil.class);
+
+    @SuppressWarnings("ForEachIterable")
+    public static <T> List<T> load(Class<T> serviceClass) {
+        List<T> result = new ArrayList<>();
+        java.util.ServiceLoader<T> services = ServiceLoader.load(serviceClass);
+        for (Iterator<T> iter = services.iterator(); iter.hasNext(); ) {
+            try {
+                result.add(iter.next());
+            } catch (Throwable e) {
+                LogUtil.warn(String.format("Unable to load instrumentation class: %s", serviceClass.getName()), e);
+            }
+        }
+        return result;
+    }
 
     public static <T> ServiceLoader<T> load(Class<T> spiType, String moduleName, String jarName) {
         try {

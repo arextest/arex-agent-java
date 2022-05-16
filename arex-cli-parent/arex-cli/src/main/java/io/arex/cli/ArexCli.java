@@ -1,9 +1,8 @@
 package io.arex.cli;
 
-
+import io.arex.cli.api.model.Constants;
 import io.arex.cli.cmd.RootCommand;
 import io.arex.cli.util.LogUtil;
-import io.arex.foundation.model.Constants;
 import org.fusesource.jansi.AnsiConsole;
 import org.jline.console.SystemRegistry;
 import org.jline.console.impl.Builtins;

@@ -15,7 +15,7 @@
     <dependencies>
         <dependency>
             <groupId>io.arex</groupId>
-            <artifactId>arex-instrumentation-foundation</artifactId>
+            <artifactId>arex-cli-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -46,7 +46,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>io.arex.cli.ArexCli</mainClass>
+                            <mainClass>io.arex.cli.extension.ArexCli</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>

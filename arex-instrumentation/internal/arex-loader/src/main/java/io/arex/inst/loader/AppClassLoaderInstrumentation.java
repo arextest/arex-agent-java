@@ -2,8 +2,8 @@ package io.arex.inst.loader;
 
 import io.arex.agent.bootstrap.DecorateOnlyOnce;
 import io.arex.agent.bootstrap.cache.LoadedModuleCache;
-import io.arex.foundation.api.MethodInstrumentation;
-import io.arex.foundation.api.TypeInstrumentation;
+import io.arex.api.instrumentation.MethodInstrumentation;
+import io.arex.api.instrumentation.TypeInstrumentation;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
@@ -59,18 +59,18 @@ public class AppClassLoaderInstrumentation extends TypeInstrumentation {
                 try (InputStream inputStream = files.nextElement().getInputStream()) {
                     Manifest mf = new Manifest(inputStream);
                     String packageName = mf.getMainAttributes().getValue("Bundle-Name");
-                    if (packageName == null || packageName == "") {
+                    if (packageName == null || "".equals(packageName)) {
                         packageName = mf.getMainAttributes().getValue("Automatic-Module-Name");
                     }
-                    if (packageName == null || packageName == "") {
+                    if (packageName == null || "".equals(packageName)) {
                         continue;
                     }
 
                     String version = mf.getMainAttributes().getValue("Bundle-Version");
-                    if (version == null || version == "") {
+                    if (version == null || "".equals(version)) {
                         version = mf.getMainAttributes().getValue("Implementation-Version");
                     }
-                    if (version == null || version == "") {
+                    if (version == null || "".equals(version)) {
                         continue;
                     }
                     LoadedModuleCache.registerResource(packageName, version);

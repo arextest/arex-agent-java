@@ -22,11 +22,11 @@ public class JedisMocker extends AbstractMocker {
 
     @SuppressWarnings("deserialize")
     public JedisMocker() {
-        super(MockerCategory.REDIS);
+        super();
     }
 
     public JedisMocker(String clusterName, String key, String command, String field) {
-        super(MockerCategory.REDIS);
+        super();
 
         this.clusterName = clusterName;
         this.redisKey = SerializeUtils.serialize(RedisMultiKey.of(key, field, command));
@@ -40,10 +40,10 @@ public class JedisMocker extends AbstractMocker {
     }
 
     @Override
-    public Object parseMockResponse(AbstractMocker requestMocker) {
+    public Object parseMockResponse() {
         Object response = SerializeUtils.deserialize(this.response, this.responseType);
         if (response == null) {
-            LOGGER.warn("{}deserialize response is null. response type:{}, response: {}", getReplayLogTitle(), this.responseType, this.response);
+            LOGGER.warn("deserialize response is null. response type:{}, response: {}", this.responseType, this.response);
             return null;
         }
 
@@ -55,6 +55,16 @@ public class JedisMocker extends AbstractMocker {
             return "java.util.HashSet";
         }
         return typeName;
+    }
+
+    @Override
+    public int getCategoryType() {
+        return 4;
+    }
+
+    @Override
+    public String getCategoryName() {
+        return "redis";
     }
 
     static class RedisMultiKey {

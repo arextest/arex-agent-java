@@ -1,8 +1,8 @@
 package io.arex.inst.servlet.v3;
 
-import io.arex.foundation.api.ModuleDescription;
-import io.arex.foundation.api.ModuleInstrumentation;
-import io.arex.foundation.api.TypeInstrumentation;
+import io.arex.api.instrumentation.ModuleDescription;
+import io.arex.api.instrumentation.ModuleInstrumentation;
+import io.arex.api.instrumentation.TypeInstrumentation;
 import com.google.auto.service.AutoService;
 
 import java.util.Arrays;

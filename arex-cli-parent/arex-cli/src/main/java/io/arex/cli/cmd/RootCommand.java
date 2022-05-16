@@ -1,9 +1,10 @@
 package io.arex.cli.cmd;
 
-
+import io.arex.cli.api.extension.CliServer;
+import io.arex.cli.api.model.Constants;
 import io.arex.cli.util.LogUtil;
 import io.arex.cli.util.SystemUtils;
-import io.arex.foundation.model.Constants;
+import io.arex.foundation.extension.ExtensionLoader;
 import io.arex.foundation.util.IOUtils;
 import io.arex.foundation.util.StringUtil;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -80,6 +81,13 @@ public class RootCommand implements Runnable {
         if (!agent()) {
             return;
         }
+
+        try {
+            ExtensionLoader.getExtension(CliServer.class).start();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         if (!connect()) {
             return;
         }

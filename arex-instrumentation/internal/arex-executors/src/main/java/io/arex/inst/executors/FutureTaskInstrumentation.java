@@ -1,7 +1,7 @@
 package io.arex.inst.executors;
 
-import io.arex.foundation.api.MethodInstrumentation;
-import io.arex.foundation.api.TypeInstrumentation;
+import io.arex.api.instrumentation.MethodInstrumentation;
+import io.arex.api.instrumentation.TypeInstrumentation;
 import io.arex.agent.bootstrap.ctx.CallableWrapper;
 import io.arex.agent.bootstrap.ctx.RunnableWrapper;
 import net.bytebuddy.asm.Advice;

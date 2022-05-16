@@ -1,5 +1,6 @@
 package io.arex.foundation.model;
 
+import io.arex.api.mocker.Mocker;
 import io.arex.foundation.config.ConfigManager;
 import io.arex.foundation.context.ArexContext;
 import io.arex.foundation.context.ContextManager;
@@ -10,11 +11,11 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonAutoDetect(
-        getterVisibility = JsonAutoDetect.Visibility.NONE,
-        setterVisibility = JsonAutoDetect.Visibility.NONE,
-        isGetterVisibility = JsonAutoDetect.Visibility.NONE
+    getterVisibility = JsonAutoDetect.Visibility.NONE,
+    setterVisibility = JsonAutoDetect.Visibility.NONE,
+    isGetterVisibility = JsonAutoDetect.Visibility.NONE
 )
-public abstract class AbstractMocker {
+public abstract class AbstractMocker implements Mocker {
 
     @JsonProperty("appId")
     private String appId;
@@ -30,12 +31,8 @@ public abstract class AbstractMocker {
     private int category;
 
     protected transient long queueTime;
-    protected transient MockDataType mockDataType;
 
     public AbstractMocker() {
-    }
-
-    public AbstractMocker(MockerCategory category) {
         ArexContext context = ContextManager.currentContext();
         if (context != null) {
             this.caseId = context.getCaseId();
@@ -43,21 +40,23 @@ public abstract class AbstractMocker {
         }
         this.createTime = System.currentTimeMillis();
         this.appId = ConfigManager.INSTANCE.getServiceName();
-        this.category = category.getType();
     }
 
     public String getAppId() {
         return appId;
     }
 
+    @Override
     public String getCaseId() {
         return caseId;
     }
 
+    @Override
     public String getReplayId() {
         return replayId;
     }
 
+    @Override
     public long getQueueTime() {
         return queueTime;
     }
@@ -74,46 +73,22 @@ public abstract class AbstractMocker {
         return this.exceptionMessage;
     }
 
+    @Override
     public void record() {
-        DataService.INSTANCE.save(this);
+        DataService.INSTANCE.saveRecordData(this);
         if (ConfigManager.INSTANCE.isEnableDebug()) {
-            LogUtil.info(String.format("RECORD_%s", this.category), SerializeUtils.serialize(this));
+            LogUtil.info(String.format("RECORD_%s", this.getCategoryName()), SerializeUtils.serialize(this));
         }
     }
 
+    @Override
     public Object replay() {
         if (ConfigManager.INSTANCE.isEnableDebug()) {
             LogUtil.info("REPLAY", SerializeUtils.serialize(this));
         }
-        return DataService.INSTANCE.get(this);
+        return DataService.INSTANCE.queryReplayData(this);
     }
 
-    public MockerCategory getCategory() {
-        return MockerCategory.of(this.category);
-    }
-
-    /**
-     * parse response mock
-     * @return Object
-     * @param requestMocker request mocker
-     */
-    public abstract Object parseMockResponse(AbstractMocker requestMocker);
-
-    public String getRecordLogTitle() {
-        return LogUtil.buildTitle("record.", getCategory().getName());
-    }
-
-    public String getReplayLogTitle() {
-        return LogUtil.buildTitle("replay.", getCategory().getName());
-    }
-
-    public MockDataType getMockDataType() {
-        return mockDataType;
-    }
-
-    public void setMockDataType(MockDataType mockDataType) {
-        this.mockDataType = mockDataType;
-    }
 
     public void setCaseId(String caseId) {
         this.caseId = caseId;
