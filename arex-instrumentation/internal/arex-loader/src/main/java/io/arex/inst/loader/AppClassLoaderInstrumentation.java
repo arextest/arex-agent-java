@@ -7,10 +7,10 @@ import io.arex.foundation.api.TypeInstrumentation;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
-import sun.misc.Resource;
-import sun.misc.URLClassPath;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Enumeration;
 import java.util.List;
@@ -43,7 +43,7 @@ public class AppClassLoaderInstrumentation extends TypeInstrumentation {
     public static class LoadClassAdvice {
         @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class, suppress = Throwable.class)
         public static boolean onEnter(@Advice.Argument(value = 0, readOnly = false) String name,
-                                      @Advice.FieldValue("ucp") URLClassPath ucp) {
+                                      @Advice.This ClassLoader thisClassLoader) {
             if (DecorateOnlyOnce.forClass(ClassLoader.class).hasDecorated()) {
                 return name.startsWith("io.arex.inst.");
             }
@@ -54,30 +54,35 @@ public class AppClassLoaderInstrumentation extends TypeInstrumentation {
             }
             call.setDecorated();
 
-            Enumeration<Resource> files = ucp.getResources("META-INF/MANIFEST.MF");
-            while (files.hasMoreElements()) {
-                try (InputStream inputStream = files.nextElement().getInputStream()) {
-                    Manifest mf = new Manifest(inputStream);
-                    String packageName = mf.getMainAttributes().getValue("Bundle-Name");
-                    if (packageName == null || packageName == "") {
-                        packageName = mf.getMainAttributes().getValue("Automatic-Module-Name");
-                    }
-                    if (packageName == null || packageName == "") {
-                        continue;
-                    }
+            try {
+                Enumeration<URL> urls = thisClassLoader.getResources("META-INF/MANIFEST.MF");
+                while (urls.hasMoreElements()) {
+                    URL url = urls.nextElement();
+                    try (InputStream inputStream = url.openStream()){
+                        Manifest manifest = new Manifest(inputStream);
+                        String packageName = manifest.getMainAttributes().getValue("Bundle-Name");
+                        if (packageName == null || packageName.equals("")) {
+                            packageName = manifest.getMainAttributes().getValue("Automatic-Module-Name");
+                        }
+                        if (packageName == null || packageName.equals("")) {
+                            continue;
+                        }
 
-                    String version = mf.getMainAttributes().getValue("Bundle-Version");
-                    if (version == null || version == "") {
-                        version = mf.getMainAttributes().getValue("Implementation-Version");
-                    }
-                    if (version == null || version == "") {
+                        String version = manifest.getMainAttributes().getValue("Bundle-Version");
+                        if (version == null || version.equals("")) {
+                            version = manifest.getMainAttributes().getValue("Implementation-Version");
+                        }
+                        if (version == null || version.equals("")) {
+                            continue;
+                        }
+                        LoadedModuleCache.registerResource(packageName, version);
+                    } catch (IOException e) {
                         continue;
                     }
-                    LoadedModuleCache.registerResource(packageName, version);
-                } catch (Exception e) {
-                    continue;
                 }
+            } catch (IOException e) {
             }
+
             return false;
         }
     }
