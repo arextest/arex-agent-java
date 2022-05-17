@@ -1,24 +1,25 @@
-package io.arex.inst.servlet.v3;
+package io.arex.inst.httpservlet.wrapper;
 
+import jakarta.servlet.ReadListener;
+import jakarta.servlet.ServletInputStream;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequestWrapper;
 
-import javax.servlet.ReadListener;
-import javax.servlet.ServletInputStream;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletRequestWrapper;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URLEncoder;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 /**
- * CachedBodyRequestWrapper
- *
- *
- * @date 2022/03/03
+ * CachedBodyRequestWrapperV5
  */
-public class CachedBodyRequestWrapper extends HttpServletRequestWrapper {
+public class CachedBodyRequestWrapperV5 extends HttpServletRequestWrapper {
     private static final String FORM_CONTENT_TYPE = "application/x-www-form-urlencoded";
 
 
@@ -33,9 +34,10 @@ public class CachedBodyRequestWrapper extends HttpServletRequestWrapper {
 
     /**
      * Create a new CachedBodyRequestWrapper for the given servlet request.
+     *
      * @param request the original servlet request
      */
-    public CachedBodyRequestWrapper(HttpServletRequest request) {
+    public CachedBodyRequestWrapperV5(HttpServletRequest request) {
         super(request);
         int contentLength = request.getContentLength();
         this.cachedContent = new ByteArrayOutputStream(contentLength >= 0 ? contentLength : 1024);
@@ -44,12 +46,13 @@ public class CachedBodyRequestWrapper extends HttpServletRequestWrapper {
 
     /**
      * Create a new CachedBodyRequestWrapper for the given servlet request.
-     * @param request the original servlet request
+     *
+     * @param request           the original servlet request
      * @param contentCacheLimit the maximum number of bytes to cache per request
-     * @since 4.3.6
      * @see #handleContentOverflow(int)
+     * @since 4.3.6
      */
-    public CachedBodyRequestWrapper(HttpServletRequest request, int contentCacheLimit) {
+    public CachedBodyRequestWrapperV5(HttpServletRequest request, int contentCacheLimit) {
         super(request);
         this.cachedContent = new ByteArrayOutputStream(contentCacheLimit);
         this.contentCacheLimit = contentCacheLimit;
@@ -59,7 +62,7 @@ public class CachedBodyRequestWrapper extends HttpServletRequestWrapper {
     @Override
     public ServletInputStream getInputStream() throws IOException {
         if (this.inputStream == null) {
-            this.inputStream = new CachedBodyRequestWrapper.ContentCachingInputStream(getRequest().getInputStream());
+            this.inputStream = new ContentCachingInputStream(getRequest().getInputStream());
         }
         return this.inputStream;
     }
@@ -113,8 +116,7 @@ public class CachedBodyRequestWrapper extends HttpServletRequestWrapper {
 
     private boolean isFormPost() {
         String contentType = getContentType();
-        return (contentType != null && contentType.contains(FORM_CONTENT_TYPE) &&
-            "POST".equals(getMethod()));
+        return (contentType != null && contentType.contains(FORM_CONTENT_TYPE) && "POST".equals(getMethod()));
     }
 
     private void writeRequestParametersToCachedContent() {
@@ -141,8 +143,7 @@ public class CachedBodyRequestWrapper extends HttpServletRequestWrapper {
                     }
                 }
             }
-        }
-        catch (IOException ex) {
+        } catch (IOException ex) {
             throw new IllegalStateException("Failed to write request parameters to cached content", ex);
         }
     }
@@ -154,7 +155,8 @@ public class CachedBodyRequestWrapper extends HttpServletRequestWrapper {
      * reflects the amount of content that has has been read at the time when it
      * is called. If the application does not read the content, this method
      * returns an empty array.
-     * @see #CachedBodyRequestWrapper(HttpServletRequest, int)
+     *
+     * @see #CachedBodyRequestWrapperV5(HttpServletRequest, int)
      */
     public byte[] getContentAsByteArray() {
         return this.cachedContent.toByteArray();
@@ -165,10 +167,11 @@ public class CachedBodyRequestWrapper extends HttpServletRequestWrapper {
      * body being read that exceeds the specified content cache limit.
      * <p>The default implementation is empty. Subclasses may override this to
      * throw a payload-too-large exception or the like.
+     *
      * @param contentCacheLimit the maximum number of bytes to cache per request
-     * which has just been exceeded
+     *                          which has just been exceeded
+     * @see #CachedBodyRequestWrapperV5(HttpServletRequest, int)
      * @since 4.3.6
-     * @see #CachedBodyRequestWrapper(HttpServletRequest, int)
      */
     protected void handleContentOverflow(int contentCacheLimit) {
     }
@@ -191,8 +194,7 @@ public class CachedBodyRequestWrapper extends HttpServletRequestWrapper {
                 if (contentCacheLimit != null && cachedContent.size() == contentCacheLimit) {
                     this.overflow = true;
                     handleContentOverflow(contentCacheLimit);
-                }
-                else {
+                } else {
                     cachedContent.write(ch);
                 }
             }
@@ -208,8 +210,7 @@ public class CachedBodyRequestWrapper extends HttpServletRequestWrapper {
 
         private void writeToCache(final byte[] b, final int off, int count) {
             if (!this.overflow && count > 0) {
-                if (contentCacheLimit != null &&
-                    count + cachedContent.size() > contentCacheLimit) {
+                if (contentCacheLimit != null && count + cachedContent.size() > contentCacheLimit) {
                     this.overflow = true;
                     cachedContent.write(b, off, contentCacheLimit - cachedContent.size());
                     handleContentOverflow(contentCacheLimit);

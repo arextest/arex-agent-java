@@ -15,8 +15,7 @@
     <modules>
         <module>internal/arex-executors</module>
         <module>internal/arex-loader</module>
-        <module>servlet/arex-servlet-v3</module>
-        <module>servlet/arex-servlet-v5</module>
+        <module>servlet/arex-httpservlet</module>
         <module>apache-httpclient/arex-apache-httpclient-async</module>
         <module>apache-httpclient/arex-apache-httpclient-common</module>
         <module>apache-httpclient/arex-apache-httpclient-sync</module>
@@ -25,6 +24,7 @@
         <module>database/arex-database-mybatis3</module>
         <module>jedis/jedis-common</module>
         <module>jedis/jedis-v4</module>
+
     </modules>
     <dependencies>
         <dependency>

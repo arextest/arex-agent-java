@@ -40,12 +40,7 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>arex-servlet-v3</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>arex-servlet-v5</artifactId>
+            <artifactId>arex-httpservlet</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
