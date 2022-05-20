@@ -22,8 +22,9 @@
         <module>database/arex-database-common</module>
         <module>database/arex-database-hibernate</module>
         <module>database/arex-database-mybatis3</module>
-        <module>jedis/jedis-common</module>
-        <module>jedis/jedis-v4</module>
+        <module>redis/arex-redis-common</module>
+        <module>redis/arex-jedis-v4</module>
+        <module>redis/arex-lettuce-v6</module>
         <module>dynamic/arex-dynamic</module>
 
     </modules>
