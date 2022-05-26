@@ -3,12 +3,18 @@ package io.arex.foundation.context;
 
 import io.arex.foundation.util.StringUtil;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.WeakHashMap;
+
 public class ArexContext {
     private final String caseId;
     private final String replayId;
     private final long createTime;
     private final SequenceProvider sequence;
-
+    private final List<Integer> methodSignatureHashList = new ArrayList<>();
+    private final Map<String, Object> cacheMap = new WeakHashMap<>();
     public String getCaseId() {
         return this.caseId;
     }
@@ -54,5 +60,19 @@ public class ArexContext {
 
     public static ArexContext of(String caseId, String replayId) {
         return new ArexContext(caseId, replayId);
+    }
+
+    public List<Integer> getMethodSignatureHashList() {
+        return methodSignatureHashList;
+    }
+
+    public Map<String, Object> getCacheMap() {
+        return cacheMap;
+    }
+
+    public void clear() {
+        methodSignatureHashList.clear();
+        cacheMap.clear();
+        sequence.clear();
     }
 }

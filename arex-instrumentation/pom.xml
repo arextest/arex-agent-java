@@ -24,6 +24,7 @@
         <module>database/arex-database-mybatis3</module>
         <module>jedis/jedis-common</module>
         <module>jedis/jedis-v4</module>
+        <module>dynamic/arex-dynamic</module>
 
     </modules>
     <dependencies>

@@ -27,21 +27,15 @@ public abstract class ApiHandler {
         return AsyncHttpClientUtil.executeAsyncIncludeHeader(url, httpEntity, requestHeaders).join();
     }
 
-    public String[] parseArgs(String args) {
-        if (StringUtil.isEmpty(args)) {
+    public String[] parseArgs(String opt) {
+        if (StringUtil.isBlank(opt)) {
             return null;
         }
-        args = args.trim();
-        if (args.contains(" ")) {
-            return args.split(" ");
-        }
-        if (args.contains("=")) {
-            return args.split("=");
-        }
-        if (args.contains(":")) {
-            return args.split(":");
-        }
-        return new String[]{args};
+        return opt.trim().split("-");
+    }
+
+    public String[] parseOption(String args) {
+        return args.trim().split("=");
     }
 
     public abstract String process(String args) throws Exception;

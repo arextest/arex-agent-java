@@ -1,18 +1,17 @@
 package io.arex.foundation.config;
 
+import io.arex.foundation.model.DynamicClassEntity;
 import io.arex.foundation.services.TimerService;
 import io.arex.foundation.util.PropertyUtil;
 import io.arex.foundation.util.StringUtil;
+import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
@@ -26,6 +25,10 @@ public class ConfigManager {
     private static final String CONFIG_SERVICE_HOST = "arex.config.service.host";
     private static final String CONFIG_PATH = "arex.config.path";
     private static final String STORAGE_MODE = "local";
+    private static final String RECORD_RATE = "arex.rate.limit";
+    private static final String FORCE_RECORD = "arex.force.record";
+    private static final String DYNAMIC_CLASS_KEY = "arex.dynamic.class";
+    private static final String DYNAMIC_RESULT_SIZE_LIMIT = "arex.dynamic.result.size.limit";
 
     private boolean enableDebug;
     private String agentVersion;
@@ -40,6 +43,11 @@ public class ConfigManager {
     private String storageServicePassword;
     private String storageServiceWebPort;
     private String serverServiceTcpPort;
+    private int recordRate;
+    private boolean forceRecord;
+    private String dynamicClass;
+    private int dynamicResultSizeLimit;
+    private List<DynamicClassEntity> dynamicClassList;
 
     private static List<ConfigListener> listeners = new ArrayList<ConfigListener>();
 
@@ -102,6 +110,30 @@ public class ConfigManager {
         System.setProperty(CONFIG_SERVICE_HOST, configServiceHost);
     }
 
+    public void setRecordRate(String recordRate) {
+        if (StringUtil.isEmpty(recordRate)) {
+            return;
+        }
+        this.recordRate = Integer.parseInt(recordRate);
+        System.setProperty(RECORD_RATE, recordRate);
+    }
+
+    public void setForceRecord(String forceRecord) {
+        if (StringUtil.isEmpty(forceRecord)) {
+            return;
+        }
+        this.forceRecord = BooleanUtils.toBoolean(forceRecord);
+        System.setProperty(FORCE_RECORD, forceRecord);
+    }
+
+    public void setDynamicResultSizeLimit(String dynamicResultSizeLimit) {
+        if (StringUtil.isEmpty(dynamicResultSizeLimit)) {
+            return;
+        }
+        this.dynamicResultSizeLimit = Integer.parseInt(dynamicResultSizeLimit);
+        System.setProperty(DYNAMIC_RESULT_SIZE_LIMIT, dynamicResultSizeLimit);
+    }
+
     private void init() {
         agentVersion = "0.0.1";
         enableDebug = Boolean.parseBoolean(System.getProperty(ENABLE_DEBUG));
@@ -109,6 +141,8 @@ public class ConfigManager {
         storageServiceHost = System.getProperty(STORAGE_SERVICE_HOST);
         configServiceHost = System.getProperty(CONFIG_SERVICE_HOST);
         configPath = System.getProperty(CONFIG_PATH);
+        recordRate = Integer.parseInt(System.getProperty(RECORD_RATE, "1"));
+        forceRecord = BooleanUtils.toBoolean(System.getProperty(FORCE_RECORD, Boolean.FALSE.toString()));
 
         storageServiceMode = System.getProperty("arex.storage.mode");
         storageServiceJdbcUrl = System.getProperty("arex.storage.jdbc.url", PropertyUtil.getProperty("arex.storage.jdbc.url"));
@@ -116,6 +150,10 @@ public class ConfigManager {
         storageServicePassword = System.getProperty("arex.storage.password", PropertyUtil.getProperty("arex.storage.password"));
         storageServiceWebPort = System.getProperty("arex.storage.web.port", PropertyUtil.getProperty("arex.storage.web.port"));
         serverServiceTcpPort = System.getProperty("arex.server.tcp.port", PropertyUtil.getProperty("arex.server.tcp.port"));
+
+        dynamicClass = System.getProperty(DYNAMIC_CLASS_KEY);
+        dynamicClassList = parseDynamicClassList(dynamicClass);
+        dynamicResultSizeLimit = Integer.parseInt(System.getProperty(DYNAMIC_RESULT_SIZE_LIMIT, "1000"));
 
         TimerService.scheduleAtFixedRate(ConfigManager::update, 300, 300, TimeUnit.SECONDS);
     }
@@ -136,6 +174,9 @@ public class ConfigManager {
         setServiceName(configMap.get(SERVICE_NAME));
         setStorageServiceHost(configMap.get(STORAGE_SERVICE_HOST));
         setConfigServiceHost(configMap.get(CONFIG_SERVICE_HOST));
+        setRecordRate(configMap.get(RECORD_RATE));
+        setForceRecord(configMap.get(FORCE_RECORD));
+        setDynamicResultSizeLimit(configMap.get(DYNAMIC_RESULT_SIZE_LIMIT));
     }
 
     private static Map<String, String> parseConfigFile(String configPath) {
@@ -238,6 +279,69 @@ public class ConfigManager {
                 serverServiceTcpPort = tcpPort;
             }
         }
+    }
+
+    private List<DynamicClassEntity> parseDynamicClassList(String dynamicClassValue) {
+        if (StringUtil.isEmpty(dynamicClassValue)) {
+            return Collections.emptyList();
+        }
+
+        String[] array = dynamicClassValue.split(";");
+
+        if (array.length < 1) {
+            return Collections.emptyList();
+        }
+
+        List<DynamicClassEntity> list = new ArrayList<>(array.length);
+        for (int i = 0; i < array.length; i++) {
+            String[] subArray = array[i].split("#");
+            if (subArray.length < 3) {
+                continue;
+            }
+
+            String fullClassName = subArray[0];
+            String methodName = subArray[1];
+            String parameterTypes = subArray[2];
+
+            if (StringUtil.isEmpty(fullClassName) || StringUtil.isEmpty(methodName) || StringUtil.isEmpty(parameterTypes)) {
+                continue;
+            }
+
+            list.add(new DynamicClassEntity(fullClassName, methodName, parameterTypes));
+        }
+        return list;
+    }
+
+    public int getRecordRate() {
+        return recordRate;
+    }
+
+    public void setRecordRate(int recordRate) {
+        this.recordRate = recordRate;
+    }
+
+    public boolean isForceRecord() {
+        return forceRecord;
+    }
+
+    public void setForceRecord(boolean forceRecord) {
+        this.forceRecord = forceRecord;
+    }
+
+    public List<DynamicClassEntity> getDynamicClassList() {
+        return dynamicClassList;
+    }
+
+    public void setDynamicClassList(List<DynamicClassEntity> dynamicClassList) {
+        this.dynamicClassList = dynamicClassList;
+    }
+
+    public int getDynamicResultSizeLimit() {
+        return dynamicResultSizeLimit;
+    }
+
+    public void setDynamicResultSizeLimit(int dynamicResultSizeLimit) {
+        this.dynamicResultSizeLimit = dynamicResultSizeLimit;
     }
 
     @Override

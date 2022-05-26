@@ -16,20 +16,6 @@ public class H2SqlParser {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(H2SqlParser.class);
 
-    private static String diff_service_entrance_sql =
-            "SELECT a.caseId, b.replayId, a.response as recordResponse, b.response as replayResponse " +
-                    "FROM record_servlet_entrance a LEFT JOIN replay_servlet_entrance b " +
-                    "ON a.caseId = b.caseId AND a.path = b.path AND a.request = b.request " +
-                    "WHERE a.caseId = '%s' and b.replayId = '%s'";
-
-    private static String diff_database_sql =
-            "SELECT a.dbname as recordDbname, b.dbname as replayDbname, " +
-                    "a.parameters as recordParameters, b.parameters as replayParameters, " +
-                    "a.sql as recordSql, b.sql as replaySql " +
-                    "FROM record_database a LEFT JOIN replay_database b " +
-                    "ON a.caseId = b.caseId AND a.parameters = b.parameters AND a.sql = b.sql " +
-                    "WHERE a.caseId = '%s' and b.replayId = '%s'";
-
     private static Map<String, String> schemaMap = new HashMap<>();
 
     public static Map<String, String> parseSchema() {
@@ -100,16 +86,19 @@ public class H2SqlParser {
         return sqlBuilder.substring(0, sqlBuilder.length()-1);
     }
 
-    public static String generateSelectSql(AbstractMocker mocker, MockDataType type, int count) {
+    public static String generateSelectSql(AbstractMocker mocker, int count) {
         StringBuilder sqlBuilder = new StringBuilder("SELECT * FROM ");
-        String tableName = type.name() + "_" + mocker.getCategory().name();
+        String tableName = mocker.getMockDataType().name() + "_" + mocker.getCategory().name();
+        sqlBuilder.append(tableName).append(" WHERE 1 = 1");
+        if (StringUtils.isNotBlank(mocker.getCaseId())) {
+            sqlBuilder.append(" AND CASEID = '").append(mocker.getCaseId()).append("'");
+        }
+        if (StringUtils.isNotBlank(mocker.getReplayId())) {
+            sqlBuilder.append(" AND REPLAYID = '").append(mocker.getReplayId()).append("'");
+        }
         switch (mocker.getCategory()) {
             case SERVLET_ENTRANCE:
                 ServletMocker servletMocker = (ServletMocker)mocker;
-                sqlBuilder.append(tableName).append(" WHERE 1 = 1");
-                if (StringUtils.isNotBlank(servletMocker.getCaseId())) {
-                    sqlBuilder.append(" AND CASEID = '").append(servletMocker.getCaseId()).append("'");
-                }
                 if (StringUtils.isNotBlank(servletMocker.getPath())) {
                     sqlBuilder.append(" AND PATH = '").append(servletMocker.getPath()).append("'");
                 }
@@ -119,15 +108,29 @@ public class H2SqlParser {
                 break;
             case DATABASE:
                 DatabaseMocker databaseMocker = (DatabaseMocker)mocker;
-                sqlBuilder.append(tableName).append(" WHERE 1 = 1");
-                if (StringUtils.isNotBlank(databaseMocker.getCaseId())) {
-                    sqlBuilder.append(" AND CASEID = '").append(databaseMocker.getCaseId()).append("'");
+                if (StringUtils.isNotBlank(databaseMocker.getDbName())) {
+                    sqlBuilder.append(" AND DBNAME = '").append(databaseMocker.getDbName()).append("'");
+                }
+                if (StringUtils.isNotBlank(databaseMocker.getTables())) {
+                    sqlBuilder.append(" AND TABLES = '").append(databaseMocker.getTables()).append("'");
                 }
                 if (StringUtils.isNotBlank(databaseMocker.getParameters())) {
                     sqlBuilder.append(" AND PARAMETERS = '").append(databaseMocker.getParameters()).append("'");
                 }
                 if (StringUtils.isNotBlank(databaseMocker.getSql())) {
                     sqlBuilder.append(" AND SQL = '").append(databaseMocker.getSql()).append("'");
+                }
+                break;
+            case DYNAMIC_CLASS:
+                DynamicClassMocker dynamicClassMocker = (DynamicClassMocker)mocker;
+                if (StringUtils.isNotBlank(dynamicClassMocker.getClazzName())) {
+                    sqlBuilder.append(" AND CLAZZNAME = '").append(dynamicClassMocker.getClazzName()).append("'");
+                }
+                if (StringUtils.isNotBlank(dynamicClassMocker.getOperation())) {
+                    sqlBuilder.append(" AND OPERATION = '").append(dynamicClassMocker.getOperation()).append("'");
+                }
+                if (StringUtils.isNotBlank(dynamicClassMocker.getOperationKey())) {
+                    sqlBuilder.append(" AND OPERATIONKEY = '").append(dynamicClassMocker.getOperationKey()).append("'");
                 }
                 break;
         }
@@ -138,20 +141,9 @@ public class H2SqlParser {
         return sqlBuilder.toString();
     }
 
-    public static String generateCompareSql(MockerCategory category, String recordId, String replayId) {
-        switch (category) {
-            case SERVLET_ENTRANCE:
-                return String.format(diff_service_entrance_sql, recordId, replayId);
-            case DATABASE:
-                return String.format(diff_database_sql, recordId,  replayId);
-        }
-        return null;
-    }
-
     public static String generateSelectDiffSql(DiffMocker mocker) {
-        StringBuilder sqlBuilder = new StringBuilder("SELECT * FROM ");
-        String tableName = "DIFF_" + mocker.getCategory().name();
-        sqlBuilder.append(tableName).append(" WHERE 1 = 1");
+        StringBuilder sqlBuilder = new StringBuilder("SELECT * FROM DIFF_RESULT ");
+        sqlBuilder.append(" WHERE CATEGORY = '").append(mocker.getCategory().name()).append("'");
         if (StringUtils.isNotBlank(mocker.getCaseId())) {
             sqlBuilder.append(" AND CASEID = '").append(mocker.getCaseId()).append("'");
         }

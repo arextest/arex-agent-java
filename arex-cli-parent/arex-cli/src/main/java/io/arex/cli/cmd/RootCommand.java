@@ -39,7 +39,7 @@ import java.util.Map;
         ""},
         description = "Arex Commander",
         footer = {"", "Press Ctrl-D to exit."},
-        subcommands = {ReplayCommand.class, WatchCommand.class, DebugCommand.class,
+        subcommands = {RecordCommand.class, ReplayCommand.class, WatchCommand.class, DebugCommand.class,
                 PicocliCommands.ClearScreen.class, HelpCommand.class})
 public class RootCommand implements Runnable {
 

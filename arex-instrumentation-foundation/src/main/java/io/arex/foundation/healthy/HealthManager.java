@@ -1,5 +1,6 @@
 package io.arex.foundation.healthy;
 
+import io.arex.foundation.config.ConfigManager;
 import io.arex.foundation.internal.Pair;
 import io.arex.foundation.services.TimerService;
 import com.google.common.util.concurrent.RateLimiter;
@@ -169,26 +170,27 @@ public class HealthManager {
         // Pari.first = last balance rate
         static final Map<String, Pair<Double, RateLimiter>> RATE_LIMITER_MAP = new ConcurrentHashMap<>();
         static final double MIN_RATE = 0.03D;
-        //static final ConfigService CONFIG_SERVICE = ConfigService.getInstance();
+        // send a permit in 60 seconds at least
+        static final long BASE = MINUTES.toSeconds(1);
 
         /**
          * Record rate acquire
          */
         boolean acquire(String methodName, double rate) {
             Pair<Double, RateLimiter> rateLimiterPair = RATE_LIMITER_MAP.computeIfAbsent(methodName, key -> {
-                return Pair.of(rate, RateLimiter.create(rate / 100));
+                return Pair.of(rate, RateLimiter.create(rate / BASE));
             });
             int cmp = Double.compare(Optional.ofNullable(rateLimiterPair.getFirst()).orElse(0d), rate);
 
             if ((cmp < 0 && STATE.get() == NORMAL) || cmp == 1) {
-                rateLimiterPair = RATE_LIMITER_MAP.put(methodName, Pair.of(rate, RateLimiter.create(rate / 100)));
+                rateLimiterPair = RATE_LIMITER_MAP.put(methodName, Pair.of(rate, RateLimiter.create(rate / BASE)));
             }
 
             return rateLimiterPair != null && rateLimiterPair.getSecond().tryAcquire();
         }
 
         boolean validate() {
-            return true;
+            return ConfigManager.INSTANCE.getRecordRate() > 0;
         }
 
         void changeRate(boolean useMinRate) {
@@ -199,7 +201,7 @@ public class HealthManager {
             for (Map.Entry<String, Pair<Double, RateLimiter>> entry : RATE_LIMITER_MAP.entrySet()) {
                 Pair<Double, RateLimiter> limiterPair = entry.getValue();
                 Double targetRate = useMinRate ? MIN_RATE : limiterPair.getFirst();
-                RATE_LIMITER_MAP.put(entry.getKey(), Pair.of(limiterPair.getFirst(), RateLimiter.create(targetRate / 100)));
+                RATE_LIMITER_MAP.put(entry.getKey(), Pair.of(limiterPair.getFirst(), RateLimiter.create(targetRate / BASE)));
             }
         }
 
@@ -215,7 +217,7 @@ public class HealthManager {
                 Pair<Double, RateLimiter> limiterPair = entry.getValue();
                 double targetRate = Math.max(limiterPair.getFirst() * 0.8, MIN_RATE);
                 if (targetRate > MIN_RATE) {
-                    RATE_LIMITER_MAP.put(entry.getKey(), Pair.of(targetRate, RateLimiter.create(targetRate / 100)));
+                    RATE_LIMITER_MAP.put(entry.getKey(), Pair.of(targetRate, RateLimiter.create(targetRate / BASE)));
                 } else {
                     break;
                 }
@@ -234,10 +236,10 @@ public class HealthManager {
             for (Map.Entry<String, Pair<Double, RateLimiter>> entry : RATE_LIMITER_MAP.entrySet()) {
                 Pair<Double, RateLimiter> limiterPair = entry.getValue();
                 Double currentRate = limiterPair.getFirst();
-                double targetRate = Math.min(currentRate * 1.2, limiterPair.getSecond().getRate() * 100);
+                double targetRate = Math.min(currentRate * 1.2, limiterPair.getSecond().getRate() * BASE);
                 int cmp = Double.compare(currentRate, targetRate);
                 if (cmp < 0) {
-                    RATE_LIMITER_MAP.put(entry.getKey(), Pair.of(limiterPair.getFirst(), RateLimiter.create(targetRate / 100)));
+                    RATE_LIMITER_MAP.put(entry.getKey(), Pair.of(limiterPair.getFirst(), RateLimiter.create(targetRate / BASE)));
                 } else if (cmp == 0) {
                     STATE.set(NORMAL);
                     break;

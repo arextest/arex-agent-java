@@ -61,6 +61,9 @@ Simply click the [script]("http://www.google.com") in the `arex-agent-java/bin` 
 java -cp "/path/to/arex-cli-parent/arex-cli/target/arex-cli.jar" io.arex.cli.ArexCli
  ```
 The supported commands are as follows:
+- **record**- record data or set record rate  
+  `[option: -r/--rate]` set record rate, default value 1, record once every 60 seconds  
+  `[option: -c/--close]` shut down record  
 - **replay**- replay recorded data and view differences  
   `[option: -n/--num]` replay numbers, default the latest 10  
 - **watch**- view replay result and differences  
