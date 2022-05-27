@@ -2,10 +2,8 @@ package io.arex.cli.storage;
 
 import com.google.auto.service.AutoService;
 import io.arex.foundation.config.ConfigManager;
-import io.arex.foundation.internal.Pair;
 import io.arex.foundation.model.AbstractMocker;
 import io.arex.foundation.model.DiffMocker;
-import io.arex.foundation.model.MockDataType;
 import io.arex.foundation.model.MockerCategory;
 import io.arex.foundation.services.StorageService;
 import io.arex.foundation.util.CollectionUtil;
@@ -22,9 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * h2 Service
- * @Date: Created in 2022/4/2
- * @Modified By:
+ * H2 Storage Service
  */
 @AutoService(StorageService.class)
 public class H2StorageService extends StorageService {
@@ -40,12 +36,6 @@ public class H2StorageService extends StorageService {
         return batchSave(mockers, tableName, postJson);
     }
 
-    public int save(DiffMocker mocker){
-        List<DiffMocker> mockers = new ArrayList<>();
-        mockers.add(mocker);
-        return saveList(mockers);
-    }
-
     public int saveList(List<DiffMocker> mockers){
         if (CollectionUtil.isEmpty(mockers)) {
             return 0;
@@ -53,7 +43,7 @@ public class H2StorageService extends StorageService {
         List<Object> mockerList = new ArrayList<>();
         String tableName = "";
         for (DiffMocker mocker : mockers) {
-            tableName = "DIFF_" + mocker.getCategory().name();
+            tableName = "DIFF_RESULT";
             mockerList.add(mocker);
         }
         return batchSave(mockerList, tableName, null);
@@ -70,15 +60,14 @@ public class H2StorageService extends StorageService {
         return count;
     }
 
-    public String query(AbstractMocker mocker, MockDataType type){
-        List<String> result = queryList(mocker, type, 0);
+    public String query(AbstractMocker mocker){
+        List<String> result = queryList(mocker, 0);
         return CollectionUtil.isNotEmpty(result) ? result.get(0) : null;
     }
 
-    public List<Map<String, String>> query(MockerCategory category, String recordId, String replayId){
+    public List<Map<String, String>> query(String sql){
         List<Map<String, String>> result = new ArrayList<>();
         try {
-            String sql = io.arex.cli.storage.H2SqlParser.generateCompareSql(category, recordId, replayId);
             ResultSet rs = stmt.executeQuery(sql);
             ResultSetMetaData md = rs.getMetaData();
             int columnCount = md.getColumnCount();
@@ -96,10 +85,10 @@ public class H2StorageService extends StorageService {
         return result;
     }
 
-    public List<String> queryList(AbstractMocker mocker, MockDataType type, int count){
+    public List<String> queryList(AbstractMocker mocker, int count){
         List<String> result = new ArrayList<>();
         try {
-            String sql = io.arex.cli.storage.H2SqlParser.generateSelectSql(mocker, type, count);
+            String sql = io.arex.cli.storage.H2SqlParser.generateSelectSql(mocker, count);
             ResultSet rs = stmt.executeQuery(sql);
             while (rs.next()) {
                 result.add(rs.getString("MOCKERINFO"));
@@ -110,14 +99,19 @@ public class H2StorageService extends StorageService {
         return result;
     }
 
-    public List<Pair<String, String>> queryList(DiffMocker mocker) {
-        List<Pair<String, String>> result = new ArrayList<>();
+    public List<DiffMocker> queryList(DiffMocker mocker) {
+        List<DiffMocker> result = new ArrayList<>();
         try {
             String sql = io.arex.cli.storage.H2SqlParser.generateSelectDiffSql(mocker);
             ResultSet rs = stmt.executeQuery(sql);
             while (rs.next()) {
-                Pair<String, String> pair = Pair.of(rs.getString("recordDiff"), rs.getString("replayDiff"));
-                result.add(pair);
+                DiffMocker diffMocker = new DiffMocker();
+                diffMocker.setReplayId(rs.getString("replayId"));
+                diffMocker.setCaseId(rs.getString("caseId"));
+                diffMocker.setCategory(MockerCategory.valueOf(rs.getString("category")));
+                diffMocker.setRecordDiff(rs.getString("recordDiff"));
+                diffMocker.setReplayDiff(rs.getString("replayDiff"));
+                result.add(diffMocker);
             }
         } catch (Throwable e) {
             LOGGER.warn("h2database query diff list error", e);

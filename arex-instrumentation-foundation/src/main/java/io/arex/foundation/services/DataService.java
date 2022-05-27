@@ -60,7 +60,9 @@ public class DataService {
             buffer = new MockerRingBuffer(1024);
         }
         stop = false;
-        executeFuture = executor.submit(this::loop);
+        if (executeFuture == null) {
+            executeFuture = executor.submit(this::loop);
+        }
         if (ConfigManager.INSTANCE.isLocalStorage()) {
             StorageService.init();
             ServerService.init();
@@ -155,7 +157,7 @@ public class DataService {
 
                 if (ConfigManager.INSTANCE.isLocalStorage()) {
                     logBuilder.append(", mode: local");
-                    responseData = StorageService.INSTANCE.queryReplay(requestMocker);
+                    responseData = StorageService.INSTANCE.queryReplay(requestMocker, postJson);
                 } else {
                     logBuilder.append(", mode: server");
                     responseData = AsyncHttpClientUtil.executeSync(urlAddress, postJson, requestMocker.getCategory());

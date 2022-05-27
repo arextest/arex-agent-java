@@ -1,9 +1,7 @@
 package io.arex.cli.server.handler;
 
 import io.arex.foundation.internal.Pair;
-import io.arex.foundation.model.DiffMocker;
-import io.arex.foundation.model.MockerCategory;
-import io.arex.foundation.model.ServletMocker;
+import io.arex.foundation.model.*;
 import io.arex.foundation.serializer.SerializeUtils;
 import io.arex.foundation.services.StorageService;
 import io.arex.foundation.util.CollectionUtil;
@@ -21,6 +19,8 @@ import java.util.Map;
 public class ReplayHandler extends ApiHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ReplayHandler.class);
+
+    private static final String SQL_TEMPLATE = "SELECT %s FROM %s WHERE %s ORDER BY createTime DESC";
 
     @Override
     public String process(String args) throws Exception {
@@ -41,7 +41,9 @@ public class ReplayHandler extends ApiHandler {
             LOGGER.warn("storage service unavailable!");
             return null;
         }
-        List<String> mockerList = StorageService.INSTANCE.queryReplayBatch(new ServletMocker(), num);
+        ServletMocker mocker = new ServletMocker();
+        mocker.setMockDataType(MockDataType.RECORD);
+        List<String> mockerList = StorageService.INSTANCE.queryList(mocker, num);
         if (CollectionUtil.isEmpty(mockerList)) {
             LOGGER.warn("query no result.");
             return null;
@@ -52,7 +54,6 @@ public class ReplayHandler extends ApiHandler {
                 LOGGER.warn("mockerInfo is not exist.");
                 continue;
             }
-
             ServletMocker servletMocker = SerializeUtils.deserialize(mockerInfo, ServletMocker.class);
             if (servletMocker == null) {
                 LOGGER.warn("deserialize mocker is null.");
@@ -70,56 +71,80 @@ public class ReplayHandler extends ApiHandler {
         }
         List<DiffMocker> diffSummaryList = new ArrayList<>();
         DiffUtils dmp = new DiffUtils();
+        List<Map<String, String>> recordList;
+        List<Map<String, String>> replayList;
+        String recordJson;
+        String replayJson;
         for (Pair<String, String> idPair : idPairs) {
             boolean hasDiff = false;
             int diffCount = 0;
             List<DiffMocker> diffDetailList = new ArrayList<>();
             for (MockerCategory category : MockerCategory.values()) {
-                String record;
-                String replay;
-                List<Map<String, String>> resultList;
+                String recordSql = "";
+                String replaySql = "";
                 switch (category) {
                     case SERVLET_ENTRANCE:
-                        resultList = StorageService.INSTANCE.query(category, idPair.getFirst(), idPair.getSecond());
-                        if (CollectionUtil.isEmpty(resultList)) {
-                            continue;
-                        }
-                        record = resultList.get(0).get("RECORDRESPONSE");
-                        replay = resultList.get(0).get("REPLAYRESPONSE");
-                        if (StringUtil.isEmpty(record) || StringUtil.isEmpty(replay)) {
-                            continue;
-                        }
-                        Pair<String, String> diffPair = dmp.diff(StringUtil.formatJson(record), StringUtil.formatJson(replay));
-                        diffCount += dmp.diffCount(diffPair);
-                        diffDetailList.add(getDiffMocker(idPair, diffPair, category));
+                        recordSql = String.format(SQL_TEMPLATE, "response as recordResponse",
+                                "record_servlet_entrance", String.format("caseId = '%s'", idPair.getFirst()));
+                        replaySql = String.format(SQL_TEMPLATE, "response as replayResponse",
+                                "replay_servlet_entrance", String.format("replayId = '%s'", idPair.getSecond()));
                         break;
                     case DATABASE:
-                        resultList = StorageService.INSTANCE.query(category, idPair.getFirst(), idPair.getSecond());
-                        if (CollectionUtil.isEmpty(resultList)) {
-                            continue;
-                        }
-                        for (Map<String, String> resultMap : resultList) {
-                            Map<String, String> recordMap = new HashMap<>();
-                            Map<String, String> replayMap = new HashMap<>();
-                            resultMap.forEach((key, val) -> {
-                                if (key.startsWith("RECORD")) {
-                                    key = StringUtils.substringAfter(key, "RECORD").toLowerCase();
-                                    recordMap.put(key, val);
-                                } else if (key.startsWith("REPLAY")) {
-                                    key = StringUtils.substringAfter(key, "REPLAY").toLowerCase();
-                                    replayMap.put(key, val);
-                                }
-                            });
-                            record = SerializeUtils.serialize(recordMap);
-                            replay = SerializeUtils.serialize(replayMap);
-                            if (StringUtil.isEmpty(record) || StringUtil.isEmpty(replay)) {
-                                continue;
-                            }
-                            Pair<String, String> dbDiffPair = dmp.diff(StringUtil.formatJson(record), StringUtil.formatJson(replay));
-                            diffCount += dmp.diffCount(dbDiffPair);
-                            diffDetailList.add(getDiffMocker(idPair, dbDiffPair, category));
-                        }
+                        recordSql = String.format(SQL_TEMPLATE,
+                                "dbname as recordDbname, parameters as recordParameters, sql as recordSql",
+                                "record_database", String.format("caseId = '%s'", idPair.getFirst()));
+                        replaySql = String.format(SQL_TEMPLATE,
+                                "dbname as replayDbname, parameters as replayParameters, sql as replaySql",
+                                "replay_database", String.format("replayId = '%s'", idPair.getSecond()));
                         break;
+                    case DYNAMIC_CLASS:
+                        recordSql = String.format(SQL_TEMPLATE,
+                                "clazzName as recordClazzName, operation as recordOperation, operationKey as recordOperationKey",
+                                "record_dynamic_class", String.format("caseId = '%s'", idPair.getFirst()));
+                        replaySql = String.format(SQL_TEMPLATE,
+                                "clazzName as replayClazzName,operation as replayOperation,operationKey as replayOperationKey",
+                                "replay_dynamic_class", String.format("replayId = '%s'", idPair.getSecond()));
+                        break;
+                }
+                if (StringUtil.isBlank(recordSql) || StringUtil.isBlank(replaySql)) {
+                    continue;
+                }
+                recordList = StorageService.INSTANCE.query(recordSql);
+                replayList = StorageService.INSTANCE.query(replaySql);
+                if (CollectionUtil.isEmpty(recordList) && CollectionUtil.isEmpty(replayList)) {
+                    continue;
+                }
+                int len = Math.max(recordList.size(), replayList.size());
+                for (int i = 0; i < len; i++) {
+                    Map<String, String> recordMap = new HashMap<>();
+                    if (recordList.size() > i) {
+                        recordList.get(i).forEach((key, val) -> {
+                            key = StringUtils.substringAfter(key, MockDataType.RECORD.name()).toLowerCase();
+                            recordMap.put(key, val);
+                        });
+                    }
+                    Map<String, String> replayMap = new HashMap<>();
+                    if (replayList.size() > i) {
+                        replayList.get(i).forEach((key, val) -> {
+                            key = StringUtils.substringAfter(key, MockDataType.REPLAY.name()).toLowerCase();
+                            replayMap.put(key, val);
+                        });
+                    }
+                    if (recordMap.size() > 1) {
+                        recordJson = SerializeUtils.serialize(recordMap);
+                    } else {
+                        recordJson = recordMap.values().stream().findFirst().orElse(null);
+                    }
+                    if (replayMap.size() > 1) {
+                        replayJson = SerializeUtils.serialize(replayMap);
+                    } else {
+                        replayJson = replayMap.values().stream().findFirst().orElse(null);
+                    }
+
+                    Pair<String, String> dbDiffPair = dmp.diff(StringUtil.formatJson(recordJson), StringUtil.formatJson(replayJson));
+
+                    diffCount += dmp.diffCount(dbDiffPair);
+                    diffDetailList.add(getDiffMocker(idPair, dbDiffPair, category));
                 }
                 if (diffCount > 0) {
                     hasDiff = true;
@@ -127,7 +152,6 @@ public class ReplayHandler extends ApiHandler {
             }
             if (hasDiff) {
                 StorageService.INSTANCE.saveList(diffDetailList);
-
                 DiffMocker diffMocker = new DiffMocker();
                 diffMocker.setCaseId(idPair.getFirst());
                 diffMocker.setReplayId(idPair.getSecond());

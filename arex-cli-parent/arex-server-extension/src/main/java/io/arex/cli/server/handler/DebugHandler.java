@@ -13,7 +13,8 @@ public class DebugHandler extends ApiHandler {
     public String process(String args) throws Exception {
         ServletMocker mocker = new ServletMocker();
         mocker.setCaseId(args);
-        String mockerData = StorageService.INSTANCE.query(mocker, MockDataType.RECORD);
+        mocker.setMockDataType(MockDataType.RECORD);
+        String mockerData = StorageService.INSTANCE.query(mocker);
         if (StringUtil.isEmpty(mockerData)) {
             return "query no result.";
         }

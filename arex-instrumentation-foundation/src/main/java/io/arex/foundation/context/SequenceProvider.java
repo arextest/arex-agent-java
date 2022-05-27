@@ -24,4 +24,8 @@ public class SequenceProvider {
         }
         return key;
     }
+
+    public void clear() {
+        sequence.clear();
+    }
 }

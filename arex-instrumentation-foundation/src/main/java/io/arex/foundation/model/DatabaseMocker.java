@@ -66,4 +66,12 @@ public class DatabaseMocker extends AbstractMocker {
     public String getSql() {
         return sql;
     }
+
+    public String getDbName() {
+        return dbName;
+    }
+
+    public String getTables() {
+        return tables;
+    }
 }

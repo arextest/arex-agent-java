@@ -1,8 +1,11 @@
 package io.arex.inst.httpservlet;
 
+import io.arex.foundation.config.ConfigManager;
 import io.arex.foundation.context.ContextManager;
+import io.arex.foundation.healthy.HealthManager;
 import io.arex.foundation.internal.Pair;
 import io.arex.foundation.util.LogUtil;
+import io.arex.foundation.util.StringUtil;
 import io.arex.inst.httpservlet.adapter.ServletAdapter;
 import org.apache.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -35,6 +38,12 @@ public class ServletAdviceHelper {
         }
 
         String caseId = adapter.getRequestHeader(httpServletRequest, ServletConstants.RECORD_ID);
+
+        // check record rate limit
+        if (StringUtil.isEmpty(caseId) && !checkRateLimit(adapter.getServletPath(httpServletRequest))) {
+            return null;
+        }
+
         ContextManager.currentContext(true, caseId);
         if (ContextManager.needRecordOrReplay()) {
             httpServletRequest = adapter.wrapRequest(httpServletRequest);
@@ -116,5 +125,9 @@ public class ServletAdviceHelper {
         }
 
         adapter.setAttribute(httpServletRequest, ServletConstants.SERVLET_RESPONSE, response);
+    }
+
+    public static boolean checkRateLimit(String path) {
+        return HealthManager.acquire(path, ConfigManager.INSTANCE.getRecordRate()) || ConfigManager.INSTANCE.isForceRecord();
     }
 }

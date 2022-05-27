@@ -1,10 +1,8 @@
 package io.arex.foundation.services;
 
-import io.arex.foundation.internal.Pair;
 import io.arex.foundation.model.AbstractMocker;
 import io.arex.foundation.model.DiffMocker;
 import io.arex.foundation.model.MockDataType;
-import io.arex.foundation.model.MockerCategory;
 import io.arex.foundation.util.SPIUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,33 +60,25 @@ public abstract class StorageService {
         return future;
     }
 
-    public String queryReplay(AbstractMocker mocker) {
-        saveReplay(mocker);
-        return query(mocker, MockDataType.RECORD);
-    }
-
-    public List<String> queryReplayBatch(AbstractMocker mocker, int count) {
-        return queryList(mocker, MockDataType.RECORD, count);
-    }
-
-    public int saveReplay(AbstractMocker mocker) {
+    public String queryReplay(AbstractMocker mocker, String postJson) {
         mocker.setMockDataType(MockDataType.REPLAY);
-        return save(mocker, null);
+        save(mocker, postJson);
+        mocker.setMockDataType(MockDataType.RECORD);
+        mocker.setReplayId(null);
+        return query(mocker);
     }
 
     public abstract boolean start() throws Exception;
 
     public abstract int save(AbstractMocker mocker, String postJson);
 
-    public abstract int save(DiffMocker mocker);
-
     public abstract int saveList(List<DiffMocker> mockers);
 
-    public abstract String query(AbstractMocker mocker, MockDataType type);
+    public abstract String query(AbstractMocker mocker);
 
-    public abstract List<Map<String, String>> query(MockerCategory category, String recordId, String replayId);
+    public abstract List<Map<String, String>> query(String sql);
 
-    public abstract List<String> queryList(AbstractMocker mocker, MockDataType type, int count);
+    public abstract List<String> queryList(AbstractMocker mocker, int count);
 
-    public abstract List<Pair<String, String>> queryList(DiffMocker mocker);
+    public abstract List<DiffMocker> queryList(DiffMocker mocker);
 }

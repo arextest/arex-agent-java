@@ -46,7 +46,10 @@ public class ContextManager {
     public static void remove() {
         String messageId = TraceContextManager.remove();
         if (StringUtil.isNotEmpty(messageId)) {
-            RECORD_MAP.remove(messageId);
+            ArexContext context = RECORD_MAP.remove(messageId);
+            if (context != null) {
+                context.clear();
+            }
         }
     }
 

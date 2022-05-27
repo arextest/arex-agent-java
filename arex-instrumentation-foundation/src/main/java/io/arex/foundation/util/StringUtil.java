@@ -1,7 +1,9 @@
 package io.arex.foundation.util;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class StringUtil {
@@ -185,5 +187,12 @@ public class StringUtil {
             }
         }
         return map;
+    }
+
+    public static int encodeAndHash(String str){
+        if (StringUtils.isBlank(str)) {
+            return 0;
+        }
+        return Base64.getEncoder().encodeToString(str.getBytes(StandardCharsets.UTF_8)).hashCode();
     }
 }

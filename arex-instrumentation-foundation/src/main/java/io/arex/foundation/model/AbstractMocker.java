@@ -36,12 +36,13 @@ public abstract class AbstractMocker {
     }
 
     public AbstractMocker(MockerCategory category) {
+        this.createTime = System.currentTimeMillis();
         ArexContext context = ContextManager.currentContext();
         if (context != null) {
             this.caseId = context.getCaseId();
             this.replayId = context.getReplayId();
+            this.createTime = this.createTime + context.calculateSequence(this.caseId);
         }
-        this.createTime = System.currentTimeMillis();
         this.appId = ConfigManager.INSTANCE.getServiceName();
         this.category = category.getType();
     }
@@ -117,5 +118,9 @@ public abstract class AbstractMocker {
 
     public void setCaseId(String caseId) {
         this.caseId = caseId;
+    }
+
+    public void setReplayId(String replayId) {
+        this.replayId = replayId;
     }
 }
