@@ -26,6 +26,7 @@
         <module>redis/arex-jedis-v4</module>
         <module>redis/arex-lettuce-v6</module>
         <module>dynamic/arex-dynamic</module>
+        <module>time-machine/arex-time-machine</module>
 
     </modules>
     <dependencies>

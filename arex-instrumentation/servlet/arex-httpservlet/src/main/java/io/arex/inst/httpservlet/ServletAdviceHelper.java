@@ -4,6 +4,8 @@ import io.arex.foundation.config.ConfigManager;
 import io.arex.foundation.context.ContextManager;
 import io.arex.foundation.healthy.HealthManager;
 import io.arex.foundation.internal.Pair;
+import io.arex.foundation.listener.CaseEvent;
+import io.arex.foundation.listener.CaseListenerImpl;
 import io.arex.foundation.util.LogUtil;
 import io.arex.foundation.util.StringUtil;
 import io.arex.inst.httpservlet.adapter.ServletAdapter;
@@ -44,7 +46,7 @@ public class ServletAdviceHelper {
             return null;
         }
 
-        ContextManager.currentContext(true, caseId);
+        CaseListenerImpl.INSTANCE.onEvent(new CaseEvent(StringUtil.isEmpty(caseId) ? StringUtil.EMPTY : caseId, CaseEvent.Action.CREATE));
         if (ContextManager.needRecordOrReplay()) {
             httpServletRequest = adapter.wrapRequest(httpServletRequest);
             httpServletResponse = adapter.wrapResponse(httpServletResponse);

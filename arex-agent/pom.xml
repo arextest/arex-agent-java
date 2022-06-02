@@ -93,6 +93,11 @@
             <artifactId>arex-dynamic</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>arex-time-machine</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <!--Agent instrumentation end-->
 
