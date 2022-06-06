@@ -75,12 +75,17 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>jedis-common</artifactId>
+            <artifactId>arex-jedis-common</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>jedis-v4</artifactId>
+            <artifactId>arex-jedis-v4</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>arex-lettuce-v6</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
