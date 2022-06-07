@@ -62,8 +62,14 @@ public class StringUtil {
         return list.toArray(new String[0]);
     }
 
-    public static String join(final Iterator<?> iterator, final String separator) {
-        if (iterator == null || !iterator.hasNext()) {
+    public static String join(final Iterable<?> iterable, final String separator) {
+        if (iterable == null) {
+            return null;
+        }
+
+        Iterator<?> iterator = iterable.iterator();
+
+        if (!iterator.hasNext()) {
             return null;
         }
 

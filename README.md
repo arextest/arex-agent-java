@@ -24,8 +24,10 @@ Arex utilizes the advanced Java technique, Instrument API, and is capable of ins
 - System time
 - Apache HttpAsyncClient 4.x 
 - Apache HttpClient 4.x 
+- OkHttp 3+
 - Hibernate 5.x 
-- MyBatis 3.x 
+- MyBatis 3.x
+- Redisson 3.x
 - Lettuce 6+
 - Jedis 2.10+, 4+
 - Spring Boot 1.4+-2.x+, Servlet API 3+、5+

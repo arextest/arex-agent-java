@@ -12,11 +12,6 @@
 
     <artifactId>arex-lettuce-v6</artifactId>
 
-    <properties>
-        <maven.compiler.source>8</maven.compiler.source>
-        <maven.compiler.target>8</maven.compiler.target>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>io.lettuce</groupId>

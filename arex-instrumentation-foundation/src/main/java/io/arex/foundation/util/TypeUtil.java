@@ -103,7 +103,7 @@ public class TypeUtil {
             }
         }
 
-        builder.append(StringUtil.join(linkedList.iterator(), ","));
+        builder.append(StringUtil.join(linkedList, ","));
         return builder.toString();
     }
 

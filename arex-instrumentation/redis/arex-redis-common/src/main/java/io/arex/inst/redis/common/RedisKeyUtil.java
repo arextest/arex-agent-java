@@ -1,4 +1,4 @@
-package io.arex.inst.jedis.common;
+package io.arex.inst.redis.common;
 
 
 import java.util.Iterator;

@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 public class DynamicClassModuleInstrumentation extends ModuleInstrumentation {
 
     public DynamicClassModuleInstrumentation() {
-        super("dynamic-class", ModuleDescription.builder().addPackage("dynamic.class", "1").build());
+        super("dynamic-class", null);
     }
 
     @Override

@@ -5,12 +5,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.arex.foundation.serializer.SerializeUtils;
 import io.arex.foundation.util.TypeUtil;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.function.Predicate;
 
-public class JedisMocker extends AbstractMocker {
+public class RedisMocker extends AbstractMocker {
 
     private static final String SPECIAL_CLASS_NAME = "redis.clients.jedis.BinaryJedis$SetFromList";
 
@@ -20,18 +18,18 @@ public class JedisMocker extends AbstractMocker {
     private String redisKey;
 
     @SuppressWarnings("deserialize")
-    public JedisMocker() {
+    public RedisMocker() {
         super(MockerCategory.REDIS);
     }
 
-    public JedisMocker(String clusterName, String key, String command, String field) {
+    public RedisMocker(String clusterName, String key, String command, String field) {
         super(MockerCategory.REDIS);
 
         this.clusterName = clusterName;
         this.redisKey = SerializeUtils.serialize(RedisMultiKey.of(key, field, command));
     }
 
-    public JedisMocker(String clusterName, String key, String command, String field, Object response) {
+    public RedisMocker(String clusterName, String key, String command, String field, Object response) {
         this(clusterName, key, command, field);
 
         this.setResponse(SerializeUtils.serialize(response));
@@ -71,7 +69,7 @@ public class JedisMocker extends AbstractMocker {
     }
 
     @Override
-    protected Predicate<JedisMocker> filterLocalStorage() {
+    protected Predicate<RedisMocker> filterLocalStorage() {
         return mocker -> {
             if (StringUtils.isNotBlank(clusterName) && !StringUtils.equals(clusterName, mocker.getClusterName())) {
                 return false;

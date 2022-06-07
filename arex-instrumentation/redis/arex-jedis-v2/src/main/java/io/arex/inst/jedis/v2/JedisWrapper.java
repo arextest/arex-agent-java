@@ -2,8 +2,8 @@ package io.arex.inst.jedis.v2;
 
 import io.arex.foundation.context.ContextManager;
 import io.arex.foundation.serializer.SerializeUtils;
-import io.arex.inst.jedis.common.RedisExtractor;
-import io.arex.inst.jedis.common.RedisKeyUtil;
+import io.arex.inst.redis.common.RedisExtractor;
+import io.arex.inst.redis.common.RedisKeyUtil;
 import redis.clients.jedis.Jedis;
 
 import javax.net.ssl.HostnameVerifier;

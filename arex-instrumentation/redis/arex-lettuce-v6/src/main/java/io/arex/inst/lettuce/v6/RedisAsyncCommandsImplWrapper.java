@@ -2,8 +2,8 @@ package io.arex.inst.lettuce.v6;
 
 import io.arex.agent.bootstrap.ctx.TraceTransmitter;
 import io.arex.foundation.context.ContextManager;
-import io.arex.inst.jedis.common.RedisExtractor;
-import io.arex.inst.jedis.common.RedisKeyUtil;
+import io.arex.inst.redis.common.RedisExtractor;
+import io.arex.inst.redis.common.RedisKeyUtil;
 import io.lettuce.core.GetExArgs;
 import io.lettuce.core.KeyValue;
 import io.lettuce.core.RedisAsyncCommandsImpl;
