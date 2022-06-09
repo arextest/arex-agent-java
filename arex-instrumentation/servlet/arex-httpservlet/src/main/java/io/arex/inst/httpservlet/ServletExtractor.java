@@ -1,6 +1,8 @@
 package io.arex.inst.httpservlet;
 
 import io.arex.foundation.context.ContextManager;
+import io.arex.foundation.listener.CaseEvent;
+import io.arex.foundation.listener.CaseListenerImpl;
 import io.arex.foundation.model.ServletMocker;
 import io.arex.foundation.serializer.SerializeUtils;
 import io.arex.foundation.util.StringUtil;
@@ -45,7 +47,7 @@ public class ServletExtractor<HttpServletRequest, HttpServletResponse> {
 
     public void execute() throws IOException {
         if (isFilteredContentType() || isCssPath()) {
-            ContextManager.remove();
+            CaseListenerImpl.INSTANCE.onEvent(new CaseEvent(this, CaseEvent.Action.DESTROY));
             adapter.copyBodyToResponse(httpServletResponse);
             return;
         }
@@ -56,7 +58,7 @@ public class ServletExtractor<HttpServletRequest, HttpServletResponse> {
 
     private void executePostProcess() throws IOException {
         setResponseHeader();
-        ContextManager.remove();
+        CaseListenerImpl.INSTANCE.onEvent(new CaseEvent(this, CaseEvent.Action.DESTROY));
         adapter.copyBodyToResponse(httpServletResponse);
     }
 

@@ -29,6 +29,7 @@ public class ConfigManager {
     private static final String FORCE_RECORD = "arex.force.record";
     private static final String DYNAMIC_CLASS_KEY = "arex.dynamic.class";
     private static final String DYNAMIC_RESULT_SIZE_LIMIT = "arex.dynamic.result.size.limit";
+    private static final String TIME_MACHINE = "arex.time.machine";
 
     private boolean enableDebug;
     private String agentVersion;
@@ -48,6 +49,10 @@ public class ConfigManager {
     private String dynamicClass;
     private int dynamicResultSizeLimit;
     private List<DynamicClassEntity> dynamicClassList;
+    /**
+     * use only replay
+     */
+    private boolean startTimeMachine;
 
     private static List<ConfigListener> listeners = new ArrayList<ConfigListener>();
 
@@ -134,6 +139,14 @@ public class ConfigManager {
         System.setProperty(DYNAMIC_RESULT_SIZE_LIMIT, dynamicResultSizeLimit);
     }
 
+    public void setTimeMachine(String timeMachine) {
+        if (StringUtil.isEmpty(timeMachine)) {
+            return;
+        }
+        this.startTimeMachine = BooleanUtils.toBoolean(timeMachine);
+        System.setProperty(TIME_MACHINE, timeMachine);
+    }
+
     private void init() {
         agentVersion = "0.0.1";
         enableDebug = Boolean.parseBoolean(System.getProperty(ENABLE_DEBUG));
@@ -154,6 +167,8 @@ public class ConfigManager {
         dynamicClass = System.getProperty(DYNAMIC_CLASS_KEY);
         dynamicClassList = parseDynamicClassList(dynamicClass);
         dynamicResultSizeLimit = Integer.parseInt(System.getProperty(DYNAMIC_RESULT_SIZE_LIMIT, "1000"));
+
+        startTimeMachine = BooleanUtils.toBoolean(System.getProperty(TIME_MACHINE, Boolean.FALSE.toString()));
 
         TimerService.scheduleAtFixedRate(ConfigManager::update, 300, 300, TimeUnit.SECONDS);
     }
@@ -177,6 +192,7 @@ public class ConfigManager {
         setRecordRate(configMap.get(RECORD_RATE));
         setForceRecord(configMap.get(FORCE_RECORD));
         setDynamicResultSizeLimit(configMap.get(DYNAMIC_RESULT_SIZE_LIMIT));
+        setTimeMachine(configMap.get(TIME_MACHINE));
     }
 
     private static Map<String, String> parseConfigFile(String configPath) {
@@ -342,6 +358,10 @@ public class ConfigManager {
 
     public void setDynamicResultSizeLimit(int dynamicResultSizeLimit) {
         this.dynamicResultSizeLimit = dynamicResultSizeLimit;
+    }
+
+    public boolean startTimeMachine() {
+        return startTimeMachine;
     }
 
     @Override

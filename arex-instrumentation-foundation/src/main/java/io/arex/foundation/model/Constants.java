@@ -12,4 +12,7 @@ public class Constants {
     public static final String CLI_SEPARATOR = "[arex@]";
 
     public static final String TYPE_LIST_DIFFMOCKER = "java.util.ArrayList-io.arex.foundation.model.DiffMocker";
+
+    public static final String CLOCK_CLASS = "java.lang.System";
+    public static final String CLOCK_METHOD = "currentTimeMillis";
 }

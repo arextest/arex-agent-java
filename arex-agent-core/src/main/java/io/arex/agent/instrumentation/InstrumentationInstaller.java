@@ -6,10 +6,10 @@ import io.arex.foundation.api.TypeInstrumentation;
 import io.arex.foundation.util.LogUtil;
 import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.agent.builder.ResettableClassFileTransformer;
+import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.dynamic.ClassFileLocator;
 import net.bytebuddy.dynamic.DynamicType;
-import net.bytebuddy.implementation.MethodDelegation;
 import net.bytebuddy.utility.JavaModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,7 +83,7 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
         AgentBuilder.Identified.Extendable extendable;
         if (inst.isInterceptor()) {
             extendable = builder.transform((b, t, c, m)
-                    -> b.method(inst.getMethodMatcher()).intercept(MethodDelegation.to(inst.getAdviceClassName())));
+                    -> b.method(inst.getMethodMatcher()).intercept(Advice.to(inst.getInterceptor())));
         } else {
             extendable = builder.transform(new AgentBuilder.Transformer.ForAdvice()
                     .include(InstrumentationInstaller.class.getClassLoader())
@@ -103,7 +103,7 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
             .with(new TransformListener())
             .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
             .with(AgentBuilder.InitializationStrategy.NoOp.INSTANCE)
-            .with(AgentBuilder.TypeStrategy.Default.REDEFINE)
+            .with(AgentBuilder.TypeStrategy.Default.REBASE)
             .with(AgentBuilder.LocationStrategy.ForClassLoader.STRONG
                 .withFallbackTo(ClassFileLocator.ForClassLoader.ofSystemLoader()));
 
