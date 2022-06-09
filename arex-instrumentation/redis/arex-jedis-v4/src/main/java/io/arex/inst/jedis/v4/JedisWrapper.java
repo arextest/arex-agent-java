@@ -147,7 +147,7 @@ public class JedisWrapper extends Jedis {
     @Override
     public String substr(String key, int start, int end) {
         return call("substr", key, RedisKeyUtil.generate("start", String.valueOf(start), "end", String.valueOf(end)),
-            () -> super.substr(key, start, end), null);
+                () -> super.substr(key, start, end), null);
     }
 
     @Override
@@ -173,13 +173,13 @@ public class JedisWrapper extends Jedis {
     @Override
     public String hmset(String key, Map<String, String> hash) {
         return call("hmset", key, SerializeUtils.serialize(hash.keySet()), () -> super.hmset(key, hash),
-            null);
+                null);
     }
 
     @Override
     public List<String> hmget(String key, String... fields) {
         return call("hmget", key, RedisKeyUtil.generate(fields), () -> super.hmget(key, fields),
-            Collections.emptyList());
+                Collections.emptyList());
     }
 
     @Override
@@ -230,25 +230,25 @@ public class JedisWrapper extends Jedis {
     @Override
     public List<String> lrange(String key, long start, long end) {
         return call("lrange", key, RedisKeyUtil.generate("start", String.valueOf(start), "end", String.valueOf(end)),
-            () -> super.lrange(key, start, end), Collections.emptyList());
+                () -> super.lrange(key, start, end), Collections.emptyList());
     }
 
     @Override
     public String ltrim(String key, long start, long end) {
         return call("ltrim", key, RedisKeyUtil.generate("start", String.valueOf(start), "end", String.valueOf(end)),
-            () -> super.ltrim(key, start, end), null);
+                () -> super.ltrim(key, start, end), null);
     }
 
     @Override
     public String lindex(String key, long index) {
         return call("lindex", key, RedisKeyUtil.generate("index", String.valueOf(index)),
-            () -> super.lindex(key, index), null);
+                () -> super.lindex(key, index), null);
     }
 
     @Override
     public String lset(String key, long index, String value) {
         return call("lset", key, RedisKeyUtil.generate("index", String.valueOf(index)),
-            () -> super.lset(key, index, value), null);
+                () -> super.lset(key, index, value), null);
     }
 
     @Override
@@ -269,7 +269,7 @@ public class JedisWrapper extends Jedis {
     @Override
     public Set<String> spop(String key, long count) {
         return call("spop", RedisKeyUtil.generate(key, String.valueOf(count)), () -> super.spop(key, count),
-            Collections.emptySet());
+                Collections.emptySet());
     }
 
     @Override
@@ -300,7 +300,7 @@ public class JedisWrapper extends Jedis {
     @Override
     public List<String> srandmember(String key, int count) {
         return call("srandmember", key, RedisKeyUtil.generate("count", String.valueOf(count)),
-            () -> super.srandmember(key, count), Collections.emptyList());
+                () -> super.srandmember(key, count), Collections.emptyList());
     }
 
     @Override
@@ -321,14 +321,14 @@ public class JedisWrapper extends Jedis {
     @Override
     public long setrange(String key, long offset, String value) {
         return call("setrange", key, RedisKeyUtil.generate("offset", String.valueOf(offset)),
-            () -> super.setrange(key, offset, value), 0L);
+                () -> super.setrange(key, offset, value), 0L);
     }
 
     @Override
     public String getrange(String key, long startOffset, long endOffset) {
         return call("getrange", key, RedisKeyUtil.generate(
-            RedisKeyUtil.generate("startOffset", String.valueOf(startOffset), "endOffset", String.valueOf(endOffset))),
-            () -> super.getrange(key, startOffset, endOffset), null);
+                        RedisKeyUtil.generate("startOffset", String.valueOf(startOffset), "endOffset", String.valueOf(endOffset))),
+                () -> super.getrange(key, startOffset, endOffset), null);
     }
 
     @Override
@@ -348,7 +348,7 @@ public class JedisWrapper extends Jedis {
 
     @Override
     public String psetex(String key, long milliseconds, String value) {
-        return call("psetex", key, value, () -> super.psetex(key, milliseconds, value), null);    
+        return call("psetex", key, value, () -> super.psetex(key, milliseconds, value), null);
     }
 
     @Override
@@ -359,7 +359,7 @@ public class JedisWrapper extends Jedis {
     @Override
     public String set(final byte[] key, final byte[] value, final SetParams params) {
         return call("set", Base64.getEncoder().encodeToString(key), () -> super.set(key, value, params),
-            null);
+                null);
     }
 
     @Override
@@ -400,7 +400,7 @@ public class JedisWrapper extends Jedis {
     @Override
     public String setex(final byte[] key, final long seconds, final byte[] value) {
         return call("setex", Base64.getEncoder().encodeToString(key), () -> super.setex(key, seconds, value),
-            null);
+                null);
     }
 
     /**

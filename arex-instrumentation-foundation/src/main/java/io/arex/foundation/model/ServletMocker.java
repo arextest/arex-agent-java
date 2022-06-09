@@ -9,7 +9,6 @@ import java.util.function.Predicate;
 /**
  * ServletMocker
  *
- *
  * @date 2022/02/16
  */
 public class ServletMocker extends AbstractMocker {
@@ -25,8 +24,7 @@ public class ServletMocker extends AbstractMocker {
     private Map<String, String> responseHeaders;
     @JsonProperty("request")
     private String request;
-    @JsonProperty("response")
-    private String response;
+
 
     @SuppressWarnings("deserilize")
     public ServletMocker() {
@@ -81,18 +79,12 @@ public class ServletMocker extends AbstractMocker {
         this.request = request;
     }
 
-    public String getResponse() {
-        return response;
-    }
-
-    public void setResponse(String response) {
-        this.response = response;
-    }
 
     @Override
-    public Object parseMockResponse(AbstractMocker requestMocker) {
-        return response;
+    public boolean ignoreMockResult() {
+        return true;
     }
+
 
     @Override
     protected Predicate<ServletMocker> filterLocalStorage() {

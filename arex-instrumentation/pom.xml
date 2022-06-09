@@ -16,9 +16,6 @@
         <module>internal/arex-executors</module>
         <module>internal/arex-loader</module>
         <module>servlet/arex-httpservlet</module>
-        <module>apache-httpclient/arex-apache-httpclient-async</module>
-        <module>apache-httpclient/arex-apache-httpclient-common</module>
-        <module>apache-httpclient/arex-apache-httpclient-sync</module>
         <module>database/arex-database-common</module>
         <module>database/arex-database-hibernate</module>
         <module>database/arex-database-mybatis3</module>
@@ -28,6 +25,9 @@
         <module>dynamic/arex-dynamic</module>
         <module>time-machine/arex-time-machine</module>
         <module>redis/arex-jedis-v2</module>
+        <module>httpclient/arex-httpclient-common</module>
+        <module>httpclient/arex-httpclient-okhttp-v3</module>
+        <module>httpclient/arex-httpclient-apache-v4</module>
 
     </modules>
     <dependencies>

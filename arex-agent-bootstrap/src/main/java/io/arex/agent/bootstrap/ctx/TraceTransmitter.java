@@ -28,7 +28,7 @@ public class TraceTransmitter implements AutoCloseable {
         }
     }
 
-    public static final TraceTransmitter create() {
+    public static TraceTransmitter create() {
         return new TraceTransmitter();
     }
  }

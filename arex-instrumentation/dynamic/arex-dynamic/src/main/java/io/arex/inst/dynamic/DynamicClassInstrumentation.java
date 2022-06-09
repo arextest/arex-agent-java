@@ -12,6 +12,7 @@ import net.bytebuddy.implementation.bytecode.assign.Assigner;
 import net.bytebuddy.matcher.ElementMatcher;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static net.bytebuddy.matcher.ElementMatchers.*;
@@ -21,6 +22,7 @@ import static net.bytebuddy.matcher.ElementMatchers.*;
  */
 public class DynamicClassInstrumentation extends TypeInstrumentation {
     private final List<DynamicClassEntity> dynamicClassList;
+
     public DynamicClassInstrumentation(List<DynamicClassEntity> dynamicClassList) {
         this.dynamicClassList = dynamicClassList;
     }
@@ -32,25 +34,25 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
 
     @Override
     public List<MethodInstrumentation> methodAdvices() {
-        List<MethodInstrumentation> methodInstList = new ArrayList<>();
-        if (CollectionUtil.isNotEmpty(dynamicClassList)) {
-            for (DynamicClassEntity dynamicClassEntity : dynamicClassList) {
-                ElementMatcher.Junction<MethodDescription> matcher = named(dynamicClassEntity.getOperation());
-                if (CollectionUtil.isNotEmpty(dynamicClassEntity.getParameters())) {
-                    matcher.and(takesArguments(dynamicClassEntity.getParameters().size()));
-                    for (int i = 0; i < dynamicClassEntity.getParameters().size(); i++) {
-                        matcher.and(takesArgument(i, named(dynamicClassEntity.getParameters().get(i))));
-                    }
+        if (CollectionUtil.isEmpty(dynamicClassList)) {
+            return Collections.emptyList();
+        }
+        List<MethodInstrumentation> methodInstList = new ArrayList<>(dynamicClassList.size());
+        String adviceClassName = MethodAdvice.class.getName();
+        for (DynamicClassEntity dynamicClassEntity : dynamicClassList) {
+            ElementMatcher.Junction<MethodDescription> matcher = named(dynamicClassEntity.getOperation());
+            if (CollectionUtil.isNotEmpty(dynamicClassEntity.getParameters())) {
+                matcher.and(takesArguments(dynamicClassEntity.getParameters().size()));
+                for (int i = 0; i < dynamicClassEntity.getParameters().size(); i++) {
+                    matcher.and(takesArgument(i, named(dynamicClassEntity.getParameters().get(i))));
                 }
-
-                String adviceClassName = this.getClass().getName() + "$MethodAdvice";
-                methodInstList.add(new MethodInstrumentation(matcher, adviceClassName));
             }
+            methodInstList.add(new MethodInstrumentation(matcher, adviceClassName));
         }
         return methodInstList;
     }
 
-    public static class MethodAdvice {
+    public final static class MethodAdvice {
 
         @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class)
         public static boolean onEnter() {
@@ -65,7 +67,8 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
                 extractor = new DynamicClassExtractor(className, methodName, args);
                 result = extractor.replay();
                 return;
-            } else if (ContextManager.needRecord()) {
+            }
+            if (ContextManager.needRecord()) {
                 extractor = new DynamicClassExtractor(className, methodName, args, result);
                 extractor.record();
             }
