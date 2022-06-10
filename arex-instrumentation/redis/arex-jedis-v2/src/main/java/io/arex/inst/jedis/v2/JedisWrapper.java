@@ -427,9 +427,7 @@ public class JedisWrapper extends Jedis {
             return call(command, keysValues[0], null, callable, defaultValue);
         }
 
-        StringBuilder keyBuilder = new StringBuilder();
-
-        keyBuilder.append(keysValues[0]);
+        StringBuilder keyBuilder = new StringBuilder(keysValues[0]);
         for (int i = 2; i < keysValues.length; i++) {
             if (i % 2 == 0) {
                 keyBuilder.append(';').append(keysValues[i]);
@@ -455,7 +453,7 @@ public class JedisWrapper extends Jedis {
         try {
             result = callable.call();
         } catch (Exception e) {
-            if (!ContextManager.needRecord()) {
+            if (ContextManager.needRecord()) {
                 extractor = new RedisExtractor(this.url, command, key, field);
                 extractor.record(e);
             }
