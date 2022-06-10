@@ -21,12 +21,15 @@ Arex utilizes the advanced Java technique, Instrument API, and is capable of ins
 
 **Libraries and frameworks supported by Arex (to be added...)**
 - Java Executors
+- System time
 - Apache HttpAsyncClient 4.x 
 - Apache HttpClient 4.x 
 - Hibernate 5.x 
 - MyBatis 3.x 
-- Jedis 4+
-- Spring Boot 1.4+-2.x+, Servlet API 3+ 
+- Lettuce 6+
+- Jedis 2.10+, 4+
+- Spring Boot 1.4+-2.x+, Servlet API 3+、5+
+- Custom type
 
 ## Installation
 
@@ -47,7 +50,7 @@ You can get arex started by：
 ```
  java -javaagent:/path/to/arex-agent-<version>.jar
       -Darex.service.name=your-service-name (should be unique)
-      -Darex.storge.model=local
+      -Darex.storage.model=local
       -jar your-application.jar
 ```
 

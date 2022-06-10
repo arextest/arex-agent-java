@@ -450,13 +450,15 @@ public class JedisWrapper extends Jedis {
             Object replayResult = extractor.replay();
             return replayResult == null ? defaultValue : (U) replayResult;
         }
-
+        
         U result;
         try {
             result = callable.call();
         } catch (Exception e) {
-            extractor = new RedisExtractor(this.url, command, key, field);
-            extractor.record(e);
+            if (!ContextManager.needRecord()) {
+                extractor = new RedisExtractor(this.url, command, key, field);
+                extractor.record(e);
+            }
             return defaultValue;
         }
 
