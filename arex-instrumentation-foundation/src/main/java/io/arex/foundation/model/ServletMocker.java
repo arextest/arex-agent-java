@@ -1,8 +1,10 @@
 package io.arex.foundation.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Map;
+import java.util.function.Predicate;
 
 /**
  * ServletMocker
@@ -90,5 +92,18 @@ public class ServletMocker extends AbstractMocker {
     @Override
     public Object parseMockResponse(AbstractMocker requestMocker) {
         return response;
+    }
+
+    @Override
+    protected Predicate<ServletMocker> filterLocalStorage() {
+        return mocker -> {
+            if (StringUtils.isNotBlank(path) && !StringUtils.equals(path, mocker.getPath())) {
+                return false;
+            }
+            if (StringUtils.isNotBlank(request) && !StringUtils.equals(request, mocker.getRequest())) {
+                return false;
+            }
+            return true;
+        };
     }
 }

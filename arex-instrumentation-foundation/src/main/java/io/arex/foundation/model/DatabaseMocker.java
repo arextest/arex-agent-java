@@ -3,8 +3,11 @@ package io.arex.foundation.model;
 import io.arex.foundation.serializer.SerializeUtils;
 import io.arex.foundation.util.TypeUtil;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.function.Predicate;
 
 public class DatabaseMocker extends AbstractMocker {
     private static final Logger LOGGER = LoggerFactory.getLogger(DatabaseMocker.class);
@@ -73,5 +76,24 @@ public class DatabaseMocker extends AbstractMocker {
 
     public String getTables() {
         return tables;
+    }
+
+    @Override
+    protected Predicate<DatabaseMocker> filterLocalStorage() {
+        return mocker -> {
+            if (StringUtils.isNotBlank(dbName) && !StringUtils.equals(dbName, mocker.getDbName())) {
+                return false;
+            }
+            if (StringUtils.isNotBlank(tables) && !StringUtils.equals(tables, mocker.getTables())) {
+                return false;
+            }
+            if (StringUtils.isNotBlank(parameters) && !StringUtils.equals(parameters, mocker.getParameters())) {
+                return false;
+            }
+            if (StringUtils.isNotBlank(sql) && !StringUtils.equals(sql, mocker.getSql())) {
+                return false;
+            }
+            return true;
+        };
     }
 }

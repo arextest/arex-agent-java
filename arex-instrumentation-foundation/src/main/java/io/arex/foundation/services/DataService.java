@@ -153,25 +153,24 @@ public class DataService {
                 String urlAddress = queryApiUrl;
 
                 startNanoTime = System.nanoTime();
-                String responseData;
 
+                T responseMocker;
                 if (ConfigManager.INSTANCE.isLocalStorage()) {
                     logBuilder.append(", mode: local");
-                    responseData = StorageService.INSTANCE.queryReplay(requestMocker, postJson);
+                    responseMocker = (T)StorageService.INSTANCE.queryReplay(requestMocker, postJson);
                 } else {
                     logBuilder.append(", mode: server");
-                    responseData = AsyncHttpClientUtil.executeSync(urlAddress, postJson, requestMocker.getCategory());
+                    String responseData = AsyncHttpClientUtil.executeSync(urlAddress, postJson, requestMocker.getCategory());
+                    if (StringUtils.isEmpty(responseData) || "{}".equals(responseData)) {
+                        LOGGER.warn("{}{}, response body is null. request: {}", logTitle, logBuilder.toString() , postJson);
+                        return null;
+                    }
+
+                    responseMocker = SerializeUtils.deserialize(responseData, clazz);
                 }
                 elapsedMills = (System.nanoTime() - startNanoTime) / 1000000;
 
                 logBuilder.append(", elapsed mills: ").append(elapsedMills);
-
-                if (StringUtils.isEmpty(responseData) || "{}".equals(responseData)) {
-                    LOGGER.warn("{}{}, response body is null. request: {}", logTitle, logBuilder.toString() , postJson);
-                    return null;
-                }
-
-                T responseMocker = SerializeUtils.deserialize(responseData, clazz);
 
                 if (responseMocker == null) {
                     LOGGER.warn("{}{}, response body is null. request: {}", logTitle, logBuilder.toString() , postJson);

@@ -2,7 +2,6 @@ package io.arex.foundation.services;
 
 import io.arex.foundation.model.AbstractMocker;
 import io.arex.foundation.model.DiffMocker;
-import io.arex.foundation.model.MockDataType;
 import io.arex.foundation.util.SPIUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,7 +49,6 @@ public abstract class StorageService {
 
     public CompletableFuture<String> saveRecord(AbstractMocker mocker, String postJson) {
         CompletableFuture<String> future = new CompletableFuture<>();
-        mocker.setMockDataType(MockDataType.RECORD);
         int count = save(mocker, postJson);
         if (count > 0) {
             future.complete("local record success");
@@ -60,10 +58,8 @@ public abstract class StorageService {
         return future;
     }
 
-    public String queryReplay(AbstractMocker mocker, String postJson) {
-        mocker.setMockDataType(MockDataType.REPLAY);
+    public AbstractMocker queryReplay(AbstractMocker mocker, String postJson) {
         save(mocker, postJson);
-        mocker.setMockDataType(MockDataType.RECORD);
         mocker.setReplayId(null);
         return query(mocker);
     }
@@ -74,11 +70,11 @@ public abstract class StorageService {
 
     public abstract int saveList(List<DiffMocker> mockers);
 
-    public abstract String query(AbstractMocker mocker);
+    public abstract AbstractMocker query(AbstractMocker mocker);
 
     public abstract List<Map<String, String>> query(String sql);
 
-    public abstract List<String> queryList(AbstractMocker mocker, int count);
+    public abstract List<AbstractMocker> queryList(AbstractMocker mocker, int count);
 
     public abstract List<DiffMocker> queryList(DiffMocker mocker);
 }

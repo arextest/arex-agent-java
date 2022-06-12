@@ -2,17 +2,19 @@ package io.arex.cli.storage;
 
 import com.google.auto.service.AutoService;
 import io.arex.foundation.config.ConfigManager;
-import io.arex.foundation.model.AbstractMocker;
-import io.arex.foundation.model.DiffMocker;
-import io.arex.foundation.model.MockerCategory;
+import io.arex.foundation.model.*;
+import io.arex.foundation.serializer.SerializeUtils;
 import io.arex.foundation.services.StorageService;
 import io.arex.foundation.util.CollectionUtil;
 import io.arex.foundation.util.StringUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.h2.tools.Server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,7 +32,7 @@ public class H2StorageService extends StorageService {
     private static Statement stmt = null;
 
     public int save(AbstractMocker mocker, String postJson){
-        String tableName = mocker.getMockDataType().name() + "_" + mocker.getCategory().name();
+        String tableName = "MOCKER_INFO";
         List<Object> mockers = new ArrayList<>();
         mockers.add(mocker);
         return batchSave(mockers, tableName, postJson);
@@ -49,10 +51,10 @@ public class H2StorageService extends StorageService {
         return batchSave(mockerList, tableName, null);
     }
 
-    public int batchSave(List<Object> mockers, String tableName, String mockerInfo){
+    public int batchSave(List<Object> mockers, String tableName, String jsonData){
         int count = 0;
         try {
-            String sql = io.arex.cli.storage.H2SqlParser.generateInsertSql(mockers, tableName, mockerInfo);
+            String sql = io.arex.cli.storage.H2SqlParser.generateInsertSql(mockers, tableName, jsonData);
             count = stmt.executeUpdate(sql);
         } catch (Throwable e) {
             LOGGER.warn("h2database batch save error", e);
@@ -60,8 +62,8 @@ public class H2StorageService extends StorageService {
         return count;
     }
 
-    public String query(AbstractMocker mocker){
-        List<String> result = queryList(mocker, 0);
+    public AbstractMocker query(AbstractMocker mocker){
+        List<AbstractMocker> result = queryList(mocker, 0);
         return CollectionUtil.isNotEmpty(result) ? result.get(0) : null;
     }
 
@@ -85,13 +87,18 @@ public class H2StorageService extends StorageService {
         return result;
     }
 
-    public List<String> queryList(AbstractMocker mocker, int count){
-        List<String> result = new ArrayList<>();
+    public List<AbstractMocker> queryList(AbstractMocker mocker, int count){
+        List<AbstractMocker> result = new ArrayList<>();
         try {
             String sql = io.arex.cli.storage.H2SqlParser.generateSelectSql(mocker, count);
             ResultSet rs = stmt.executeQuery(sql);
             while (rs.next()) {
-                result.add(rs.getString("MOCKERINFO"));
+                String jsonData = URLDecoder.decode(rs.getString("jsonData"), StandardCharsets.UTF_8.name());
+                AbstractMocker resultMocker = SerializeUtils.deserialize(jsonData, mocker.getClass());
+                if (resultMocker == null || !mocker.matchLocalStorage(resultMocker)) {
+                    continue;
+                }
+                result.add(resultMocker);
             }
         } catch (Throwable e) {
             LOGGER.warn("h2database query mocker list error", e);
