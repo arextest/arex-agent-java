@@ -3,8 +3,11 @@ package io.arex.foundation.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.arex.foundation.serializer.SerializeUtils;
 import io.arex.foundation.util.TypeUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.function.Predicate;
 
 public class JedisMocker extends AbstractMocker {
 
@@ -72,5 +75,26 @@ public class JedisMocker extends AbstractMocker {
             redisMultiKey.command = command;
             return redisMultiKey;
         }
+    }
+
+    public String getClusterName() {
+        return clusterName;
+    }
+
+    public String getRedisKey() {
+        return redisKey;
+    }
+
+    @Override
+    protected Predicate<JedisMocker> filterLocalStorage() {
+        return mocker -> {
+            if (StringUtils.isNotBlank(clusterName) && !StringUtils.equals(clusterName, mocker.getClusterName())) {
+                return false;
+            }
+            if (StringUtils.isNotBlank(redisKey) && !StringUtils.equals(redisKey, mocker.getRedisKey())) {
+                return false;
+            }
+            return true;
+        };
     }
 }

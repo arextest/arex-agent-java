@@ -17,13 +17,10 @@ public class WatchHandler extends ApiHandler {
         DiffMocker mocker = new DiffMocker();
         for (MockerCategory category : MockerCategory.values()) {
             mocker.setReplayId(args);
-            switch (category) {
-                case SERVLET_ENTRANCE:
-                case DATABASE:
-                case DYNAMIC_CLASS:
-                    mocker.setCategory(category);
-                    diffList.addAll(StorageService.INSTANCE.queryList(mocker));
-                    break;
+            mocker.setCategory(category);
+            List<DiffMocker> diffMockers = StorageService.INSTANCE.queryList(mocker);
+            if (CollectionUtil.isNotEmpty(diffMockers)) {
+                diffList.addAll(diffMockers);
             }
         }
         if (CollectionUtil.isEmpty(diffList)) {

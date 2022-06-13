@@ -3,6 +3,9 @@ package io.arex.foundation.model;
 import io.arex.foundation.serializer.SerializeUtils;
 import io.arex.foundation.util.TypeUtil;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.function.Predicate;
 
 public class HttpClientMocker extends AbstractMocker {
     @JsonProperty("url")
@@ -17,7 +20,9 @@ public class HttpClientMocker extends AbstractMocker {
     private String request;
 
     @SuppressWarnings("deserialize")
-    public HttpClientMocker(){}
+    public HttpClientMocker(){
+        super(MockerCategory.SERVICE_CALL);
+    }
 
     public HttpClientMocker(String target, String contentType, String request) {
         this(target, contentType, request, null);
@@ -46,5 +51,26 @@ public class HttpClientMocker extends AbstractMocker {
     @Override
     public Object parseMockResponse(AbstractMocker requestMocker) {
         return response;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public String getRequest() {
+        return request;
+    }
+
+    @Override
+    protected Predicate<HttpClientMocker> filterLocalStorage() {
+        return mocker -> {
+            if (StringUtils.isNotBlank(url) && !StringUtils.equals(url, mocker.getUrl())) {
+                return false;
+            }
+            if (StringUtils.isNotBlank(request) && !StringUtils.equals(request, mocker.getRequest())) {
+                return false;
+            }
+            return true;
+        };
     }
 }

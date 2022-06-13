@@ -9,6 +9,8 @@ import io.arex.foundation.util.LogUtil;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.function.Predicate;
+
 @JsonAutoDetect(
         getterVisibility = JsonAutoDetect.Visibility.NONE,
         setterVisibility = JsonAutoDetect.Visibility.NONE,
@@ -30,7 +32,6 @@ public abstract class AbstractMocker {
     private int category;
 
     protected transient long queueTime;
-    protected transient MockDataType mockDataType;
 
     public AbstractMocker() {
     }
@@ -108,19 +109,19 @@ public abstract class AbstractMocker {
         return LogUtil.buildTitle("replay.", getCategory().getName());
     }
 
-    public MockDataType getMockDataType() {
-        return mockDataType;
-    }
-
-    public void setMockDataType(MockDataType mockDataType) {
-        this.mockDataType = mockDataType;
-    }
-
     public void setCaseId(String caseId) {
         this.caseId = caseId;
     }
 
     public void setReplayId(String replayId) {
         this.replayId = replayId;
+    }
+
+    public boolean matchLocalStorage(AbstractMocker mocker) {
+        return filterLocalStorage().test(mocker);
+    }
+
+    protected <T extends AbstractMocker> Predicate<T> filterLocalStorage() {
+        return mocker -> true;
     }
 }

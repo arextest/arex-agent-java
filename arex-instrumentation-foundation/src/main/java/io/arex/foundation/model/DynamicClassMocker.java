@@ -2,8 +2,11 @@ package io.arex.foundation.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.arex.foundation.serializer.SerializeUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.function.Predicate;
 
 public class DynamicClassMocker extends AbstractMocker {
     private static final Logger LOGGER = LoggerFactory.getLogger(DynamicClassMocker.class);
@@ -65,5 +68,21 @@ public class DynamicClassMocker extends AbstractMocker {
 
     public String getResultClazz() {
         return resultClazz;
+    }
+
+    @Override
+    protected Predicate<DynamicClassMocker> filterLocalStorage() {
+        return mocker -> {
+            if (StringUtils.isNotBlank(clazzName) && !StringUtils.equals(clazzName, mocker.getClazzName())) {
+                return false;
+            }
+            if (StringUtils.isNotBlank(operation) && !StringUtils.equals(operation, mocker.getOperation())) {
+                return false;
+            }
+            if (StringUtils.isNotBlank(operationKey) && !StringUtils.equals(operationKey, mocker.getOperationKey())) {
+                return false;
+            }
+            return true;
+        };
     }
 }
