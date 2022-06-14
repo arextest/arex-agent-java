@@ -57,7 +57,7 @@ public class H2StorageService extends StorageService {
             String sql = io.arex.cli.storage.H2SqlParser.generateInsertSql(mockers, tableName, jsonData);
             count = stmt.executeUpdate(sql);
         } catch (Throwable e) {
-            LOGGER.warn("h2database batch save error", e);
+            LOGGER.warn("h2database batch save error: {}",e.getMessage(), e);
         }
         return count;
     }

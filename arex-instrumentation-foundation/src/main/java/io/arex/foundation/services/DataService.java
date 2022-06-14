@@ -71,18 +71,22 @@ public class DataService {
 
     private void loop() {
         while (true) {
-            AbstractMocker entity = buffer.get();
-            if (entity == null) {
-                if (stop) {
-                    break;
+            try {
+                AbstractMocker entity = buffer.get();
+                if (entity == null) {
+                    if (stop) {
+                        break;
+                    }
+                    doSleep(1000);
+                    continue;
                 }
-                doSleep(1000);
-                continue;
-            }
-            HealthManager.reportUsedTime(System.nanoTime() - entity.getQueueTime(), true);
-            DATA_SAVER.saveData(entity);
-            if (HealthManager.isFastRejection()) {
-                doSleep(100);
+                HealthManager.reportUsedTime(System.nanoTime() - entity.getQueueTime(), true);
+                DATA_SAVER.saveData(entity);
+                if (HealthManager.isFastRejection()) {
+                    doSleep(100);
+                }
+            } catch (Throwable throwable) {
+                LOGGER.warn("Send mock data unhandled error:{}", throwable.getMessage(), throwable);
             }
         }
     }
@@ -124,6 +128,10 @@ public class DataService {
                 if (responseMocker == null) {
                     return null;
                 }
+                if (requestMocker.ignoreMockResult()) {
+                    // All mock responses from the entry point are ignored. We send it just to compare requests.
+                    return null;
+                }
                 Object mockResponse = responseMocker.parseMockResponse(requestMocker);
                 if (mockResponse == null) {
                     LOGGER.warn("{}mock response is null, request: {}", logTitle, postJson);
@@ -139,6 +147,7 @@ public class DataService {
 
         /**
          * Query replay data
+         *
          * @param requestMocker request mocker
          * @return response string
          */
@@ -173,8 +182,8 @@ public class DataService {
                 logBuilder.append(", elapsed mills: ").append(elapsedMills);
 
                 if (responseMocker == null) {
-                    LOGGER.warn("{}{}, response body is null. request: {}", logTitle, logBuilder.toString() , postJson);
-                    return responseMocker;
+                    LOGGER.warn("{}{}, response body is null. request: {}", logTitle, logBuilder.toString(), postJson);
+                    return null;
                 }
 
                 logBuilder.append(", request: {").append(requestMocker.toString()).append("}");
@@ -191,6 +200,7 @@ public class DataService {
 
         /**
          * Save record mocker
+         *
          * @param requestMocker request mocker
          */
         public void saveRecordData(AbstractMocker requestMocker) {

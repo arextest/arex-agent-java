@@ -24,34 +24,18 @@ import java.util.Map;
  * @date 2022/03/03
  */
 public class ServletExtractor<HttpServletRequest, HttpServletResponse> {
-    private static final List<String> FILTERED_CONTENT_TYPE = new LinkedList<>();
-
-    static {
-        FILTERED_CONTENT_TYPE.add("/javascript");
-        FILTERED_CONTENT_TYPE.add("image/");
-        FILTERED_CONTENT_TYPE.add("/font");
-        FILTERED_CONTENT_TYPE.add("/pdf");
-        FILTERED_CONTENT_TYPE.add(".css");
-    }
-
     private final HttpServletRequest httpServletRequest;
     private final HttpServletResponse httpServletResponse;
     private final ServletAdapter<HttpServletRequest, HttpServletResponse> adapter;
 
     public ServletExtractor(ServletAdapter<HttpServletRequest, HttpServletResponse> adapter,
-        HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
+                            HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
         this.httpServletRequest = httpServletRequest;
         this.httpServletResponse = httpServletResponse;
         this.adapter = adapter;
     }
 
     public void execute() throws IOException {
-        if (isFilteredContentType() || isCssPath()) {
-            CaseListenerImpl.INSTANCE.onEvent(new CaseEvent(this, CaseEvent.Action.DESTROY));
-            adapter.copyBodyToResponse(httpServletResponse);
-            return;
-        }
-
         doExecute();
         executePostProcess();
     }
@@ -62,25 +46,16 @@ public class ServletExtractor<HttpServletRequest, HttpServletResponse> {
         adapter.copyBodyToResponse(httpServletResponse);
     }
 
-    private boolean isFilteredContentType() {
-        String contentType = adapter.getContentType(httpServletRequest);
-        return StringUtil.isEmpty(contentType) || FILTERED_CONTENT_TYPE.stream().anyMatch(contentType::contains);
-    }
-
-    private boolean isCssPath() {
-        String path = adapter.getServletPath(httpServletRequest);
-        return StringUtil.isEmpty(path) || path.endsWith(".css");
-    }
 
     private void setResponseHeader() {
         if (ContextManager.needRecord()) {
             adapter
-                .setResponseHeader(httpServletResponse, ServletConstants.RECORD_ID, ContextManager.currentContext().getCaseId());
+                    .setResponseHeader(httpServletResponse, ServletConstants.RECORD_ID, ContextManager.currentContext().getCaseId());
         }
 
         if (ContextManager.needReplay()) {
             adapter.setResponseHeader(httpServletResponse, ServletConstants.REPLAY_ID,
-                ContextManager.currentContext().getReplayId());
+                    ContextManager.currentContext().getReplayId());
         }
     }
 
@@ -141,7 +116,7 @@ public class ServletExtractor<HttpServletRequest, HttpServletResponse> {
 
     private String getPattern() {
         Object pattern = adapter
-            .getAttribute(httpServletRequest, "org.springframework.web.servlet.HandlerMapping.bestMatchingPattern");
+                .getAttribute(httpServletRequest, "org.springframework.web.servlet.HandlerMapping.bestMatchingPattern");
         return pattern == null ? "" : String.valueOf(pattern);
     }
 }

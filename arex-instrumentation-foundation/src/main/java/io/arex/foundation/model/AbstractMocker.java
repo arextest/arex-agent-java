@@ -30,7 +30,10 @@ public abstract class AbstractMocker {
     private String exceptionMessage;
     @JsonProperty("category")
     private int category;
-
+    @JsonProperty("response")
+    private String response;
+    @JsonProperty("responseType")
+    private String responseType;
     protected transient long queueTime;
 
     public AbstractMocker() {
@@ -96,10 +99,13 @@ public abstract class AbstractMocker {
 
     /**
      * parse response mock
-     * @return Object
+     *
      * @param requestMocker request mocker
+     * @return Object
      */
-    public abstract Object parseMockResponse(AbstractMocker requestMocker);
+    public Object parseMockResponse(AbstractMocker requestMocker) {
+        return SerializeUtils.deserialize(this.response, this.responseType);
+    }
 
     public String getRecordLogTitle() {
         return LogUtil.buildTitle("record.", getCategory().getName());
@@ -123,5 +129,21 @@ public abstract class AbstractMocker {
 
     protected <T extends AbstractMocker> Predicate<T> filterLocalStorage() {
         return mocker -> true;
+    }
+
+    public void setResponse(String response) {
+        this.response = response;
+    }
+
+    public String getResponse() {
+        return response;
+    }
+
+    public void setResponseType(String responseType) {
+        this.responseType = responseType;
+    }
+
+    public boolean ignoreMockResult() {
+        return false;
     }
 }

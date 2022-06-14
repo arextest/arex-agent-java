@@ -45,19 +45,10 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>arex-apache-httpclient-async</artifactId>
+            <artifactId>arex-httpclient-apache-v4</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>arex-apache-httpclient-sync</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>arex-apache-httpclient-common</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>arex-database-hibernate</artifactId>
@@ -98,7 +89,11 @@
             <artifactId>arex-time-machine</artifactId>
             <version>${project.version}</version>
         </dependency>
-
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>arex-httpclient-okhttp-v3</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <!--Agent instrumentation end-->
 
         <dependency>
