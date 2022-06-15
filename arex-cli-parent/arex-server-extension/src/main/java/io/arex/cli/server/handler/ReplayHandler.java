@@ -115,7 +115,7 @@ public class ReplayHandler extends ApiHandler {
             case SERVICE_CALL:
                 return new HttpClientMocker();
             case REDIS:
-                return new JedisMocker();
+                return new RedisMocker();
         }
         return null;
     }
@@ -146,9 +146,9 @@ public class ReplayHandler extends ApiHandler {
                     compareMap.put("request", httpClientMocker.getRequest());
                     break;
                 case REDIS:
-                    JedisMocker jedisMocker = (JedisMocker)mockerList.get(index);
-                    compareMap.put("clusterName", jedisMocker.getClusterName());
-                    compareMap.put("key", jedisMocker.getRedisKey());
+                    RedisMocker redisMocker = (RedisMocker)mockerList.get(index);
+                    compareMap.put("clusterName", redisMocker.getClusterName());
+                    compareMap.put("key", redisMocker.getRedisKey());
                     break;
             }
         }

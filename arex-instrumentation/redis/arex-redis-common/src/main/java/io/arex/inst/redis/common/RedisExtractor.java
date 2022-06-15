@@ -1,6 +1,6 @@
-package io.arex.inst.jedis.common;
+package io.arex.inst.redis.common;
 
-import io.arex.foundation.model.JedisMocker;
+import io.arex.foundation.model.RedisMocker;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -19,18 +19,18 @@ public class RedisExtractor {
     }
 
     public void record(Object response) {
-        JedisMocker mocker = new JedisMocker(this.clusterName, this.key, this.command, this.field, response);
+        RedisMocker mocker = new RedisMocker(this.clusterName, this.key, this.command, this.field, response);
         mocker.record();
     }
 
     public void record(Throwable exception) {
-        JedisMocker mocker = new JedisMocker(this.clusterName, this.key, this.command, this.field, null);
+        RedisMocker mocker = new RedisMocker(this.clusterName, this.key, this.command, this.field, null);
         mocker.setExceptionMessage(exception.getMessage());
         mocker.record();
     }
 
     public Object replay() {
-        JedisMocker mocker = new JedisMocker(this.clusterName, this.key, this.command, this.field);
+        RedisMocker mocker = new RedisMocker(this.clusterName, this.key, this.command, this.field);
         return mocker.replay();
     }
 
