@@ -20,6 +20,6 @@ public class RedissonModuleInstrumentation extends ModuleInstrumentation {
 
     @Override
     public List<TypeInstrumentation> instrumentationTypes() {
-        return Arrays.asList(new RedissonInstrumentation());
+        return Arrays.asList(new RedissonInstrumentation(target));
     }
 }

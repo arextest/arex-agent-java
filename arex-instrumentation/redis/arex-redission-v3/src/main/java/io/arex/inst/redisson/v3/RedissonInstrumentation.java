@@ -1,6 +1,7 @@
 package io.arex.inst.redisson.v3;
 
 import io.arex.foundation.api.MethodInstrumentation;
+import io.arex.foundation.api.ModuleDescription;
 import io.arex.foundation.api.TypeInstrumentation;
 import io.arex.inst.redisson.v3.wrapper.RedissonBucketWrapper;
 import io.arex.inst.redisson.v3.wrapper.RedissonBucketsWrapper;
@@ -12,7 +13,6 @@ import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
-import org.redisson.Redisson;
 import org.redisson.WriteBehindService;
 import org.redisson.api.MapOptions;
 import org.redisson.api.RBucket;
@@ -21,6 +21,7 @@ import org.redisson.api.RKeys;
 import org.redisson.api.RList;
 import org.redisson.api.RMap;
 import org.redisson.api.RSet;
+import org.redisson.api.RedissonClient;
 import org.redisson.client.codec.Codec;
 import org.redisson.command.CommandAsyncExecutor;
 
@@ -37,6 +38,10 @@ import static net.bytebuddy.matcher.ElementMatchers.takesNoArguments;
  * RedissonInstrumentation
  */
 public class RedissonInstrumentation extends TypeInstrumentation {
+    public RedissonInstrumentation(ModuleDescription target) {
+        super(target);
+    }
+
     @Override
     protected ElementMatcher<TypeDescription> typeMatcher() {
         return named("org.redisson.Redisson");
@@ -188,7 +193,7 @@ public class RedissonInstrumentation extends TypeInstrumentation {
         }
 
         @Advice.OnMethodExit
-        public static <V> void onExit(@Advice.Argument(0) String name, @Advice.This Redisson redisson,
+        public static <V> void onExit(@Advice.Argument(0) String name, @Advice.This RedissonClient redisson,
             @Advice.FieldValue("commandExecutor") CommandAsyncExecutor commandExecutor,
             @Advice.Return(readOnly = false) RList<V> redissonList) {
             redissonList = new RedissonListWrapper<>(commandExecutor, name, redisson);
@@ -214,7 +219,7 @@ public class RedissonInstrumentation extends TypeInstrumentation {
 
         @Advice.OnMethodExit
         public static <V> void onExit(@Advice.Argument(0) String name, @Advice.Argument(1) Codec codec,
-            @Advice.This Redisson redisson, @Advice.FieldValue("commandExecutor") CommandAsyncExecutor commandExecutor,
+            @Advice.This RedissonClient redisson, @Advice.FieldValue("commandExecutor") CommandAsyncExecutor commandExecutor,
             @Advice.Return(readOnly = false) RList<V> redissonList) {
             redissonList = new RedissonListWrapper<>(codec, commandExecutor, name, redisson);
         }
@@ -237,7 +242,7 @@ public class RedissonInstrumentation extends TypeInstrumentation {
         }
 
         @Advice.OnMethodExit
-        public static <V> void onExit(@Advice.Argument(0) String name, @Advice.This Redisson redisson,
+        public static <V> void onExit(@Advice.Argument(0) String name, @Advice.This RedissonClient redisson,
             @Advice.FieldValue("commandExecutor") CommandAsyncExecutor commandExecutor,
             @Advice.Return(readOnly = false) RSet<V> redissonSet) {
             redissonSet = new RedissonSetWrapper<>(commandExecutor, name, redisson);
@@ -263,7 +268,7 @@ public class RedissonInstrumentation extends TypeInstrumentation {
 
         @Advice.OnMethodExit
         public static <V> void onExit(@Advice.Argument(0) String name, @Advice.Argument(1) Codec codec,
-            @Advice.This Redisson redisson, @Advice.FieldValue("commandExecutor") CommandAsyncExecutor commandExecutor,
+            @Advice.This RedissonClient redisson, @Advice.FieldValue("commandExecutor") CommandAsyncExecutor commandExecutor,
             @Advice.Return(readOnly = false) RSet<V> redissonSet) {
             redissonSet = new RedissonSetWrapper<>(codec, commandExecutor, name, redisson);
         }
@@ -286,7 +291,7 @@ public class RedissonInstrumentation extends TypeInstrumentation {
         }
 
         @Advice.OnMethodExit
-        public static <K, V> void onExit(@Advice.Argument(0) String name, @Advice.This Redisson redisson,
+        public static <K, V> void onExit(@Advice.Argument(0) String name, @Advice.This RedissonClient redisson,
             @Advice.FieldValue("commandExecutor") CommandAsyncExecutor commandExecutor,
             @Advice.Return(readOnly = false) RMap<K, V> redissonMap) {
             redissonMap = new RedissonMapWrapper<>(commandExecutor, name, redisson, null, null);
@@ -312,7 +317,7 @@ public class RedissonInstrumentation extends TypeInstrumentation {
 
         @Advice.OnMethodExit
         public static <K, V> void onExit(@Advice.Argument(0) String name, @Advice.Argument(1) MapOptions<K, V> options,
-            @Advice.This Redisson redisson, @Advice.FieldValue("commandExecutor") CommandAsyncExecutor commandExecutor,
+            @Advice.This RedissonClient redisson, @Advice.FieldValue("commandExecutor") CommandAsyncExecutor commandExecutor,
             @Advice.FieldValue("writeBehindService") WriteBehindService writeBehindService,
             @Advice.Return(readOnly = false) RMap<K, V> redissonMap) {
             redissonMap = new RedissonMapWrapper<>(commandExecutor, name, redisson, options, writeBehindService);
@@ -338,7 +343,7 @@ public class RedissonInstrumentation extends TypeInstrumentation {
 
         @Advice.OnMethodExit
         public static <K, V> void onExit(@Advice.Argument(0) String name, @Advice.Argument(1) Codec codec,
-            @Advice.This Redisson redisson, @Advice.FieldValue("commandExecutor") CommandAsyncExecutor commandExecutor,
+            @Advice.This RedissonClient redisson, @Advice.FieldValue("commandExecutor") CommandAsyncExecutor commandExecutor,
             @Advice.Return(readOnly = false) RMap<K, V> redissonMap) {
             redissonMap = new RedissonMapWrapper<>(codec, commandExecutor, name, redisson, null, null);
         }
@@ -364,7 +369,7 @@ public class RedissonInstrumentation extends TypeInstrumentation {
 
         @Advice.OnMethodExit
         public static <K, V> void onExit(@Advice.Argument(0) String name, @Advice.Argument(1) Codec codec,
-            @Advice.Argument(2) MapOptions<K, V> options, @Advice.This Redisson redisson,
+            @Advice.Argument(2) MapOptions<K, V> options, @Advice.This RedissonClient redisson,
             @Advice.FieldValue("commandExecutor") CommandAsyncExecutor commandExecutor,
             @Advice.FieldValue("writeBehindService") WriteBehindService writeBehindService,
             @Advice.Return(readOnly = false) RMap<K, V> redissonMap) {
