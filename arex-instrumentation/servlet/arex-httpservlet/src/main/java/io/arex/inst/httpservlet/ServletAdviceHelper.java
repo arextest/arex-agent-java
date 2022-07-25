@@ -139,7 +139,7 @@ public class ServletAdviceHelper {
     }
 
     public static boolean checkRateLimit(String path) {
-        return ConfigManager.INSTANCE.isForceRecord() ||
+        return ConfigManager.INSTANCE.isEnableDebug() ||
                 HealthManager.acquire(path, ConfigManager.INSTANCE.getRecordRate());
     }
 

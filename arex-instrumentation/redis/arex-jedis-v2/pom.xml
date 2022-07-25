@@ -20,7 +20,7 @@
         </dependency>
         <dependency>
             <groupId>io.arex</groupId>
-            <artifactId>arex-jedis-common</artifactId>
+            <artifactId>arex-redis-common</artifactId>
             <version>${project.version}</version>
             <scope>compile</scope>
         </dependency>

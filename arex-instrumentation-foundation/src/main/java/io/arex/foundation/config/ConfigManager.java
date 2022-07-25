@@ -28,7 +28,6 @@ public class ConfigManager {
     private static final String CONFIG_PATH = "arex.config.path";
     private static final String STORAGE_MODE = "local";
     private static final String RECORD_RATE = "arex.rate.limit";
-    private static final String FORCE_RECORD = "arex.force.record";
     private static final String DYNAMIC_CLASS_KEY = "arex.dynamic.class";
     private static final String DYNAMIC_RESULT_SIZE_LIMIT = "arex.dynamic.result.size.limit";
     private static final String TIME_MACHINE = "arex.time.machine";
@@ -47,7 +46,6 @@ public class ConfigManager {
     private String storageServiceWebPort;
     private String serverServiceTcpPort;
     private int recordRate;
-    private boolean forceRecord;
     private String dynamicClass;
     private int dynamicResultSizeLimit;
     private List<DynamicClassEntity> dynamicClassList;
@@ -125,14 +123,6 @@ public class ConfigManager {
         System.setProperty(RECORD_RATE, recordRate);
     }
 
-    public void setForceRecord(String forceRecord) {
-        if (StringUtil.isEmpty(forceRecord)) {
-            return;
-        }
-        this.forceRecord = BooleanUtils.toBoolean(forceRecord);
-        System.setProperty(FORCE_RECORD, forceRecord);
-    }
-
     public void setDynamicResultSizeLimit(String dynamicResultSizeLimit) {
         if (StringUtil.isEmpty(dynamicResultSizeLimit)) {
             return;
@@ -158,7 +148,6 @@ public class ConfigManager {
         configServiceHost = StringUtils.strip(System.getProperty(CONFIG_SERVICE_HOST));
         configPath = StringUtils.strip(System.getProperty(CONFIG_PATH));
         recordRate = Integer.parseInt(System.getProperty(RECORD_RATE, "1"));
-        forceRecord = BooleanUtils.toBoolean(System.getProperty(FORCE_RECORD, Boolean.FALSE.toString()));
 
         storageServiceMode = System.getProperty("arex.storage.mode");
         storageServiceJdbcUrl = System.getProperty("arex.storage.jdbc.url", PropertyUtil.getProperty("arex.storage.jdbc.url"));
@@ -194,7 +183,6 @@ public class ConfigManager {
         setStorageServiceHost(configMap.get(STORAGE_SERVICE_HOST));
         setConfigServiceHost(configMap.get(CONFIG_SERVICE_HOST));
         setRecordRate(configMap.get(RECORD_RATE));
-        setForceRecord(configMap.get(FORCE_RECORD));
         setDynamicResultSizeLimit(configMap.get(DYNAMIC_RESULT_SIZE_LIMIT));
         setTimeMachine(configMap.get(TIME_MACHINE));
     }
@@ -337,14 +325,6 @@ public class ConfigManager {
 
     public void setRecordRate(int recordRate) {
         this.recordRate = recordRate;
-    }
-
-    public boolean isForceRecord() {
-        return forceRecord;
-    }
-
-    public void setForceRecord(boolean forceRecord) {
-        this.forceRecord = forceRecord;
     }
 
     public List<DynamicClassEntity> getDynamicClassList() {
