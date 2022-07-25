@@ -1,10 +1,12 @@
 package io.arex.foundation.config;
 
+import com.google.common.annotations.VisibleForTesting;
 import io.arex.foundation.model.DynamicClassEntity;
 import io.arex.foundation.services.TimerService;
 import io.arex.foundation.util.PropertyUtil;
 import io.arex.foundation.util.StringUtil;
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -147,13 +149,14 @@ public class ConfigManager {
         System.setProperty(TIME_MACHINE, timeMachine);
     }
 
-    private void init() {
+    @VisibleForTesting
+    void init() {
         agentVersion = "0.0.1";
         enableDebug = Boolean.parseBoolean(System.getProperty(ENABLE_DEBUG));
-        serviceName = System.getProperty(SERVICE_NAME);
-        storageServiceHost = System.getProperty(STORAGE_SERVICE_HOST);
-        configServiceHost = System.getProperty(CONFIG_SERVICE_HOST);
-        configPath = System.getProperty(CONFIG_PATH);
+        serviceName = StringUtils.strip(System.getProperty(SERVICE_NAME));
+        storageServiceHost = StringUtils.strip(System.getProperty(STORAGE_SERVICE_HOST));
+        configServiceHost = StringUtils.strip(System.getProperty(CONFIG_SERVICE_HOST));
+        configPath = StringUtils.strip(System.getProperty(CONFIG_PATH));
         recordRate = Integer.parseInt(System.getProperty(RECORD_RATE, "1"));
         forceRecord = BooleanUtils.toBoolean(System.getProperty(FORCE_RECORD, Boolean.FALSE.toString()));
 
@@ -173,7 +176,8 @@ public class ConfigManager {
         TimerService.scheduleAtFixedRate(ConfigManager::update, 300, 300, TimeUnit.SECONDS);
     }
 
-    public void readConfigFromFile(String configPath) {
+    @VisibleForTesting
+    void readConfigFromFile(String configPath) {
         if (StringUtil.isEmpty(configPath)) {
             LOGGER.info("arex agent config path is null");
             return;
@@ -197,15 +201,14 @@ public class ConfigManager {
 
     private static Map<String, String> parseConfigFile(String configPath) {
         Map<String, String> configMap = new HashMap<>();
-        try {
-            Stream<String> configStream = Files.lines(Paths.get(configPath));
-            configStream.forEach(item-> {
+        try (Stream<String> configStream = Files.lines(Paths.get(configPath))) {
+            configStream.forEach(item -> {
                 int separatorIndex = item.indexOf('=');
                 if (separatorIndex < 0) {
                     return;
                 }
                 String key = item.substring(0, separatorIndex);
-                String value = item.substring(separatorIndex + 1);
+                String value = StringUtils.strip(item.substring(separatorIndex + 1));
                 configMap.put(key, value);
             });
         } catch (IOException e) {
