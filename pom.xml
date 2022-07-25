@@ -22,6 +22,8 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <!-- -dependencies versions -->
         <java.version>1.8</java.version>
         <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
         <slf4j.version>1.7.25</slf4j.version>
@@ -31,6 +33,7 @@
         <auto-service.version>1.0</auto-service.version>
         <enforcer.qBanDuplicateClasses.skip>true</enforcer.qBanDuplicateClasses.skip>
         <commons-lang3.version>3.7</commons-lang3.version>
+        <version.junit-jupiter>5.8.2</version.junit-jupiter>
     </properties>
 
     <dependencyManagement>
@@ -92,6 +95,27 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>${version.junit-jupiter}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>${version.junit-jupiter}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-params</artifactId>
+            <version>${version.junit-jupiter}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 
     <build>
         <plugins>
