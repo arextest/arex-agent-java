@@ -32,6 +32,7 @@ Arex utilizes the advanced Java technique, Instrument API, and is capable of ins
 - Jedis 2.10+, 4+
 - Spring Boot 1.4+-2.x+, Servlet API 3+、5+
 - Custom type
+- Netty server 4.x
 
 ## Installation
 
@@ -52,7 +53,7 @@ You can get arex started by：
 ```
  java -javaagent:/path/to/arex-agent-<version>.jar
       -Darex.service.name=your-service-name (should be unique)
-      -Darex.storage.model=local
+      -Darex.storage.mode=local
       -jar your-application.jar
 ```
 
