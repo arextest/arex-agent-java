@@ -20,16 +20,16 @@
         <module>database/arex-database-hibernate</module>
         <module>database/arex-database-mybatis3</module>
         <module>redis/arex-redis-common</module>
+        <module>redis/arex-jedis-v2</module>
         <module>redis/arex-jedis-v4</module>
         <module>redis/arex-lettuce-v6</module>
         <module>redis/arex-redission-v3</module>
         <module>dynamic/arex-dynamic</module>
         <module>time-machine/arex-time-machine</module>
-        <module>redis/arex-jedis-v2</module>
         <module>httpclient/arex-httpclient-common</module>
         <module>httpclient/arex-httpclient-okhttp-v3</module>
         <module>httpclient/arex-httpclient-apache-v4</module>
-
+        <module>netty/arex-netty-v4</module>
     </modules>
     <dependencies>
         <dependency>
