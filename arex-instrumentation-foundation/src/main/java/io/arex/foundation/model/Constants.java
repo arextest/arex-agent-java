@@ -15,4 +15,9 @@ public class Constants {
 
     public static final String CLOCK_CLASS = "java.lang.System";
     public static final String CLOCK_METHOD = "currentTimeMillis";
+
+    public static final String RECORD_ID = "arex-record-id";
+    public static final String REPLAY_ID = "arex-replay-id";
+    public static final String REPLAY_WARM_UP = "arex-replay-warm-up";
+
 }
