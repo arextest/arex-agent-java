@@ -3,9 +3,9 @@ package io.arex.inst.httpservlet;
 import io.arex.foundation.context.ContextManager;
 import io.arex.foundation.listener.CaseEvent;
 import io.arex.foundation.listener.CaseListenerImpl;
-import io.arex.foundation.model.ServletMocker;
+import io.arex.foundation.model.Constants;
+import io.arex.foundation.model.ServiceEntranceMocker;
 import io.arex.foundation.serializer.SerializeUtils;
-import io.arex.foundation.util.StringUtil;
 import io.arex.inst.httpservlet.adapter.ServletAdapter;
 
 import java.io.IOException;
@@ -14,8 +14,6 @@ import java.util.Base64;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -49,18 +47,18 @@ public class ServletExtractor<HttpServletRequest, HttpServletResponse> {
 
     private void setResponseHeader() {
         if (ContextManager.needRecord()) {
-            adapter
-                    .setResponseHeader(httpServletResponse, ServletConstants.RECORD_ID, ContextManager.currentContext().getCaseId());
+            adapter.setResponseHeader(httpServletResponse, Constants.RECORD_ID,
+                    ContextManager.currentContext().getCaseId());
         }
 
         if (ContextManager.needReplay()) {
-            adapter.setResponseHeader(httpServletResponse, ServletConstants.REPLAY_ID,
+            adapter.setResponseHeader(httpServletResponse, Constants.REPLAY_ID,
                     ContextManager.currentContext().getReplayId());
         }
     }
 
     private void doExecute() {
-        ServletMocker mocker = new ServletMocker();
+        ServiceEntranceMocker mocker = new ServiceEntranceMocker();
         mocker.setMethod(adapter.getMethod(httpServletRequest));
         mocker.setPath(adapter.getServletPath(httpServletRequest));
         mocker.setPattern(getPattern());

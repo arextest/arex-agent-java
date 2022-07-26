@@ -6,6 +6,7 @@ import io.arex.foundation.healthy.HealthManager;
 import io.arex.foundation.internal.Pair;
 import io.arex.foundation.listener.CaseEvent;
 import io.arex.foundation.listener.CaseListenerImpl;
+import io.arex.foundation.model.Constants;
 import io.arex.foundation.util.LogUtil;
 import io.arex.foundation.util.StringUtil;
 import io.arex.inst.httpservlet.adapter.ServletAdapter;
@@ -42,7 +43,7 @@ public class ServletAdviceHelper {
             return null;
         }
 
-        String caseId = adapter.getRequestHeader(httpServletRequest, ServletConstants.RECORD_ID);
+        String caseId = adapter.getRequestHeader(httpServletRequest, Constants.RECORD_ID);
         // check record rate limit
         if (StringUtil.isEmpty(caseId) && !checkRateLimit(adapter.getServletPath(httpServletRequest))) {
             return null;
@@ -146,7 +147,7 @@ public class ServletAdviceHelper {
     private static <TRequest> boolean shouldSkip(ServletAdapter<TRequest, ?> adapter,
                                                  TRequest httpServletRequest) {
         // Do nothing if request header with arex-replay-warm-up
-        if (Boolean.parseBoolean(adapter.getRequestHeader(httpServletRequest, ServletConstants.REPLAY_WARM_UP))) {
+        if (Boolean.parseBoolean(adapter.getRequestHeader(httpServletRequest, Constants.REPLAY_WARM_UP))) {
             return true;
         }
         String contentType = adapter.getContentType(httpServletRequest);

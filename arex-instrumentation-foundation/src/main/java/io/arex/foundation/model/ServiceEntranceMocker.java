@@ -11,7 +11,7 @@ import java.util.function.Predicate;
  *
  * @date 2022/02/16
  */
-public class ServletMocker extends AbstractMocker {
+public class ServiceEntranceMocker extends AbstractMocker {
     @JsonProperty("method")
     private String method;
     @JsonProperty("path")
@@ -27,7 +27,7 @@ public class ServletMocker extends AbstractMocker {
 
 
     @SuppressWarnings("deserilize")
-    public ServletMocker() {
+    public ServiceEntranceMocker() {
         super(MockerCategory.SERVLET_ENTRANCE);
     }
 
@@ -79,15 +79,13 @@ public class ServletMocker extends AbstractMocker {
         this.request = request;
     }
 
-
     @Override
     public boolean ignoreMockResult() {
         return true;
     }
 
-
     @Override
-    protected Predicate<ServletMocker> filterLocalStorage() {
+    protected Predicate<ServiceEntranceMocker> filterLocalStorage() {
         return mocker -> {
             if (StringUtils.isNotBlank(path) && !StringUtils.equals(path, mocker.getPath())) {
                 return false;

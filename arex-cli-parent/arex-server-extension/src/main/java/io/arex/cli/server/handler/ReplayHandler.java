@@ -38,7 +38,7 @@ public class ReplayHandler extends ApiHandler {
             LOGGER.warn("storage service unavailable!");
             return null;
         }
-        ServletMocker mocker = new ServletMocker();
+        ServiceEntranceMocker mocker = new ServiceEntranceMocker();
         List<AbstractMocker> mockerList = StorageService.INSTANCE.queryList(mocker, num);
         if (CollectionUtil.isEmpty(mockerList)) {
             LOGGER.warn("query no result.");
@@ -46,7 +46,7 @@ public class ReplayHandler extends ApiHandler {
         }
         List<Pair<String, String>> pairs = new ArrayList<>();
         for (AbstractMocker mockerInfo : mockerList) {
-            Map<String, String> responseMap = request((ServletMocker)mockerInfo);
+            Map<String, String> responseMap = request((ServiceEntranceMocker)mockerInfo);
             pairs.add(Pair.of(mockerInfo.getCaseId(), responseMap.get("arex-replay-id")));
         }
         return pairs;
@@ -109,7 +109,7 @@ public class ReplayHandler extends ApiHandler {
     private AbstractMocker generateMocker(MockerCategory category) {
         switch (category) {
             case SERVLET_ENTRANCE:
-                return new ServletMocker();
+                return new ServiceEntranceMocker();
             case DATABASE:
                 return new DatabaseMocker();
             case SERVICE_CALL:
@@ -125,7 +125,7 @@ public class ReplayHandler extends ApiHandler {
         if (mockerList.size() > index) {
             switch (category) {
                 case SERVLET_ENTRANCE:
-                    ServletMocker servletMocker = (ServletMocker)mockerList.get(index);
+                    ServiceEntranceMocker servletMocker = (ServiceEntranceMocker)mockerList.get(index);
                     compareMap.put("response", servletMocker.getResponse());
                     break;
                 case DATABASE:
