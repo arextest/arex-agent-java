@@ -31,6 +31,12 @@ public class ConfigManager {
     private static final String DYNAMIC_CLASS_KEY = "arex.dynamic.class";
     private static final String DYNAMIC_RESULT_SIZE_LIMIT = "arex.dynamic.result.size.limit";
     private static final String TIME_MACHINE = "arex.time.machine";
+    private static final String STORAGE_SERVICE_MODE = "arex.storage.mode";
+    private static final String STORAGE_SERVICE_JDBC_URL = "arex.storage.jdbc.url";
+    private static final String STORAGE_SERVICE_USER_NAME = "arex.storage.username";
+    private static final String STORAGE_SERVICE_PASSWORD = "arex.storage.password";
+    private static final String STORAGE_SERVICE_WEB_PORT = "arex.storage.web.port";
+    private static final String SERVER_SERVICE_TCP_PORT = "arex.server.tcp.port";
 
     private boolean enableDebug;
     private String agentVersion;
@@ -149,12 +155,12 @@ public class ConfigManager {
         configPath = StringUtils.strip(System.getProperty(CONFIG_PATH));
         recordRate = Integer.parseInt(System.getProperty(RECORD_RATE, "1"));
 
-        storageServiceMode = System.getProperty("arex.storage.mode");
-        storageServiceJdbcUrl = System.getProperty("arex.storage.jdbc.url", PropertyUtil.getProperty("arex.storage.jdbc.url"));
-        storageServiceUsername = System.getProperty("arex.storage.username", PropertyUtil.getProperty("arex.storage.username"));
-        storageServicePassword = System.getProperty("arex.storage.password", PropertyUtil.getProperty("arex.storage.password"));
-        storageServiceWebPort = System.getProperty("arex.storage.web.port", PropertyUtil.getProperty("arex.storage.web.port"));
-        serverServiceTcpPort = System.getProperty("arex.server.tcp.port", PropertyUtil.getProperty("arex.server.tcp.port"));
+        storageServiceMode = System.getProperty(STORAGE_SERVICE_MODE);
+        storageServiceJdbcUrl = System.getProperty(STORAGE_SERVICE_JDBC_URL, PropertyUtil.getProperty(STORAGE_SERVICE_JDBC_URL));
+        storageServiceUsername = System.getProperty(STORAGE_SERVICE_USER_NAME, PropertyUtil.getProperty(STORAGE_SERVICE_USER_NAME));
+        storageServicePassword = System.getProperty(STORAGE_SERVICE_PASSWORD, PropertyUtil.getProperty(STORAGE_SERVICE_PASSWORD));
+        storageServiceWebPort = System.getProperty(STORAGE_SERVICE_WEB_PORT, PropertyUtil.getProperty(STORAGE_SERVICE_WEB_PORT));
+        serverServiceTcpPort = System.getProperty(SERVER_SERVICE_TCP_PORT, PropertyUtil.getProperty(SERVER_SERVICE_TCP_PORT));
 
         dynamicClass = System.getProperty(DYNAMIC_CLASS_KEY);
         dynamicClassList = parseDynamicClassList(dynamicClass);
@@ -185,6 +191,7 @@ public class ConfigManager {
         setRecordRate(configMap.get(RECORD_RATE));
         setDynamicResultSizeLimit(configMap.get(DYNAMIC_RESULT_SIZE_LIMIT));
         setTimeMachine(configMap.get(TIME_MACHINE));
+        setStorageServiceMode(configMap.get(STORAGE_SERVICE_MODE));
     }
 
     private static Map<String, String> parseConfigFile(String configPath) {
@@ -261,27 +268,27 @@ public class ConfigManager {
     public void parseAgentConfig(String args) {
         Map<String, String> agentMap = StringUtil.asMap(args);
         if (agentMap != null && agentMap.size() > 0) {
-            String mode = agentMap.get("arex.storage.mode");
+            String mode = agentMap.get(STORAGE_SERVICE_MODE);
             if (StringUtil.isNotEmpty(mode)) {
                 storageServiceMode = mode;
             }
-            String url = agentMap.get("arex.storage.jdbc.url");
+            String url = agentMap.get(STORAGE_SERVICE_JDBC_URL);
             if (StringUtil.isNotEmpty(url)) {
                 storageServiceJdbcUrl = url;
             }
-            String userName = agentMap.get("arex.storage.username");
+            String userName = agentMap.get(STORAGE_SERVICE_USER_NAME);
             if (StringUtil.isNotEmpty(userName)) {
                 storageServiceUsername = userName;
             }
-            String password = agentMap.get("arex.storage.password");
+            String password = agentMap.get(STORAGE_SERVICE_PASSWORD);
             if (StringUtil.isNotEmpty(password)) {
                 storageServicePassword = password;
             }
-            String webPort = agentMap.get("arex.storage.web.port");
+            String webPort = agentMap.get(STORAGE_SERVICE_WEB_PORT);
             if (StringUtil.isNotEmpty(webPort)) {
                 storageServiceWebPort = webPort;
             }
-            String tcpPort = agentMap.get("arex.server.tcp.port");
+            String tcpPort = agentMap.get(SERVER_SERVICE_TCP_PORT);
             if (StringUtil.isNotEmpty(tcpPort)) {
                 serverServiceTcpPort = tcpPort;
             }
