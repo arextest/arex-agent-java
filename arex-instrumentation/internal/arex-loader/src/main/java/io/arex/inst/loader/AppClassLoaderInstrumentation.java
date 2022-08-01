@@ -48,41 +48,7 @@ public class AppClassLoaderInstrumentation extends TypeInstrumentation {
                 return name.startsWith("io.arex.inst.");
             }
 
-            DecorateOnlyOnce call = DecorateOnlyOnce.forClass(URLClassLoader.class);
-            if (call.hasDecorated()) {
-                return false;
-            }
-            call.setDecorated();
-
-            try {
-                Enumeration<URL> urls = thisClassLoader.getResources("META-INF/MANIFEST.MF");
-                while (urls.hasMoreElements()) {
-                    URL url = urls.nextElement();
-                    try (InputStream inputStream = url.openStream()){
-                        Manifest manifest = new Manifest(inputStream);
-                        String packageName = manifest.getMainAttributes().getValue("Bundle-Name");
-                        if (packageName == null || packageName.equals("")) {
-                            packageName = manifest.getMainAttributes().getValue("Automatic-Module-Name");
-                        }
-                        if (packageName == null || packageName.equals("")) {
-                            continue;
-                        }
-
-                        String version = manifest.getMainAttributes().getValue("Bundle-Version");
-                        if (version == null || version.equals("")) {
-                            version = manifest.getMainAttributes().getValue("Implementation-Version");
-                        }
-                        if (version == null || version.equals("")) {
-                            continue;
-                        }
-                        LoadedModuleCache.registerResource(packageName, version);
-                    } catch (IOException e) {
-                        continue;
-                    }
-                }
-            } catch (IOException e) {
-            }
-
+            ClassLoaderUtil.registerResource(thisClassLoader);
             return false;
         }
     }
