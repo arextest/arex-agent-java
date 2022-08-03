@@ -1,6 +1,6 @@
 package io.arex.inst.loader;
 
-import io.arex.agent.bootstrap.DecorateOnlyOnce;
+import io.arex.agent.bootstrap.DecorateControl;
 import io.arex.agent.bootstrap.cache.LoadedModuleCache;
 import io.arex.foundation.util.StringUtil;
 
@@ -18,7 +18,7 @@ public class ClassLoaderUtil {
             return urls;
         }
 
-        DecorateOnlyOnce call = DecorateOnlyOnce.forClass(ClassLoaderUtil.class);
+        DecorateControl call = DecorateControl.forClass(ClassLoaderUtil.class);
         if (call.hasDecorated()) {
             // just decorate the top level class loader and only decorate once for all class loader
             return urls;
@@ -41,7 +41,7 @@ public class ClassLoaderUtil {
     }
 
     public static void registerResource(ClassLoader classLoader) {
-        DecorateOnlyOnce call = DecorateOnlyOnce.forClass(ClassLoaderUtil.class);
+        DecorateControl call = DecorateControl.forClass(ClassLoaderUtil.class);
         if (call.hasDecorated()) {
             return;
         }

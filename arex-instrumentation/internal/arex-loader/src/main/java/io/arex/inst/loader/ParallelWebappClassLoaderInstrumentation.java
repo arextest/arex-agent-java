@@ -1,6 +1,6 @@
 package io.arex.inst.loader;
 
-import io.arex.agent.bootstrap.DecorateOnlyOnce;
+import io.arex.agent.bootstrap.DecorateControl;
 import io.arex.foundation.api.MethodInstrumentation;
 import io.arex.foundation.api.TypeInstrumentation;
 import net.bytebuddy.asm.Advice;
@@ -29,10 +29,10 @@ public class ParallelWebappClassLoaderInstrumentation extends TypeInstrumentatio
     public static class ConstructorAdvice {
         @Advice.OnMethodExit
         public static void onExit() {
-            DecorateOnlyOnce decorateOnlyOnce = DecorateOnlyOnce.forClass(ClassLoader.class);
+            DecorateControl decorateOnlyOnce = DecorateControl.forClass(ClassLoader.class);
             if (!decorateOnlyOnce.hasDecorated()) {
                 decorateOnlyOnce.setDecorated();
-                DecorateOnlyOnce.forClass(URLClassLoader.class).setDecorated();
+                DecorateControl.forClass(URLClassLoader.class).setDecorated();
             }
         }
     }

@@ -1,6 +1,6 @@
 package io.arex.inst.jedis.v2;
 
-import io.arex.agent.bootstrap.DecorateOnlyOnce;
+import io.arex.agent.bootstrap.DecorateControl;
 import io.arex.foundation.api.MethodInstrumentation;
 import io.arex.foundation.api.ModuleDescription;
 import io.arex.foundation.api.TypeInstrumentation;
@@ -43,7 +43,7 @@ public class JedisFactoryInstrumentation extends TypeInstrumentation {
     public static class MakeObjectAdvice {
 
         static {
-            DecorateOnlyOnce.forClass(Jedis.class).setDecorated();
+            DecorateControl.forClass(Jedis.class).setDecorated();
         }
 
         @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class)

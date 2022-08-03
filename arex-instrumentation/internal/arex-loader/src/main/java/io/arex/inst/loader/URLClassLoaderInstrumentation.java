@@ -1,15 +1,14 @@
 package io.arex.inst.loader;
 
-import io.arex.agent.bootstrap.DecorateOnlyOnce;
+import io.arex.agent.bootstrap.DecorateControl;
 import io.arex.foundation.api.MethodInstrumentation;
 import io.arex.foundation.api.TypeInstrumentation;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
-import sun.misc.URLClassPath;
 
 import java.io.File;
-import java.io.IOException;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.List;
@@ -35,10 +34,9 @@ public class URLClassLoaderInstrumentation extends TypeInstrumentation {
     public static class FindClassAdvice {
         @Advice.OnMethodEnter
         public static void onEnter(@Advice.This ClassLoader classLoader,
-                                   @Advice.Argument(value = 0) String name,
-                                   @Advice.FieldValue("ucp") URLClassPath ucp) {
-            if (!DecorateOnlyOnce.forClass(URLClassLoader.class).hasDecorated() ||
-                    DecorateOnlyOnce.forClass(URLClassPath.class).hasDecorated()) {
+                                   @Advice.Argument(value = 0) String name) {
+            if (!DecorateControl.forClass(URLClassLoader.class).hasDecorated() ||
+                    DecorateControl.forClass(DecorateControl.URLClassLoaderSwitch.class).hasDecorated()) {
                 return;
             }
 
@@ -46,12 +44,12 @@ public class URLClassLoaderInstrumentation extends TypeInstrumentation {
                 URL url;
                 try {
                     url = new File(System.getProperty("arex-agent-jar-file-path")).toURI().toURL();
-                    ucp.addURL(url);
-                    DecorateOnlyOnce.forClass(URLClassPath.class).setDecorated();
-
-                } catch (IOException e) {
+                    Method method = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
+                    method.setAccessible(true);
+                    method.invoke(classLoader, url);
+                    DecorateControl.forClass(DecorateControl.URLClassLoaderSwitch.class).setDecorated();
+                } catch (Exception e) {
                 }
-                System.out.println("[AREX] URL ClassLoader load class:" + name + ",classloader:" + Thread.currentThread().getContextClassLoader());
             }
         }
     }

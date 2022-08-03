@@ -1,24 +1,14 @@
 package io.arex.inst.loader;
 
-import io.arex.agent.bootstrap.DecorateOnlyOnce;
-import io.arex.agent.bootstrap.cache.LoadedModuleCache;
+import io.arex.agent.bootstrap.DecorateControl;
 import io.arex.foundation.api.MethodInstrumentation;
 import io.arex.foundation.api.TypeInstrumentation;
-import io.arex.foundation.matcher.HasSuperTypeMatcher;
-import io.arex.foundation.util.StringUtil;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Enumeration;
 import java.util.List;
-import java.util.jar.Manifest;
 
 import static java.util.Collections.singletonList;
 import static net.bytebuddy.matcher.ElementMatchers.*;
@@ -57,7 +47,7 @@ public class ClassLoaderInstrumentation extends TypeInstrumentation {
             urls = ClassLoaderUtil.addUcp(agentJarPath, urls);
             needRegister = size != urls.length;
 
-            DecorateOnlyOnce.forClass(ClassLoader.class).setDecorated();
+            DecorateControl.forClass(ClassLoader.class).setDecorated();
         }
 
         @Advice.OnMethodExit
@@ -65,7 +55,7 @@ public class ClassLoaderInstrumentation extends TypeInstrumentation {
                                   @Advice.Local("needRegister") Boolean needRegister) {
             if (needRegister) {
                 ClassLoaderUtil.registerResource(classLoader);
-                DecorateOnlyOnce.forClass(ClassLoader.class).setDecorated();
+                DecorateControl.forClass(ClassLoader.class).setDecorated();
             }
         }
     }
