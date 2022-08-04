@@ -22,6 +22,8 @@ public class ClassLoaderModuleInstrumentation extends ModuleInstrumentation {
 
     @Override
     public List<TypeInstrumentation> instrumentationTypes() {
-        return Arrays.asList(new ClassLoaderInstrumentation(), new AppClassLoaderInstrumentation());
+        return Arrays.asList(new ClassLoaderInstrumentation(), new AppClassLoaderInstrumentation(),
+                new URLClassLoaderInstrumentation(), new WebAppClassLoaderBaseInstrumentation(),
+                new ParallelWebappClassLoaderInstrumentation());
     }
 }
