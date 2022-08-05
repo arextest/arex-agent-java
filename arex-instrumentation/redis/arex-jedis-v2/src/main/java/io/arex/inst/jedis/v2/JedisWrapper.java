@@ -74,7 +74,7 @@ public class JedisWrapper extends Jedis {
 
     @Override
     public Set<String> keys(String pattern) {
-        return call("keys", pattern, () -> super.keys(pattern), Collections.emptySet());
+        return call("keys", pattern, () -> super.keys(pattern), Collections.EMPTY_SET);
     }
 
     @Override
@@ -99,7 +99,7 @@ public class JedisWrapper extends Jedis {
 
     @Override
     public List<String> mget(String... keys) {
-        return call("mget", RedisKeyUtil.generate(keys), () -> super.mget(keys), Collections.emptyList());
+        return call("mget", RedisKeyUtil.generate(keys), () -> super.mget(keys), Collections.EMPTY_LIST);
     }
 
     @Override
@@ -187,7 +187,7 @@ public class JedisWrapper extends Jedis {
     @Override
     public List<String> hmget(String key, String... fields) {
         return call("hmget", key, RedisKeyUtil.generate(fields), () -> super.hmget(key, fields),
-                Collections.emptyList());
+                Collections.EMPTY_LIST);
     }
 
     @Override
@@ -217,17 +217,17 @@ public class JedisWrapper extends Jedis {
 
     @Override
     public Set<String> hkeys(String key) {
-        return call("hkeys", key, () -> super.hkeys(key), Collections.emptySet());
+        return call("hkeys", key, () -> super.hkeys(key), Collections.EMPTY_SET);
     }
 
     @Override
     public List<String> hvals(String key) {
-        return call("hvals", key, () -> super.hvals(key), Collections.emptyList());
+        return call("hvals", key, () -> super.hvals(key), Collections.EMPTY_LIST);
     }
 
     @Override
     public Map<String, String> hgetAll(String key) {
-        return call("hgetAll", key, () -> super.hgetAll(key), Collections.emptyMap());
+        return call("hgetAll", key, () -> super.hgetAll(key), Collections.EMPTY_MAP);
     }
 
     @Override
@@ -238,7 +238,7 @@ public class JedisWrapper extends Jedis {
     @Override
     public List<String> lrange(String key, long start, long end) {
         return call("lrange", key, RedisKeyUtil.generate("start", String.valueOf(start), "end", String.valueOf(end)),
-                () -> super.lrange(key, start, end), Collections.emptyList());
+                () -> super.lrange(key, start, end), Collections.EMPTY_LIST);
     }
 
     @Override
@@ -277,7 +277,7 @@ public class JedisWrapper extends Jedis {
     @Override
     public Set<String> spop(String key, long count) {
         return call("spop", RedisKeyUtil.generate(key, String.valueOf(count)), () -> super.spop(key, count),
-                Collections.emptySet());
+                Collections.EMPTY_SET);
     }
 
     @Override
@@ -287,17 +287,17 @@ public class JedisWrapper extends Jedis {
 
     @Override
     public Set<String> sinter(String... keys) {
-        return call("sinter", RedisKeyUtil.generate(keys), () -> super.sinter(keys), Collections.emptySet());
+        return call("sinter", RedisKeyUtil.generate(keys), () -> super.sinter(keys), Collections.EMPTY_SET);
     }
 
     @Override
     public Set<String> sunion(String... keys) {
-        return call("sunion", RedisKeyUtil.generate(keys), () -> super.sunion(keys), Collections.emptySet());
+        return call("sunion", RedisKeyUtil.generate(keys), () -> super.sunion(keys), Collections.EMPTY_SET);
     }
 
     @Override
     public Set<String> sdiff(String... keys) {
-        return call("sdiff", RedisKeyUtil.generate(keys), () -> super.sdiff(keys), Collections.emptySet());
+        return call("sdiff", RedisKeyUtil.generate(keys), () -> super.sdiff(keys), Collections.EMPTY_SET);
     }
 
     @Override
@@ -308,7 +308,7 @@ public class JedisWrapper extends Jedis {
     @Override
     public List<String> srandmember(String key, int count) {
         return call("srandmember", key, RedisKeyUtil.generate("count", String.valueOf(count)),
-                () -> super.srandmember(key, count), Collections.emptyList());
+                () -> super.srandmember(key, count), Collections.EMPTY_LIST);
     }
 
     @Override
@@ -401,7 +401,7 @@ public class JedisWrapper extends Jedis {
 
     @Override
     public List<byte[]> mget(final byte[]... keys) {
-        return call("mget", RedisKeyUtil.generate(keys), () -> super.mget(keys), Collections.emptyList());
+        return call("mget", RedisKeyUtil.generate(keys), () -> super.mget(keys), Collections.EMPTY_LIST);
     }
 
     @Override
