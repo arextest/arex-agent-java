@@ -10,10 +10,7 @@ import io.arex.foundation.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ReplayHandler extends ApiHandler {
 
@@ -52,10 +49,7 @@ public class ReplayHandler extends ApiHandler {
         return pairs;
     }
 
-    public List<DiffMocker> computeDiff(List<Pair<String, String>> idPairs) {
-        if (CollectionUtil.isEmpty(idPairs)) {
-            return null;
-        }
+    private List<DiffMocker> computeDiff(List<Pair<String, String>> idPairs) {
         List<DiffMocker> diffSummaryList = new ArrayList<>();
         DiffUtils dmp = new DiffUtils();
         List<AbstractMocker> recordList;
@@ -116,6 +110,8 @@ public class ReplayHandler extends ApiHandler {
                 return new HttpClientMocker();
             case REDIS:
                 return new RedisMocker();
+            case DYNAMIC_CLASS:
+                return new DynamicClassMocker();
         }
         return null;
     }
@@ -155,10 +151,10 @@ public class ReplayHandler extends ApiHandler {
         if (compareMap.size() > 1) {
             return SerializeUtils.serialize(compareMap);
         }
-        return compareMap.values().stream().findFirst().orElse(null);
+        return compareMap.values().stream().filter(Objects::nonNull).findFirst().orElse(null);
     }
 
-    public DiffMocker getDiffMocker(Pair<String, String> idPair, Pair<String, String> diffPair, MockerCategory category) {
+    private DiffMocker getDiffMocker(Pair<String, String> idPair, Pair<String, String> diffPair, MockerCategory category) {
         DiffMocker diffMocker = new DiffMocker(category);
         diffMocker.setCaseId(idPair.getFirst());
         diffMocker.setReplayId(idPair.getSecond());

@@ -34,6 +34,7 @@
         <enforcer.qBanDuplicateClasses.skip>true</enforcer.qBanDuplicateClasses.skip>
         <commons-lang3.version>3.7</commons-lang3.version>
         <version.junit-jupiter>5.8.2</version.junit-jupiter>
+        <mockito-junit-jupiter.version>4.7.0</mockito-junit-jupiter.version>
     </properties>
 
     <dependencyManagement>
@@ -113,6 +114,18 @@
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-params</artifactId>
             <version>${version.junit-jupiter}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-junit-jupiter</artifactId>
+            <version>${mockito-junit-jupiter.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-inline</artifactId>
+            <version>${mockito-junit-jupiter.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
