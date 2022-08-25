@@ -1,5 +1,7 @@
 package io.arex.foundation.util;
 
+import io.arex.agent.bootstrap.InstrumentationHolder;
+
 import java.io.InputStream;
 import java.util.*;
 
@@ -29,8 +31,10 @@ public class PropertyUtil {
     }
 
     private static void loadProperties() {
+        ClassLoader loader = InstrumentationHolder.getAgentClassLoader() != null ?
+                InstrumentationHolder.getAgentClassLoader() : PropertyUtil.class.getClassLoader();
         for (String file : PROPERTIES_FILE_LIST) {
-            try (InputStream inputStream = PropertyUtil.class.getClassLoader().getResourceAsStream(file)) {
+            try (InputStream inputStream = loader.getResourceAsStream(file)) {
                 Properties props = new Properties();
                 props.load(inputStream);
                 PROPERTIES_LIST.add(props);

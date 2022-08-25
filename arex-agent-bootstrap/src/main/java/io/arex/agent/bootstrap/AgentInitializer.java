@@ -17,6 +17,7 @@ public class AgentInitializer {
 
         System.setProperty("arex-agent-jar-file-path", agentJar.getAbsolutePath());
         agentClassLoader = createAgentClassLoader(agentJar);
+        InstrumentationHolder.setAgentClassLoader(agentClassLoader);
         AgentInstaller installer = createAgentInstaller(inst, agentJar, agentArgs);
         installer.install();
     }

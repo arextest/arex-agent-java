@@ -17,6 +17,7 @@ import okhttp3.Response;
 import java.io.IOException;
 import java.util.List;
 
+import static java.util.Arrays.asList;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 import static net.bytebuddy.matcher.ElementMatchers.takesArguments;
 import static net.bytebuddy.matcher.ElementMatchers.takesNoArguments;
@@ -41,6 +42,20 @@ public class OkHttpCallInstrumentation extends TypeInstrumentation {
                 EnqueueAdvice.class.getName());
         return Lists.newArrayList(executeMethod, enqueueMethod);
 
+    }
+
+    @Override
+    public List<String> adviceClassNames() {
+        return asList(
+                "io.arex.inst.httpclient.okhttp.v3.OkHttpCallInstrumentation$ExecuteAdvice",
+                "io.arex.inst.httpclient.okhttp.v3.OkHttpClientAdapter",
+                "io.arex.inst.httpclient.common.HttpClientAdapter",
+                "io.arex.inst.httpclient.common.HttpResponseWrapper",
+                "io.arex.inst.httpclient.common.HttpResponseWrapper$StringTuple",
+                "io.arex.inst.httpclient.common.ArexDataException",
+                "io.arex.inst.httpclient.common.ExceptionWrapper",
+                "io.arex.inst.httpclient.okhttp.v3.OkHttpCallbackWrapper",
+                "io.arex.inst.httpclient.common.HttpClientExtractor");
     }
 
     public static final class ExecuteAdvice {

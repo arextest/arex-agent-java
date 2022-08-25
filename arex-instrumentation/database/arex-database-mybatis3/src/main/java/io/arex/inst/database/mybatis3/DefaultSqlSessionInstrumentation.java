@@ -11,6 +11,7 @@ import net.bytebuddy.matcher.ElementMatcher;
 import java.util.List;
 import org.apache.ibatis.executor.Executor;
 
+import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static net.bytebuddy.matcher.ElementMatchers.*;
 import static net.bytebuddy.matcher.ElementMatchers.takesArgument;
@@ -33,6 +34,13 @@ public class DefaultSqlSessionInstrumentation extends TypeInstrumentation {
                         .and(takesArgument(0, named("org.apache.ibatis.session.Configuration")))
                         .and(takesArgument(1, named("org.apache.ibatis.executor.Executor"))),
                 this.getClass().getName() + "$ConstructorAdvice"));
+    }
+
+    @Override
+    public List<String> adviceClassNames() {
+        return asList(
+                "io.arex.inst.database.mybatis3.DefaultSqlSessionInstrumentation$ConstructorAdvice",
+                "io.arex.inst.database.mybatis3.ExecutorWrapper");
     }
 
     @SuppressWarnings("unused")

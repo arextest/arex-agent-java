@@ -28,8 +28,8 @@ public class WebAppClassLoaderBaseInstrumentation extends TypeInstrumentation {
 
         @Advice.OnMethodExit(suppress = Throwable.class)
         public static void onExit(@Advice.This ClassLoader classLoader,
-                                  @Advice.Local("needRegister") Boolean needRegister) {
-            ClassLoaderUtil.registerResource(classLoader);
+                                  @Advice.FieldValue("parent") ClassLoader parent) {
+            System.out.println("[AREX] WebappClassLoaderBase parent loder: " + parent);
         }
     }
 }

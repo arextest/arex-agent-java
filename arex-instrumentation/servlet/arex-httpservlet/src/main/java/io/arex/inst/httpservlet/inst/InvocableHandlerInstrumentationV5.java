@@ -1,5 +1,6 @@
 package io.arex.inst.httpservlet.inst;
 
+import io.arex.agent.bootstrap.DecorateControl;
 import io.arex.foundation.api.MethodInstrumentation;
 import io.arex.foundation.api.ModuleDescription;
 import io.arex.foundation.api.TypeInstrumentation;
@@ -18,6 +19,8 @@ import org.springframework.web.method.support.InvocableHandlerMethod;
 import java.util.Collections;
 import java.util.List;
 
+import static io.arex.foundation.matcher.DecorateSwitchMatcher.decorateSwitch;
+import static java.util.Collections.singletonList;
 import static net.bytebuddy.matcher.ElementMatchers.isPublic;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 import static net.bytebuddy.matcher.ElementMatchers.takesArgument;
@@ -34,7 +37,8 @@ public class InvocableHandlerInstrumentationV5 extends TypeInstrumentation {
 
     @Override
     public ElementMatcher<TypeDescription> typeMatcher() {
-        return named("org.springframework.web.method.support.InvocableHandlerMethod");
+        return decorateSwitch(named("org.springframework.web.method.support.InvocableHandlerMethod"),
+                DecorateControl.ServletVersion3Switch.class);
     }
 
     @Override
@@ -46,6 +50,11 @@ public class InvocableHandlerInstrumentationV5 extends TypeInstrumentation {
         String adviceClassName = this.getClass().getName() + "$InvokeAdvice";
 
         return Collections.singletonList(new MethodInstrumentation(matcher, adviceClassName));
+    }
+
+    @Override
+    public List<String> adviceClassNames() {
+        return singletonList("io.arex.inst.httpservlet.inst.InvocableHandlerInstrumentationV5$InvokeAdvice");
     }
 
     public static class InvokeAdvice {
