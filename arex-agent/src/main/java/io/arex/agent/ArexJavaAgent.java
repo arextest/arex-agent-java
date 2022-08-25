@@ -1,5 +1,7 @@
 package io.arex.agent;
 
+import io.arex.agent.bootstrap.AgentInstaller;
+import io.arex.agent.instrumentation.InstrumentationInstaller;
 import io.arex.foundation.services.ConfigService;
 import io.arex.foundation.services.DataService;
 import io.arex.agent.bootstrap.AgentInitializer;
@@ -21,9 +23,8 @@ public class ArexJavaAgent {
 
     private static void init(Instrumentation inst, String agentArgs) {
         try {
-            ConfigService.INSTANCE.loadAgentConfig(agentArgs);
-            DataService.INSTANCE.start();
             installBootstrapJar(inst);
+
             AgentInitializer.initialize(inst, getJarFile(ArexJavaAgent.class), agentArgs);
             System.out.println("ArexJavaAgent installed.");
         } catch (Exception ex) {

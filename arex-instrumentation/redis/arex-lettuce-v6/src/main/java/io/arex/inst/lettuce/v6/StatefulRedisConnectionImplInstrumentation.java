@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static java.util.Arrays.asList;
 import static net.bytebuddy.matcher.ElementMatchers.isProtected;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 
@@ -39,6 +40,14 @@ public class StatefulRedisConnectionImplInstrumentation extends TypeInstrumentat
 
         return Arrays.asList(new MethodInstrumentation(asyncMatcher, asyncAdvice),
             new MethodInstrumentation(reactiveMatcher, reactiveAdvice));
+    }
+
+
+    @Override
+    public List<String> adviceClassNames() {
+        return asList(
+                "io.arex.inst.lettuce.v6.StatefulRedisConnectionImplInstrumentation$NewRedisAsyncCommandsImplAdvice",
+                "io.arex.inst.lettuce.v6.StatefulRedisConnectionImplInstrumentation$NewRedisReactiveCommandsImplAdvice");
     }
 
     public static class NewRedisAsyncCommandsImplAdvice {

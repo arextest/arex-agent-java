@@ -28,6 +28,7 @@ import org.redisson.command.CommandAsyncExecutor;
 import java.util.Arrays;
 import java.util.List;
 
+import static java.util.Arrays.asList;
 import static net.bytebuddy.matcher.ElementMatchers.isMethod;
 import static net.bytebuddy.matcher.ElementMatchers.isPublic;
 import static net.bytebuddy.matcher.ElementMatchers.named;
@@ -58,6 +59,27 @@ public class RedissonInstrumentation extends TypeInstrumentation {
             GetMapWithCodecAdvice.getMethodInstrumentation(), GetMapWithCodecOptionsAdvice.getMethodInstrumentation());
     }
 
+    @Override
+    public List<String> adviceClassNames() {
+        return asList(
+                "io.arex.inst.redisson.v3.RedissonInstrumentation$GetBucketAdvice",
+                "io.arex.inst.redisson.v3.RedissonInstrumentation$GetBucketWithCodecAdvice",
+                "io.arex.inst.redisson.v3.RedissonInstrumentation$GetBucketsAdvice",
+                "io.arex.inst.redisson.v3.RedissonInstrumentation$GetBucketsWithCodecAdvice",
+                "io.arex.inst.redisson.v3.RedissonInstrumentation$GetKeysAdvice",
+                "io.arex.inst.redisson.v3.RedissonInstrumentation$GetListAdvice",
+                "io.arex.inst.redisson.v3.RedissonInstrumentation$GetListWithCodecAdvice",
+                "io.arex.inst.redisson.v3.RedissonInstrumentation$GetSetAdvice",
+                "io.arex.inst.redisson.v3.RedissonInstrumentation$GetSetWithCodecAdvice",
+                "io.arex.inst.redisson.v3.RedissonInstrumentation$GetMapAdvice",
+                "io.arex.inst.redisson.v3.RedissonInstrumentation$GetMapWithOptionsAdvice",
+                "io.arex.inst.redisson.v3.RedissonInstrumentation$GetMapWithCodecAdvice",
+                "io.arex.inst.redisson.v3.RedissonInstrumentation$GetMapWithCodecOptionsAdvice",
+                "io.arex.inst.redisson.v3.RedissonWrapperCommon",
+                "io.arex.inst.redis.common.RedisExtractor$RedisCluster",
+                "io.arex.inst.redis.common.RedisKeyUtil");
+    }
+
     public static class GetBucketAdvice {
         public static MethodInstrumentation getMethodInstrumentation() {
             ElementMatcher.Junction<MethodDescription> matcher =
@@ -80,7 +102,6 @@ public class RedissonInstrumentation extends TypeInstrumentation {
             redissonBucket = new RedissonBucketWrapper<>(commandExecutor, name);
         }
     }
-
 
     public static class GetBucketWithCodecAdvice {
         public static MethodInstrumentation getMethodInstrumentation() {
@@ -106,7 +127,6 @@ public class RedissonInstrumentation extends TypeInstrumentation {
         }
     }
 
-
     public static class GetBucketsAdvice {
         public static MethodInstrumentation getMethodInstrumentation() {
             ElementMatcher.Junction<MethodDescription> matcher =
@@ -128,7 +148,6 @@ public class RedissonInstrumentation extends TypeInstrumentation {
             redissonBuckets = new RedissonBucketsWrapper(commandExecutor);
         }
     }
-
 
     public static class GetBucketsWithCodecAdvice {
         public static MethodInstrumentation getMethodInstrumentation() {
@@ -153,7 +172,6 @@ public class RedissonInstrumentation extends TypeInstrumentation {
         }
     }
 
-
     public static class GetKeysAdvice {
         public static MethodInstrumentation getMethodInstrumentation() {
             ElementMatcher.Junction<MethodDescription> matcher =
@@ -175,7 +193,6 @@ public class RedissonInstrumentation extends TypeInstrumentation {
             redissonKeys = new RedissonKeysWrapper(commandExecutor);
         }
     }
-
 
     public static class GetListAdvice {
         public static MethodInstrumentation getMethodInstrumentation() {
@@ -199,7 +216,6 @@ public class RedissonInstrumentation extends TypeInstrumentation {
             redissonList = new RedissonListWrapper<>(commandExecutor, name, redisson);
         }
     }
-
 
     public static class GetListWithCodecAdvice {
         public static MethodInstrumentation getMethodInstrumentation() {
@@ -225,7 +241,6 @@ public class RedissonInstrumentation extends TypeInstrumentation {
         }
     }
 
-
     public static class GetSetAdvice {
         public static MethodInstrumentation getMethodInstrumentation() {
             ElementMatcher.Junction<MethodDescription> matcher =
@@ -248,7 +263,6 @@ public class RedissonInstrumentation extends TypeInstrumentation {
             redissonSet = new RedissonSetWrapper<>(commandExecutor, name, redisson);
         }
     }
-
 
     public static class GetSetWithCodecAdvice {
         public static MethodInstrumentation getMethodInstrumentation() {
@@ -274,7 +288,6 @@ public class RedissonInstrumentation extends TypeInstrumentation {
         }
     }
 
-
     public static class GetMapAdvice {
         public static MethodInstrumentation getMethodInstrumentation() {
             ElementMatcher.Junction<MethodDescription> matcher =
@@ -297,7 +310,6 @@ public class RedissonInstrumentation extends TypeInstrumentation {
             redissonMap = new RedissonMapWrapper<>(commandExecutor, name, redisson, null, null);
         }
     }
-
 
     public static class GetMapWithOptionsAdvice {
         public static MethodInstrumentation getMethodInstrumentation() {
@@ -324,7 +336,6 @@ public class RedissonInstrumentation extends TypeInstrumentation {
         }
     }
 
-
     public static class GetMapWithCodecAdvice {
         public static MethodInstrumentation getMethodInstrumentation() {
             ElementMatcher.Junction<MethodDescription> matcher =
@@ -348,7 +359,6 @@ public class RedissonInstrumentation extends TypeInstrumentation {
             redissonMap = new RedissonMapWrapper<>(codec, commandExecutor, name, redisson, null, null);
         }
     }
-
 
     public static class GetMapWithCodecOptionsAdvice {
         public static MethodInstrumentation getMethodInstrumentation() {

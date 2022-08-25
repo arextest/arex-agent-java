@@ -1,5 +1,6 @@
 package io.arex.inst.httpservlet.inst;
 
+import io.arex.agent.bootstrap.DecorateControl;
 import io.arex.foundation.api.MethodInstrumentation;
 import io.arex.foundation.api.ModuleDescription;
 import io.arex.foundation.api.TypeInstrumentation;
@@ -20,6 +21,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.Collections;
 import java.util.List;
 
+import static io.arex.foundation.matcher.ListenableMatcher.listenable;
+import static java.util.Arrays.asList;
 import static net.bytebuddy.matcher.ElementMatchers.isPublic;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 import static net.bytebuddy.matcher.ElementMatchers.takesArgument;
@@ -36,7 +39,7 @@ public class ServletInstrumentationV3 extends TypeInstrumentation {
 
     @Override
     public ElementMatcher<TypeDescription> typeMatcher() {
-        return named("javax.servlet.http.HttpServlet");
+        return listenable(named("javax.servlet.http.HttpServlet"), this::onTypeMatched);
     }
 
     @Override
@@ -48,6 +51,27 @@ public class ServletInstrumentationV3 extends TypeInstrumentation {
         String adviceClassName = this.getClass().getName() + "$ServiceAdvice";
 
         return Collections.singletonList(new MethodInstrumentation(matcher, adviceClassName));
+    }
+
+    public void onTypeMatched() {
+        DecorateControl.forClass(DecorateControl.ServletVersion5Switch.class).setDecorated();
+    }
+
+    @Override
+    public List<String> adviceClassNames() {
+        return asList(
+                "io.arex.inst.httpservlet.inst.ServletInstrumentationV3$ServiceAdvice",
+                "io.arex.inst.httpservlet.adapter.ServletAdapter",
+                "io.arex.inst.httpservlet.adapter.impl.ServletAdapterImplV3",
+                "io.arex.inst.httpservlet.ServletAdviceHelper",
+                "io.arex.inst.httpservlet.listener.ServletAsyncListenerV3",
+                "io.arex.inst.httpservlet.wrapper.CachedBodyRequestWrapperV3",
+                "io.arex.inst.httpservlet.wrapper.CachedBodyResponseWrapperV3",
+                "io.arex.inst.httpservlet.wrapper.CachedBodyRequestWrapperV3$ContentCachingInputStream",
+                "io.arex.inst.httpservlet.wrapper.CachedBodyResponseWrapperV3$ResponseServletOutputStream",
+                "io.arex.inst.httpservlet.wrapper.CachedBodyResponseWrapperV3$ResponsePrintWriter",
+                "io.arex.inst.httpservlet.ServletExtractor",
+                "io.arex.inst.httpservlet.wrapper.FastByteArrayOutputStream");
     }
 
     public static class ServiceAdvice {

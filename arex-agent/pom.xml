@@ -198,7 +198,7 @@
                 <configuration>
                     <artifactSet>
                         <excludes>
-                            <exclude>io.arex:arex-agent-bootstrap</exclude>
+                            <!--<exclude>io.arex:arex-agent-bootstrap</exclude>-->
                         </excludes>
                         <includes>
                             <include>org.apache.commons:commons-lang3</include>

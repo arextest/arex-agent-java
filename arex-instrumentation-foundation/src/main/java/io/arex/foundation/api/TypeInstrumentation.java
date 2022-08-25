@@ -30,4 +30,9 @@ public abstract class TypeInstrumentation {
     protected abstract ElementMatcher<TypeDescription> typeMatcher();
 
     public abstract List<MethodInstrumentation> methodAdvices();
+
+    // todo: auto find advice class
+    public List<String> adviceClassNames() {
+        return null;
+    }
 }

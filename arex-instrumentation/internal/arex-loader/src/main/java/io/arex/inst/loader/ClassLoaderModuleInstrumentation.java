@@ -5,7 +5,10 @@ import io.arex.foundation.api.TypeInstrumentation;
 import com.google.auto.service.AutoService;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+
+import static java.util.Arrays.asList;
 
 /**
  * LoaderSpringModuleInstrumentation
@@ -22,8 +25,9 @@ public class ClassLoaderModuleInstrumentation extends ModuleInstrumentation {
 
     @Override
     public List<TypeInstrumentation> instrumentationTypes() {
-        return Arrays.asList(new ClassLoaderInstrumentation(), new AppClassLoaderInstrumentation(),
+        return /*Arrays.asList(new ClassLoaderInstrumentation(), new AppClassLoaderInstrumentation(),
                 new URLClassLoaderInstrumentation(), new WebAppClassLoaderBaseInstrumentation(),
-                new ParallelWebappClassLoaderInstrumentation());
+                new ParallelWebappClassLoaderInstrumentation());*/
+        Collections.singletonList(new InjectClassInstrumentation());
     }
 }

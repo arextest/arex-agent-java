@@ -24,4 +24,12 @@ public final class DecorateControl {
     public static class URLClassLoaderSwitch {
 
     }
+
+    public static class ServletVersion3Switch {
+
+    }
+
+    public static class ServletVersion5Switch {
+
+    }
 }
