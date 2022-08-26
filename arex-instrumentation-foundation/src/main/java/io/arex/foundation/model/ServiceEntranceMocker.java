@@ -19,9 +19,9 @@ public class ServiceEntranceMocker extends AbstractMocker {
     @JsonProperty("pattern")
     private String pattern;
     @JsonProperty("requestHeaders")
-    private Map<String, String> requestHeaders;
+    private String requestHeaders;
     @JsonProperty("responseHeaders")
-    private Map<String, String> responseHeaders;
+    private String responseHeaders;
     @JsonProperty("request")
     private String request;
 
@@ -55,19 +55,19 @@ public class ServiceEntranceMocker extends AbstractMocker {
         this.path = path;
     }
 
-    public Map<String, String> getRequestHeaders() {
+    public String getRequestHeaders() {
         return requestHeaders;
     }
 
-    public void setRequestHeaders(Map<String, String> requestHeaders) {
+    public void setRequestHeaders(String requestHeaders) {
         this.requestHeaders = requestHeaders;
     }
 
-    public Map<String, String> getResponseHeaders() {
+    public String getResponseHeaders() {
         return responseHeaders;
     }
 
-    public void setResponseHeaders(Map<String, String> responseHeaders) {
+    public void setResponseHeaders(String responseHeaders) {
         this.responseHeaders = responseHeaders;
     }
 

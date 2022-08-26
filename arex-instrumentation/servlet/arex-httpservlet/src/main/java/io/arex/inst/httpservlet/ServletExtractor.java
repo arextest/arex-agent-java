@@ -62,8 +62,8 @@ public class ServletExtractor<HttpServletRequest, HttpServletResponse> {
         mocker.setMethod(adapter.getMethod(httpServletRequest));
         mocker.setPath(adapter.getServletPath(httpServletRequest));
         mocker.setPattern(getPattern());
-        mocker.setRequestHeaders(getRequestHeaders());
-        mocker.setResponseHeaders(getResponseHeaders());
+        mocker.setRequestHeaders(SerializeUtils.serialize(getRequestHeaders()));
+        mocker.setResponseHeaders(SerializeUtils.serialize(getResponseHeaders()));
         mocker.setRequest(getRequest());
         mocker.setResponse(getResponse());
 
