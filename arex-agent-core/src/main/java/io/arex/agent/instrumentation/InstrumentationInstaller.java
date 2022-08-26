@@ -5,7 +5,6 @@ import io.arex.foundation.api.ModuleInstrumentation;
 import io.arex.foundation.api.TypeInstrumentation;
 import io.arex.foundation.bytebuddy.AdviceInjector;
 import io.arex.foundation.services.ConfigService;
-import io.arex.foundation.services.DataService;
 import io.arex.foundation.util.CollectionUtil;
 import io.arex.foundation.util.LogUtil;
 import net.bytebuddy.agent.builder.AgentBuilder;
@@ -36,6 +35,7 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
     @Override
     protected ResettableClassFileTransformer invoke() {
         ConfigService.INSTANCE.loadAgentConfig(agentArgs);
+
         return install(getAgentBuilder());
     }
 
@@ -142,13 +142,6 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
         public void onTransformation(TypeDescription typeDescription, ClassLoader classLoader, JavaModule module,
                                      boolean loaded, DynamicType dynamicType) {
             LOGGER.info("onTransformation: {} loaded: {} from classLoader {}", typeDescription.getName(), loaded, classLoader);
-
-            /*File file = new File("/Users/menghz/Documents/Work/OpenSource/back");
-            try {
-                dynamicType.saveIn(file);
-            } catch (Exception ex) {
-                System.out.println("[AREX] save javax.servlet.ServletRequest failed: " + ex);
-            }*/
         }
 
         @Override

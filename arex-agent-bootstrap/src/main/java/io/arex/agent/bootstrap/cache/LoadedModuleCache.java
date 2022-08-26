@@ -7,11 +7,6 @@ import java.util.Set;
 public class LoadedModuleCache {
     private static final Set<String> modules = new HashSet<>(50);
 
-    /**
-     * Execute the corresponding instrumenter according to the package version that the application depends on
-     *
-     * @return instrumenter can be executed or not (any module matches would return true)
-     */
     public static boolean hasResource(List<String> packages) {
         if (packages == null || packages.size() == 0 || modules.size() == 0) {
             return true;
