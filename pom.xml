@@ -7,7 +7,7 @@
     <groupId>io.arex</groupId>
     <artifactId>arex-agent-parent</artifactId>
     <packaging>pom</packaging>
-    <version>0.0.1</version>
+    <version>0.1.0</version>
 
     <modules>
         <module>arex-agent</module>

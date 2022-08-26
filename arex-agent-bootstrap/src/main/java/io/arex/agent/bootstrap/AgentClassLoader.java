@@ -63,10 +63,6 @@ public class AgentClassLoader extends URLClassLoader {
 
     @Override
     protected Class<?> findClass(String name) throws ClassNotFoundException {
-        if (name.startsWith("io.arex.agent.bootstrap")) {
-            return null;
-        }
-
         JarEntry jarEntry = findJarEntry(name.replace('.', '/') + ".class");
         if (jarEntry != null) {
             byte[] bytes;
