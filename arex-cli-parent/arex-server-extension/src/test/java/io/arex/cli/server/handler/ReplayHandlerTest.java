@@ -57,7 +57,7 @@ class ReplayHandlerTest {
         Runnable mocker1 = () -> {};
         Runnable mocker2 = () -> StorageService.INSTANCE = storageService;
         ServiceEntranceMocker servletMocker = new ServiceEntranceMocker();
-        servletMocker.setRequestHeaders(new HashMap<>());
+        servletMocker.setRequestHeaders("{}");
         Function<Class<? extends AbstractMocker>, OngoingStubbing<List<AbstractMocker>>> stub = clazz ->
                 Mockito.when(storageService.queryList(any(clazz), anyInt()));
         Runnable mocker3 = () -> stub.apply(ServiceEntranceMocker.class).thenReturn(Collections.singletonList(servletMocker));

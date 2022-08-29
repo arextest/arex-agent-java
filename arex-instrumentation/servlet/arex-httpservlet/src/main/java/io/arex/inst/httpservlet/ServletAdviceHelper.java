@@ -26,13 +26,22 @@ import java.util.concurrent.CompletableFuture;
  */
 public class ServletAdviceHelper {
     private static final Set<String> FILTERED_CONTENT_TYPE = new HashSet<>();
+    private static final Set<String> FILTERED_GET_URL_SUFFIX = new HashSet<>();
 
     static {
         FILTERED_CONTENT_TYPE.add("/javascript");
         FILTERED_CONTENT_TYPE.add("image/");
         FILTERED_CONTENT_TYPE.add("/font");
         FILTERED_CONTENT_TYPE.add("/pdf");
-        FILTERED_CONTENT_TYPE.add(".css");
+        FILTERED_CONTENT_TYPE.add("/css");
+
+        FILTERED_GET_URL_SUFFIX.add(".js");
+        FILTERED_GET_URL_SUFFIX.add(".css");
+        FILTERED_GET_URL_SUFFIX.add(".png");
+        FILTERED_GET_URL_SUFFIX.add(".woff");
+        FILTERED_GET_URL_SUFFIX.add(".pdf");
+        FILTERED_GET_URL_SUFFIX.add(".map");
+        FILTERED_GET_URL_SUFFIX.add(".ico");
     }
 
     public static <TRequest, TResponse> Pair<TRequest, TResponse> onServiceEnter(
@@ -150,16 +159,15 @@ public class ServletAdviceHelper {
         if (Boolean.parseBoolean(adapter.getRequestHeader(httpServletRequest, Constants.REPLAY_WARM_UP))) {
             return true;
         }
+
+        // Filter invalid servlet path suffix
+        if ("GET".equals(adapter.getMethod(httpServletRequest))) {
+            String servletPath = adapter.getServletPath(httpServletRequest);
+            return StringUtil.isEmpty(servletPath) || FILTERED_GET_URL_SUFFIX.stream().anyMatch(servletPath::contains);
+        }
+
+        // Filter invalid content-type
         String contentType = adapter.getContentType(httpServletRequest);
-        return isFilteredContentType(contentType) ||
-                isCssPath(adapter.getServletPath(httpServletRequest));
-    }
-
-    private static boolean isFilteredContentType(String contentType) {
-        return StringUtil.isEmpty(contentType) && FILTERED_CONTENT_TYPE.contains(contentType);
-    }
-
-    private static boolean isCssPath(String path) {
-        return StringUtil.isEmpty(path) || path.endsWith(".css");
+        return StringUtil.isEmpty(contentType) || FILTERED_CONTENT_TYPE.stream().anyMatch(contentType::contains);
     }
 }

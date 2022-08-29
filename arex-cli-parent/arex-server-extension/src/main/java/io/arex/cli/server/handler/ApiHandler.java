@@ -1,6 +1,7 @@
 package io.arex.cli.server.handler;
 
 import io.arex.foundation.model.ServiceEntranceMocker;
+import io.arex.foundation.serializer.SerializeUtils;
 import io.arex.foundation.util.AsyncHttpClientUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
@@ -13,7 +14,7 @@ import java.util.*;
 public abstract class ApiHandler {
 
     public Map<String, String> request(ServiceEntranceMocker servletMocker) {
-        Map<String, String> mockerHeader = servletMocker.getRequestHeaders();
+        Map<String, String> mockerHeader = SerializeUtils.deserialize(servletMocker.getRequestHeaders(), Map.class);
 
         Map<String, String> requestHeaders = new HashMap<>();
         requestHeaders.put(HttpHeaders.CONTENT_TYPE, "application/json;charset=UTF-8");

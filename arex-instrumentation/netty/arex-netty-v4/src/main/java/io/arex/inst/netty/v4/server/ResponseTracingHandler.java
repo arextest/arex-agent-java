@@ -6,6 +6,7 @@ import io.arex.foundation.listener.CaseListenerImpl;
 import io.arex.foundation.model.AbstractMocker;
 import io.arex.foundation.model.Constants;
 import io.arex.foundation.model.ServiceEntranceMocker;
+import io.arex.foundation.serializer.SerializeUtils;
 import io.arex.foundation.util.StringUtil;
 import io.arex.inst.netty.v4.common.AttributeKey;
 import io.arex.inst.netty.v4.common.NettyHelper;
@@ -52,7 +53,8 @@ public class ResponseTracingHandler extends ChannelOutboundHandlerAdapter {
             return;
         }
 
-        ((ServiceEntranceMocker)mocker).setResponseHeaders(NettyHelper.parseHeaders(response.headers()));
+        ((ServiceEntranceMocker) mocker).setResponseHeaders(
+            SerializeUtils.serialize(NettyHelper.parseHeaders(response.headers())));
         channel.attr(AttributeKey.TRACING_MOCKER).set(mocker);
         appendHeader(response);
     }

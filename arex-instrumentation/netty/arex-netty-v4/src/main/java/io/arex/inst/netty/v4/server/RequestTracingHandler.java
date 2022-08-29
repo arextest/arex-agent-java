@@ -8,6 +8,7 @@ import io.arex.foundation.listener.CaseListenerImpl;
 import io.arex.foundation.model.AbstractMocker;
 import io.arex.foundation.model.Constants;
 import io.arex.foundation.model.ServiceEntranceMocker;
+import io.arex.foundation.serializer.SerializeUtils;
 import io.arex.foundation.services.IgnoreService;
 import io.arex.foundation.util.StringUtil;
 import io.arex.inst.netty.v4.common.AttributeKey;
@@ -36,7 +37,7 @@ public class RequestTracingHandler extends ChannelInboundHandlerAdapter {
                 ServiceEntranceMocker mocker = new ServiceEntranceMocker();
                 mocker.setMethod(request.method().name());
                 mocker.setPath(request.uri());
-                mocker.setRequestHeaders(NettyHelper.parseHeaders(request.headers()));
+                mocker.setRequestHeaders(SerializeUtils.serialize(NettyHelper.parseHeaders(request.headers())));
 
                 ctx.channel().attr(AttributeKey.TRACING_MOCKER).set(mocker);
             }

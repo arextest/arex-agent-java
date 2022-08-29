@@ -54,7 +54,7 @@ class DebugHandlerTest {
     static Stream<Arguments> processCase() {
         Runnable mocker1 = () -> {};
         ServiceEntranceMocker servletMocker = new ServiceEntranceMocker();
-        servletMocker.setRequestHeaders(new HashMap<>());
+        servletMocker.setRequestHeaders("{}");
         Runnable mockerQuery = () -> Mockito.when(storageService.query(any(AbstractMocker.class))).thenReturn(servletMocker);
         Runnable mocker2 = () -> {
             mockerQuery.run();
