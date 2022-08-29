@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 
 public class DataService {
@@ -28,7 +29,13 @@ public class DataService {
     private volatile boolean stop = true;
     private Future<?> executeFuture = null;
 
+    private AtomicBoolean initialized = new AtomicBoolean(false);
+
     public void save(AbstractMocker mocker) {
+        if (initialized.compareAndSet(false, true)) {
+            this.init();
+        }
+
         if (stop || HealthManager.isFastRejection()) {
             LOGGER.warn("{}data service is stop or health manager fast rejection", LogUtil.buildTitle("saveData"));
             return;
@@ -59,6 +66,7 @@ public class DataService {
         if (buffer == null) {
             buffer = new MockerRingBuffer(1024);
         }
+
         stop = false;
         if (executeFuture == null) {
             executeFuture = executor.submit(this::loop);

@@ -3,6 +3,9 @@ package io.arex.agent.instrumentation;
 import io.arex.foundation.api.MethodInstrumentation;
 import io.arex.foundation.api.ModuleInstrumentation;
 import io.arex.foundation.api.TypeInstrumentation;
+import io.arex.foundation.bytebuddy.AdviceInjector;
+import io.arex.foundation.services.ConfigService;
+import io.arex.foundation.util.CollectionUtil;
 import io.arex.foundation.util.LogUtil;
 import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.agent.builder.ResettableClassFileTransformer;
@@ -31,10 +34,13 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
 
     @Override
     protected ResettableClassFileTransformer invoke() {
+        ConfigService.INSTANCE.loadAgentConfig(agentArgs);
+
         return install(getAgentBuilder());
     }
 
     private ResettableClassFileTransformer install(AgentBuilder builder) {
+        Thread.currentThread().setContextClassLoader(InstrumentationInstaller.class.getClassLoader());
         for (ModuleInstrumentation module : loadInstrumentationModules()) {
             builder = installModule(builder, module);
         }
@@ -69,6 +75,10 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
         AgentBuilder.Identified identified = builder.type(inst.matcher());
         if (transformer != null) {
             identified = identified.transform(transformer);
+        }
+        List<String> advicesClassNames = inst.adviceClassNames();
+        if (!CollectionUtil.isEmpty(advicesClassNames)) {
+            identified = identified.transform(new AdviceInjector(advicesClassNames));
         }
 
         AgentBuilder.Identified.Extendable extBuilder = installMethod(identified, methods.get(0));
@@ -115,7 +125,7 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
     @SuppressWarnings("ForEachIterable")
     private static <T> List<T> load(Class<T> serviceClass) {
         List<T> result = new ArrayList<>();
-        java.util.ServiceLoader<T> services = ServiceLoader.load(serviceClass);
+        java.util.ServiceLoader<T> services = ServiceLoader.load(serviceClass, InstrumentationInstaller.class.getClassLoader());
         for (Iterator<T> iter = services.iterator(); iter.hasNext(); ) {
             try {
                 result.add(iter.next());

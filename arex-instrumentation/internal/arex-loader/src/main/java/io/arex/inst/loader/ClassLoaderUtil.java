@@ -13,33 +13,6 @@ import java.util.jar.Manifest;
 
 public class ClassLoaderUtil {
 
-    public static URL[] addUcp(String agentJarPath, URL[] urls) {
-        if (urls == null || urls.length == 0) {
-            return urls;
-        }
-
-        DecorateControl call = DecorateControl.forClass(ClassLoaderUtil.class);
-        if (call.hasDecorated()) {
-            // just decorate the top level class loader and only decorate once for all class loader
-            return urls;
-        }
-        call.setDecorated();
-
-        URL url;
-        try {
-            url = new File(agentJarPath).toURI().toURL();
-        } catch (IOException e) {
-            return urls;
-        }
-
-        URL[] newURLs = new URL[urls.length + 1];
-        for (int i = 0; i < urls.length; i++) {
-            newURLs[i] = urls[i];
-        }
-        newURLs[urls.length] = url;
-        return newURLs;
-    }
-
     public static void registerResource(ClassLoader classLoader) {
         DecorateControl call = DecorateControl.forClass(ClassLoaderUtil.class);
         if (call.hasDecorated()) {

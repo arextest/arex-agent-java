@@ -45,6 +45,12 @@ public class InternalHttpClientInstrumentation extends TypeInstrumentation {
                 ExecuteAdvice.class.getName()));
     }
 
+    @Override
+    public List<String> adviceClassNames() {
+        return singletonList(
+                "io.arex.inst.httpclient.apache.sync.InternalHttpClientInstrumentation$ExecuteAdvice");
+    }
+
     public static class ExecuteAdvice {
 
         @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class, suppress = Throwable.class)

@@ -13,7 +13,7 @@ public abstract class BaseAgentInstaller implements AgentInstaller {
 
     protected final Instrumentation instrumentation;
     protected final File agentFile;
-    private final String agentArgs;
+    protected final String agentArgs;
 
     private ResettableClassFileTransformer transformer;
 

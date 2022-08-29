@@ -58,6 +58,13 @@ public class AbstractEntityPersisterInstrumentation extends TypeInstrumentation 
                 this.getClass().getName() + "$UpdateOrInsertAdvice");
     }
 
+    @Override
+    public List<String> adviceClassNames() {
+        return asList(
+                "io.arex.inst.database.hibernate.AbstractEntityPersisterInstrumentation$InsertAdvice",
+                "io.arex.inst.database.hibernate.AbstractEntityPersisterInstrumentation$UpdateOrInsertAdvice");
+    }
+
     @SuppressWarnings("unused")
     public static class InsertAdvice {
 

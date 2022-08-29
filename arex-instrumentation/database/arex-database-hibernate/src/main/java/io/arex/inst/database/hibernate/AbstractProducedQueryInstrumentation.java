@@ -9,9 +9,9 @@ import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
 
-import java.util.Collections;
 import java.util.List;
 
+import static java.util.Collections.singletonList;
 import static net.bytebuddy.matcher.ElementMatchers.isMethod;
 import static net.bytebuddy.matcher.ElementMatchers.isPublic;
 import static net.bytebuddy.matcher.ElementMatchers.isStatic;
@@ -41,7 +41,13 @@ public class AbstractProducedQueryInstrumentation extends TypeInstrumentation {
 
         String adviceClassName = this.getClass().getName() + "$UniqueElementAdvice";
 
-        return Collections.singletonList(new MethodInstrumentation(matcher, adviceClassName));
+        return singletonList(new MethodInstrumentation(matcher, adviceClassName));
+    }
+
+    @Override
+    public List<String> adviceClassNames() {
+        return singletonList(
+                "io.arex.inst.database.hibernate.AbstractProducedQueryInstrumentation$UniqueElementAdvice");
     }
 
     private static class UniqueElementAdvice {

@@ -6,6 +6,8 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.security.CodeSource;
+import java.security.cert.Certificate;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -26,14 +28,36 @@ public class AgentClassLoader extends URLClassLoader {
     private String filePath;
     private JarFile agentJarFile;
 
+    private CodeSource codeSource;
+
     public AgentClassLoader(File jarFile, ClassLoader parent, String[] extensionJars) {
         super(new URL[] {}, parent);
 
         try {
             filePath = jarFile.getAbsolutePath();
             this.agentJarFile = new JarFile(jarFile, false);
+            codeSource = new CodeSource(jarFile.toURI().toURL(), (Certificate[]) null);
         } catch (IOException e) {
             throw new IllegalStateException("Unable to open agent jar", e);
+        }
+    }
+
+    @Override
+    public Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+        synchronized (getClassLoadingLock(name)) {
+            Class<?> clazz = findLoadedClass(name);
+            if (clazz == null) {
+                clazz = findClass(name);
+            }
+
+            if (clazz == null) {
+                clazz = super.loadClass(name, false);
+            }
+            if (resolve) {
+                resolveClass(clazz);
+            }
+
+            return clazz;
         }
     }
 
@@ -48,14 +72,35 @@ public class AgentClassLoader extends URLClassLoader {
                 throw new ClassNotFoundException(name, exception);
             }
 
+            definePackageIfNeeded(name);
             return defineClass(name, bytes);
         }
-
-        return super.findClass(name);
+        return null;
     }
 
     public Class<?> defineClass(String name, byte[] bytes) {
         return defineClass(name, bytes, 0, bytes.length);
+    }
+
+    private void definePackageIfNeeded(String className) {
+        String packageName = getPackageName(className);
+        if (packageName == null) {
+            return;
+        }
+        if (getPackage(packageName) == null) {
+            try {
+                definePackage(packageName, agentJarFile.getManifest(), codeSource.getLocation());
+            } catch (Exception exception) {
+                if (getPackage(packageName) == null) {
+                    throw new IllegalStateException("Failed to define package", exception);
+                }
+            }
+        }
+    }
+
+    private static String getPackageName(String className) {
+        int index = className.lastIndexOf('.');
+        return index == -1 ? null : className.substring(0, index);
     }
 
     private byte[] getJarEntryBytes(JarEntry jarEntry) throws IOException {
