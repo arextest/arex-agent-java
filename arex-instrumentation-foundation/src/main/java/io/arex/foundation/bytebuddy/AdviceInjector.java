@@ -23,7 +23,8 @@ public class AdviceInjector implements AgentBuilder.Transformer {
     }
 
     @Override
-    public DynamicType.Builder<?> transform(DynamicType.Builder<?> builder, TypeDescription typeDescription, ClassLoader classLoader, JavaModule module) {
+    public DynamicType.Builder<?> transform(DynamicType.Builder<?> builder, TypeDescription typeDescription,
+                                            ClassLoader classLoader, JavaModule module) {
         ClassLoader loader = InstrumentationHolder.getAgentClassLoader();
         for (String name : adviceClassNames) {
             try {
