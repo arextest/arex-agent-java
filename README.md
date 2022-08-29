@@ -43,10 +43,11 @@ AREX utilizes the advanced Java technique, Instrument API, and is capable of ins
 
 Simply download the latest binary from [github](https://github.com/arextest/releases) or compile it by yourself.
 
-The agent files provided in the `arex-agent-jar` folder like below.
+There are two agent files provided in the arex-agent-jar folder like below. They must be placed in the same directory.
 
 ```other
-arex-agent-<version>.jar  
+arex-agent-<version>.jar
+arex-agent-bootstrap-<version>.jar
 
 ```
 
