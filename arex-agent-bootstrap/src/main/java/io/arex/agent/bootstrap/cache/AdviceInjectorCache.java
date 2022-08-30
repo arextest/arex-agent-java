@@ -1,56 +1,48 @@
 package io.arex.agent.bootstrap.cache;
 
+import io.arex.agent.bootstrap.internal.Cache;
 import net.bytebuddy.dynamic.loading.ClassInjector;
 
 import java.util.Collections;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class AdviceInjectorCache {
 
-    public static ConcurrentHashMap<String, AdviceClassInjector> injectorMap = new ConcurrentHashMap<>(100);
-
-    private static ConcurrentHashMap<String, Class<?>> clazzCache = new ConcurrentHashMap<>(100);
+    public static Cache<String, AdviceClassInjector> injectorCache = Cache.trieCacheWithInit("io.arex.inst.");
 
     public static void registerInjector(String name, AdviceClassInjector injector) {
-        injectorMap.put(name, injector);
+        injectorCache.put(name, injector);
     }
 
     public static boolean contains(String name) {
-        return injectorMap.containsKey(name);
+        return injectorCache.contains(name);
     }
 
     public static Class<?> getAdviceClass(String name, ClassLoader loader) {
-        Class<?> clazz = clazzCache.get(name);
-        if (clazz != null) {
-            return clazz;
-        }
-
-        AdviceClassInjector injector = injectorMap.get(name);
-        if (injector == null) {
+        if (loader == null) {
             return null;
         }
 
-        clazz = injector.inject(loader, name);
-        if (clazz != null) {
-            clazzCache.put(name, clazz);
-            injectorMap.remove(name);
-        }
-
-        return clazz;
+        AdviceClassInjector injector = injectorCache.get(name);
+        return injector == null ? null : injector.inject(loader, name);
     }
 
     public static class AdviceClassInjector {
-        private final byte[] bytes;
+        private byte[] bytes;
+        private Class<?> clazz;
 
         public AdviceClassInjector(byte[] bytes) {
             this.bytes = bytes;
         }
 
         Class<?> inject(ClassLoader classLoader, String className) {
-            Map<String, Class<?>> result = new ClassInjector.UsingReflection(classLoader)
-                            .injectRaw(Collections.singletonMap(className, bytes));
-            return result.get(className);
+            if (clazz == null) {
+                Map<String, Class<?>> result = new ClassInjector.UsingReflection(classLoader)
+                        .injectRaw(Collections.singletonMap(className, bytes));
+                clazz = result.get(className);
+                bytes = null;
+            }
+            return clazz;
         }
     }
 }

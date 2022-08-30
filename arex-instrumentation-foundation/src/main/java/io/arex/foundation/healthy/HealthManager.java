@@ -1,7 +1,7 @@
 package io.arex.foundation.healthy;
 
 import io.arex.foundation.config.ConfigManager;
-import io.arex.foundation.internal.Pair;
+import io.arex.agent.bootstrap.internal.Pair;
 import io.arex.foundation.services.TimerService;
 import com.google.common.util.concurrent.RateLimiter;
 

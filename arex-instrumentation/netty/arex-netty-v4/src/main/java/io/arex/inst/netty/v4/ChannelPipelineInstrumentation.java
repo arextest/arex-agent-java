@@ -3,7 +3,7 @@ package io.arex.inst.netty.v4;
 import io.arex.foundation.api.MethodInstrumentation;
 import io.arex.foundation.api.ModuleDescription;
 import io.arex.foundation.api.TypeInstrumentation;
-import io.arex.foundation.internal.CallDepth;
+import io.arex.agent.bootstrap.internal.CallDepth;
 import io.arex.inst.netty.v4.server.RequestTracingHandler;
 import io.arex.inst.netty.v4.server.ResponseTracingHandler;
 import io.arex.inst.netty.v4.server.ServerCodecTracingHandler;

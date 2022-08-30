@@ -7,7 +7,6 @@ import io.arex.foundation.serializer.SerializeUtils;
 import io.arex.foundation.services.StorageService;
 import io.arex.foundation.util.CollectionUtil;
 import io.arex.foundation.util.StringUtil;
-import org.apache.commons.lang3.StringUtils;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.h2.tools.Server;
 import org.slf4j.Logger;
@@ -42,13 +41,8 @@ public class H2StorageService extends StorageService {
         if (CollectionUtil.isEmpty(mockers)) {
             return 0;
         }
-        List<Object> mockerList = new ArrayList<>();
-        String tableName = "";
-        for (DiffMocker mocker : mockers) {
-            tableName = "DIFF_RESULT";
-            mockerList.add(mocker);
-        }
-        return batchSave(mockerList, tableName, null);
+        String tableName = "DIFF_RESULT";
+        return batchSave(new ArrayList<>(mockers), tableName, null);
     }
 
     public int batchSave(List<Object> mockers, String tableName, String jsonData){

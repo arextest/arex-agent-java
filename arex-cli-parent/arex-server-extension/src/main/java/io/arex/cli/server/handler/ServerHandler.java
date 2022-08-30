@@ -5,6 +5,7 @@ import io.termd.core.readline.Function;
 import io.termd.core.readline.Keymap;
 import io.termd.core.readline.Readline;
 import io.termd.core.tty.TtyConnection;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,8 +28,9 @@ public class ServerHandler {
 
     public static void readline(Readline readline, TtyConnection conn) {
         readline.readline(conn, Constants.CLI_PROMPT, line -> {
-            if (line == null) {
-                conn.write("exit").close();
+            line = StringUtils.defaultString(line);
+            if (StringUtils.equalsIgnoreCase(line, "exit")) {
+                conn.write("exit\n" + Constants.CLI_PROMPT).close();
             } else {
                 String response;
                 try {

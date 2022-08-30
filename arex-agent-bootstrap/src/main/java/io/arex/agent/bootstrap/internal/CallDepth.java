@@ -1,4 +1,4 @@
-package io.arex.foundation.internal;
+package io.arex.agent.bootstrap.internal;
 
 public class CallDepth {
 

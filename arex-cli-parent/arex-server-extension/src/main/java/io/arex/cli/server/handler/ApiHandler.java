@@ -1,21 +1,20 @@
 package io.arex.cli.server.handler;
 
 import io.arex.foundation.model.ServiceEntranceMocker;
+import io.arex.foundation.serializer.SerializeUtils;
 import io.arex.foundation.util.AsyncHttpClientUtil;
-import io.arex.foundation.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
 import org.apache.http.entity.ByteArrayEntity;
 
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public abstract class ApiHandler {
 
     public Map<String, String> request(ServiceEntranceMocker servletMocker) {
-        Map<String, String> mockerHeader = servletMocker.getRequestHeaders();
+        Map<String, String> mockerHeader = SerializeUtils.deserialize(servletMocker.getRequestHeaders(), Map.class);
 
         Map<String, String> requestHeaders = new HashMap<>();
         requestHeaders.put(HttpHeaders.CONTENT_TYPE, "application/json;charset=UTF-8");
@@ -27,14 +26,27 @@ public abstract class ApiHandler {
         return AsyncHttpClientUtil.executeAsyncIncludeHeader(url, httpEntity, requestHeaders).join();
     }
 
-    public String[] parseArgs(String opt) {
-        if (StringUtil.isBlank(opt)) {
+    public Map<String, String> parseArgs(String argument) {
+        if (StringUtils.isBlank(argument)) {
             return null;
         }
-        return opt.trim().split("-");
+        String[] args = argument.trim().split("-");
+        Map<String, String> argMap = new LinkedHashMap<>();
+        for (String arg : args) {
+            if (StringUtils.isBlank(arg)) {
+                continue;
+            }
+            String[] options = parseOption(arg);
+            if (options.length > 1) {
+                argMap.put(options[0], options[1]);
+            } else {
+                argMap.put(options[0], StringUtils.EMPTY);
+            }
+        }
+        return argMap;
     }
 
-    public String[] parseOption(String args) {
+    private String[] parseOption(String args) {
         return args.trim().split("=");
     }
 
