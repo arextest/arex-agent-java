@@ -6,9 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
-import java.util.Base64;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class HttpClientExtractor<TRequest, TResponse> {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpClientExtractor.class);
@@ -89,10 +87,10 @@ public class HttpClientExtractor<TRequest, TResponse> {
         return adapter.getUri().getQuery();
     }
 
-    private final static Set<String> ALLOW_HTTP_METHOD_BODY_SETS;
+    private final static List<String> ALLOW_HTTP_METHOD_BODY_SETS;
 
     static {
-        ALLOW_HTTP_METHOD_BODY_SETS = new HashSet<>();
+        ALLOW_HTTP_METHOD_BODY_SETS = new ArrayList<>(4);
         ALLOW_HTTP_METHOD_BODY_SETS.add("POST");
         ALLOW_HTTP_METHOD_BODY_SETS.add("PUT");
         ALLOW_HTTP_METHOD_BODY_SETS.add("PATCH");

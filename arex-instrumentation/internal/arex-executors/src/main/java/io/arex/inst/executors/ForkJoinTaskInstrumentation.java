@@ -1,7 +1,7 @@
 package io.arex.inst.executors;
 
-import io.arex.agent.bootstrap.cache.WeakMap;
 import io.arex.agent.bootstrap.ctx.ArexThreadLocal;
+import io.arex.agent.bootstrap.internal.Cache;
 import io.arex.foundation.api.MethodInstrumentation;
 import io.arex.foundation.api.TypeInstrumentation;
 import net.bytebuddy.asm.Advice;
@@ -44,7 +44,7 @@ public class ForkJoinTaskInstrumentation extends TypeInstrumentation {
         public static void onEnter(
                 @Advice.This Object task,
                 @Advice.Local("backup") Object backup) {
-            backup = ArexThreadLocal.Transmitter.replay(WeakMap.DEFAULT.get(task));
+            backup = ArexThreadLocal.Transmitter.replay(Cache.CAPTURED_CACHE.get(task));
         }
 
         @Advice.OnMethodExit
@@ -57,7 +57,7 @@ public class ForkJoinTaskInstrumentation extends TypeInstrumentation {
     public static class ConstructorAdvice {
         @Advice.OnMethodExit
         public static void onExit(@Advice.This Object task) {
-            WeakMap.DEFAULT.put(task, ArexThreadLocal.Transmitter.capture());
+            Cache.CAPTURED_CACHE.put(task, ArexThreadLocal.Transmitter.capture());
         }
     }
 }

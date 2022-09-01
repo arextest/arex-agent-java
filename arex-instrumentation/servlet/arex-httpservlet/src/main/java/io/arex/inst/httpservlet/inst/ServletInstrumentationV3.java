@@ -4,7 +4,7 @@ import io.arex.agent.bootstrap.DecorateControl;
 import io.arex.foundation.api.MethodInstrumentation;
 import io.arex.foundation.api.ModuleDescription;
 import io.arex.foundation.api.TypeInstrumentation;
-import io.arex.foundation.internal.Pair;
+import io.arex.agent.bootstrap.internal.Pair;
 import io.arex.inst.httpservlet.ServletAdviceHelper;
 import io.arex.inst.httpservlet.adapter.ServletAdapter;
 import io.arex.inst.httpservlet.adapter.impl.ServletAdapterImplV3;
@@ -54,7 +54,7 @@ public class ServletInstrumentationV3 extends TypeInstrumentation {
     }
 
     public void onTypeMatched() {
-        DecorateControl.forClass(DecorateControl.ServletVersion5Switch.class).setDecorated();
+        DecorateControl.forClass(DecorateControl.ServletVersion3Switch.class).setDecorated();
     }
 
     @Override
@@ -70,8 +70,7 @@ public class ServletInstrumentationV3 extends TypeInstrumentation {
                 "io.arex.inst.httpservlet.wrapper.CachedBodyRequestWrapperV3$ContentCachingInputStream",
                 "io.arex.inst.httpservlet.wrapper.CachedBodyResponseWrapperV3$ResponseServletOutputStream",
                 "io.arex.inst.httpservlet.wrapper.CachedBodyResponseWrapperV3$ResponsePrintWriter",
-                "io.arex.inst.httpservlet.ServletExtractor",
-                "io.arex.inst.httpservlet.wrapper.FastByteArrayOutputStream");
+                "io.arex.inst.httpservlet.ServletExtractor");
     }
 
     public static class ServiceAdvice {

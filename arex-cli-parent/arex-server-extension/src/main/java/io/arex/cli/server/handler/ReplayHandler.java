@@ -1,6 +1,6 @@
 package io.arex.cli.server.handler;
 
-import io.arex.foundation.internal.Pair;
+import io.arex.agent.bootstrap.internal.Pair;
 import io.arex.foundation.model.*;
 import io.arex.foundation.serializer.SerializeUtils;
 import io.arex.foundation.services.StorageService;

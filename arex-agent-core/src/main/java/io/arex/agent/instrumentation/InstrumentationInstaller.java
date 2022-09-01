@@ -7,12 +7,14 @@ import io.arex.foundation.bytebuddy.AdviceInjector;
 import io.arex.foundation.services.ConfigService;
 import io.arex.foundation.util.CollectionUtil;
 import io.arex.foundation.util.LogUtil;
+import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.agent.builder.ResettableClassFileTransformer;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.dynamic.ClassFileLocator;
 import net.bytebuddy.dynamic.DynamicType;
+import net.bytebuddy.dynamic.scaffold.MethodGraph;
 import net.bytebuddy.utility.JavaModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -106,7 +108,8 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
     private AgentBuilder getAgentBuilder() {
         // config may use to add some classes to be ignored in future
         long buildBegin = System.currentTimeMillis();
-        AgentBuilder builder = new AgentBuilder.Default()
+        AgentBuilder builder = new AgentBuilder.Default(
+                new ByteBuddy().with(MethodGraph.Compiler.ForDeclaredMethods.INSTANCE))
             .enableNativeMethodPrefix("arex_")
             .ignore(none())
             .ignore(nameStartsWith("net.bytebuddy."))

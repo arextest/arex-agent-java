@@ -29,8 +29,7 @@ public class CaseInitializer {
                 Object result = mocker.replay();
                 long millis = NumberUtils.toLong(String.valueOf(result), 0);
                 if (millis > 0) {
-                    TimeCache.put(TimeCache.PREFIX_MILLIS, millis);
-                    TimeCache.put(TimeCache.PREFIX_NANO, System.nanoTime());
+                    TimeCache.put(millis);
                 }
             } else if (ContextManager.needRecord()) {
                 DynamicClassMocker mocker = new DynamicClassMocker(Constants.CLOCK_CLASS, Constants.CLOCK_METHOD,

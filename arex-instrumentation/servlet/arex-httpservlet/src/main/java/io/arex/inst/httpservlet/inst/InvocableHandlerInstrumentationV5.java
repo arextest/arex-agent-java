@@ -38,7 +38,7 @@ public class InvocableHandlerInstrumentationV5 extends TypeInstrumentation {
     @Override
     public ElementMatcher<TypeDescription> typeMatcher() {
         return decorateSwitch(named("org.springframework.web.method.support.InvocableHandlerMethod"),
-                DecorateControl.ServletVersion3Switch.class);
+                DecorateControl.ServletVersion5Switch.class);
     }
 
     @Override

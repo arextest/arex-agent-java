@@ -1,20 +1,18 @@
-package io.arex.agent.bootstrap.cache;
+package io.arex.agent.bootstrap.internal;
 
 import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 import java.util.concurrent.*;
 
-public class WeakMap<K, V> extends ReferenceQueue<K> {
-    public static WeakMap<Object, Object> DEFAULT = new WeakMap<>();
-
+class WeakCache<K, V> extends ReferenceQueue<K> implements Cache<K, V> {
     final ConcurrentMap<WeakReferenceKey<K>, V> target;
 
-    protected WeakMap() {
+    public WeakCache() {
         this(new ConcurrentHashMap<>());
     }
 
-    protected WeakMap(ConcurrentMap<WeakReferenceKey<K>, V> target) {
+    public WeakCache(ConcurrentMap<WeakReferenceKey<K>, V> target) {
         this.target = target;
     }
 
@@ -23,14 +21,14 @@ public class WeakMap<K, V> extends ReferenceQueue<K> {
         return target.get(new WeakReferenceKey<>(key, this));
     }
 
-    public boolean containsKey(K key) {
+    public boolean contains(K key) {
         check();
         return target.containsKey(key);
     }
 
-    public V put(K key, V value) {
+    public void put(K key, V value) {
         check();
-        return target.put(new WeakReferenceKey<>(key, this), value);
+        target.put(new WeakReferenceKey<>(key, this), value);
     }
 
     public V remove(K key) {
@@ -42,7 +40,7 @@ public class WeakMap<K, V> extends ReferenceQueue<K> {
         target.clear();
     }
 
-    public void check() {
+    void check() {
         Reference<?> reference;
         while ((reference = poll()) != null) {
             target.remove(reference);
@@ -70,7 +68,7 @@ public class WeakMap<K, V> extends ReferenceQueue<K> {
 
         @Override
         public boolean equals(Object other) {
-            if (other instanceof WeakMap.WeakReferenceKey<?>) {
+            if (other instanceof WeakCache.WeakReferenceKey<?>) {
                 return ((WeakReferenceKey<?>) other).get() == get();
             } else {
                 return other.equals(this);

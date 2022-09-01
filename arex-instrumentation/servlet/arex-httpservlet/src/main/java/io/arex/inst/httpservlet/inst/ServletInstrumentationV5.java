@@ -4,7 +4,7 @@ import io.arex.agent.bootstrap.DecorateControl;
 import io.arex.foundation.api.MethodInstrumentation;
 import io.arex.foundation.api.ModuleDescription;
 import io.arex.foundation.api.TypeInstrumentation;
-import io.arex.foundation.internal.Pair;
+import io.arex.agent.bootstrap.internal.Pair;
 import io.arex.inst.httpservlet.ServletAdviceHelper;
 import io.arex.inst.httpservlet.adapter.ServletAdapter;
 import io.arex.inst.httpservlet.adapter.impl.ServletAdapterImplV5;

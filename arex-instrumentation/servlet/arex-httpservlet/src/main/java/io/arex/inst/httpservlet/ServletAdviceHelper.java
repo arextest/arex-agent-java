@@ -3,7 +3,7 @@ package io.arex.inst.httpservlet;
 import io.arex.foundation.config.ConfigManager;
 import io.arex.foundation.context.ContextManager;
 import io.arex.foundation.healthy.HealthManager;
-import io.arex.foundation.internal.Pair;
+import io.arex.agent.bootstrap.internal.Pair;
 import io.arex.foundation.listener.CaseEvent;
 import io.arex.foundation.listener.CaseListenerImpl;
 import io.arex.foundation.model.Constants;

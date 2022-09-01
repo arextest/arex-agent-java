@@ -13,6 +13,11 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * Injects instrumentation advice classes into the user's class loader.
+ * Only injection into a class loader is supported, and bootstrap class loader is not supported
+ *
+ */
 public class AdviceInjector implements AgentBuilder.Transformer {
     private static final Logger LOGGER = LoggerFactory.getLogger(AdviceInjector.class);
 
