@@ -184,7 +184,7 @@
                                     <shadedPattern>io.arex.agent.zstd-jni</shadedPattern>
                                 </relocation>
                                 <relocation>
-                                    <pattern>guava</pattern>
+                                    <pattern>com.google</pattern>
                                     <shadedPattern>io.arex.agent.guava</shadedPattern>
                                 </relocation>
                             </relocations>
