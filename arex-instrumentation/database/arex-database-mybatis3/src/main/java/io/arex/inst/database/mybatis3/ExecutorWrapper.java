@@ -18,6 +18,7 @@ import org.apache.ibatis.transaction.Transaction;
 import javax.sql.DataSource;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 public class ExecutorWrapper implements Executor {
 
@@ -42,7 +43,7 @@ public class ExecutorWrapper implements Executor {
         return call(mappedStatement, o, null, () -> delegate.query(mappedStatement, o, rowBounds, resultHandler));
     }
 
-    private <U> U call(MappedStatement ms, Object o, BoundSql boundSql, ThrowingSupplier<U, SQLException> callable)
+    private <U> U call(MappedStatement ms, Object o, BoundSql boundSql, Callable callable)
             throws SQLException {
         DatabaseExtractor executor;
         if (ContextManager.needReplay()) {
@@ -59,9 +60,12 @@ public class ExecutorWrapper implements Executor {
         U result = null;
         SQLException exception = null;
         try {
-            result = callable.call();
+            result = (U) callable.call();
         } catch (SQLException ex) {
             exception = ex;
+        } catch (Exception e) {
+            LogUtil.warn("unexpected error.", e);
+            throw new SQLException(e);
         }
 
         if (ContextManager.needRecord()) {
@@ -154,10 +158,5 @@ public class ExecutorWrapper implements Executor {
             return executor;
         }
         return new ExecutorWrapper(executor);
-    }
-
-
-    interface ThrowingSupplier<T, E extends Throwable> {
-        T call() throws E;
     }
 }
