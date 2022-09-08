@@ -122,11 +122,16 @@ public class H2StorageService extends StorageService {
 
     public boolean start() throws Exception {
         Server webServer = null;
+        Server tcpServer = null;
         Connection connection = null;
         try {
             if (StringUtil.isNotEmpty(ConfigManager.INSTANCE.getStorageServiceWebPort())) {
                 webServer = Server.createWebServer("-webPort", ConfigManager.INSTANCE.getStorageServiceWebPort());
                 webServer.start();
+            }
+            if (ConfigManager.INSTANCE.isEnableDebug()) {
+                tcpServer = Server.createTcpServer("-ifNotExists", "-tcpAllowOthers");
+                tcpServer.start();
             }
             JdbcConnectionPool cp = JdbcConnectionPool.create(ConfigManager.INSTANCE.getStorageServiceJdbcUrl(),
                     ConfigManager.INSTANCE.getStorageServiceUsername(), ConfigManager.INSTANCE.getStorageServicePassword());
@@ -140,6 +145,9 @@ public class H2StorageService extends StorageService {
         } catch (Exception e) {
             if (webServer != null) {
                 webServer.stop();
+            }
+            if (tcpServer != null) {
+                tcpServer.stop();
             }
             try {
                 if (connection != null) {

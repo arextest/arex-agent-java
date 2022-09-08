@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>arex-agent-parent</artifactId>
+        <groupId>io.arex</groupId>
+        <version>0.1.0</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>arex-integration-tests</artifactId>
+    <packaging>pom</packaging>
+    <modules>
+        <module>arex-common-integration-test</module>
+        <module>arex-main-integration-test</module>
+        <module>arex-dynamic-integration-test</module>
+        <module>arex-jedis-v4-integration-test</module>
+    </modules>
+
+    <properties>
+        <maven-deploy-plugin.skip>true</maven-deploy-plugin.skip>
+        <version.spring-boot>2.1.8.RELEASE</version.spring-boot>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>arex-agent</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers</artifactId>
+            <version>1.16.3</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>1.16.3</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>2.1.210</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+</project>

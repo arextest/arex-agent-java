@@ -17,7 +17,7 @@ import static net.bytebuddy.matcher.ElementMatchers.isStatic;
 public class InjectClassInstrumentation extends TypeInstrumentation {
     @Override
     protected ElementMatcher<TypeDescription> typeMatcher() {
-        return extendsClass(named("java.lang.ClassLoader"));
+        return extendsClass(named("java.lang.ClassLoader")).and(not(named("io.arex.agent.bootstrap.AgentClassLoader")));
     }
 
     @Override

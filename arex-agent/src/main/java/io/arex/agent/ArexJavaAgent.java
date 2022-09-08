@@ -47,4 +47,16 @@ public class ArexJavaAgent {
 
         return new File(codeSource.getLocation().toURI());
     }
+
+    public static void init(Instrumentation inst, File agent, File bootstrap) {
+        try {
+            JarFile agentJar = new JarFile(bootstrap, false);
+            inst.appendToBootstrapClassLoaderSearch(agentJar);
+            AgentInitializer.initialize(inst, agent, "");
+            System.out.println("ArexJavaAgent installed.");
+        } catch (Exception ex) {
+            System.out.println("ArexJavaAgent start failed.");
+            ex.printStackTrace();
+        }
+    }
 }
