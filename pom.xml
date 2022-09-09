@@ -17,6 +17,7 @@
         <module>arex-instrumentation-foundation</module>
         <module>arex-cli-parent</module>
         <module>arex-attacher</module>
+        <module>arex-integration-tests</module>
     </modules>
 
     <properties>

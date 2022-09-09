@@ -20,11 +20,13 @@ class H2StorageServiceTest {
     @BeforeAll
     static void setUp() {
         target = new H2StorageService();
+        System.setProperty("arex.enable.debug", "true");
     }
 
     @AfterAll
     static void tearDown() {
         target = null;
+        System.clearProperty("arex.enable.debug");
     }
 
     @Test
@@ -80,5 +82,12 @@ class H2StorageServiceTest {
         DiffMocker mocker = new DiffMocker(MockerCategory.DATABASE);
         List<DiffMocker> result = target.queryList(mocker);
         assertTrue(result.size() > 0);
+    }
+
+    @Test
+    void startException() throws Exception {
+        // trigger JdbcConnectionException
+        System.setProperty("arex.storage.jdbc.url", "");
+        assertFalse(target.start());
     }
 }
