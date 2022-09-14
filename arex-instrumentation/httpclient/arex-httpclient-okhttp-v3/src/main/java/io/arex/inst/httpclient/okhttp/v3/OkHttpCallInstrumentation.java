@@ -1,6 +1,5 @@
 package io.arex.inst.httpclient.okhttp.v3;
 
-import com.google.common.collect.Lists;
 import io.arex.foundation.api.MethodInstrumentation;
 import io.arex.foundation.api.ModuleDescription;
 import io.arex.foundation.api.TypeInstrumentation;
@@ -40,7 +39,7 @@ public class OkHttpCallInstrumentation extends TypeInstrumentation {
         MethodInstrumentation enqueueMethod = new MethodInstrumentation(
                 named("enqueue").and(takesArguments(1)),
                 EnqueueAdvice.class.getName());
-        return Lists.newArrayList(executeMethod, enqueueMethod);
+        return asList(executeMethod, enqueueMethod);
 
     }
 
