@@ -40,7 +40,10 @@ public class DefaultSqlSessionInstrumentation extends TypeInstrumentation {
     public List<String> adviceClassNames() {
         return asList(
                 "io.arex.inst.database.mybatis3.DefaultSqlSessionInstrumentation$ConstructorAdvice",
-                "io.arex.inst.database.mybatis3.ExecutorWrapper");
+                "io.arex.inst.database.mybatis3.ExecutorWrapper",
+                "io.arex.inst.database.mybatis3.ExecutorWrapper$ThrowingSupplier",
+                "io.arex.inst.database.common.DatabaseExtractor",
+                "io.arex.inst.database.common.DatabaseHelper");
     }
 
     @SuppressWarnings("unused")
