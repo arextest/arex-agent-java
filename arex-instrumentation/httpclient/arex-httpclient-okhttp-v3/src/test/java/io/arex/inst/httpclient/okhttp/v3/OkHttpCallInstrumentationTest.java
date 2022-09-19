@@ -7,16 +7,16 @@ import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Request;
 import okhttp3.Response;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
-import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.IOException;
 import java.util.List;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -24,7 +24,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class OkHttpCallInstrumentationTest {
     @Mock
     private ModuleDescription module;
@@ -34,8 +34,8 @@ public class OkHttpCallInstrumentationTest {
     @Test
     public void methodAdvicesTest() {
         List<?> actResult = okHttpCallInstrumentation.methodAdvices();
-        Assert.assertNotNull(actResult);
-        Assert.assertEquals(2, actResult.size());
+        Assertions.assertNotNull(actResult);
+        Assertions.assertEquals(2, actResult.size());
     }
 
     @Test
@@ -46,7 +46,7 @@ public class OkHttpCallInstrumentationTest {
         try (MockedStatic<ContextManager> contextManager = mockStatic(ContextManager.class)) {
             contextManager.when(ContextManager::needRecordOrReplay).thenReturn(true);
             boolean actResult = OkHttpCallInstrumentation.ExecuteAdvice.onEnter(call, extractor);
-            Assert.assertFalse(actResult);
+            Assertions.assertFalse(actResult);
         }
     }
 
@@ -81,7 +81,7 @@ public class OkHttpCallInstrumentationTest {
         try (MockedStatic<ContextManager> contextManager = mockStatic(ContextManager.class)) {
             contextManager.when(ContextManager::needRecordOrReplay).thenReturn(true);
             boolean actResult = OkHttpCallInstrumentation.EnqueueAdvice.onEnter(call, callback);
-            Assert.assertFalse(actResult);
+            Assertions.assertFalse(actResult);
         }
     }
 

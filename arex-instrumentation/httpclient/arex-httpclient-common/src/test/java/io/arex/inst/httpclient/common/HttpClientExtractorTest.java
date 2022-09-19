@@ -2,18 +2,19 @@ package io.arex.inst.httpclient.common;
 
 import io.arex.foundation.serializer.SerializeUtils;
 import io.arex.foundation.services.DataService;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.net.URI;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atLeastOnce;
@@ -25,14 +26,14 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class HttpClientExtractorTest {
     @Mock
     private HttpClientAdapter<?, Object> adapter;
     @InjectMocks
     private HttpClientExtractor<?, Object> httpClientExtractor;
 
-    @BeforeClass
+    @BeforeAll
     public static void beforeClass() throws Exception {
         Mockito.mockStatic(SerializeUtils.class);
         mockRecordSave();
@@ -74,15 +75,19 @@ public class HttpClientExtractorTest {
         verify(DataService.INSTANCE, atLeastOnce()).save(any());
     }
 
-    @Test(expected = ArexDataException.class)
+    @Test
     public void replayNullTest() {
-        httpClientExtractor.replay(null);
+        Assertions.assertThrows(ArexDataException.class, () -> {
+            httpClientExtractor.replay(null);
+        });
     }
 
-    @Test(expected = ArexDataException.class)
+    @Test
     public void replayExceptionTest() {
-        HttpResponseWrapper wrapped = new HttpResponseWrapper();
-        wrapped.setException(new ExceptionWrapper(null));
-        httpClientExtractor.replay(wrapped);
+        Assertions.assertThrows(ArexDataException.class, () -> {
+            HttpResponseWrapper wrapped = new HttpResponseWrapper();
+            wrapped.setException(new ExceptionWrapper(null));
+            httpClientExtractor.replay(wrapped);
+        });
     }
 }
