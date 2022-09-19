@@ -106,7 +106,6 @@ public class OkHttpCallInstrumentation extends TypeInstrumentation {
 
         @Advice.OnMethodExit
         public static void onExit(@Advice.Argument(value = 0) Callback callback) {
-            System.out.println("okhttp jmo enqueue onExit");
             OkHttpCallbackWrapper okHttpCallbackWrapper;
             if (!(callback instanceof OkHttpCallbackWrapper)) {
                 return;

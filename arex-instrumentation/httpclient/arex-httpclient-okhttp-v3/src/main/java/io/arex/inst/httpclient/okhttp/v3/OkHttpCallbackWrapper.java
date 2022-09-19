@@ -1,8 +1,8 @@
 package io.arex.inst.httpclient.okhttp.v3;
 
+import com.google.common.annotations.VisibleForTesting;
 import io.arex.agent.bootstrap.ctx.TraceTransmitter;
 import io.arex.inst.httpclient.common.ExceptionWrapper;
-import io.arex.inst.httpclient.common.HttpClientAdapter;
 import io.arex.inst.httpclient.common.HttpClientExtractor;
 import io.arex.inst.httpclient.common.HttpResponseWrapper;
 import okhttp3.Call;
@@ -13,10 +13,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
-/**
- * @author jmo
- * @since 2022/6/13
- */
 public class OkHttpCallbackWrapper implements Callback {
     private final Call call;
     private final HttpClientExtractor<Request, Response> extractor;
@@ -24,10 +20,13 @@ public class OkHttpCallbackWrapper implements Callback {
     private final TraceTransmitter traceTransmitter;
 
     public OkHttpCallbackWrapper(Call call, Callback delegate) {
+        this(call, delegate, new HttpClientExtractor<>(new OkHttpClientAdapter(call.request().newBuilder().build())));
+    }
+
+    @VisibleForTesting
+    OkHttpCallbackWrapper(Call call, Callback delegate, HttpClientExtractor<Request, Response> extractor) {
         this.call = call;
-        final HttpClientAdapter<Request, Response> adapter;
-        adapter = new OkHttpClientAdapter(call.request().newBuilder().build());
-        this.extractor = new HttpClientExtractor<>(adapter);
+        this.extractor = extractor;
         this.delegate = delegate;
         this.traceTransmitter = TraceTransmitter.create();
     }
