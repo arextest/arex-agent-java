@@ -21,6 +21,8 @@ public class DatabaseMocker extends AbstractMocker {
     private String tables;
     @JsonProperty("sql")
     private String sql;
+    @JsonProperty("keyHolder")
+    private String keyHolder;
 
     @SuppressWarnings("deserialize")
     public DatabaseMocker() {
@@ -64,6 +66,14 @@ public class DatabaseMocker extends AbstractMocker {
         return tables;
     }
 
+    public String getKeyHolder() {
+        return keyHolder;
+    }
+
+    public void setKeyHolder(String keyHolder) {
+        this.keyHolder = keyHolder;
+    }
+
     @Override
     protected Predicate<DatabaseMocker> filterLocalStorage() {
         return mocker -> {
@@ -81,5 +91,13 @@ public class DatabaseMocker extends AbstractMocker {
             }
             return true;
         };
+    }
+
+    @Override
+    public Object parseMockResponse(AbstractMocker requestMocker) {
+        if (StringUtils.isNotBlank(this.getKeyHolder())) {
+            ((DatabaseMocker)requestMocker).setKeyHolder(this.getKeyHolder());
+        }
+        return super.parseMockResponse(requestMocker);
     }
 }
