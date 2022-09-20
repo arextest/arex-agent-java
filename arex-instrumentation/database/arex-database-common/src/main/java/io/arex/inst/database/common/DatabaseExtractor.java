@@ -4,6 +4,8 @@ import io.arex.foundation.model.DatabaseMocker;
 import io.arex.foundation.serializer.SerializeUtils;
 import io.arex.foundation.services.IgnoreService;
 import io.arex.foundation.util.StringUtil;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.mapping.BoundSql;
 import org.hibernate.engine.spi.QueryParameters;
 
@@ -15,9 +17,26 @@ import static io.arex.inst.database.common.DatabaseHelper.parseParameter;
 
 public class DatabaseExtractor {
 
+    private static final String[] SEARCH_LIST = new String[]{"\n", "\t"};
+
+    private static final String[] REPLACE_LIST = new String[]{"", ""};
+
     private final String sql;
     private final String parameters;
     private final String dbName;
+    private String keyHolder;
+
+    public String getKeyHolder() {
+        return keyHolder;
+    }
+
+    public void setKeyHolder(String keyHolder) {
+        this.keyHolder = keyHolder;
+    }
+
+    public String getSql() {
+        return sql;
+    }
 
     // hibernate
     public DatabaseExtractor(String sql, Connection connection, Object entity) {
@@ -30,25 +49,14 @@ public class DatabaseExtractor {
     }
 
     // mybatis
-    public DatabaseExtractor(DataSource dataSource, BoundSql boundSql, Object parameters) {
-        this(boundSql.getSql(), DatabaseHelper.getUrlFromDataSource(dataSource), SerializeUtils.serialize(parameters));
-    }
-
-    // mybatis
     public DatabaseExtractor(DataSource dataSource, BoundSql boundSql, String parameters) throws SQLException {
         //this(boundSql.getSql(), DatabaseHelper.getUrlFromDataSource(dataSource), parameters);
         this(boundSql.getSql(), dataSource.getConnection(), parameters);
     }
 
     public DatabaseExtractor(String sql, Connection connection, String parameters) {
-        this.sql = sql;
+        this.sql = StringUtils.replaceEach(sql, SEARCH_LIST, REPLACE_LIST);
         this.dbName = DatabaseHelper.getDbName(connection);
-        this.parameters = parameters;
-    }
-
-    public DatabaseExtractor(String sql, String connectionUrl, String parameters) {
-        this.sql = sql;
-        this.dbName = DatabaseHelper.getDbName(connectionUrl, null);
         this.parameters = parameters;
     }
 
@@ -59,6 +67,7 @@ public class DatabaseExtractor {
 
     public void record(Object response) {
         DatabaseMocker mocker = new DatabaseMocker(this.dbName, sql, parameters, response);
+        mocker.setKeyHolder(keyHolder);
         mocker.record();
     }
 
@@ -74,6 +83,7 @@ public class DatabaseExtractor {
         if (StringUtil.isNotEmpty(mocker.getExceptionMessage())) {
             throw new SQLException(mocker.getExceptionMessage());
         }
+        this.setKeyHolder(mocker.getKeyHolder());
         return value;
     }
 }

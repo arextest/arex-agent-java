@@ -32,29 +32,29 @@ public class DatabaseHelper {
                 LogUtil.warn("parseConnection failed, " + url);
                 return null;
             }
-            return getDbName(url, connection.getClientInfo());
+            return getDbName(url, connection);
         } catch (Exception e) {
             LogUtil.warn("parseConnection", e);
         }
         return null;
     }
 
-    public static String getDbName(String url, Properties props) {
-        if (StringUtil.isEmpty(url) || !url.startsWith("jdbc:")) {
-            LogUtil.warn("parseConnection, " + url);
+    public static String getDbName(String url, Connection connection) {
+        try {
+            String jdbcUrl = url.substring(5);
+            int index = jdbcUrl.indexOf(':');
+            if (index < 0) {
+                LogUtil.warn("jdbcUrl, " + index);
+                return null;
+            }
+
+            String dbSystem = jdbcUrl.substring(0, index + 1);
+            String dbName = connection.getCatalog();
+            return dbSystem + dbName;
+        } catch (Throwable ex) {
+            LogUtil.warn("getDbName", ex);
             return null;
         }
-
-        String jdbcUrl = url.substring(5);
-        int index = jdbcUrl.indexOf(':');
-        if (index < 0) {
-            LogUtil.warn("jdbcUrl, " + index);
-            return null;
-        }
-
-        String dbSystem = jdbcUrl.substring(0, index + 1);
-        String dbName = getRealDbName(jdbcUrl, props);
-        return dbSystem + dbName;
     }
 
     private static String getRealDbName(String url, Properties props) {

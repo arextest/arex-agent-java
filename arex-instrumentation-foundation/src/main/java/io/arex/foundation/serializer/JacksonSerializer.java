@@ -7,6 +7,10 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
+import com.fasterxml.jackson.databind.ser.BeanSerializerModifier;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.slf4j.Logger;
@@ -30,10 +34,18 @@ import java.util.regex.Pattern;
 public final class JacksonSerializer implements SerializeUtils.StringSerializable {
     public static final String EXTENSION = "json";
 
+    private static List<String> MYBATIS_PLUS_CLASS_LIST = Arrays.asList("com.baomidou.mybatisplus.core.conditions.query.QueryWrapper", "com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper");
+
     private static final Logger LOGGER = LoggerFactory.getLogger(JacksonSerializer.class);
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
-    private static final SimpleModule MODULE = new SimpleModule();
+    private static final SimpleModule MODULE = new SimpleModule() {
+        @Override
+        public void setupModule(SetupContext context) {
+            super.setupModule(context);
+            context.addBeanSerializerModifier(new CustomSerializerModifier());
+        }
+    };
 
     public static final JacksonSerializer INSTANCE = new JacksonSerializer();
 
@@ -128,6 +140,25 @@ public final class JacksonSerializer implements SerializeUtils.StringSerializabl
         module.addDeserializer(GregorianCalendar.class, new GregorianCalendarDeserialize());
         module.addDeserializer(Timestamp.class, new TimestampDeserialize());
         module.addDeserializer(XMLGregorianCalendar.class, new XMLGregorianCalendarDeserialize());
+    }
+
+    /**
+     * custom serialized fields
+     */
+    public static class CustomSerializerModifier extends BeanSerializerModifier {
+
+        @Override
+        public List<BeanPropertyWriter> changeProperties(SerializationConfig config,
+                                                         BeanDescription beanDesc, List<BeanPropertyWriter> beanProperties) {
+
+            String className = beanDesc.getBeanClass().getName();
+            // Special treatment MybatisPlus, only serializes the paramNameValuePairs field of QueryWrapper or UpdateWrapper.
+            if (MYBATIS_PLUS_CLASS_LIST.contains(className)) {
+                beanProperties.removeIf(beanPropertyWriter -> !StringUtils.equals(beanPropertyWriter.getName(), "paramNameValuePairs"));
+            }
+
+            return beanProperties;
+        }
     }
 
 
