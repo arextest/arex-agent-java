@@ -3,6 +3,8 @@ package io.arex.inst.database.common;
 import io.arex.foundation.serializer.SerializeUtils;
 import io.arex.foundation.util.LogUtil;
 import io.arex.foundation.util.StringUtil;
+import org.apache.ibatis.datasource.pooled.PooledDataSource;
+import org.apache.ibatis.datasource.unpooled.UnpooledDataSource;
 import org.apache.tomcat.jdbc.pool.DataSourceProxy;
 import org.hibernate.engine.spi.QueryParameters;
 import org.hibernate.engine.spi.TypedValue;
@@ -39,12 +41,52 @@ public class DatabaseHelper {
         return null;
     }
 
+    public static String getDbName(DataSource dataSource) {
+        String url = getUrlFromDataSource(dataSource);
+        if (url == null || url.length() == 0) {
+            return "";
+        }
+        return getDbName(url);
+    }
+
+    public static String getDbName(String url) {
+        int start = url.indexOf(':');
+        if (start < 0) {
+            return "";
+        }
+        start += 1;
+
+        int end = url.indexOf(':', start);
+        if (end < 0) {
+            return "";
+        }
+
+        end += 1;
+        String dbSystem = url.substring(start, end);
+
+        start = url.lastIndexOf('/');
+        if (start < 0) {
+            return dbSystem;
+        }
+
+        if (start == url.length() - 1) {
+            start = url.lastIndexOf('/', url.length() - 2);
+            if (start < 0 || start <= end) {
+                return dbSystem;
+            }
+            end = url.length() - 1;
+        } else {
+            end = url.length();
+        }
+        return dbSystem + url.substring(start + 1, end);
+    }
+
     public static String getDbName(String url, Connection connection) {
         try {
             String jdbcUrl = url.substring(5);
             int index = jdbcUrl.indexOf(':');
             if (index < 0) {
-                LogUtil.warn("jdbcUrl, " + index);
+                LogUtil.warn("jdbcUrl, " + jdbcUrl);
                 return null;
             }
 
@@ -87,6 +129,14 @@ public class DatabaseHelper {
         if (dataSource instanceof DataSourceProxy) {
             DataSourceProxy proxy = (DataSourceProxy) dataSource;
             return proxy.getUrl();
+        }
+
+        if (dataSource instanceof UnpooledDataSource) {
+            return ((UnpooledDataSource) dataSource).getUrl();
+        }
+
+        if (dataSource instanceof PooledDataSource) {
+            return ((PooledDataSource) dataSource).getUrl();
         }
         return null;
     }
