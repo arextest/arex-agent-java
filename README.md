@@ -57,7 +57,7 @@ arex-agent-bootstrap-<version>.jar
 
 ***Enable the instrumentation agent by configuring a `javaagent` flag to the JVM to run arex：***
 
-AREX agent works along with the [AREX config service](https://github.com/arextest/arex-config) and the [AREX storage service](https://github.com/arextest/arex-storage).
+AREX agent works along with the [AREX storage service](https://github.com/arextest/arex-storage).
 
 You could just configure the host and port of them respectively, like below
 
@@ -65,7 +65,6 @@ You could just configure the host and port of them respectively, like below
 java -javaagent:/path/to/arex-agent-<version>.jar
       -Darex.service.name=your-service-name
       -Darex.storage.service.host=[storage.service.host:port](storage.service.host:port) 
-      -Darex.config.service.host=[config.service.host:port](config.service.host:port)
       -jar your-application.jar
 ```
 
@@ -75,7 +74,6 @@ Alternatively, you can put those configuration item in `arex.agent.conf` file, l
 ```other
 arex.service.name=your-service-name  
 arex.storage.service.host=<storage.service.host:port> 
-arex.config.service.host=<config.service.host:port> 
 ```
 
 
@@ -121,7 +119,7 @@ The supported commands are as follows:
 
   `[option: -r/--recordId]` record id, required Option
 
-In local mode, AREX uses [H2](https://www.h2database.com) as a local storage to save the recorded data for testing purpose,  Config Service and Storage Service are no longer required, But you can't use the AREX-UI in this mode either.
+In local mode, AREX uses [H2](https://www.h2database.com) as a local storage to save the recorded data for testing purpose,  Storage Service are no longer required, But you can't use the AREX-UI in this mode either.
 
 
 

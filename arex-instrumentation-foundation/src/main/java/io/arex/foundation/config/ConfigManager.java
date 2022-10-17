@@ -24,7 +24,6 @@ public class ConfigManager {
     private static final String ENABLE_DEBUG = "arex.enable.debug";
     private static final String SERVICE_NAME = "arex.service.name";
     private static final String STORAGE_SERVICE_HOST = "arex.storage.service.host";
-    private static final String CONFIG_SERVICE_HOST = "arex.config.service.host";
     private static final String CONFIG_PATH = "arex.config.path";
     private static final String STORAGE_MODE = "local";
     private static final String RECORD_RATE = "arex.rate.limit";
@@ -42,7 +41,6 @@ public class ConfigManager {
     private String agentVersion;
     private String serviceName;
     private String storageServiceHost;
-    private String configServiceHost;
     private String configPath;
 
     private String storageServiceMode;
@@ -109,18 +107,6 @@ public class ConfigManager {
         System.setProperty(STORAGE_SERVICE_HOST, storageServiceHost);
     }
 
-    public String getConfigServiceHost() {
-        return configServiceHost;
-    }
-
-    public void setConfigServiceHost(String configServiceHost) {
-        if (StringUtil.isEmpty(configServiceHost)) {
-            return;
-        }
-        this.configServiceHost = configServiceHost;
-        System.setProperty(CONFIG_SERVICE_HOST, configServiceHost);
-    }
-
     public void setRecordRate(String recordRate) {
         if (StringUtil.isEmpty(recordRate)) {
             return;
@@ -151,7 +137,6 @@ public class ConfigManager {
         enableDebug = Boolean.parseBoolean(System.getProperty(ENABLE_DEBUG));
         serviceName = StringUtils.strip(System.getProperty(SERVICE_NAME));
         storageServiceHost = StringUtils.strip(System.getProperty(STORAGE_SERVICE_HOST));
-        configServiceHost = StringUtils.strip(System.getProperty(CONFIG_SERVICE_HOST));
         configPath = StringUtils.strip(System.getProperty(CONFIG_PATH));
         recordRate = Integer.parseInt(System.getProperty(RECORD_RATE, "1"));
 
@@ -187,7 +172,6 @@ public class ConfigManager {
         setEnableDebug(configMap.get(ENABLE_DEBUG));
         setServiceName(configMap.get(SERVICE_NAME));
         setStorageServiceHost(configMap.get(STORAGE_SERVICE_HOST));
-        setConfigServiceHost(configMap.get(CONFIG_SERVICE_HOST));
         setRecordRate(configMap.get(RECORD_RATE));
         setDynamicResultSizeLimit(configMap.get(DYNAMIC_RESULT_SIZE_LIMIT));
         setTimeMachine(configMap.get(TIME_MACHINE));
@@ -361,7 +345,6 @@ public class ConfigManager {
                 ", agentVersion='" + agentVersion + '\'' +
                 ", serviceName='" + serviceName + '\'' +
                 ", storageServiceHost='" + storageServiceHost + '\'' +
-                ", configServiceHost='" + configServiceHost + '\'' +
                 ", configPath='" + configPath + '\'' +
                 ", storageServiceMode='" + storageServiceMode + '\'' +
                 ", storageServiceJdbcUrl='" + storageServiceJdbcUrl + '\'' +

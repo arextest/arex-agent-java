@@ -19,7 +19,7 @@ public class ConfigService {
     public static final ConfigService INSTANCE = new ConfigService();
     private static final Logger LOGGER = LoggerFactory.getLogger(ConfigService.class);
     private static final String CONFIG_LOAD_URL =
-            String.format("http://%s/api/config/agent/load", ConfigManager.INSTANCE.getConfigServiceHost());
+            String.format("http://%s/api/config/agent/load", ConfigManager.INSTANCE.getStorageServiceHost());
 
     private ConfigService() {
 
