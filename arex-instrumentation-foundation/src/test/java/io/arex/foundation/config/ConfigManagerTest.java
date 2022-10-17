@@ -27,13 +27,11 @@ class ConfigManagerTest {
     void initFromSystemPropertyTest() {
         System.setProperty("arex.service.name", "test-your-service");
         System.setProperty("arex.storage.service.host", "test-storage-service.host ");
-        System.setProperty("arex.config.service.host", "test-config-service.host　");
 
         configManager.init();
 
         assertEquals("test-your-service", configManager.getServiceName());
         assertEquals("test-storage-service.host", configManager.getStorageServiceHost());
-        assertEquals("test-config-service.host", configManager.getConfigServiceHost());
     }
 
     @Test
@@ -44,6 +42,5 @@ class ConfigManagerTest {
 
         assertEquals("test-your-service-config-path", configManager.getServiceName());
         assertEquals("test-storage-service.host-config-path", configManager.getStorageServiceHost());
-        assertEquals("test-config-service.host-config-path", configManager.getConfigServiceHost());
     }
 }
