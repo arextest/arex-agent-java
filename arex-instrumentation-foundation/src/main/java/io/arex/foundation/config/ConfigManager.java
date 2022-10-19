@@ -131,6 +131,14 @@ public class ConfigManager {
         System.setProperty(TIME_MACHINE, timeMachine);
     }
 
+    public void setDynamicClassList(String dynamicClass) {
+        if (StringUtil.isEmpty(dynamicClass)) {
+            return;
+        }
+        this.dynamicClassList = parseDynamicClassList(dynamicClass);
+        System.setProperty(DYNAMIC_CLASS_KEY, dynamicClass);
+    }
+
     @VisibleForTesting
     void init() {
         agentVersion = "0.0.1";
@@ -176,6 +184,7 @@ public class ConfigManager {
         setDynamicResultSizeLimit(configMap.get(DYNAMIC_RESULT_SIZE_LIMIT));
         setTimeMachine(configMap.get(TIME_MACHINE));
         setStorageServiceMode(configMap.get(STORAGE_SERVICE_MODE));
+        setDynamicClassList(configMap.get(DYNAMIC_CLASS_KEY));
     }
 
     private static Map<String, String> parseConfigFile(String configPath) {

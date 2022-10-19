@@ -5,11 +5,11 @@ import io.arex.foundation.util.LogUtil;
 import io.arex.foundation.util.StringUtil;
 import org.apache.ibatis.datasource.pooled.PooledDataSource;
 import org.apache.ibatis.datasource.unpooled.UnpooledDataSource;
-import org.apache.tomcat.jdbc.pool.DataSourceProxy;
 import org.hibernate.engine.spi.QueryParameters;
 import org.hibernate.engine.spi.TypedValue;
 
 import javax.sql.DataSource;
+import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.util.HashMap;
@@ -17,6 +17,8 @@ import java.util.Map;
 import java.util.Properties;
 
 public class DatabaseHelper {
+    private static final String DATA_SOURCE_PROXY = "org.apache.tomcat.jdbc.pool.DataSourceProxy";
+    private static Class<?> dataSourceProxyClass = null;
 
     private static boolean isSqlSanitizerEnabled() {
         return true;
@@ -126,17 +128,24 @@ public class DatabaseHelper {
             return null;
         }
 
-        if (dataSource instanceof DataSourceProxy) {
-            DataSourceProxy proxy = (DataSourceProxy) dataSource;
-            return proxy.getUrl();
-        }
-
         if (dataSource instanceof UnpooledDataSource) {
             return ((UnpooledDataSource) dataSource).getUrl();
         }
 
         if (dataSource instanceof PooledDataSource) {
             return ((PooledDataSource) dataSource).getUrl();
+        }
+
+        try {
+            if (dataSourceProxyClass == null) {
+                dataSourceProxyClass = Class.forName(DATA_SOURCE_PROXY);
+            }
+            if (dataSourceProxyClass.isInstance(dataSource)) {
+                Method method = dataSourceProxyClass.getDeclaredMethod("getUrl");
+                return String.valueOf(method.invoke(null));
+            }
+        } catch (Exception e) {
+            LogUtil.warn("getUrlFromDataSource fail", e);
         }
         return null;
     }
