@@ -103,6 +103,11 @@
             <artifactId>arex-netty-v4</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>arex-jwt</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <!--Agent instrumentation end-->
 
         <dependency>
