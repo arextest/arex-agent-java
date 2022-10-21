@@ -20,7 +20,7 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 @ExtendWith(MockitoExtension.class)
 class DatabaseHelperTest {
 
-    @ParameterizedTest
+    /*@ParameterizedTest
     @MethodSource("processCase")
     void getUrlFromDataSource(DataSource dataSource, Predicate<String> predicate) {
         DatabaseHelper.getUrlFromDataSource(dataSource);
@@ -42,5 +42,5 @@ class DatabaseHelperTest {
                 arguments(dataSource2, predicate2),
                 arguments(dataSource3, predicate1)
         );
-    }
+    }*/
 }

@@ -42,8 +42,7 @@ public class DefaultSqlSessionInstrumentation extends TypeInstrumentation {
                 "io.arex.inst.database.mybatis3.DefaultSqlSessionInstrumentation$ConstructorAdvice",
                 "io.arex.inst.database.mybatis3.ExecutorWrapper",
                 "io.arex.inst.database.mybatis3.ExecutorWrapper$ThrowingSupplier",
-                "io.arex.inst.database.common.DatabaseExtractor",
-                "io.arex.inst.database.common.DatabaseHelper");
+                "io.arex.inst.database.common.DatabaseExtractor");
     }
 
     @SuppressWarnings("unused")

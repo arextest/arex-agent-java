@@ -6,6 +6,7 @@ import io.arex.foundation.api.TypeInstrumentation;
 import io.arex.foundation.context.ArexContext;
 import io.arex.foundation.context.ContextManager;
 import io.arex.inst.database.common.DatabaseExtractor;
+import io.arex.inst.database.common.DatabaseHelper;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
@@ -67,7 +68,7 @@ public class LoaderInstrumentation extends TypeInstrumentation {
             ArexContext context = ContextManager.currentContext();
             if (context != null) {
                 DatabaseExtractor extractor = new DatabaseExtractor(loader.getSQLString(),
-                        session.getJdbcCoordinator().getLogicalConnection().getPhysicalConnection(), queryParameters);
+                        DatabaseHelper.parseParameter(queryParameters));
                 if (context.isReplay() && list == null) {
                     list = (List) extractor.replay();
                     return;

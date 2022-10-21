@@ -7,6 +7,7 @@ import com.google.auto.service.AutoService;
 
 import java.util.List;
 
+import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 
 @AutoService(ModuleInstrumentation.class)
@@ -19,6 +20,6 @@ public class MyBatisModuleInstrumentation extends ModuleInstrumentation {
 
     @Override
     public List<TypeInstrumentation> instrumentationTypes() {
-        return singletonList(new DefaultSqlSessionInstrumentation(target));
+        return asList(new DefaultSqlSessionInstrumentation(target));
     }
 }
