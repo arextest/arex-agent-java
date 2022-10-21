@@ -1,11 +1,11 @@
 package io.arex.foundation.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.arex.foundation.config.ConfigManager;
 import io.arex.foundation.context.ArexContext;
 import io.arex.foundation.context.ContextManager;
 import io.arex.foundation.serializer.SerializeUtils;
 import io.arex.foundation.services.DataService;
-import io.arex.foundation.util.LogUtil;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -34,7 +34,9 @@ public abstract class AbstractMocker {
     private String response;
     @JsonProperty("responseType")
     private String responseType;
-    protected transient long queueTime;
+
+    @JsonIgnore
+    private transient long queueTime;
 
     public AbstractMocker() {
     }
@@ -81,20 +83,14 @@ public abstract class AbstractMocker {
 
     public void record() {
         DataService.INSTANCE.save(this);
-        if (ConfigManager.INSTANCE.isEnableDebug()) {
-            LogUtil.info(String.format("RECORD_%s", this.category), SerializeUtils.serialize(this));
-        }
     }
 
     public Object replay() {
-        if (ConfigManager.INSTANCE.isEnableDebug()) {
-            LogUtil.info(String.format("REPLAY_%s", this.category), SerializeUtils.serialize(this));
-        }
         return DataService.INSTANCE.get(this);
     }
 
-    public MockerCategory getCategory() {
-        return MockerCategory.of(this.category);
+    public int getCategory() {
+        return category;
     }
 
     /**
@@ -105,14 +101,6 @@ public abstract class AbstractMocker {
      */
     public Object parseMockResponse(AbstractMocker requestMocker) {
         return SerializeUtils.deserialize(this.response, this.responseType);
-    }
-
-    public String getRecordLogTitle() {
-        return LogUtil.buildTitle("record.", getCategory().getName());
-    }
-
-    public String getReplayLogTitle() {
-        return LogUtil.buildTitle("replay.", getCategory().getName());
     }
 
     public void setCaseId(String caseId) {

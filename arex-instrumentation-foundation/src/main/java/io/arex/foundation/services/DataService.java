@@ -4,6 +4,7 @@ import io.arex.foundation.config.ConfigManager;
 import io.arex.foundation.healthy.HealthManager;
 import io.arex.foundation.internal.MockerRingBuffer;
 import io.arex.foundation.model.AbstractMocker;
+import io.arex.foundation.model.MockerCategory;
 import io.arex.foundation.serializer.SerializeUtils;
 import io.arex.foundation.util.AsyncHttpClientUtil;
 import io.arex.foundation.util.LogUtil;
@@ -114,7 +115,6 @@ public class DataService {
 
     private static class MockDataSaver {
         private static String queryApiUrl;
-        private static String configLoadUrl;
         private static String saveApiUrl;
 
         static {
@@ -130,15 +130,17 @@ public class DataService {
         }
 
         public Object getData(AbstractMocker requestMocker) {
-            String logTitle = requestMocker.getReplayLogTitle();
+            MockerCategory category = MockerCategory.of(requestMocker.getCategory());
+            String logTitle = LogUtil.buildTitle("record.", category.getName());
             try {
                 String postJson = SerializeUtils.serialize(requestMocker);
-                AbstractMocker responseMocker = queryReplayData(logTitle, requestMocker, requestMocker.getClass(), postJson);
+                AbstractMocker responseMocker = queryReplayData(logTitle, requestMocker, postJson);
                 if (responseMocker == null) {
                     return null;
                 }
                 if (requestMocker.ignoreMockResult()) {
                     // All mock responses from the entry point are ignored. We send it just to compare requests.
+                    LOGGER.warn("{}ignore mock result, request: {}", logTitle, postJson);
                     return null;
                 }
                 Object mockResponse = responseMocker.parseMockResponse(requestMocker);
@@ -160,49 +162,48 @@ public class DataService {
          * @param requestMocker request mocker
          * @return response string
          */
-        public <T extends AbstractMocker> T queryReplayData(String logTitle, AbstractMocker requestMocker, Class<T> clazz, String postJson) {
+        public AbstractMocker queryReplayData(String logTitle, AbstractMocker requestMocker, String postJson) {
             LogUtil.addTag(requestMocker.getCaseId(), requestMocker.getReplayId());
+            MockerCategory category = MockerCategory.of(requestMocker.getCategory());
             StringBuilder logBuilder = new StringBuilder();
             long startNanoTime = 0;
             long elapsedMills = 0;
             try {
-                logBuilder.append("arex replay ").append(requestMocker.getCategory().getName());
+                logBuilder.append("arex replay ").append(category.getName());
 
                 String urlAddress = queryApiUrl;
 
                 startNanoTime = System.nanoTime();
 
-                T responseMocker;
+                AbstractMocker responseMocker;
                 if (ConfigManager.INSTANCE.isLocalStorage()) {
-                    logBuilder.append(", mode: local");
-                    responseMocker = (T)StorageService.INSTANCE.queryReplay(requestMocker, postJson);
+                    responseMocker = StorageService.INSTANCE.queryReplay(requestMocker, postJson);
                 } else {
-                    logBuilder.append(", mode: server");
-                    String responseData = AsyncHttpClientUtil.executeSync(urlAddress, postJson, requestMocker.getCategory());
+                    String responseData = AsyncHttpClientUtil.executeSync(urlAddress, postJson, category);
                     if (StringUtils.isEmpty(responseData) || "{}".equals(responseData)) {
-                        LOGGER.warn("{}{}, response body is null. request: {}", logTitle, logBuilder.toString() , postJson);
+                        LOGGER.warn("{}{}, response body is null. request: {}", logTitle, logBuilder, postJson);
                         return null;
                     }
 
-                    responseMocker = SerializeUtils.deserialize(responseData, clazz);
+                    responseMocker = SerializeUtils.deserialize(responseData, requestMocker.getClass());
                 }
                 elapsedMills = (System.nanoTime() - startNanoTime) / 1000000;
 
-                logBuilder.append(", elapsed mills: ").append(elapsedMills);
+                logBuilder.append(", cost: ").append(elapsedMills);
 
                 if (responseMocker == null) {
-                    LOGGER.warn("{}{}, response body is null. request: {}", logTitle, logBuilder.toString(), postJson);
+                    LOGGER.warn("{}{}, response body is null. request: {}", logTitle, logBuilder, postJson);
                     return null;
                 }
 
-                logBuilder.append(", request: {").append(requestMocker.toString()).append("}");
-                LOGGER.info("{}{}", logTitle, logBuilder.toString());
+                logBuilder.append(", mocker: ").append(ConfigManager.INSTANCE.isEnableDebug() ? postJson : requestMocker);
+                LOGGER.info("{}{}", logTitle, logBuilder);
                 return responseMocker;
             } catch (Throwable ex) {
                 if (elapsedMills <= 0) {
-                    logBuilder.append(", elapsed mills: ").append((System.nanoTime() - startNanoTime) / 1000000);
+                    logBuilder.append(", cost: ").append((System.nanoTime() - startNanoTime) / 1000000);
                 }
-                LOGGER.warn("{}{}, exception: {}, request: {}", logTitle, logBuilder.toString(), ex.toString(), postJson);
+                LOGGER.warn("{}{}, exception: {}, request: {}", logTitle, logBuilder, ex, postJson);
                 return null;
             }
         }
@@ -214,25 +215,24 @@ public class DataService {
          */
         public void saveRecordData(AbstractMocker requestMocker) {
             LogUtil.addTag(requestMocker.getCaseId(), requestMocker.getReplayId());
-            String logTitle = LogUtil.buildTitle("record.", requestMocker.getCategory().getName());
+            MockerCategory category = MockerCategory.of(requestMocker.getCategory());
+            String logTitle = LogUtil.buildTitle("record.", category.getName());
             String postJson = null;
             StringBuilder logBuilder = new StringBuilder();
             long startNanoTime = 0;
             try {
-                logBuilder.append("arex record ").append(requestMocker.getCategory().getName());
+                logBuilder.append("arex record ").append(category.getName());
                 startNanoTime = System.nanoTime();
                 postJson = SerializeUtils.serialize(requestMocker);
                 CompletableFuture<String> cf;
                 if (ConfigManager.INSTANCE.isLocalStorage()) {
-                    logBuilder.append(", mode: local");
                     cf = StorageService.INSTANCE.saveRecord(requestMocker, postJson);
                 } else {
-                    logBuilder.append(", mode: server");
-                    cf = AsyncHttpClientUtil.executeAsync(saveApiUrl, postJson, requestMocker.getCategory());
+                    cf = AsyncHttpClientUtil.executeAsync(saveApiUrl, postJson, category);
                 }
                 cf.whenComplete(saveMockDataConsumer(requestMocker, logBuilder, logTitle, postJson, startNanoTime));
             } catch (Throwable ex) {
-                LOGGER.warn("{}{}, exception: {}, request: {}", logTitle, logBuilder.toString(), ex.toString(), postJson);
+                LOGGER.warn("{}{}, exception: {}, request: {}", logTitle, logBuilder, ex, postJson);
             }
         }
 
@@ -240,8 +240,8 @@ public class DataService {
                                                                   String logTitle, String postJson, long startNanoTime) {
             return (response, throwable) -> {
                 long usedTime = System.nanoTime() - requestMocker.getQueueTime();
-                logBuilder.append(", case id:").append(requestMocker.getCaseId());
-                logBuilder.append(", elapsed mills: ").append((System.nanoTime() - startNanoTime) / 1000000);
+                logBuilder.append(", case id: ").append(requestMocker.getCaseId());
+                logBuilder.append(", cost: ").append((System.nanoTime() - startNanoTime) / 1000000);
 
                 if (Objects.nonNull(throwable)) {
                     // only record
@@ -249,10 +249,10 @@ public class DataService {
                         usedTime = -1; // -1:reject
                         HealthManager.onDataServiceRejection();
                     }
-                    LOGGER.warn("{}{}, exception: {}, request: {}", logTitle, logBuilder.toString(), throwable.toString(), postJson);
+                    LOGGER.warn("{}{}, exception: {}, request: {}", logTitle, logBuilder, throwable, postJson);
                 } else {
-                    logBuilder.append(", mocker info: {").append(requestMocker.toString()).append("}");
-                    LOGGER.info("{}{}", logTitle, logBuilder.toString());
+                    logBuilder.append(", mocker: ").append(ConfigManager.INSTANCE.isEnableDebug() ? postJson : requestMocker);
+                    LOGGER.info("{}{}", logTitle, logBuilder);
                 }
 
                 // only record timeout & reject report

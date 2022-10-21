@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.ServiceLoader;
 
 public class SPIUtil {
-
     private final static Logger LOGGER = LoggerFactory.getLogger(SPIUtil.class);
 
     @SuppressWarnings("ForEachIterable")
@@ -35,32 +34,37 @@ public class SPIUtil {
         try {
             String jarDir = getJarDir(moduleName, jarName);
             LOGGER.info("Arex spi load jar: {}", jarDir);
-            URL[] urls = getJarUrls(jarDir);
-            ClassLoader cl = new URLClassLoader(urls);
+            List<URL> urls = getJarUrls(jarDir);
+            ClassLoader cl = new URLClassLoader(urls.toArray(new URL[0]));
             return ServiceLoader.load(spiType, cl);
         } catch (Throwable e) {
-            LOGGER.error("Arex spi load class: {} error", spiType.getCanonicalName(), e);
+            LOGGER.error("Arex spi load class: {} from classloader: {}, error: {}",
+                spiType.getCanonicalName(), spiType.getClassLoader() , e.toString());
         }
         return null;
     }
 
-    private static URL[] getJarUrls(String jarDir) throws Exception {
+    private static List<URL> getJarUrls(String jarDir) throws Exception {
         File file = new File(jarDir);
         List<URL> jarPaths = new ArrayList<>();
         if (file.isDirectory()) {
-            File[] files = file.listFiles();
+            File[] files = file.listFiles(SPIUtil::isJar);
             if (files == null) {
-                return jarPaths.toArray(new URL[0]);
+                return jarPaths;
             }
             for (File jarFile : files) {
-                if (jarFile.isFile() && jarFile.getName().endsWith(".jar")) {
-                    jarPaths.add(new URL("file:" + jarFile.getPath()));
+                if (isJar(jarFile)) {
+                    jarPaths.add(jarFile.toURI().toURL());
                 }
             }
-        } else if (file.isFile() && file.getName().endsWith(".jar")) {
-            jarPaths.add(new URL("file:" + file.getPath()));
+        } else if (isJar(file)) {
+            jarPaths.add(file.toURI().toURL());
         }
-        return jarPaths.toArray(new URL[0]);
+        return jarPaths;
+    }
+
+    private static boolean isJar(File f) {
+        return f.isFile() && f.getName().endsWith(".jar");
     }
 
     private static String getJarDir(String moduleName, String jarName) throws Exception {

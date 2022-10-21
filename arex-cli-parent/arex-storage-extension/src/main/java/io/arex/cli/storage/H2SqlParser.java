@@ -99,7 +99,7 @@ public class H2SqlParser {
         } else {
             sqlBuilder.append(" AND REPLAYID = ''");
         }
-        sqlBuilder.append(" AND CATEGORY = '").append(mocker.getCategory().getType()).append("'");
+        sqlBuilder.append(" AND CATEGORY = '").append(mocker.getCategory()).append("'");
         sqlBuilder.append(" ORDER BY CREATETIME DESC");
         if (count > 0) {
             sqlBuilder.append(" LIMIT ").append(count);

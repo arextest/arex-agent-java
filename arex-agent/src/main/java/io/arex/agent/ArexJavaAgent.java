@@ -1,11 +1,6 @@
 package io.arex.agent;
 
-import io.arex.agent.bootstrap.AgentInstaller;
-import io.arex.agent.instrumentation.InstrumentationInstaller;
-import io.arex.foundation.services.ConfigService;
-import io.arex.foundation.services.DataService;
 import io.arex.agent.bootstrap.AgentInitializer;
-
 import java.io.File;
 import java.lang.instrument.Instrumentation;
 import java.security.CodeSource;

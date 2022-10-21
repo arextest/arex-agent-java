@@ -80,11 +80,6 @@ public class ServiceEntranceMocker extends AbstractMocker {
     }
 
     @Override
-    public boolean ignoreMockResult() {
-        return true;
-    }
-
-    @Override
     protected Predicate<ServiceEntranceMocker> filterLocalStorage() {
         return mocker -> {
             if (StringUtils.isNotBlank(path) && !StringUtils.equals(path, mocker.getPath())) {
@@ -95,5 +90,10 @@ public class ServiceEntranceMocker extends AbstractMocker {
             }
             return true;
         };
+    }
+
+    @Override
+    public Object parseMockResponse(AbstractMocker requestMocker) {
+        return new ServiceEntranceMocker();
     }
 }
