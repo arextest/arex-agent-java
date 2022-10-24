@@ -68,6 +68,7 @@ public class DataService {
         }
 
         stop = false;
+        initialized.set(true);
         if (executeFuture == null) {
             executeFuture = executor.submit(this::loop);
         }

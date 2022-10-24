@@ -18,7 +18,6 @@ import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
 import org.apache.ibatis.transaction.Transaction;
 
-import javax.sql.DataSource;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
@@ -210,9 +209,8 @@ public class ExecutorWrapper implements Executor {
 
     private DatabaseExtractor createExtractor(MappedStatement mappedStatement, BoundSql boundSql, Object parameters)
             throws SQLException {
-        DataSource dataSource = mappedStatement.getConfiguration().getEnvironment().getDataSource();
         boundSql = boundSql == null ? mappedStatement.getBoundSql(parameters) : boundSql;
-        return new DatabaseExtractor(dataSource, boundSql, SerializeUtils.serialize(parameters));
+        return new DatabaseExtractor(boundSql.getSql(), SerializeUtils.serialize(parameters));
     }
 
     public static Executor get(Executor executor) {

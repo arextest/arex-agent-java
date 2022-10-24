@@ -60,8 +60,7 @@ public class AbstractEntityPersisterInstrumentation extends TypeInstrumentation 
 
     @Override
     public List<String> adviceClassNames() {
-        return asList(
-                "io.arex.inst.database.hibernate.AbstractEntityPersisterInstrumentation$InsertAdvice",
+        return asList("io.arex.inst.database.hibernate.AbstractEntityPersisterInstrumentation$InsertAdvice",
                 "io.arex.inst.database.hibernate.AbstractEntityPersisterInstrumentation$UpdateOrInsertAdvice");
     }
 
@@ -82,8 +81,7 @@ public class AbstractEntityPersisterInstrumentation extends TypeInstrumentation 
                 @Advice.Thrown(readOnly = false) HibernateException exception) throws HibernateException {
             ArexContext context = ContextManager.currentContext();
             if (context != null) {
-                DatabaseExtractor extractor = new DatabaseExtractor(sql,
-                        session.getJdbcCoordinator().getLogicalConnection().getPhysicalConnection(), object);
+                DatabaseExtractor extractor = new DatabaseExtractor(sql, object);
                 if (context.isReplay() && serializable == null) {
                     try {
                         serializable = (Serializable) extractor.replay();
@@ -112,8 +110,7 @@ public class AbstractEntityPersisterInstrumentation extends TypeInstrumentation 
                 @Advice.Argument(8) String sql,
                 @Advice.Argument(9) SharedSessionContractImplementor session) throws HibernateException {
             if (ContextManager.needReplay()) {
-                DatabaseExtractor extractor = new DatabaseExtractor(sql,
-                        session.getJdbcCoordinator().getLogicalConnection().getPhysicalConnection(), object);
+                DatabaseExtractor extractor = new DatabaseExtractor(sql, object);
                 try {
                     extractor.replay();
                     return 0;
@@ -131,8 +128,7 @@ public class AbstractEntityPersisterInstrumentation extends TypeInstrumentation 
                 @Advice.Argument(9) SharedSessionContractImplementor session,
                 @Advice.Thrown HibernateException exception) {
             if (ContextManager.needRecord()) {
-                DatabaseExtractor extractor = new DatabaseExtractor(sql,
-                        session.getJdbcCoordinator().getLogicalConnection().getPhysicalConnection(), object);
+                DatabaseExtractor extractor = new DatabaseExtractor(sql, object);
                 if (exception != null) {
                     extractor.record(exception);
                 } else {

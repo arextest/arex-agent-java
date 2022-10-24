@@ -6,16 +6,9 @@ import io.arex.foundation.services.IgnoreService;
 import io.arex.foundation.util.StringUtil;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.ibatis.datasource.pooled.PooledDataSource;
-import org.apache.ibatis.datasource.unpooled.UnpooledDataSource;
-import org.apache.ibatis.mapping.BoundSql;
-import org.hibernate.engine.spi.QueryParameters;
 
-import javax.sql.DataSource;
-import java.sql.Connection;
 import java.sql.SQLException;
 
-import static io.arex.inst.database.common.DatabaseHelper.parseParameter;
 
 public class DatabaseExtractor {
 
@@ -41,30 +34,13 @@ public class DatabaseExtractor {
     }
 
     // hibernate
-    public DatabaseExtractor(String sql, Connection connection, Object entity) {
-        this(sql, connection, SerializeUtils.serialize(entity));
+    public DatabaseExtractor(String sql, Object entity) {
+        this(sql, SerializeUtils.serialize(entity));
     }
 
-    // hibernate
-    public DatabaseExtractor(String sql, Connection connection, QueryParameters parameters) {
-        this(sql, connection, parseParameter(parameters));
-    }
-
-    // mybatis
-    public DatabaseExtractor(DataSource dataSource, BoundSql boundSql, String parameters) throws SQLException {
-        //this(boundSql.getSql(), DatabaseHelper.getUrlFromDataSource(dataSource), parameters);
-        this(boundSql.getSql(), dataSource, parameters);
-    }
-
-    public DatabaseExtractor(String sql, DataSource dataSource, String parameters) {
+    public DatabaseExtractor(String sql, String parameters) {
+        this.dbName = "";
         this.sql = StringUtils.replaceEach(sql, SEARCH_LIST, REPLACE_LIST);
-        this.dbName = DatabaseHelper.getDbName(dataSource);
-        this.parameters = parameters;
-    }
-
-    public DatabaseExtractor(String sql, Connection connection, String parameters) {
-        this.sql = StringUtils.replaceEach(sql, SEARCH_LIST, REPLACE_LIST);
-        this.dbName = DatabaseHelper.getDbName(connection);
         this.parameters = parameters;
     }
 
