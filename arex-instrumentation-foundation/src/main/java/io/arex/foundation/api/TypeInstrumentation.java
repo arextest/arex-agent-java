@@ -6,7 +6,8 @@ import net.bytebuddy.matcher.ElementMatcher;
 
 import java.util.List;
 
-import static io.arex.foundation.matcher.ModuleVersionMatcher.moduleMatch;
+import static io.arex.foundation.matcher.PackageVersionMatcher.versionMatch;
+import static net.bytebuddy.matcher.ElementMatchers.any;
 
 public abstract class TypeInstrumentation {
     private final ModuleDescription module;
@@ -20,7 +21,11 @@ public abstract class TypeInstrumentation {
     }
 
     public ElementMatcher<TypeDescription> matcher() {
-        return module != null ? moduleMatch(module, typeMatcher()) : typeMatcher();
+        return typeMatcher();
+    }
+
+    public final ElementMatcher<ClassLoader> versionMatcher() {
+        return module == null || !module.hasPackages() ? any() : versionMatch(module);
     }
 
     public AgentBuilder.Transformer transform() {

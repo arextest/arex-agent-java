@@ -1,6 +1,7 @@
 package io.arex.inst.httpservlet.inst;
 
 import com.google.auto.service.AutoService;
+import io.arex.foundation.api.ModuleDescription;
 import io.arex.foundation.api.ModuleInstrumentation;
 import io.arex.foundation.api.TypeInstrumentation;
 
@@ -16,7 +17,9 @@ import java.util.List;
 public class ServletModuleInstrumentationV3 extends ModuleInstrumentation {
 
     public ServletModuleInstrumentationV3() {
-        super("httpservlet-v3", null);
+        super("httpservlet-v3", ModuleDescription.builder()
+                .addPackage("httpservlet-v3", "3")
+                .build());
     }
 
     @Override

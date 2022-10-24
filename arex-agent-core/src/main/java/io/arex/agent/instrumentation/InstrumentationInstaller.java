@@ -60,7 +60,7 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
             return builder;
         }
 
-        for (TypeInstrumentation inst : instrumentation.getInstrumentationTypes()) {
+        for (TypeInstrumentation inst : instrumentation.instrumentationTypes()) {
             builder = installType(builder, inst);
         }
         LOGGER.info("[arex] module installed:{}", instrumentation.name());
@@ -74,7 +74,7 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
         }
 
         AgentBuilder.Transformer transformer = inst.transform();
-        AgentBuilder.Identified identified = builder.type(inst.matcher());
+        AgentBuilder.Identified identified = builder.type(inst.matcher(), inst.versionMatcher());
         if (transformer != null) {
             identified = identified.transform(transformer);
         }

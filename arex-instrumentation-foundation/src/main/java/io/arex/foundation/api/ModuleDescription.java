@@ -22,6 +22,10 @@ public class ModuleDescription {
         return this.packages;
     }
 
+    public boolean hasPackages() {
+        return this.packages != null && this.packages.size() > 0;
+    }
+
     public static final class Builder {
         private final List<String> packages = new ArrayList<>(2);
 
