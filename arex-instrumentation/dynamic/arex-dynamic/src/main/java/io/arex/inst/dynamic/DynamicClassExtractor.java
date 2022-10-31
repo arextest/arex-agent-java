@@ -4,7 +4,7 @@ import io.arex.foundation.config.ConfigManager;
 import io.arex.foundation.context.ArexContext;
 import io.arex.foundation.context.ContextManager;
 import io.arex.foundation.model.DynamicClassMocker;
-import io.arex.foundation.serializer.SerializeUtils;
+import io.arex.foundation.serializer.GsonSerializer;
 import io.arex.foundation.util.LogUtil;
 import io.arex.foundation.util.StringUtil;
 import io.arex.foundation.util.TypeUtil;
@@ -35,8 +35,8 @@ public class DynamicClassExtractor {
     public DynamicClassExtractor(String clazzName, String operation, Object[] args, Object result) {
         this.clazzName = clazzName;
         this.operation = operation;
-        this.operationKey = SerializeUtils.serialize(args);
-        this.operationResult = SerializeUtils.serialize(result);
+        this.operationKey = GsonSerializer.INSTANCE.serialize(args);
+        this.operationResult = GsonSerializer.INSTANCE.serialize(result);
         this.resultClazz = TypeUtil.getName(result);
         this.result = result;
     }

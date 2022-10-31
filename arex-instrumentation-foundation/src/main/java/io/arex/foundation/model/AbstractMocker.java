@@ -80,6 +80,10 @@ public abstract class AbstractMocker {
     }
 
     public void record() {
+        if (ConfigManager.INSTANCE.invalid()) {
+            LogUtil.warn("config is invalid and stop record");
+            return;
+        }
         DataService.INSTANCE.save(this);
         if (ConfigManager.INSTANCE.isEnableDebug()) {
             LogUtil.info(String.format("RECORD_%s", this.category), SerializeUtils.serialize(this));
@@ -88,7 +92,7 @@ public abstract class AbstractMocker {
 
     public Object replay() {
         if (ConfigManager.INSTANCE.isEnableDebug()) {
-            LogUtil.info("REPLAY", SerializeUtils.serialize(this));
+            LogUtil.info(String.format("REPLAY_%s", this.category), SerializeUtils.serialize(this));
         }
         return DataService.INSTANCE.get(this);
     }
@@ -142,7 +146,9 @@ public abstract class AbstractMocker {
     public void setResponseType(String responseType) {
         this.responseType = responseType;
     }
-
+    public String getResponseType() {
+        return responseType;
+    }
     public boolean ignoreMockResult() {
         return false;
     }
