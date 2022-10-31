@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 public class DynamicClassModuleInstrumentation extends ModuleInstrumentation {
 
     public DynamicClassModuleInstrumentation() {
-        super("dynamic-class", null);
+        super("dynamic-class");
     }
 
     @Override

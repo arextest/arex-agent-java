@@ -4,17 +4,25 @@ import net.bytebuddy.matcher.ElementMatcher;
 
 import java.util.List;
 
-import static io.arex.foundation.matcher.PackageVersionMatcher.versionMatch;
+import static io.arex.foundation.matcher.ModuleVersionMatcher.versionMatch;
 import static net.bytebuddy.matcher.ElementMatchers.any;
 
 public abstract class ModuleInstrumentation {
 
     private final String moduleName;
-    protected final ModuleDescription target;
+    private final ElementMatcher<ClassLoader> moduleMatcher;
+
+    protected ModuleInstrumentation(String name) {
+        this(name, any());
+    }
 
     protected ModuleInstrumentation(String name, ModuleDescription description) {
+        this(name, description == null ? null : versionMatch(description));
+    }
+
+    protected ModuleInstrumentation(String name, ElementMatcher<ClassLoader> moduleMatcher) {
         this.moduleName = name;
-        this.target = description;
+        this.moduleMatcher = moduleMatcher;
     }
 
     public String name() {
@@ -26,11 +34,9 @@ public abstract class ModuleInstrumentation {
         return types != null && types.size() > 0;
     }
 
-    /*public final ElementMatcher<ClassLoader> versionMatcher() {
-        return target == null ? any() : versionMatch(target);
-    }*/
+    public final ElementMatcher<ClassLoader> matcher() {
+        return moduleMatcher == null ? any() : moduleMatcher;
+    }
 
     public abstract List<TypeInstrumentation> instrumentationTypes();
-
-
 }

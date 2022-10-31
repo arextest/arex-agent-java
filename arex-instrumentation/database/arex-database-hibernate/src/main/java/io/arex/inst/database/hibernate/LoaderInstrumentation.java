@@ -1,7 +1,6 @@
 package io.arex.inst.database.hibernate;
 
 import io.arex.foundation.api.MethodInstrumentation;
-import io.arex.foundation.api.ModuleDescription;
 import io.arex.foundation.api.TypeInstrumentation;
 import io.arex.foundation.context.ArexContext;
 import io.arex.foundation.context.ContextManager;
@@ -24,9 +23,6 @@ import static net.bytebuddy.matcher.ElementMatchers.*;
 import static net.bytebuddy.matcher.ElementMatchers.takesArgument;
 
 public class LoaderInstrumentation extends TypeInstrumentation {
-    public LoaderInstrumentation(ModuleDescription module) {
-        super(module);
-    }
 
     @Override
     public ElementMatcher<TypeDescription> typeMatcher() {

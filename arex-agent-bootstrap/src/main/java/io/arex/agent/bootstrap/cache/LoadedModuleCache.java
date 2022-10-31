@@ -1,5 +1,8 @@
 package io.arex.agent.bootstrap.cache;
 
+import io.arex.agent.bootstrap.internal.Pair;
+
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -37,5 +40,25 @@ public class LoadedModuleCache {
 
         int index = version.indexOf('.');
         return packageName + "-" + (index < 0 ? version : version.substring(0, index));
+    }
+
+
+    private static final HashMap<String, Pair<Integer, Integer>> cache = new HashMap<>();
+
+    public static void registerInstrumentationModule(String moduleName) {
+        if (!cache.containsKey(moduleName)) {
+            cache.put(moduleName, null);
+        }
+    }
+
+    public static void registerProjectModule(String moduleName, Pair<Integer, Integer> version) {
+        if (moduleName == null || version == null) {
+            return;
+        }
+        cache.put(moduleName, version);
+    }
+
+    public static Pair<Integer, Integer> get(String moduleName) {
+        return cache.get(moduleName);
     }
 }

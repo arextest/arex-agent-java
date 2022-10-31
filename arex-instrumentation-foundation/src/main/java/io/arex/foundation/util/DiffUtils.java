@@ -752,7 +752,6 @@ public class DiffUtils {
                         <= Math.max(length_insertions1, length_deletions1))
                         && (lastEquality.length()
                         <= Math.max(length_insertions2, length_deletions2))) {
-                    //System.out.println("Splitting: '" + lastEquality + "'");
                     // Walk back to offending equality.
                     while (thisDiff != equalities.peek()) {
                         thisDiff = pointer.previous();

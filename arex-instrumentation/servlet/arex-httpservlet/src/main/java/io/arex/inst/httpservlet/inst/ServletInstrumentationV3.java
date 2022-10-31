@@ -1,8 +1,6 @@
 package io.arex.inst.httpservlet.inst;
 
-import io.arex.agent.bootstrap.DecorateControl;
 import io.arex.foundation.api.MethodInstrumentation;
-import io.arex.foundation.api.ModuleDescription;
 import io.arex.foundation.api.TypeInstrumentation;
 import io.arex.agent.bootstrap.internal.Pair;
 import io.arex.inst.httpservlet.ServletAdviceHelper;
@@ -21,7 +19,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.Collections;
 import java.util.List;
 
-import static io.arex.foundation.matcher.ListenableMatcher.listenable;
 import static java.util.Arrays.asList;
 import static net.bytebuddy.matcher.ElementMatchers.isPublic;
 import static net.bytebuddy.matcher.ElementMatchers.named;
@@ -33,13 +30,10 @@ import static net.bytebuddy.matcher.ElementMatchers.takesArgument;
  * @date 2022/03/03
  */
 public class ServletInstrumentationV3 extends TypeInstrumentation {
-    public ServletInstrumentationV3(ModuleDescription module) {
-        super(module);
-    }
 
     @Override
     public ElementMatcher<TypeDescription> typeMatcher() {
-        return listenable(named("javax.servlet.http.HttpServlet"), this::onTypeMatched);
+        return named("javax.servlet.http.HttpServlet");
     }
 
     @Override
@@ -51,10 +45,6 @@ public class ServletInstrumentationV3 extends TypeInstrumentation {
         String adviceClassName = this.getClass().getName() + "$ServiceAdvice";
 
         return Collections.singletonList(new MethodInstrumentation(matcher, adviceClassName));
-    }
-
-    public void onTypeMatched() {
-        DecorateControl.forClass(DecorateControl.ServletVersion3Switch.class).setDecorated();
     }
 
     @Override

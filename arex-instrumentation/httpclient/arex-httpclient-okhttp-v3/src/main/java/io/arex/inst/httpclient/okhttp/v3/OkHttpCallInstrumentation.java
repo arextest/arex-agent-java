@@ -1,7 +1,6 @@
 package io.arex.inst.httpclient.okhttp.v3;
 
 import io.arex.foundation.api.MethodInstrumentation;
-import io.arex.foundation.api.ModuleDescription;
 import io.arex.foundation.api.TypeInstrumentation;
 import io.arex.foundation.context.ContextManager;
 import io.arex.inst.httpclient.common.HttpClientExtractor;
@@ -22,9 +21,6 @@ import static net.bytebuddy.matcher.ElementMatchers.takesArguments;
 import static net.bytebuddy.matcher.ElementMatchers.takesNoArguments;
 
 public class OkHttpCallInstrumentation extends TypeInstrumentation {
-    public OkHttpCallInstrumentation(ModuleDescription module) {
-        super(module);
-    }
 
     @Override
     public ElementMatcher<TypeDescription> typeMatcher() {

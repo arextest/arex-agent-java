@@ -1,7 +1,6 @@
 package io.arex.inst.netty.v4;
 
 import io.arex.foundation.api.MethodInstrumentation;
-import io.arex.foundation.api.ModuleDescription;
 import io.arex.foundation.api.TypeInstrumentation;
 import io.arex.agent.bootstrap.internal.CallDepth;
 import io.arex.inst.netty.v4.server.RequestTracingHandler;
@@ -22,9 +21,6 @@ import static java.util.Collections.singletonList;
 import static net.bytebuddy.matcher.ElementMatchers.*;
 
 public class ChannelPipelineInstrumentation extends TypeInstrumentation {
-    public ChannelPipelineInstrumentation(ModuleDescription module) {
-        super(module);
-    }
 
     @Override
     protected ElementMatcher<TypeDescription> typeMatcher() {
