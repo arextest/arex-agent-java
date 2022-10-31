@@ -2,7 +2,8 @@ package io.arex.foundation.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.StringUtils;
-
+import io.arex.foundation.serializer.GsonSerializer;
+import io.arex.foundation.util.TypeUtil;
 import java.util.function.Predicate;
 
 public class DynamicClassMocker extends AbstractMocker {
@@ -59,5 +60,9 @@ public class DynamicClassMocker extends AbstractMocker {
             }
             return true;
         };
+    }
+    @Override
+    public Object parseMockResponse(AbstractMocker requestMocker) {
+        return GsonSerializer.INSTANCE.deserialize(getResponse(), TypeUtil.forName(getResponseType()));
     }
 }

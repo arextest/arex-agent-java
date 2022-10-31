@@ -8,6 +8,9 @@ import io.arex.foundation.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * ConfigService
@@ -34,9 +37,7 @@ public class ConfigService {
             }
             ConfigQueryRequest request = new ConfigQueryRequest();
             request.appId = ConfigManager.INSTANCE.getServiceName();
-            request.agentExtVersion = ConfigManager.INSTANCE.getAgentVersion();
-            request.coreVersion = ConfigManager.INSTANCE.getAgentVersion();
-            request.host = NetUtils.getIpAddress() + ":8080";
+            request.host = NetUtils.getIpAddress();
 
             String postData = SerializeUtils.serialize(request);
 
@@ -46,10 +47,11 @@ public class ConfigService {
                 LOGGER.warn("Query agent config, response body is null. request: {}", postData);
                 return;
             }
-
-            ConfigQueryResponse responseModel = SerializeUtils.deserialize(responseData, ConfigQueryResponse.class);
-
             LOGGER.info("Agent config: {}", responseData);
+            ConfigQueryResponse responseModel = SerializeUtils.deserialize(responseData, ConfigQueryResponse.class);
+            if (responseModel != null && responseModel.getBody() != null && responseModel.getBody().getServiceCollectConfiguration() != null) {
+                ConfigManager.INSTANCE.parseServiceConfig(responseModel.getBody());
+            }
         } catch (Throwable e) {
             LOGGER.warn("loadAgentConfig error", e);
         }
@@ -111,13 +113,21 @@ public class ConfigService {
     public static class ResponseBody {
         private ServiceCollectConfig serviceCollectConfiguration;
         private int status;
-
+        private List<DynamicClassConfiguration> dynamicClassConfigurationList;
         public ServiceCollectConfig getServiceCollectConfiguration() {
             return serviceCollectConfiguration;
         }
 
         public void setServiceCollectConfiguration(ServiceCollectConfig serviceCollectConfiguration) {
             this.serviceCollectConfiguration = serviceCollectConfiguration;
+        }
+
+        public List<DynamicClassConfiguration> getDynamicClassConfigurationList() {
+            return dynamicClassConfigurationList;
+        }
+
+        public void setDynamicClassConfigurationList(List<DynamicClassConfiguration> dynamicClassConfigurationList) {
+            this.dynamicClassConfigurationList = dynamicClassConfigurationList;
         }
     }
 
@@ -128,6 +138,8 @@ public class ConfigService {
         private int allowDayOfWeeks;
         private String allowTimeOfDayFrom;
         private String allowTimeOfDayTo;
+        private boolean timeMock;
+        private Map<String, Set<String>> excludeOperationMap;
 
         public String getAppId() {
             return appId;
@@ -168,8 +180,35 @@ public class ConfigService {
         public void setAllowTimeOfDayTo(String allowTimeOfDayTo) {
             this.allowTimeOfDayTo = allowTimeOfDayTo;
         }
+
+        public boolean isTimeMock() {
+            return timeMock;
+        }
+
+        public void setTimeMock(boolean timeMock) {
+            this.timeMock = timeMock;
+        }
+
+        public Map<String, Set<String>> getExcludeOperationMap() {
+            return excludeOperationMap;
+        }
+
+        public void setExcludeOperationMap(Map<String, Set<String>> excludeOperationMap) {
+            this.excludeOperationMap = excludeOperationMap;
+        }
     }
 
+    public static class DynamicClassConfiguration {
+        private String fullClassName;
+
+        public String getFullClassName() {
+            return fullClassName;
+        }
+
+        public void setFullClassName(String fullClassName) {
+            this.fullClassName = fullClassName;
+        }
+    }
 
     public static class ConfigQueryRequest {
         private String appId;

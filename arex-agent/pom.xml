@@ -218,6 +218,7 @@
                             <include>com.google.guava:guava</include>
                             <include>com.fasterxml.jackson.core:**</include>
                             <include>commons-logging:**</include>
+                            <include>com.google.code.gson:gson</include>
                         </includes>
                     </artifactSet>
                 </configuration>

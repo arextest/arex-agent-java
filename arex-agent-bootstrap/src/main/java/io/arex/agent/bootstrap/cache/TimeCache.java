@@ -11,6 +11,9 @@ public class TimeCache {
 
     public static Long get() {
         String traceId = TraceContextManager.get();
+        if (traceId == null) {
+            return 0L;
+        }
         Pair<Long, Long> time = CACHE.get(traceId);
         return time == null ? 0L :
                 time.getFirst() + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - time.getSecond());
