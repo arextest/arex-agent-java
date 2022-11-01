@@ -1,6 +1,5 @@
 package io.arex.foundation.listener;
 
-import io.arex.agent.bootstrap.TraceContextManager;
 import io.arex.agent.bootstrap.cache.TimeCache;
 import io.arex.foundation.config.ConfigManager;
 import io.arex.foundation.context.ContextManager;
@@ -20,7 +19,7 @@ public class CaseInitializer {
     }
 
     public static void initContext(String caseId){
-        TraceContextManager.remove(); // clean up before initialization
+        ContextManager.overdueCleanUp();
         ContextManager.currentContext(true, caseId);
     }
 
