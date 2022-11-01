@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class ContextManager {
@@ -18,8 +17,6 @@ public class ContextManager {
 
     public static Map<String, ArexContext> RECORD_MAP = new ConcurrentHashMap<>();
     private static final long RECORD_TTL_MILLIS = TimeUnit.MINUTES.toMillis(2);
-    private static final AtomicInteger READ_COUNT = new AtomicInteger();
-    private static final int DRAIN_THRESHOLD = 0x3F;
     private static final ReentrantLock CLEANUP_LOCK = new ReentrantLock();
 
     /**
@@ -33,7 +30,6 @@ public class ContextManager {
      * agent will call this method
      */
     public static ArexContext currentContext(boolean createIfAbsent, String caseId) {
-        postReadCleanup();
         // replay scene
         if (StringUtil.isNotEmpty(caseId)) {
             String replayId = TraceContextManager.get(createIfAbsent);
@@ -63,12 +59,7 @@ public class ContextManager {
     public static boolean needRecordOrReplay() {
         return currentContext() != null;
     }
-    private static void postReadCleanup() {
-        if ((READ_COUNT.incrementAndGet() & DRAIN_THRESHOLD) == 0) {
-            cleanUp();
-        }
-    }
-    private static void cleanUp() {
+    public static void overdueCleanUp() {
         if (CLEANUP_LOCK.tryLock()) {
             List<String> removeRecordIds = new ArrayList<>(RECORD_MAP.size());
             try {
@@ -80,7 +71,6 @@ public class ContextManager {
                         removeRecordIds.add(entry.getKey());
                     }
                 }
-                READ_COUNT.set(0);
             } finally {
                 CLEANUP_LOCK.unlock();
                 if (removeRecordIds.size() > 0) {
