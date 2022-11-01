@@ -1,9 +1,8 @@
 package io.arex.inst.netty.v4.server;
 
-import io.arex.foundation.config.ConfigManager;
 import io.arex.foundation.context.ContextManager;
-import io.arex.foundation.healthy.HealthManager;
 import io.arex.foundation.listener.CaseEvent;
+import io.arex.foundation.listener.CaseInitializer;
 import io.arex.foundation.listener.CaseListenerImpl;
 import io.arex.foundation.model.AbstractMocker;
 import io.arex.foundation.model.Constants;
@@ -23,6 +22,7 @@ public class RequestTracingHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
+        CaseInitializer.onEnter();
         if (msg instanceof HttpRequest) {
             HttpRequest request = (HttpRequest) msg;
             String caseId = request.headers().get(Constants.RECORD_ID);
@@ -59,18 +59,13 @@ public class RequestTracingHandler extends ChannelInboundHandlerAdapter {
     }
 
     private boolean shouldSkip(HttpRequest request, String caseId) {
-        if ((StringUtil.isEmpty(caseId) && !checkRateLimit(request.uri()))) {
-            return false;
+        if (CaseInitializer.exceedRecordRate(caseId, request.uri())) {
+            return true;
         }
 
         if (Boolean.parseBoolean(request.headers().get(Constants.REPLAY_WARM_UP))) {
             return false;
         }
         return IgnoreService.isServiceEnabled(request.method().toString() + " " + request.uri());
-    }
-
-    private static boolean checkRateLimit(String path) {
-        return ConfigManager.INSTANCE.isEnableDebug() ||
-                HealthManager.acquire(path, ConfigManager.INSTANCE.getRecordRate());
     }
 }
