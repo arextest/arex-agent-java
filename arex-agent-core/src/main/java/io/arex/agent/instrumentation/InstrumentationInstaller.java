@@ -4,6 +4,7 @@ import io.arex.foundation.api.MethodInstrumentation;
 import io.arex.foundation.api.ModuleInstrumentation;
 import io.arex.foundation.api.TypeInstrumentation;
 import io.arex.foundation.bytebuddy.AdviceInjector;
+import io.arex.foundation.config.ConfigManager;
 import io.arex.foundation.services.ConfigService;
 import io.arex.foundation.util.CollectionUtil;
 import io.arex.foundation.util.LogUtil;
@@ -38,7 +39,10 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
     @Override
     protected ResettableClassFileTransformer invoke() {
         ConfigService.INSTANCE.loadAgentConfig(agentArgs);
-
+        if (ConfigManager.INSTANCE.invalid()) {
+            LogUtil.warn("config is invalid and stop instrument");
+            return null;
+        }
         return install(getAgentBuilder());
     }
 

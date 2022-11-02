@@ -1,10 +1,9 @@
 package io.arex.inst.httpservlet;
 
-import io.arex.foundation.config.ConfigManager;
 import io.arex.foundation.context.ContextManager;
-import io.arex.foundation.healthy.HealthManager;
 import io.arex.agent.bootstrap.internal.Pair;
 import io.arex.foundation.listener.CaseEvent;
+import io.arex.foundation.listener.CaseInitializer;
 import io.arex.foundation.listener.CaseListenerImpl;
 import io.arex.foundation.model.Constants;
 import io.arex.foundation.util.LogUtil;
@@ -47,16 +46,13 @@ public class ServletAdviceHelper {
     public static <TRequest, TResponse> Pair<TRequest, TResponse> onServiceEnter(
             ServletAdapter<TRequest, TResponse> adapter, Object servletRequest,
             Object servletResponse) {
+        CaseInitializer.onEnter();
         TRequest httpServletRequest = adapter.asHttpServletRequest(servletRequest);
         if (shouldSkip(adapter, httpServletRequest)) {
             return null;
         }
 
         String caseId = adapter.getRequestHeader(httpServletRequest, Constants.RECORD_ID);
-        // check record rate limit
-        if (StringUtil.isEmpty(caseId) && !checkRateLimit(adapter.getServletPath(httpServletRequest))) {
-            return null;
-        }
         TResponse httpServletResponse = adapter.asHttpServletResponse(servletResponse);
 
         // Async listener will handle if attr with arex-async-flag
@@ -148,13 +144,14 @@ public class ServletAdviceHelper {
         adapter.setAttribute(httpServletRequest, ServletConstants.SERVLET_RESPONSE, response);
     }
 
-    public static boolean checkRateLimit(String path) {
-        return ConfigManager.INSTANCE.isEnableDebug() ||
-                HealthManager.acquire(path, ConfigManager.INSTANCE.getRecordRate());
-    }
-
     private static <TRequest> boolean shouldSkip(ServletAdapter<TRequest, ?> adapter,
                                                  TRequest httpServletRequest) {
+        // check record rate limit
+        if (CaseInitializer.exceedRecordRate(adapter.getRequestHeader(httpServletRequest, Constants.RECORD_ID),
+                adapter.getServletPath(httpServletRequest))) {
+            return true;
+        }
+
         // Do nothing if request header with arex-replay-warm-up
         if (Boolean.parseBoolean(adapter.getRequestHeader(httpServletRequest, Constants.REPLAY_WARM_UP))) {
             return true;

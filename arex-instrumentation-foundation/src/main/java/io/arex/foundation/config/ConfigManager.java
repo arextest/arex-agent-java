@@ -1,18 +1,25 @@
 package io.arex.foundation.config;
 
 import com.google.common.annotations.VisibleForTesting;
-import io.arex.foundation.model.DynamicClassEntity;
+import io.arex.foundation.services.ConfigService;
 import io.arex.foundation.services.TimerService;
+import io.arex.foundation.util.CollectionUtil;
 import io.arex.foundation.util.PropertyUtil;
 import io.arex.foundation.util.StringUtil;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.DayOfWeek;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
@@ -36,7 +43,9 @@ public class ConfigManager {
     private static final String STORAGE_SERVICE_PASSWORD = "arex.storage.password";
     private static final String STORAGE_SERVICE_WEB_PORT = "arex.storage.web.port";
     private static final String SERVER_SERVICE_TCP_PORT = "arex.server.tcp.port";
-
+    private static final String ALLOW_DAY_WEEKS = "arex.allow.day.weeks";
+    private static final String ALLOW_TIME_FROM = "arex.allow.time.from";
+    private static final String ALLOW_TIME_TO = "arex.allow.time.to";
     private boolean enableDebug;
     private String agentVersion;
     private String serviceName;
@@ -52,13 +61,18 @@ public class ConfigManager {
     private int recordRate;
     private String dynamicClass;
     private int dynamicResultSizeLimit;
-    private List<DynamicClassEntity> dynamicClassList;
+    private List<String> dynamicClassList;
     /**
      * use only replay
      */
     private boolean startTimeMachine;
+    private EnumSet<DayOfWeek> allowDayOfWeeks;
+    private LocalTime allowTimeOfDayFrom;
+    private LocalTime allowTimeOfDayTo;
 
     private static List<ConfigListener> listeners = new ArrayList<ConfigListener>();
+    private static final EnumSet<DayOfWeek> ALL_DAY_OF_WEEK = EnumSet.allOf(DayOfWeek.class);
+    private static boolean stopped = false;
 
     private ConfigManager() {
         init();
@@ -107,12 +121,12 @@ public class ConfigManager {
         System.setProperty(STORAGE_SERVICE_HOST, storageServiceHost);
     }
 
-    public void setRecordRate(String recordRate) {
-        if (StringUtil.isEmpty(recordRate)) {
+    public void setRecordRate(int recordRate) {
+        if (recordRate <= 0) {
             return;
         }
-        this.recordRate = Integer.parseInt(recordRate);
-        System.setProperty(RECORD_RATE, recordRate);
+        this.recordRate = recordRate;
+        System.setProperty(RECORD_RATE, String.valueOf(recordRate));
     }
 
     public void setDynamicResultSizeLimit(String dynamicResultSizeLimit) {
@@ -123,12 +137,9 @@ public class ConfigManager {
         System.setProperty(DYNAMIC_RESULT_SIZE_LIMIT, dynamicResultSizeLimit);
     }
 
-    public void setTimeMachine(String timeMachine) {
-        if (StringUtil.isEmpty(timeMachine)) {
-            return;
-        }
-        this.startTimeMachine = BooleanUtils.toBoolean(timeMachine);
-        System.setProperty(TIME_MACHINE, timeMachine);
+    public void setTimeMachine(boolean timeMachine) {
+        this.startTimeMachine = timeMachine;
+        System.setProperty(TIME_MACHINE, BooleanUtils.toStringTrueFalse(timeMachine));
     }
 
     public void setDynamicClassList(String dynamicClass) {
@@ -160,6 +171,9 @@ public class ConfigManager {
         dynamicResultSizeLimit = Integer.parseInt(System.getProperty(DYNAMIC_RESULT_SIZE_LIMIT, "1000"));
 
         startTimeMachine = BooleanUtils.toBoolean(System.getProperty(TIME_MACHINE, Boolean.FALSE.toString()));
+        setAllowDayOfWeeks(Integer.parseInt(System.getProperty(ALLOW_DAY_WEEKS, "127")));
+        setAllowTimeOfDayFrom(System.getProperty(ALLOW_TIME_FROM, "00:01"));
+        setAllowTimeOfDayTo(System.getProperty(ALLOW_TIME_TO, "23:59"));
 
         TimerService.scheduleAtFixedRate(ConfigManager::update, 300, 300, TimeUnit.SECONDS);
     }
@@ -180,9 +194,9 @@ public class ConfigManager {
         setEnableDebug(configMap.get(ENABLE_DEBUG));
         setServiceName(configMap.get(SERVICE_NAME));
         setStorageServiceHost(configMap.get(STORAGE_SERVICE_HOST));
-        setRecordRate(configMap.get(RECORD_RATE));
+        setRecordRate(NumberUtils.toInt(configMap.get(RECORD_RATE)));
         setDynamicResultSizeLimit(configMap.get(DYNAMIC_RESULT_SIZE_LIMIT));
-        setTimeMachine(configMap.get(TIME_MACHINE));
+        setTimeMachine(BooleanUtils.toBoolean(configMap.get(TIME_MACHINE)));
         setStorageServiceMode(configMap.get(STORAGE_SERVICE_MODE));
         setDynamicClassList(configMap.get(DYNAMIC_CLASS_KEY));
     }
@@ -211,7 +225,7 @@ public class ConfigManager {
     }
 
     private static void update() {
-
+        ConfigService.INSTANCE.loadAgentConfig(null);
     }
 
     public String getStorageServiceMode() {
@@ -288,51 +302,20 @@ public class ConfigManager {
         }
     }
 
-    private List<DynamicClassEntity> parseDynamicClassList(String dynamicClassValue) {
+    private List<String> parseDynamicClassList(String dynamicClassValue) {
         if (StringUtil.isEmpty(dynamicClassValue)) {
             return Collections.emptyList();
         }
 
-        String[] array = dynamicClassValue.split(";");
-
-        if (array.length < 1) {
-            return Collections.emptyList();
-        }
-
-        List<DynamicClassEntity> list = new ArrayList<>(array.length);
-        for (int i = 0; i < array.length; i++) {
-            String[] subArray = array[i].split("#");
-            if (subArray.length < 3) {
-                continue;
-            }
-
-            String fullClassName = subArray[0];
-            String methodName = subArray[1];
-            String parameterTypes = subArray[2];
-
-            if (StringUtil.isEmpty(fullClassName) || StringUtil.isEmpty(methodName) || StringUtil.isEmpty(parameterTypes)) {
-                continue;
-            }
-
-            list.add(new DynamicClassEntity(fullClassName, methodName, parameterTypes));
-        }
-        return list;
+        return Arrays.asList(dynamicClassValue.split(","));
     }
 
     public int getRecordRate() {
         return recordRate;
     }
 
-    public void setRecordRate(int recordRate) {
-        this.recordRate = recordRate;
-    }
-
-    public List<DynamicClassEntity> getDynamicClassList() {
+    public List<String> getDynamicClassList() {
         return dynamicClassList;
-    }
-
-    public void setDynamicClassList(List<DynamicClassEntity> dynamicClassList) {
-        this.dynamicClassList = dynamicClassList;
     }
 
     public int getDynamicResultSizeLimit() {
@@ -345,6 +328,93 @@ public class ConfigManager {
 
     public boolean startTimeMachine() {
         return startTimeMachine;
+    }
+
+    public EnumSet<DayOfWeek> getAllowDayOfWeeks() {
+        return allowDayOfWeeks;
+    }
+
+    public void setAllowDayOfWeeks(int allowDayOfWeeks) {
+        if (allowDayOfWeeks <= 0) {
+            this.allowDayOfWeeks = null;
+            return;
+        }
+        // binary 1111111
+        if (allowDayOfWeeks == 127) {
+            this.allowDayOfWeeks = ALL_DAY_OF_WEEK;
+        }
+        EnumSet<DayOfWeek> dayOfWeeks = EnumSet.noneOf(DayOfWeek.class);
+        String recordCycle = Integer.toBinaryString(allowDayOfWeeks);
+        int index = 0;
+        for (int length = recordCycle.length() - 1; length >= 0; length--) {
+            index ++;
+            if (recordCycle.charAt(length) == '1') {
+                dayOfWeeks.add(DayOfWeek.of(index));
+            }
+        }
+        this.allowDayOfWeeks = dayOfWeeks;
+        System.setProperty(ALLOW_DAY_WEEKS, String.valueOf(allowDayOfWeeks));
+    }
+
+    public LocalTime getAllowTimeOfDayFrom() {
+        return allowTimeOfDayFrom;
+    }
+
+    public void setAllowTimeOfDayFrom(String allowTimeOfDayFrom) {
+        if (StringUtil.isEmpty(allowTimeOfDayFrom)) {
+            return ;
+        }
+        this.allowTimeOfDayFrom = LocalTime.parse(allowTimeOfDayFrom, DateTimeFormatter.ofPattern("HH:mm"));
+        System.setProperty(ALLOW_TIME_FROM, allowTimeOfDayFrom);
+    }
+
+    public LocalTime getAllowTimeOfDayTo() {
+        return allowTimeOfDayTo;
+    }
+
+    public void setAllowTimeOfDayTo(String allowTimeOfDayTo) {
+        if (StringUtil.isEmpty(allowTimeOfDayTo)) {
+            return ;
+        }
+        this.allowTimeOfDayTo = LocalTime.parse(allowTimeOfDayTo, DateTimeFormatter.ofPattern("HH:mm"));
+        System.setProperty(ALLOW_TIME_TO, allowTimeOfDayTo);
+    }
+
+    public void parseServiceConfig(ConfigService.ResponseBody serviceConfig) {
+        ConfigService.ServiceCollectConfig config = serviceConfig.getServiceCollectConfiguration();
+        setRecordRate(config.getSampleRate());
+        setTimeMachine(config.isTimeMock());
+        setAllowDayOfWeeks(config.getAllowDayOfWeeks());
+        setAllowTimeOfDayFrom(config.getAllowTimeOfDayFrom());
+        setAllowTimeOfDayTo(config.getAllowTimeOfDayTo());
+        List<ConfigService.DynamicClassConfiguration> dynamicClassList = serviceConfig.getDynamicClassConfigurationList();
+        if (CollectionUtil.isNotEmpty(dynamicClassList)) {
+            StringBuilder result = new StringBuilder();
+            for (ConfigService.DynamicClassConfiguration dynamicClass : dynamicClassList) {
+                result.append(dynamicClass.getFullClassName()).append(",");
+            }
+            setDynamicClassList(result.toString());
+        }
+    }
+
+    public boolean invalid() {
+        return !isLocalStorage() && (recordRate <= 0 || allowDayOfWeeks == null || nextWorkTime() > 0L);
+    }
+
+    private long nextWorkTime() {
+        LocalDateTime dateTime = LocalDateTime.now();
+        LocalTime beginTime = dateTime.toLocalTime();
+        int diffDays = 0;
+        if (beginTime.isAfter(allowTimeOfDayFrom) && beginTime.isAfter(allowTimeOfDayTo)) {
+            diffDays++;
+            dateTime = dateTime.plusDays(1);
+        }
+        while (!allowDayOfWeeks.contains(dateTime.getDayOfWeek()) && diffDays < 7) {
+            diffDays++;
+            dateTime = dateTime.plusDays(1);
+        }
+        LocalDateTime nextTime = LocalDateTime.of(dateTime.toLocalDate(), allowTimeOfDayFrom);
+        return Duration.between(LocalDateTime.now(), nextTime).toMillis();
     }
 
     @Override
@@ -361,6 +431,12 @@ public class ConfigManager {
                 ", storageServicePassword='" + storageServicePassword + '\'' +
                 ", storageServiceWebPort='" + storageServiceWebPort + '\'' +
                 ", serverServiceTcpPort='" + serverServiceTcpPort + '\'' +
+                ", recordRate='" + recordRate + '\'' +
+                ", startTimeMachine='" + startTimeMachine + '\'' +
+                ", allowDayOfWeeks='" + allowDayOfWeeks + '\'' +
+                ", allowTimeOfDayFrom='" + allowTimeOfDayFrom + '\'' +
+                ", allowTimeOfDayTo='" + allowTimeOfDayTo + '\'' +
+                ", dynamicClassList='" + dynamicClassList + '\'' +
                 '}';
     }
 }
