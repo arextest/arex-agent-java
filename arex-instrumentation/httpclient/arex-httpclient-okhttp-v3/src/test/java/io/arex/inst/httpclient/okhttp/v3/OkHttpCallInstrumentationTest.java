@@ -1,6 +1,5 @@
 package io.arex.inst.httpclient.okhttp.v3;
 
-import io.arex.foundation.api.ModuleDescription;
 import io.arex.foundation.context.ContextManager;
 import io.arex.inst.httpclient.common.HttpClientExtractor;
 import okhttp3.Call;
@@ -26,8 +25,6 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class OkHttpCallInstrumentationTest {
-    @Mock
-    private ModuleDescription module;
     @InjectMocks
     private OkHttpCallInstrumentation okHttpCallInstrumentation;
 

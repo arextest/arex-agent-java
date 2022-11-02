@@ -1,7 +1,6 @@
 package io.arex.inst.redisson.v3;
 
 import io.arex.foundation.api.MethodInstrumentation;
-import io.arex.foundation.api.ModuleDescription;
 import io.arex.foundation.api.TypeInstrumentation;
 import io.arex.inst.redisson.v3.wrapper.RedissonBucketWrapper;
 import io.arex.inst.redisson.v3.wrapper.RedissonBucketsWrapper;
@@ -39,9 +38,6 @@ import static net.bytebuddy.matcher.ElementMatchers.takesNoArguments;
  * RedissonInstrumentation
  */
 public class RedissonInstrumentation extends TypeInstrumentation {
-    public RedissonInstrumentation(ModuleDescription target) {
-        super(target);
-    }
 
     @Override
     protected ElementMatcher<TypeDescription> typeMatcher() {

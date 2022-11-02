@@ -1,7 +1,6 @@
 package io.arex.inst.httpclient.apache.async;
 
 import io.arex.foundation.api.MethodInstrumentation;
-import io.arex.foundation.api.ModuleDescription;
 import io.arex.foundation.api.TypeInstrumentation;
 import io.arex.foundation.context.ContextManager;
 import net.bytebuddy.asm.Advice;
@@ -22,9 +21,6 @@ import static net.bytebuddy.matcher.ElementMatchers.takesArgument;
 import static net.bytebuddy.matcher.ElementMatchers.takesArguments;
 
 public class InternalHttpAsyncClientInstrumentation extends TypeInstrumentation {
-    public InternalHttpAsyncClientInstrumentation(ModuleDescription module) {
-        super(module);
-    }
 
     @Override
     public ElementMatcher<TypeDescription> typeMatcher() {
@@ -33,7 +29,14 @@ public class InternalHttpAsyncClientInstrumentation extends TypeInstrumentation 
 
     @Override
     public List<MethodInstrumentation> methodAdvices() {
-        return singletonList(new MethodInstrumentation(isMethod().and(named("execute")).and(takesArguments(4)).and(takesArgument(0, named("org.apache.http.nio.protocol.HttpAsyncRequestProducer"))).and(takesArgument(1, named("org.apache.http.nio.protocol.HttpAsyncResponseConsumer"))).and(takesArgument(2, named("org.apache.http.protocol.HttpContext"))).and(takesArgument(3, named("org.apache.http.concurrent.FutureCallback"))), this.getClass().getName() + "$ExecuteAdvice"));
+        return singletonList(new MethodInstrumentation(
+                isMethod().and(named("execute"))
+                        .and(takesArguments(4))
+                        .and(takesArgument(0, named("org.apache.http.nio.protocol.HttpAsyncRequestProducer")))
+                        .and(takesArgument(1, named("org.apache.http.nio.protocol.HttpAsyncResponseConsumer")))
+                        .and(takesArgument(2, named("org.apache.http.protocol.HttpContext")))
+                        .and(takesArgument(3, named("org.apache.http.concurrent.FutureCallback"))),
+                this.getClass().getName() + "$ExecuteAdvice"));
     }
 
     @Override

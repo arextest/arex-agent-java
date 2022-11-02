@@ -1,7 +1,6 @@
 package io.arex.inst.httpclient.apache.sync;
 
 import io.arex.foundation.api.MethodInstrumentation;
-import io.arex.foundation.api.ModuleDescription;
 import io.arex.foundation.api.TypeInstrumentation;
 import io.arex.foundation.context.ContextManager;
 import net.bytebuddy.asm.Advice;
@@ -23,9 +22,6 @@ import static net.bytebuddy.matcher.ElementMatchers.*;
 import static net.bytebuddy.matcher.ElementMatchers.takesArgument;
 
 public class DefaultHttpResponseFactoryInstrumentation extends TypeInstrumentation {
-    public DefaultHttpResponseFactoryInstrumentation(ModuleDescription module) {
-        super(module);
-    }
 
     @Override
     public ElementMatcher<TypeDescription> typeMatcher() {

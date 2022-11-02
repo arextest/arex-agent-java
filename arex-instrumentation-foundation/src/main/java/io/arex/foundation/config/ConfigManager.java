@@ -72,6 +72,8 @@ public class ConfigManager {
 
     private static List<ConfigListener> listeners = new ArrayList<ConfigListener>();
     private static final EnumSet<DayOfWeek> ALL_DAY_OF_WEEK = EnumSet.allOf(DayOfWeek.class);
+    private static boolean stopped = false;
+
     private ConfigManager() {
         init();
         readConfigFromFile(configPath);

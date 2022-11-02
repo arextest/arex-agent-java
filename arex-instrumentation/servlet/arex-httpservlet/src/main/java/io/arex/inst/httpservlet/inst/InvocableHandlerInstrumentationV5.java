@@ -1,8 +1,6 @@
 package io.arex.inst.httpservlet.inst;
 
-import io.arex.agent.bootstrap.DecorateControl;
 import io.arex.foundation.api.MethodInstrumentation;
-import io.arex.foundation.api.ModuleDescription;
 import io.arex.foundation.api.TypeInstrumentation;
 import io.arex.inst.httpservlet.ServletAdviceHelper;
 import io.arex.inst.httpservlet.adapter.ServletAdapter;
@@ -19,7 +17,6 @@ import org.springframework.web.method.support.InvocableHandlerMethod;
 import java.util.Collections;
 import java.util.List;
 
-import static io.arex.foundation.matcher.DecorateSwitchMatcher.decorateSwitch;
 import static java.util.Collections.singletonList;
 import static net.bytebuddy.matcher.ElementMatchers.isPublic;
 import static net.bytebuddy.matcher.ElementMatchers.named;
@@ -31,14 +28,10 @@ import static net.bytebuddy.matcher.ElementMatchers.takesArgument;
  * @date 2022/03/10
  */
 public class InvocableHandlerInstrumentationV5 extends TypeInstrumentation {
-    public InvocableHandlerInstrumentationV5(ModuleDescription module) {
-        super(module);
-    }
 
     @Override
     public ElementMatcher<TypeDescription> typeMatcher() {
-        return decorateSwitch(named("org.springframework.web.method.support.InvocableHandlerMethod"),
-                DecorateControl.ServletVersion5Switch.class);
+        return named("org.springframework.web.method.support.InvocableHandlerMethod");
     }
 
     @Override

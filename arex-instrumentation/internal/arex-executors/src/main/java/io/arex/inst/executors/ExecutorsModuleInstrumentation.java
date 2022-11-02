@@ -1,5 +1,6 @@
 package io.arex.inst.executors;
 
+import io.arex.foundation.api.ModuleDescription;
 import io.arex.foundation.api.ModuleInstrumentation;
 import io.arex.foundation.api.TypeInstrumentation;
 import com.google.auto.service.AutoService;
@@ -12,7 +13,7 @@ import static java.util.Arrays.asList;
 @AutoService(ModuleInstrumentation.class)
 public class ExecutorsModuleInstrumentation extends ModuleInstrumentation {
     public ExecutorsModuleInstrumentation() {
-        super("internal-executors", null);
+        super("internal-executors");
     }
 
     @Override

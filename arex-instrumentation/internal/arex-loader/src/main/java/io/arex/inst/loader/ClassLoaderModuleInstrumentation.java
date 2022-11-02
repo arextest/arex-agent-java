@@ -1,5 +1,6 @@
 package io.arex.inst.loader;
 
+import io.arex.foundation.api.ModuleDescription;
 import io.arex.foundation.api.ModuleInstrumentation;
 import io.arex.foundation.api.TypeInstrumentation;
 import com.google.auto.service.AutoService;
@@ -20,7 +21,7 @@ import static java.util.Arrays.asList;
 public class ClassLoaderModuleInstrumentation extends ModuleInstrumentation {
 
     public ClassLoaderModuleInstrumentation() {
-        super("class-loader", null);
+        super("class-loader");
     }
 
     @Override

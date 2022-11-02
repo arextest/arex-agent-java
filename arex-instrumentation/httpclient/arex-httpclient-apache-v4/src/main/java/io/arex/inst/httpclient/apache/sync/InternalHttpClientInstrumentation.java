@@ -1,7 +1,6 @@
 package io.arex.inst.httpclient.apache.sync;
 
 import io.arex.foundation.api.MethodInstrumentation;
-import io.arex.foundation.api.ModuleDescription;
 import io.arex.foundation.api.TypeInstrumentation;
 import io.arex.foundation.context.ContextManager;
 import io.arex.inst.httpclient.apache.common.ApacheHttpClientAdapter;
@@ -25,9 +24,6 @@ import static net.bytebuddy.matcher.ElementMatchers.takesArgument;
 import static net.bytebuddy.matcher.ElementMatchers.takesArguments;
 
 public class InternalHttpClientInstrumentation extends TypeInstrumentation {
-    public InternalHttpClientInstrumentation(ModuleDescription module) {
-        super(module);
-    }
 
     @Override
     public ElementMatcher<TypeDescription> typeMatcher() {

@@ -19,7 +19,7 @@ import java.util.List;
 public class DynamicClassModuleInstrumentation extends ModuleInstrumentation {
 
     public DynamicClassModuleInstrumentation() {
-        super("dynamic-class", null);
+        super("dynamic-class");
     }
 
     @Override

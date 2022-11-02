@@ -16,6 +16,7 @@ import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.dynamic.ClassFileLocator;
 import net.bytebuddy.dynamic.DynamicType;
 import net.bytebuddy.dynamic.scaffold.MethodGraph;
+import net.bytebuddy.matcher.ElementMatcher;
 import net.bytebuddy.utility.JavaModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,24 +65,21 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
             return builder;
         }
 
-        for (TypeInstrumentation inst : instrumentation.getInstrumentationTypes()) {
-            builder = installType(builder, inst);
+        ElementMatcher<ClassLoader> moduleMatcher = instrumentation.matcher();
+        for (TypeInstrumentation inst : instrumentation.instrumentationTypes()) {
+            builder = installType(builder, moduleMatcher, inst);
         }
         LOGGER.info("[arex] module installed:{}", instrumentation.name());
         return builder;
     }
 
-    private AgentBuilder installType(AgentBuilder builder, TypeInstrumentation inst) {
+    private AgentBuilder installType(AgentBuilder builder, ElementMatcher<ClassLoader> moduleMatcher, TypeInstrumentation inst) {
         List<MethodInstrumentation> methods = inst.methodAdvices();
         if (methods == null || methods.size() == 0) {
             return builder;
         }
 
-        AgentBuilder.Transformer transformer = inst.transform();
-        AgentBuilder.Identified identified = builder.type(inst.matcher());
-        if (transformer != null) {
-            identified = identified.transform(transformer);
-        }
+        AgentBuilder.Identified identified = builder.type(inst.matcher(), moduleMatcher);
         List<String> advicesClassNames = inst.adviceClassNames();
         if (!CollectionUtil.isEmpty(advicesClassNames)) {
             identified = identified.transform(new AdviceInjector(advicesClassNames));

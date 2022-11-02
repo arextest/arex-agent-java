@@ -1,31 +1,41 @@
 package io.arex.foundation.matcher;
 
 import io.arex.agent.bootstrap.cache.LoadedModuleCache;
+import io.arex.agent.bootstrap.internal.Pair;
 import io.arex.foundation.api.ModuleDescription;
-import net.bytebuddy.description.type.TypeDescription;
+import io.arex.foundation.internal.ResourceManager;
 import net.bytebuddy.matcher.ElementMatcher;
 
-public class ModuleVersionMatcher extends ElementMatcher.Junction.AbstractBase<TypeDescription> {
+import java.util.Map;
+import java.util.WeakHashMap;
 
-    public static ElementMatcher.Junction<TypeDescription> moduleMatch(ModuleDescription moduleDescription,
-                                                                       ElementMatcher<TypeDescription> matcher) {
-        return new ModuleVersionMatcher(moduleDescription, matcher);
+public class ModuleVersionMatcher extends ElementMatcher.Junction.AbstractBase<ClassLoader> {
+    public static ElementMatcher.Junction<ClassLoader> versionMatch(ModuleDescription description) {
+        return new ModuleVersionMatcher(description);
     }
 
-    private final ModuleDescription moduleDescription;
-    private final ElementMatcher<TypeDescription> matcher;
+    private final Map<ClassLoader, Boolean> cache = new WeakHashMap<>();
+    private final ModuleDescription description;
 
-    public ModuleVersionMatcher(ModuleDescription moduleDescription, ElementMatcher<TypeDescription> matcher) {
-        this.moduleDescription = moduleDescription;
-        this.matcher = matcher;
+    ModuleVersionMatcher(ModuleDescription description) {
+        this.description = description;
     }
 
     @Override
-    public boolean matches(TypeDescription target) {
-        // Do not move to constructor method
-        if (moduleDescription != null && !LoadedModuleCache.hasResource(moduleDescription.getPackages())) {
+    public boolean matches(ClassLoader cl) {
+        return description == null || (cl != null && cache.computeIfAbsent(cl, this::versionMatches));
+    }
+
+    private boolean versionMatches(ClassLoader loader) {
+        if (loader == null) {
             return false;
         }
-        return matcher.matches(target);
+
+        ResourceManager.registerResources(loader);
+        Pair<Integer, Integer> version = LoadedModuleCache.get(description.getModuleName());
+        if (version == null) {
+            return true;
+        }
+        return description.isSupported(version);
     }
 }

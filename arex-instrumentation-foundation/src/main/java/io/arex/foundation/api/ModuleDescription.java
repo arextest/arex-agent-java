@@ -1,43 +1,62 @@
 package io.arex.foundation.api;
 
-import io.arex.agent.bootstrap.cache.LoadedModuleCache;
-
-import java.util.ArrayList;
-import java.util.List;
-
+import io.arex.agent.bootstrap.internal.Pair;
 
 public class ModuleDescription {
-
     public static Builder builder() {
         return new Builder();
     }
 
-    private final List<String> packages;
+    private Pair<Integer, Integer> from;
+    private Pair<Integer, Integer> to;
 
-    private ModuleDescription(List<String> packages) {
-        this.packages = packages;
+    private String moduleName;
+
+    private ModuleDescription(String moduleName,
+                              Pair<Integer, Integer> supportFrom, Pair<Integer, Integer> supportTo) {
+        this.moduleName = moduleName;
+        this.from = supportFrom;
+        this.to = supportTo;
     }
 
-    public List<String> getPackages() {
-        return this.packages;
+    public String getModuleName() {
+        return moduleName;
+    }
+
+    public boolean isSupported(Pair<Integer, Integer> current) {
+        boolean isSupported = current.getFirst() >= from.getFirst() && current.getSecond() >= from.getSecond();
+        if (isSupported && to != null) {
+            isSupported = current.getFirst() <= to.getFirst() && current.getSecond() <= to.getSecond();
+        }
+
+        return isSupported;
     }
 
     public static final class Builder {
-        private final List<String> packages = new ArrayList<>(2);
+        private String name;
+        private Pair<Integer, Integer> from;
+        private Pair<Integer, Integer> to;
 
-        /**
-         * Register a package that allows instrumentation
-         *
-         * @param name  package name in manifest file, with key: Bundle-Name or Automatic-Module-Name
-         * @param version package version in manifest file, with key: Bundle-Version or Implementation-Version
-         */
-        public Builder addPackage(String name, String version) {
-            packages.add(LoadedModuleCache.toModule(name, version));
+        public Builder name(String moduleName) {
+            this.name = moduleName;
+            return this;
+        }
+
+        public Builder supportFrom(int major, int minor) {
+            this.from = Pair.of(major, minor);
+            return this;
+        }
+
+        public Builder supportTo(int major, int minor) {
+            this.to = Pair.of(major, minor);
             return this;
         }
 
         public ModuleDescription build() {
-            return new ModuleDescription(this.packages);
+            if (name == null || from == null) {
+                return null;
+            }
+            return new ModuleDescription(name, from, to);
         }
     }
 }

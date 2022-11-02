@@ -46,17 +46,22 @@ public class CaseInitializer {
     }
 
     public static void release(){
-        TimeCache.remove();
+        //TimeCache.remove();
     }
 
     /**
      * Processing at the beginning of entry, for example:Servlet、Netty
      */
     public static void onEnter(){
+        TimeCache.remove();
         TraceContextManager.remove();
     }
 
     public static boolean exceedRecordRate(String recordId, String path) {
+        if (ConfigManager.INSTANCE.invalid()) {
+            return true;
+        }
+
         return StringUtil.isEmpty(recordId)
                 && !ConfigManager.INSTANCE.isEnableDebug()
                 && !HealthManager.acquire(path, ConfigManager.INSTANCE.getRecordRate());

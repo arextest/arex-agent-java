@@ -1,7 +1,6 @@
 package io.arex.inst.database.mybatis3;
 
 import io.arex.foundation.api.MethodInstrumentation;
-import io.arex.foundation.api.ModuleDescription;
 import io.arex.foundation.api.TypeInstrumentation;
 import io.arex.foundation.context.ContextManager;
 import net.bytebuddy.asm.Advice;
@@ -17,9 +16,6 @@ import static net.bytebuddy.matcher.ElementMatchers.*;
 import static net.bytebuddy.matcher.ElementMatchers.takesArgument;
 
 public class DefaultSqlSessionInstrumentation extends TypeInstrumentation {
-    public DefaultSqlSessionInstrumentation(ModuleDescription module) {
-        super(module);
-    }
 
     @Override
     public ElementMatcher<TypeDescription> typeMatcher() {

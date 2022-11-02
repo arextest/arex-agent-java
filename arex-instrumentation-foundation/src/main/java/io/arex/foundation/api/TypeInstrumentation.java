@@ -1,30 +1,14 @@
 package io.arex.foundation.api;
 
-import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
 
 import java.util.List;
 
-import static io.arex.foundation.matcher.ModuleVersionMatcher.moduleMatch;
-
 public abstract class TypeInstrumentation {
-    private final ModuleDescription module;
-
-    public TypeInstrumentation() {
-        this(null);
-    }
-
-    public TypeInstrumentation(ModuleDescription module) {
-        this.module = module;
-    }
 
     public ElementMatcher<TypeDescription> matcher() {
-        return module != null ? moduleMatch(module, typeMatcher()) : typeMatcher();
-    }
-
-    public AgentBuilder.Transformer transform() {
-        return null;
+        return typeMatcher();
     }
 
     protected abstract ElementMatcher<TypeDescription> typeMatcher();

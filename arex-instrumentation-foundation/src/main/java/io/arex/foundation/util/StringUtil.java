@@ -201,4 +201,9 @@ public class StringUtil {
         }
         return Base64.getEncoder().encodeToString(str.getBytes(StandardCharsets.UTF_8)).hashCode();
     }
+
+    // net.bytebuddy auto modified by shade: io.arex.agent.net.bytebuddy
+    public static String removeShadePrefix(String str) {
+        return str.length() > 14 ? str.substring(14) : str;
+    }
 }

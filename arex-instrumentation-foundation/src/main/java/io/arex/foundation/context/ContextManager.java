@@ -59,6 +59,7 @@ public class ContextManager {
     public static boolean needRecordOrReplay() {
         return currentContext() != null;
     }
+
     public static void overdueCleanUp() {
         if (CLEANUP_LOCK.tryLock()) {
             List<String> removeRecordIds = new ArrayList<>(RECORD_MAP.size());
@@ -80,6 +81,7 @@ public class ContextManager {
             }
         }
     }
+
     private static boolean isExpired(long createTime, long now) {
         return now - createTime >= RECORD_TTL_MILLIS;
     }
