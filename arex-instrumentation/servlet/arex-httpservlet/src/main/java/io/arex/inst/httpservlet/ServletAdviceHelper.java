@@ -53,15 +53,15 @@ public class ServletAdviceHelper {
         }
 
         String caseId = adapter.getRequestHeader(httpServletRequest, Constants.RECORD_ID);
-        TResponse httpServletResponse = adapter.asHttpServletResponse(servletResponse);
+        CaseListenerImpl.INSTANCE.onEvent(new CaseEvent(StringUtil.isEmpty(caseId) ? StringUtil.EMPTY : caseId, CaseEvent.Action.CREATE));
 
+        TResponse httpServletResponse = adapter.asHttpServletResponse(servletResponse);
         // Async listener will handle if attr with arex-async-flag
         if ("true".equals(adapter.getAttribute(httpServletRequest, ServletConstants.SERVLET_ASYNC_FLAG))) {
             httpServletResponse = adapter.wrapResponse(httpServletResponse);
             return Pair.of(null, httpServletResponse);
         }
 
-        CaseListenerImpl.INSTANCE.onEvent(new CaseEvent(StringUtil.isEmpty(caseId) ? StringUtil.EMPTY : caseId, CaseEvent.Action.CREATE));
         if (ContextManager.needRecordOrReplay()) {
             httpServletRequest = adapter.wrapRequest(httpServletRequest);
             httpServletResponse = adapter.wrapResponse(httpServletResponse);

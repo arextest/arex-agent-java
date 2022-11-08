@@ -3,6 +3,7 @@ package io.arex.inst.httpclient.apache.async;
 import io.arex.foundation.api.MethodInstrumentation;
 import io.arex.foundation.api.TypeInstrumentation;
 import io.arex.foundation.context.ContextManager;
+import io.arex.foundation.context.RepeatedCollectManager;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
@@ -57,8 +58,11 @@ public class InternalHttpAsyncClientInstrumentation extends TypeInstrumentation 
     @SuppressWarnings("unused")
     public static class ExecuteAdvice {
         @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class, suppress = Throwable.class)
-        public static boolean onEnter(@Advice.Argument(0) HttpAsyncRequestProducer producer, @Advice.Argument(value = 3, readOnly = false) FutureCallback<?> callback, @Advice.Local("wrapped") FutureCallbackWrapper<?> wrapped) {
+        public static boolean onEnter(@Advice.Argument(0) HttpAsyncRequestProducer producer,
+                                      @Advice.Argument(value = 3, readOnly = false) FutureCallback<?> callback,
+                                      @Advice.Local("wrapped") FutureCallbackWrapper<?> wrapped) {
             if (ContextManager.needRecordOrReplay()) {
+                RepeatedCollectManager.enter();
                 wrapped = FutureCallbackWrapper.get(producer, callback);
                 if (wrapped != null) {
                     callback = wrapped;
@@ -69,11 +73,8 @@ public class InternalHttpAsyncClientInstrumentation extends TypeInstrumentation 
         }
 
         @Advice.OnMethodExit(suppress = Throwable.class)
-        public static void onExit(@Advice.Local("wrapped") FutureCallbackWrapper<?> wrapped, @Advice.Return(readOnly = false) Future<?> future) {
-            if (wrapped == null) {
-                return;
-            }
-
+        public static void onExit(@Advice.Local("wrapped") FutureCallbackWrapper<?> wrapped,
+                                  @Advice.Return(readOnly = false) Future<?> future) {
             if (ContextManager.needReplay()) {
                 wrapped.replay();
                 future = new BasicFuture<>(wrapped);

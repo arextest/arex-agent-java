@@ -17,7 +17,7 @@ public abstract class ModuleInstrumentation {
     }
 
     protected ModuleInstrumentation(String name, ModuleDescription description) {
-        this(name, description == null ? null : versionMatch(description));
+        this(name, description == null ? any() : versionMatch(description));
     }
 
     protected ModuleInstrumentation(String name, ElementMatcher<ClassLoader> moduleMatcher) {
@@ -35,7 +35,7 @@ public abstract class ModuleInstrumentation {
     }
 
     public final ElementMatcher<ClassLoader> matcher() {
-        return moduleMatcher == null ? any() : moduleMatcher;
+        return moduleMatcher;
     }
 
     public abstract List<TypeInstrumentation> instrumentationTypes();

@@ -3,6 +3,7 @@ package io.arex.inst.httpclient.okhttp.v3;
 import io.arex.foundation.api.MethodInstrumentation;
 import io.arex.foundation.api.TypeInstrumentation;
 import io.arex.foundation.context.ContextManager;
+import io.arex.foundation.context.RepeatedCollectManager;
 import io.arex.inst.httpclient.common.HttpClientExtractor;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
@@ -60,6 +61,7 @@ public class OkHttpCallInstrumentation extends TypeInstrumentation {
                 @Advice.Local("wrapped") HttpClientExtractor<Request, Response> extractor) {
             OkHttpClientAdapter adapter;
             if (ContextManager.needRecordOrReplay()) {
+                RepeatedCollectManager.enter();
                 adapter = new OkHttpClientAdapter(call.request().newBuilder().build());
                 extractor = new HttpClientExtractor<>(adapter);
             }
@@ -71,7 +73,7 @@ public class OkHttpCallInstrumentation extends TypeInstrumentation {
                 @Advice.Local("wrapped") HttpClientExtractor<Request, Response> extractor,
                 @Advice.Thrown(readOnly = false) Exception throwable,
                 @Advice.Return(readOnly = false) Response response) throws IOException {
-            if (extractor == null) {
+            if (extractor == null || !RepeatedCollectManager.exitAndValidate()) {
                 return;
             }
 
@@ -95,6 +97,7 @@ public class OkHttpCallInstrumentation extends TypeInstrumentation {
                 @Advice.This Call call,
                 @Advice.Argument(value = 0, readOnly = false) Callback callback) {
             if (ContextManager.needRecordOrReplay()) {
+                RepeatedCollectManager.enter();
                 callback = new OkHttpCallbackWrapper(call, callback);
             }
             return ContextManager.needReplay();

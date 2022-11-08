@@ -1,6 +1,6 @@
 package io.arex.inst.dynamic;
 
-import io.arex.agent.bootstrap.internal.CallDepth;
+import io.arex.foundation.context.RepeatedCollectManager;
 import io.arex.foundation.api.MethodInstrumentation;
 import io.arex.foundation.api.TypeInstrumentation;
 import io.arex.foundation.context.ContextManager;
@@ -32,34 +32,36 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
     @Override
     public List<MethodInstrumentation> methodAdvices() {
         return singletonList(new MethodInstrumentation(
-                isMethod().and(isPublic()).and(not(isConstructor())).and(not(takesNoArguments())).and(not(returns(TypeDescription.VOID))),
+                isMethod().and(isPublic()).
+                        and(not(isConstructor()))
+                        .and(not(takesNoArguments()))
+                        .and(not(returns(TypeDescription.VOID))),
                 MethodAdvice.class.getName()));
     }
 
     public final static class MethodAdvice {
 
         @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class)
-        public static boolean onEnter(@Advice.Origin("#t") String className, @Advice.Local("callDepth") CallDepth callDepth) {
-            callDepth = CallDepth.forClass(className);
-            if (callDepth != null) {
-                callDepth.getAndIncrement();
-            }
+        public static boolean onEnter(@Advice.Origin("#t") String className) {
+            RepeatedCollectManager.enter();
             return ContextManager.needReplay();
         }
 
         @Advice.OnMethodExit
-        public static void onExit(@Advice.Origin("#t") String className, @Advice.Origin("#m") String methodName, @Advice.AllArguments Object[] args,
-                                  @Advice.Return(readOnly = false, typing = Assigner.Typing.DYNAMIC) Object result,
-                                  @Advice.Local("callDepth") CallDepth callDepth) {
-            if (callDepth != null && callDepth.decrementAndGet() > 0) {
+        public static void onExit(@Advice.Origin("#t") String className, @Advice.Origin("#m") String methodName,
+                                  @Advice.AllArguments Object[] args,
+                                  @Advice.Return(readOnly = false, typing = Assigner.Typing.DYNAMIC) Object result) {
+            if (!RepeatedCollectManager.exitAndValidate()) {
                 return;
             }
+
             DynamicClassExtractor extractor;
             if (ContextManager.needReplay()) {
                 extractor = new DynamicClassExtractor(className, methodName, args);
                 result = extractor.replay();
                 return;
             }
+
             if (ContextManager.needRecord()) {
                 extractor = new DynamicClassExtractor(className, methodName, args, result);
                 extractor.record();

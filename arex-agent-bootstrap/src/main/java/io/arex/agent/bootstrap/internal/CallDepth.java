@@ -20,6 +20,10 @@ public class CallDepth {
         return DEPTH_TL.get(clazz).get();
     }
 
+    public static CallDepth simple() {
+        return new CallDepth();
+    }
+
     public static CallDepth forClass(String className) {
         try {
             return forClass(Class.forName(className, false, Thread.currentThread().getContextClassLoader()));
