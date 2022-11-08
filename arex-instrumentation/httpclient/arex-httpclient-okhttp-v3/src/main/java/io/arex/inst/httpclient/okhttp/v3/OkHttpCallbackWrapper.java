@@ -2,6 +2,7 @@ package io.arex.inst.httpclient.okhttp.v3;
 
 import com.google.common.annotations.VisibleForTesting;
 import io.arex.agent.bootstrap.ctx.TraceTransmitter;
+import io.arex.foundation.context.RepeatedCollectManager;
 import io.arex.inst.httpclient.common.ExceptionWrapper;
 import io.arex.inst.httpclient.common.HttpClientExtractor;
 import io.arex.inst.httpclient.common.HttpResponseWrapper;
@@ -35,7 +36,9 @@ public class OkHttpCallbackWrapper implements Callback {
     public void onFailure(@NotNull Call call, @NotNull IOException e) {
         // call from record
         try (TraceTransmitter tm = traceTransmitter.transmit()) {
-            extractor.record(e);
+            if (RepeatedCollectManager.exitAndValidate()) {
+                extractor.record(e);
+            }
             delegate.onFailure(call, e);
         }
     }
@@ -44,7 +47,9 @@ public class OkHttpCallbackWrapper implements Callback {
     public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
         // call from record
         try (TraceTransmitter tm = traceTransmitter.transmit()) {
-            extractor.record(response);
+            if (RepeatedCollectManager.exitAndValidate()) {
+                extractor.record(response);
+            }
             delegate.onResponse(call, response);
         }
     }

@@ -1,5 +1,6 @@
 package io.arex.inst.database.hibernate;
 
+import io.arex.foundation.context.RepeatedCollectManager;
 import io.arex.foundation.api.MethodInstrumentation;
 import io.arex.foundation.api.TypeInstrumentation;
 import io.arex.foundation.context.ArexContext;
@@ -52,6 +53,7 @@ public class LoaderInstrumentation extends TypeInstrumentation {
     public static class QueryAdvice {
         @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class)
         public static boolean onEnter() {
+            RepeatedCollectManager.enter();
             return ContextManager.needReplay();
         }
 
@@ -61,6 +63,10 @@ public class LoaderInstrumentation extends TypeInstrumentation {
                                   @Advice.Argument(1) QueryParameters queryParameters,
                                   @Advice.Thrown HibernateException exception,
                                   @Advice.Return(readOnly = false) List list) throws SQLException, HibernateException {
+            if (!RepeatedCollectManager.exitAndValidate()) {
+                return;
+            }
+
             ArexContext context = ContextManager.currentContext();
             if (context != null) {
                 DatabaseExtractor extractor = new DatabaseExtractor(loader.getSQLString(),

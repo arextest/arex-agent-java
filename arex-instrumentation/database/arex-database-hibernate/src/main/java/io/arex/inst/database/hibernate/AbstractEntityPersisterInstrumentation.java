@@ -4,6 +4,7 @@ import io.arex.foundation.api.MethodInstrumentation;
 import io.arex.foundation.api.TypeInstrumentation;
 import io.arex.foundation.context.ArexContext;
 import io.arex.foundation.context.ContextManager;
+import io.arex.foundation.context.RepeatedCollectManager;
 import io.arex.foundation.util.LogUtil;
 import io.arex.inst.database.common.DatabaseExtractor;
 import net.bytebuddy.asm.Advice;
@@ -65,6 +66,7 @@ public class AbstractEntityPersisterInstrumentation extends TypeInstrumentation 
 
         @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class, suppress = Throwable.class)
         public static boolean onEnter() {
+            RepeatedCollectManager.enter();
             return ContextManager.needReplay();
         }
 
@@ -75,6 +77,10 @@ public class AbstractEntityPersisterInstrumentation extends TypeInstrumentation 
                 @Advice.Argument(4) SharedSessionContractImplementor session,
                 @Advice.Return(readOnly = false) Serializable serializable,
                 @Advice.Thrown(readOnly = false) HibernateException exception) throws HibernateException {
+            if (!RepeatedCollectManager.exitAndValidate()) {
+                return;
+            }
+
             ArexContext context = ContextManager.currentContext();
             if (context != null) {
                 DatabaseExtractor extractor = new DatabaseExtractor(sql, object);
@@ -114,6 +120,7 @@ public class AbstractEntityPersisterInstrumentation extends TypeInstrumentation 
                     throw new HibernateException(ex);
                 }
             }
+            RepeatedCollectManager.enter();
             return 1;
         }
 
@@ -123,7 +130,7 @@ public class AbstractEntityPersisterInstrumentation extends TypeInstrumentation 
                 @Advice.Argument(8) String sql,
                 @Advice.Argument(9) SharedSessionContractImplementor session,
                 @Advice.Thrown HibernateException exception) {
-            if (ContextManager.needRecord()) {
+            if (ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate()) {
                 DatabaseExtractor extractor = new DatabaseExtractor(sql, object);
                 if (exception != null) {
                     extractor.record(exception);

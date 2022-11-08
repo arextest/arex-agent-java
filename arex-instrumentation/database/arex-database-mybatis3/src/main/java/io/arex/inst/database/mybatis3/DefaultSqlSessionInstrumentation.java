@@ -3,6 +3,7 @@ package io.arex.inst.database.mybatis3;
 import io.arex.foundation.api.MethodInstrumentation;
 import io.arex.foundation.api.TypeInstrumentation;
 import io.arex.foundation.context.ContextManager;
+import io.arex.foundation.context.RepeatedCollectManager;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
@@ -43,8 +44,18 @@ public class DefaultSqlSessionInstrumentation extends TypeInstrumentation {
 
     @SuppressWarnings("unused")
     public static class ConstructorAdvice {
+
+        @Advice.OnMethodEnter(suppress = Throwable.class)
+        public static void onEnter() {
+            RepeatedCollectManager.enter();
+        }
+
         @Advice.OnMethodExit(suppress = Throwable.class)
         public static void onExit(@Advice.FieldValue(value = "executor", readOnly = false) Executor executor) {
+            if (!RepeatedCollectManager.exitAndValidate()) {
+                return;
+            }
+
             if (ContextManager.needRecordOrReplay()) {
                 executor = ExecutorWrapper.get(executor);
             }

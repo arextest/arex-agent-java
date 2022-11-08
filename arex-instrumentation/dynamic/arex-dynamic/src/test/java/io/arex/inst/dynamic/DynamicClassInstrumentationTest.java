@@ -60,7 +60,7 @@ class DynamicClassInstrumentationTest {
 
     @Test
     void onEnter() {
-        assertFalse(DynamicClassInstrumentation.MethodAdvice.onEnter(dynamicClass, null));
+        assertFalse(DynamicClassInstrumentation.MethodAdvice.onEnter(dynamicClass));
     }
 
     @ParameterizedTest
@@ -68,7 +68,7 @@ class DynamicClassInstrumentationTest {
     void onExit(Runnable mocker) {
         mocker.run();
         DynamicClassInstrumentation.MethodAdvice.onExit(
-                "java.lang.System", "getenv", new Object[]{"java.lang.String"}, null, null);
+                "java.lang.System", "getenv", new Object[]{"java.lang.String"}, null);
     }
 
     static Stream<Arguments> onExitCase() {

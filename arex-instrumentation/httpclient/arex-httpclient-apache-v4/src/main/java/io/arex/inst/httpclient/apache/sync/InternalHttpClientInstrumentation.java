@@ -3,6 +3,7 @@ package io.arex.inst.httpclient.apache.sync;
 import io.arex.foundation.api.MethodInstrumentation;
 import io.arex.foundation.api.TypeInstrumentation;
 import io.arex.foundation.context.ContextManager;
+import io.arex.foundation.context.RepeatedCollectManager;
 import io.arex.inst.httpclient.apache.common.ApacheHttpClientAdapter;
 import io.arex.inst.httpclient.common.HttpClientAdapter;
 import io.arex.inst.httpclient.common.HttpClientExtractor;
@@ -54,6 +55,7 @@ public class InternalHttpClientInstrumentation extends TypeInstrumentation {
                 @Advice.Argument(1) HttpRequest request,
                 @Advice.Local("wrapped") HttpClientExtractor<HttpRequest, HttpResponse> extractor) {
             if (ContextManager.needRecordOrReplay()) {
+                RepeatedCollectManager.enter();
                 HttpClientAdapter<HttpRequest, HttpResponse> adapter = new ApacheHttpClientAdapter(request);
                 extractor = new HttpClientExtractor<>(adapter);
             }
@@ -75,7 +77,7 @@ public class InternalHttpClientInstrumentation extends TypeInstrumentation {
                 return;
             }
 
-            if (throwable != null) {
+            if (throwable != null || !RepeatedCollectManager.exitAndValidate()) {
                 extractor.record(throwable);
             } else {
                 extractor.record(response);

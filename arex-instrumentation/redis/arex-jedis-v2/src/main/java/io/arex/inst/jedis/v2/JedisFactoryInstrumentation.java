@@ -53,6 +53,7 @@ public class JedisFactoryInstrumentation extends TypeInstrumentation {
             return true;
         }
 
+        // todo: change instrumentation: JedisFactory -> DefaultPoolObject
         @Advice.OnMethodExit
         public static void  onExit(@Advice.FieldValue("hostAndPort") AtomicReference<HostAndPort> hostAndPort,
                                    @Advice.FieldValue("connectionTimeout") Integer connectionTimeout,
