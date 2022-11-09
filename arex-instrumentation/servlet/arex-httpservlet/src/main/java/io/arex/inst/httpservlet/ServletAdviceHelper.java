@@ -46,21 +46,21 @@ public class ServletAdviceHelper {
     public static <TRequest, TResponse> Pair<TRequest, TResponse> onServiceEnter(
             ServletAdapter<TRequest, TResponse> adapter, Object servletRequest,
             Object servletResponse) {
-        CaseInitializer.onEnter();
         TRequest httpServletRequest = adapter.asHttpServletRequest(servletRequest);
-        if (shouldSkip(adapter, httpServletRequest)) {
-            return null;
-        }
-
-        String caseId = adapter.getRequestHeader(httpServletRequest, Constants.RECORD_ID);
-        CaseListenerImpl.INSTANCE.onEvent(new CaseEvent(StringUtil.isEmpty(caseId) ? StringUtil.EMPTY : caseId, CaseEvent.Action.CREATE));
-
         TResponse httpServletResponse = adapter.asHttpServletResponse(servletResponse);
         // Async listener will handle if attr with arex-async-flag
         if ("true".equals(adapter.getAttribute(httpServletRequest, ServletConstants.SERVLET_ASYNC_FLAG))) {
             httpServletResponse = adapter.wrapResponse(httpServletResponse);
             return Pair.of(null, httpServletResponse);
         }
+
+        CaseInitializer.onEnter();
+        if (shouldSkip(adapter, httpServletRequest)) {
+            return null;
+        }
+
+        String caseId = adapter.getRequestHeader(httpServletRequest, Constants.RECORD_ID);
+        CaseListenerImpl.INSTANCE.onEvent(new CaseEvent(StringUtil.defaultString(caseId), CaseEvent.Action.CREATE));
 
         if (ContextManager.needRecordOrReplay()) {
             httpServletRequest = adapter.wrapRequest(httpServletRequest);
@@ -76,10 +76,6 @@ public class ServletAdviceHelper {
             ServletAdapter<TRequest, TResponse> adapter, Object servletRequest,
             Object servletResponse) {
         try {
-            if (!ContextManager.needRecordOrReplay()) {
-                return;
-            }
-
             TRequest httpServletRequest = adapter.asHttpServletRequest(servletRequest);
             TResponse httpServletResponse = adapter.asHttpServletResponse(servletResponse);
 
@@ -146,9 +142,9 @@ public class ServletAdviceHelper {
 
     private static <TRequest> boolean shouldSkip(ServletAdapter<TRequest, ?> adapter,
                                                  TRequest httpServletRequest) {
+        String uri = adapter.getRequestURI(httpServletRequest);
         // check record rate limit
-        if (CaseInitializer.exceedRecordRate(adapter.getRequestHeader(httpServletRequest, Constants.RECORD_ID),
-                adapter.getServletPath(httpServletRequest))) {
+        if (CaseInitializer.exceedRecordRate(adapter.getRequestHeader(httpServletRequest, Constants.RECORD_ID), uri)) {
             return true;
         }
 

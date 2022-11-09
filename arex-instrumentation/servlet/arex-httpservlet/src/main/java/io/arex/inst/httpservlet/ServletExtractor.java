@@ -34,13 +34,22 @@ public class ServletExtractor<HttpServletRequest, HttpServletResponse> {
     }
 
     public void execute() throws IOException {
+        if (adapter.getResponseHeader(httpServletResponse, Constants.RECORD_ID) != null ||
+            adapter.getResponseHeader(httpServletResponse, Constants.REPLAY_ID) != null) {
+            adapter.copyBodyToResponse(httpServletResponse);
+            return;
+        }
+
+        if (!ContextManager.needRecordOrReplay()) {
+            return;
+        }
+
         doExecute();
         executePostProcess();
     }
 
     private void executePostProcess() throws IOException {
         setResponseHeader();
-        CaseListenerImpl.INSTANCE.onEvent(new CaseEvent(this, CaseEvent.Action.DESTROY));
         adapter.copyBodyToResponse(httpServletResponse);
     }
 

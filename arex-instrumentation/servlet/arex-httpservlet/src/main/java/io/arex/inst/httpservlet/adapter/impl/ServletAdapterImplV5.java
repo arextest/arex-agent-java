@@ -121,6 +121,11 @@ public class ServletAdapterImplV5 implements ServletAdapter<HttpServletRequest, 
     }
 
     @Override
+    public String getRequestURI(HttpServletRequest httpServletRequest) {
+        return httpServletRequest.getRequestURI();
+    }
+
+    @Override
     public String getResponseHeader(HttpServletResponse httpServletResponse, String name) {
         return httpServletResponse.getHeader(name);
     }
