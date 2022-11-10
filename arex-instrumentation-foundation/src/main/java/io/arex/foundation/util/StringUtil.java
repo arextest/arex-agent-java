@@ -8,7 +8,9 @@ import java.util.*;
 
 public class StringUtil {
     public static final String EMPTY = "";
-
+    public static String defaultString(final String str) {
+        return str == null ? EMPTY : str;
+    }
     public static boolean isEmpty(String value) {
         return value == null || value.length() == 0;
     }

@@ -51,6 +51,8 @@ public interface ServletAdapter<HttpServletRequest, HttpServletResponse> {
 
     String getServletPath(HttpServletRequest httpServletRequest);
 
+    String getRequestURI(HttpServletRequest httpServletRequest);
+
     String getMethod(HttpServletRequest httpServletRequest);
 
     Enumeration<String> getRequestHeaderNames(HttpServletRequest httpServletRequest);
