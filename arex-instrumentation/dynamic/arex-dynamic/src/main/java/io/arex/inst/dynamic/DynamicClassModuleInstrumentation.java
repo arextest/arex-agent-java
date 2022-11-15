@@ -4,10 +4,13 @@ import com.google.auto.service.AutoService;
 import io.arex.foundation.api.ModuleInstrumentation;
 import io.arex.foundation.api.TypeInstrumentation;
 import io.arex.foundation.config.ConfigManager;
+import io.arex.foundation.model.DynamicClassEntity;
 import io.arex.foundation.util.CollectionUtil;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * DynamicClassModuleInstrumentation
@@ -25,10 +28,12 @@ public class DynamicClassModuleInstrumentation extends ModuleInstrumentation {
     @Override
     public List<TypeInstrumentation> instrumentationTypes() {
         List<TypeInstrumentation> typeInstList = new ArrayList<>();
-        List<String> dynamicClassList = ConfigManager.INSTANCE.getDynamicClassList();
+        List<DynamicClassEntity> dynamicClassList = ConfigManager.INSTANCE.getDynamicClassList();
         if (CollectionUtil.isNotEmpty(dynamicClassList)) {
-            for (String dynamicClassEntity : dynamicClassList) {
-                typeInstList.add(new DynamicClassInstrumentation(dynamicClassEntity));
+            Map<String, List<DynamicClassEntity>> dynamicMap = dynamicClassList.stream().collect(Collectors.groupingBy(
+                    DynamicClassEntity::getClazzName));
+            for (Map.Entry<String, List<DynamicClassEntity>> entry : dynamicMap.entrySet()) {
+                typeInstList.add(new DynamicClassInstrumentation(entry.getValue()));
             }
         }
         return typeInstList;
