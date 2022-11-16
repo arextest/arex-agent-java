@@ -41,14 +41,16 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
         for (DynamicClassEntity dynamicClassEntity : dynamicClassList) {
             ElementMatcher.Junction<MethodDescription> matcher;
             if (StringUtil.isEmpty(dynamicClassEntity.getOperation())) {
-                matcher = isMethod().and(isPublic()).and(not(isConstructor())).and(not(takesNoArguments())).and(not(returns(TypeDescription.VOID)));
+                matcher = isMethod().and(not(takesNoArguments())).and(not(returns(TypeDescription.VOID)));
             } else {
                 matcher = named(dynamicClassEntity.getOperation());
                 if (CollectionUtil.isNotEmpty(dynamicClassEntity.getParameters())) {
-                    matcher.and(takesArguments(dynamicClassEntity.getParameters().size()));
+                    matcher = matcher.and(takesArguments(dynamicClassEntity.getParameters().size()));
                     for (int i = 0; i < dynamicClassEntity.getParameters().size(); i++) {
-                        matcher.and(takesArgument(i, named(dynamicClassEntity.getParameters().get(i))));
+                        matcher = matcher.and(takesArgument(i, named(dynamicClassEntity.getParameters().get(i))));
                     }
+                } else {
+                    matcher = matcher.and(takesNoArguments());
                 }
             }
             methodInstList.add(new MethodInstrumentation(matcher, adviceClassName));
