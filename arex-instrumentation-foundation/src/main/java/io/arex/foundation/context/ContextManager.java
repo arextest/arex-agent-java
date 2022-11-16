@@ -34,7 +34,10 @@ public class ContextManager {
         if (StringUtil.isNotEmpty(caseId)) {
             String replayId = TraceContextManager.get(createIfAbsent);
             TraceContextManager.set(caseId);
-            return RECORD_MAP.put(caseId, ArexContext.of(caseId, replayId));
+            ArexContext context = ArexContext.of(caseId, replayId);
+            // Each replay init generates the latest context(maybe exist previous recorded context)
+            RECORD_MAP.put(caseId, context);
+            return context;
         }
 
         // record scene
