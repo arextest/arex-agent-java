@@ -200,13 +200,30 @@ public class ConfigService {
 
     public static class DynamicClassConfiguration {
         private String fullClassName;
-
+        private String methodName;
+        private String parameterTypes;
         public String getFullClassName() {
             return fullClassName;
         }
 
         public void setFullClassName(String fullClassName) {
             this.fullClassName = fullClassName;
+        }
+
+        public String getMethodName() {
+            return methodName;
+        }
+
+        public void setMethodName(String methodName) {
+            this.methodName = methodName;
+        }
+
+        public String getParameterTypes() {
+            return parameterTypes;
+        }
+
+        public void setParameterTypes(String parameterTypes) {
+            this.parameterTypes = parameterTypes;
         }
     }
 

@@ -1,6 +1,7 @@
 package io.arex.foundation.config;
 
 import com.google.common.annotations.VisibleForTesting;
+import io.arex.foundation.model.DynamicClassEntity;
 import io.arex.foundation.services.ConfigService;
 import io.arex.foundation.services.TimerService;
 import io.arex.foundation.util.CollectionUtil;
@@ -34,7 +35,6 @@ public class ConfigManager {
     private static final String CONFIG_PATH = "arex.config.path";
     private static final String STORAGE_MODE = "local";
     private static final String RECORD_RATE = "arex.rate.limit";
-    private static final String DYNAMIC_CLASS_KEY = "arex.dynamic.class";
     private static final String DYNAMIC_RESULT_SIZE_LIMIT = "arex.dynamic.result.size.limit";
     private static final String TIME_MACHINE = "arex.time.machine";
     private static final String STORAGE_SERVICE_MODE = "arex.storage.mode";
@@ -59,9 +59,8 @@ public class ConfigManager {
     private String storageServiceWebPort;
     private String serverServiceTcpPort;
     private int recordRate;
-    private String dynamicClass;
     private int dynamicResultSizeLimit;
-    private List<String> dynamicClassList;
+    private List<DynamicClassEntity> dynamicClassList;
     /**
      * use only replay
      */
@@ -71,7 +70,6 @@ public class ConfigManager {
     private LocalTime allowTimeOfDayTo;
 
     private static List<ConfigListener> listeners = new ArrayList<ConfigListener>();
-    private static final EnumSet<DayOfWeek> ALL_DAY_OF_WEEK = EnumSet.allOf(DayOfWeek.class);
     private static boolean stopped = false;
 
     private ConfigManager() {
@@ -142,12 +140,16 @@ public class ConfigManager {
         System.setProperty(TIME_MACHINE, BooleanUtils.toStringTrueFalse(timeMachine));
     }
 
-    public void setDynamicClassList(String dynamicClass) {
-        if (StringUtil.isEmpty(dynamicClass)) {
+    public void setDynamicClassList(List<ConfigService.DynamicClassConfiguration> dynamicClassConfigList) {
+        if (CollectionUtil.isEmpty(dynamicClassConfigList)) {
             return;
         }
-        this.dynamicClassList = parseDynamicClassList(dynamicClass);
-        System.setProperty(DYNAMIC_CLASS_KEY, dynamicClass);
+        List<DynamicClassEntity> dynamicClassEntityList = new ArrayList<>();
+        for (ConfigService.DynamicClassConfiguration dynamicClassConfig : dynamicClassConfigList) {
+            dynamicClassEntityList.add(new DynamicClassEntity(dynamicClassConfig.getFullClassName(),
+                    dynamicClassConfig.getMethodName(), dynamicClassConfig.getParameterTypes()));
+        }
+        this.dynamicClassList = dynamicClassEntityList;
     }
 
     @VisibleForTesting
@@ -166,10 +168,7 @@ public class ConfigManager {
         storageServiceWebPort = System.getProperty(STORAGE_SERVICE_WEB_PORT, PropertyUtil.getProperty(STORAGE_SERVICE_WEB_PORT));
         serverServiceTcpPort = System.getProperty(SERVER_SERVICE_TCP_PORT, PropertyUtil.getProperty(SERVER_SERVICE_TCP_PORT));
 
-        dynamicClass = System.getProperty(DYNAMIC_CLASS_KEY);
-        dynamicClassList = parseDynamicClassList(dynamicClass);
         dynamicResultSizeLimit = Integer.parseInt(System.getProperty(DYNAMIC_RESULT_SIZE_LIMIT, "1000"));
-
         startTimeMachine = BooleanUtils.toBoolean(System.getProperty(TIME_MACHINE, Boolean.FALSE.toString()));
         setAllowDayOfWeeks(Integer.parseInt(System.getProperty(ALLOW_DAY_WEEKS, "127")));
         setAllowTimeOfDayFrom(System.getProperty(ALLOW_TIME_FROM, "00:01"));
@@ -198,7 +197,6 @@ public class ConfigManager {
         setDynamicResultSizeLimit(configMap.get(DYNAMIC_RESULT_SIZE_LIMIT));
         setTimeMachine(BooleanUtils.toBoolean(configMap.get(TIME_MACHINE)));
         setStorageServiceMode(configMap.get(STORAGE_SERVICE_MODE));
-        setDynamicClassList(configMap.get(DYNAMIC_CLASS_KEY));
     }
 
     private static Map<String, String> parseConfigFile(String configPath) {
@@ -302,19 +300,11 @@ public class ConfigManager {
         }
     }
 
-    private List<String> parseDynamicClassList(String dynamicClassValue) {
-        if (StringUtil.isEmpty(dynamicClassValue)) {
-            return Collections.emptyList();
-        }
-
-        return Arrays.asList(dynamicClassValue.split(","));
-    }
-
     public int getRecordRate() {
         return recordRate;
     }
 
-    public List<String> getDynamicClassList() {
+    public List<DynamicClassEntity> getDynamicClassList() {
         return dynamicClassList;
     }
 
@@ -341,7 +331,8 @@ public class ConfigManager {
         }
         // binary 1111111
         if (allowDayOfWeeks == 127) {
-            this.allowDayOfWeeks = ALL_DAY_OF_WEEK;
+            this.allowDayOfWeeks = EnumSet.allOf(DayOfWeek.class);
+            return;
         }
         EnumSet<DayOfWeek> dayOfWeeks = EnumSet.noneOf(DayOfWeek.class);
         String recordCycle = Integer.toBinaryString(allowDayOfWeeks);
@@ -387,14 +378,7 @@ public class ConfigManager {
         setAllowDayOfWeeks(config.getAllowDayOfWeeks());
         setAllowTimeOfDayFrom(config.getAllowTimeOfDayFrom());
         setAllowTimeOfDayTo(config.getAllowTimeOfDayTo());
-        List<ConfigService.DynamicClassConfiguration> dynamicClassList = serviceConfig.getDynamicClassConfigurationList();
-        if (CollectionUtil.isNotEmpty(dynamicClassList)) {
-            StringBuilder result = new StringBuilder();
-            for (ConfigService.DynamicClassConfiguration dynamicClass : dynamicClassList) {
-                result.append(dynamicClass.getFullClassName()).append(",");
-            }
-            setDynamicClassList(result.toString());
-        }
+        setDynamicClassList(serviceConfig.getDynamicClassConfigurationList());
     }
 
     public boolean invalid() {

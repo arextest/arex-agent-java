@@ -3,6 +3,7 @@ package io.arex.inst.dynamic;
 import io.arex.foundation.api.MethodInstrumentation;
 import io.arex.foundation.context.ArexContext;
 import io.arex.foundation.context.ContextManager;
+import io.arex.foundation.model.DynamicClassEntity;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -13,6 +14,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -23,11 +25,11 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 @ExtendWith(MockitoExtension.class)
 class DynamicClassInstrumentationTest {
     static DynamicClassInstrumentation target = null;
-    static String dynamicClass = "java.lang.System";
+    static List<DynamicClassEntity> dynamicClassList = Collections.singletonList(new DynamicClassEntity("", "", ""));
 
     @BeforeAll
     static void setUp() {
-        target = new DynamicClassInstrumentation(dynamicClass);
+        target = new DynamicClassInstrumentation(dynamicClassList);
         Mockito.mockStatic(ContextManager.class);
     }
 
@@ -43,8 +45,8 @@ class DynamicClassInstrumentationTest {
 
     @ParameterizedTest()
     @MethodSource("methodAdvicesCase")
-    void methodAdvices(String dynamicClass, Predicate<List<MethodInstrumentation>> predicate) {
-        target = new DynamicClassInstrumentation(dynamicClass);
+    void methodAdvices(List<DynamicClassEntity> dynamicClassList, Predicate<List<MethodInstrumentation>> predicate) {
+        target = new DynamicClassInstrumentation(dynamicClassList);
         List<MethodInstrumentation> result = target.methodAdvices();
         assertTrue(predicate.test(result));
     }
@@ -53,14 +55,16 @@ class DynamicClassInstrumentationTest {
         Predicate<List<MethodInstrumentation>> predicate = result -> !result.isEmpty();
 
         return Stream.of(
-                arguments(null, predicate),
-                arguments(dynamicClass, predicate)
+                arguments(Collections.singletonList(new DynamicClassEntity(
+                        "java.lang.System", "", "")), predicate),
+                arguments(Collections.singletonList(new DynamicClassEntity(
+                        "java.lang.System", "getenv", "java.lang.String")), predicate)
         );
     }
 
     @Test
     void onEnter() {
-        assertFalse(DynamicClassInstrumentation.MethodAdvice.onEnter(dynamicClass));
+        assertFalse(DynamicClassInstrumentation.MethodAdvice.onEnter());
     }
 
     @ParameterizedTest
@@ -85,5 +89,4 @@ class DynamicClassInstrumentationTest {
                 arguments(mockerNeedRecord)
         );
     }
-
 }
