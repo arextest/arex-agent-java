@@ -57,13 +57,12 @@ public class CaseInitializer {
         TraceContextManager.remove();
     }
 
-    public static boolean exceedRecordRate(String recordId, String path) {
+    public static boolean exceedRecordRate(String path) {
         if (ConfigManager.INSTANCE.invalid()) {
             return true;
         }
 
-        return StringUtil.isEmpty(recordId)
-                && !ConfigManager.INSTANCE.isEnableDebug()
+        return !ConfigManager.INSTANCE.isEnableDebug()
                 && !HealthManager.acquire(path, ConfigManager.INSTANCE.getRecordRate());
     }
 }

@@ -143,9 +143,15 @@ public class ServletAdviceHelper {
     private static <TRequest> boolean shouldSkip(ServletAdapter<TRequest, ?> adapter,
                                                  TRequest httpServletRequest) {
         String caseId = adapter.getRequestHeader(httpServletRequest, Constants.RECORD_ID);
+
+        // Replay scene
+        if (StringUtil.isNotEmpty(caseId)) {
+            return false;
+        }
+
         String forceRecord = adapter.getRequestHeader(httpServletRequest, Constants.FORCE_RECORD);
         // Do not skip if header with arex-force-record=true
-        if (StringUtil.isEmpty(caseId) && Boolean.parseBoolean(forceRecord)) {
+        if (Boolean.parseBoolean(forceRecord)) {
             return false;
         }
 
@@ -167,6 +173,6 @@ public class ServletAdviceHelper {
         }
 
         String uri = adapter.getRequestURI(httpServletRequest);
-        return CaseInitializer.exceedRecordRate(caseId, uri);
+        return CaseInitializer.exceedRecordRate(uri);
     }
 }

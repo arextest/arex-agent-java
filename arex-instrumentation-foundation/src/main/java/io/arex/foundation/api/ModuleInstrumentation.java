@@ -29,11 +29,6 @@ public abstract class ModuleInstrumentation {
         return moduleName;
     }
 
-    public boolean validate() {
-        List<TypeInstrumentation> types = instrumentationTypes();
-        return types != null && types.size() > 0;
-    }
-
     public final ElementMatcher<ClassLoader> matcher() {
         return moduleMatcher;
     }

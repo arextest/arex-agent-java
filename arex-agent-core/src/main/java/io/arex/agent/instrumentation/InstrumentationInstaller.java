@@ -1,5 +1,6 @@
 package io.arex.agent.instrumentation;
 
+import io.arex.agent.bootstrap.InstrumentationHolder;
 import io.arex.foundation.api.MethodInstrumentation;
 import io.arex.foundation.api.ModuleInstrumentation;
 import io.arex.foundation.api.TypeInstrumentation;
@@ -7,11 +8,11 @@ import io.arex.foundation.bytebuddy.AdviceInjector;
 import io.arex.foundation.config.ConfigManager;
 import io.arex.foundation.services.ConfigService;
 import io.arex.foundation.util.CollectionUtil;
-import io.arex.foundation.util.LogUtil;
+import io.arex.foundation.util.SPIUtil;
+import java.io.IOException;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.agent.builder.ResettableClassFileTransformer;
-import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.dynamic.ClassFileLocator;
 import net.bytebuddy.dynamic.DynamicType;
@@ -37,75 +38,86 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
     }
 
     @Override
-    protected ResettableClassFileTransformer invoke() {
+    protected ResettableClassFileTransformer transform() {
         ConfigService.INSTANCE.loadAgentConfig(agentArgs);
         if (ConfigManager.INSTANCE.invalid()) {
-            LogUtil.warn("config is invalid and stop instrument");
+            LOGGER.warn("[arex] config is invalid and stop instrument");
             return null;
         }
         return install(getAgentBuilder());
     }
 
     private ResettableClassFileTransformer install(AgentBuilder builder) {
-        Thread.currentThread().setContextClassLoader(InstrumentationInstaller.class.getClassLoader());
-        for (ModuleInstrumentation module : loadInstrumentationModules()) {
+        List<ModuleInstrumentation> list = loadInstrumentationModules();
+
+        for (ModuleInstrumentation module : list) {
             builder = installModule(builder, module);
         }
 
-        return builder.installOn(this.instrumentation);
+        ResettableClassFileTransformer transformer = builder.installOn(this.instrumentation);
+        return transformer;
     }
 
     private List<ModuleInstrumentation> loadInstrumentationModules() {
-        return load(ModuleInstrumentation.class);
+        return SPIUtil.load(ModuleInstrumentation.class);
     }
 
-    private AgentBuilder installModule(AgentBuilder builder, ModuleInstrumentation instrumentation) {
-        if (!instrumentation.validate()) {
-            LogUtil.warn("invalid instrumentation: ".concat(instrumentation.name()));
+    private AgentBuilder installModule(AgentBuilder builder, ModuleInstrumentation module) {
+        if (disabledModule(module.name())) {
+            LOGGER.warn("[arex] disabled instrumentation module: {}", module.name());
             return builder;
         }
 
-        ElementMatcher<ClassLoader> moduleMatcher = instrumentation.matcher();
-        for (TypeInstrumentation inst : instrumentation.instrumentationTypes()) {
-            builder = installType(builder, moduleMatcher, inst);
+
+        List<TypeInstrumentation> types = module.instrumentationTypes();
+        if (CollectionUtil.isEmpty(types)) {
+            LOGGER.warn("[arex] invalid instrumentation module: {}", module.name());
+            return builder;
         }
-        LOGGER.info("[arex] module installed:{}", instrumentation.name());
+
+        for (TypeInstrumentation inst : types) {
+            builder = installType(builder, module.matcher(), inst);
+        }
+        LOGGER.info("[arex] installed instrumentation module: {}", module.name());
         return builder;
     }
 
-    private AgentBuilder installType(AgentBuilder builder, ElementMatcher<ClassLoader> moduleMatcher, TypeInstrumentation inst) {
-        List<MethodInstrumentation> methods = inst.methodAdvices();
-        if (methods == null || methods.size() == 0) {
-            return builder;
-        }
-
-        AgentBuilder.Identified identified = builder.type(inst.matcher(), moduleMatcher);
-        List<String> advicesClassNames = inst.adviceClassNames();
-        if (!CollectionUtil.isEmpty(advicesClassNames)) {
+    private AgentBuilder installType(AgentBuilder builder, ElementMatcher<ClassLoader> moduleMatcher,
+        TypeInstrumentation type) {
+        AgentBuilder.Identified identified = builder.type(type.matcher(), moduleMatcher);
+        List<String> advicesClassNames = type.adviceClassNames();
+        if (CollectionUtil.isNotEmpty(advicesClassNames)) {
             identified = identified.transform(new AdviceInjector(advicesClassNames));
         }
 
-        AgentBuilder.Identified.Extendable extBuilder = installMethod(identified, methods.get(0));
-        for (int i = 1; i < methods.size(); i++) {
-            extBuilder = installMethod(extBuilder, methods.get(i));
+        AgentBuilder.Transformer transformer = type.transformer();
+        if (transformer != null) {
+            identified = identified.transform(transformer);
+            LOGGER.info("[arex] installed transformer: {}", type.getClass().getName());
+        }
+
+        List<MethodInstrumentation> methodAdvices = type.methodAdvices();
+
+        if (CollectionUtil.isEmpty(methodAdvices)) {
+            return (AgentBuilder) identified;
+        }
+
+        AgentBuilder.Identified.Extendable extBuilder = installMethod(identified, methodAdvices.get(0));
+        for (int i = 1; i < methodAdvices.size(); i++) {
+            extBuilder = installMethod(extBuilder, methodAdvices.get(i));
         }
 
         return extBuilder;
     }
 
-    private AgentBuilder.Identified.Extendable installMethod(AgentBuilder.Identified builder, MethodInstrumentation inst) {
-        AgentBuilder.Identified.Extendable extendable;
-        if (inst.isInterceptor()) {
-            extendable = builder.transform((b, t, c, m)
-                    -> b.method(inst.getMethodMatcher()).intercept(Advice.to(inst.getInterceptor())));
-        } else {
-            extendable = builder.transform(new AgentBuilder.Transformer.ForAdvice()
-                    .include(InstrumentationInstaller.class.getClassLoader())
-                    .advice(inst.getMethodMatcher(), inst.getAdviceClassName()));
-        }
-        LOGGER.info("[arex] type installed:{}", inst.getAdviceClassName());
-        return extendable;
+    private AgentBuilder.Identified.Extendable installMethod(AgentBuilder.Identified builder,
+        MethodInstrumentation method) {
+        LOGGER.warn("[arex] installed advice class: {}", method.getAdviceClassName());
+        return builder.transform(new AgentBuilder.Transformer.ForAdvice()
+            .include(InstrumentationHolder.getAgentClassLoader())
+            .advice(method.getMethodMatcher(), method.getAdviceClassName()));
     }
+
 
     private AgentBuilder getAgentBuilder() {
         // config may use to add some classes to be ignored in future
@@ -115,44 +127,56 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
             .enableNativeMethodPrefix("arex_")
             .ignore(none())
             .ignore(nameStartsWith("net.bytebuddy."))
-            .with(new TransformListener())
+            .with(new TransformListener(agentFile))
             .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
             .with(AgentBuilder.InitializationStrategy.NoOp.INSTANCE)
             .with(AgentBuilder.TypeStrategy.Default.REBASE)
             .with(AgentBuilder.LocationStrategy.ForClassLoader.STRONG
                 .withFallbackTo(ClassFileLocator.ForClassLoader.ofSystemLoader()));
 
-        // config used here to avoid warning of unused
-        LOGGER.info("AgentBuilder use time: {}", (System.currentTimeMillis() - buildBegin));
         return builder;
     }
 
-    @SuppressWarnings("ForEachIterable")
-    private static <T> List<T> load(Class<T> serviceClass) {
-        List<T> result = new ArrayList<>();
-        java.util.ServiceLoader<T> services = ServiceLoader.load(serviceClass, InstrumentationInstaller.class.getClassLoader());
-        for (Iterator<T> iter = services.iterator(); iter.hasNext(); ) {
-            try {
-                result.add(iter.next());
-            } catch (Throwable e) {
-                LOGGER.warn(String.format("Unable to load instrumentation class: %s", serviceClass.getName()), e);
+    static class TransformListener extends AgentBuilder.Listener.Adapter {
+        private File debugDumpPath;
+        public TransformListener(File agentFile) {
+            if (!ConfigManager.INSTANCE.isEnableDebug()) {
+                return;
+            }
+
+            debugDumpPath = new File(agentFile.getParent(), "/debugDump");
+            if (!debugDumpPath.exists()) {
+                debugDumpPath.mkdir();
             }
         }
-        return result;
-    }
-
-    static class TransformListener extends AgentBuilder.Listener.Adapter {
 
         @Override
         public void onTransformation(TypeDescription typeDescription, ClassLoader classLoader, JavaModule module,
                                      boolean loaded, DynamicType dynamicType) {
-            LOGGER.info("onTransformation: {} loaded: {} from classLoader {}", typeDescription.getName(), loaded, classLoader);
+            LOGGER.info("[arex] onTransformation: {} loaded: {} from classLoader {}", typeDescription.getName(), loaded, classLoader);
+            saveDebugDump(dynamicType);
         }
 
         @Override
         public void onError(String typeName, ClassLoader classLoader, JavaModule module, boolean loaded,
                             Throwable throwable) {
-            LOGGER.error("onError: {} loaded: {} from classLoader {}, throwable: {}", typeName, loaded, classLoader, throwable);
+            LOGGER.error("[arex] onError: {} loaded: {} from classLoader {}, throwable: {}", typeName, loaded, classLoader, throwable);
         }
+
+        private void saveDebugDump(DynamicType dynamicType) {
+            if (debugDumpPath == null) {
+                return;
+            }
+
+            try {
+                dynamicType.saveIn(debugDumpPath);
+            } catch (IOException e) {
+                LOGGER.error("save class: {} failed, exception: {}", dynamicType.getTypeDescription().getActualName(), e.getMessage());
+            }
+        }
+    }
+
+    public boolean disabledModule(String moduleName) {
+        return ConfigManager.INSTANCE.getDisabledInstrumentationModules().contains(moduleName);
     }
 }

@@ -19,7 +19,7 @@ public class AdviceInjectorCache {
     }
 
     public static Class<?> getAdviceClass(String name, ClassLoader loader) {
-        if (loader == null) {
+        if (loader == null || injectorCache == null) {
             return null;
         }
 

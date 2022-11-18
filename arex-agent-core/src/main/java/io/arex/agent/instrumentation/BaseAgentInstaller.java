@@ -40,14 +40,10 @@ public abstract class BaseAgentInstaller implements AgentInstaller {
         TraceContextManager.init(NetUtils.getIpAddress());
     }
 
-    private void transform() {
-        transformer = invoke();
-    }
-
-    protected abstract ResettableClassFileTransformer invoke();
+    protected abstract ResettableClassFileTransformer transform();
 
     @Override
     public ClassLoader getClassLoader() {
-        return null;
+        return getClass().getClassLoader();
     }
 }

@@ -1,5 +1,6 @@
 package io.arex.foundation.util;
 
+import java.util.Iterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,6 +15,21 @@ import java.util.ServiceLoader;
 public class SPIUtil {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(SPIUtil.class);
+
+    @SuppressWarnings("ForEachIterable")
+    public static <T> List<T> load(Class<T> serviceClass) {
+        List<T> result = new ArrayList<>();
+        java.util.ServiceLoader<T> services = ServiceLoader.load(serviceClass);
+        for (Iterator<T> iter = services.iterator(); iter.hasNext(); ) {
+            try {
+                result.add(iter.next());
+            } catch (Throwable e) {
+                LOGGER.warn("Unable to load class: {} from classloader: {}, throwable: {}",
+                    serviceClass.getName(), serviceClass.getClassLoader(), e.toString());
+            }
+        }
+        return result;
+    }
 
     public static <T> ServiceLoader<T> load(Class<T> spiType, String moduleName, String jarName) {
         try {
