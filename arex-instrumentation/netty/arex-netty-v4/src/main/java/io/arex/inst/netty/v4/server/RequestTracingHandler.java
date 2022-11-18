@@ -32,7 +32,7 @@ public class RequestTracingHandler extends ChannelInboundHandlerAdapter {
             }
 
             CaseListenerImpl.INSTANCE.onEvent(
-                    new CaseEvent(StringUtil.isEmpty(caseId) ? StringUtil.EMPTY : caseId, CaseEvent.Action.CREATE));
+                    new CaseEvent(StringUtil.defaultString(caseId), CaseEvent.Action.CREATE));
             if (ContextManager.needRecordOrReplay()) {
                 ServiceEntranceMocker mocker = new ServiceEntranceMocker();
                 mocker.setMethod(request.method().name());
@@ -59,13 +59,21 @@ public class RequestTracingHandler extends ChannelInboundHandlerAdapter {
     }
 
     private boolean shouldSkip(HttpRequest request, String caseId) {
+        String forceRecord = request.headers().get(Constants.FORCE_RECORD);
+        // Do not skip if header with arex-force-record=true
+        if (StringUtil.isEmpty(caseId) && Boolean.parseBoolean(forceRecord)) {
+            return false;
+        }
+
+        // Skip if request header with arex-replay-warm-up=true
+        if (Boolean.parseBoolean(request.headers().get(Constants.REPLAY_WARM_UP))) {
+            return true;
+        }
+
         if (CaseInitializer.exceedRecordRate(caseId, request.uri())) {
             return true;
         }
 
-        if (Boolean.parseBoolean(request.headers().get(Constants.REPLAY_WARM_UP))) {
-            return false;
-        }
         return IgnoreService.isServiceEnabled(request.method().toString() + " " + request.uri());
     }
 }

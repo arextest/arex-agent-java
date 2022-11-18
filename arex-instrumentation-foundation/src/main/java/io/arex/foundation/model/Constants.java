@@ -20,4 +20,6 @@ public class Constants {
     public static final String REPLAY_ID = "arex-replay-id";
     public static final String REPLAY_WARM_UP = "arex-replay-warm-up";
 
+    public static final String FORCE_RECORD = "arex-force-record";
+
 }

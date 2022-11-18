@@ -142,13 +142,14 @@ public class ServletAdviceHelper {
 
     private static <TRequest> boolean shouldSkip(ServletAdapter<TRequest, ?> adapter,
                                                  TRequest httpServletRequest) {
-        String uri = adapter.getRequestURI(httpServletRequest);
-        // check record rate limit
-        if (CaseInitializer.exceedRecordRate(adapter.getRequestHeader(httpServletRequest, Constants.RECORD_ID), uri)) {
-            return true;
+        String caseId = adapter.getRequestHeader(httpServletRequest, Constants.RECORD_ID);
+        String forceRecord = adapter.getRequestHeader(httpServletRequest, Constants.FORCE_RECORD);
+        // Do not skip if header with arex-force-record=true
+        if (StringUtil.isEmpty(caseId) && Boolean.parseBoolean(forceRecord)) {
+            return false;
         }
 
-        // Do nothing if request header with arex-replay-warm-up
+        // Skip if request header with arex-replay-warm-up=true
         if (Boolean.parseBoolean(adapter.getRequestHeader(httpServletRequest, Constants.REPLAY_WARM_UP))) {
             return true;
         }
@@ -161,6 +162,11 @@ public class ServletAdviceHelper {
 
         // Filter invalid content-type
         String contentType = adapter.getContentType(httpServletRequest);
-        return StringUtil.isEmpty(contentType) || FILTERED_CONTENT_TYPE.stream().anyMatch(contentType::contains);
+        if (StringUtil.isEmpty(contentType) || FILTERED_CONTENT_TYPE.stream().anyMatch(contentType::contains)) {
+            return true;
+        }
+
+        String uri = adapter.getRequestURI(httpServletRequest);
+        return CaseInitializer.exceedRecordRate(caseId, uri);
     }
 }
