@@ -8,6 +8,7 @@ import io.arex.foundation.model.DynamicClassEntity;
 import io.arex.foundation.util.CollectionUtil;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -29,6 +30,11 @@ public class DynamicClassModuleInstrumentation extends ModuleInstrumentation {
     public List<TypeInstrumentation> instrumentationTypes() {
         List<TypeInstrumentation> typeInstList = new ArrayList<>();
         List<DynamicClassEntity> dynamicClassList = ConfigManager.INSTANCE.getDynamicClassList();
+
+        if (CollectionUtil.isEmpty(dynamicClassList)) {
+            return Collections.emptyList();
+        }
+
         if (CollectionUtil.isNotEmpty(dynamicClassList)) {
             Map<String, List<DynamicClassEntity>> dynamicMap = dynamicClassList.stream().collect(Collectors.groupingBy(
                     DynamicClassEntity::getClazzName));

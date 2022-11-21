@@ -12,8 +12,10 @@ public class DynamicClassEntity {
     private final String clazzName;
     private final String operation;
     private final String parameterTypes;
+    private final String keyFormula;
+    private final String returnType;
     private List<String> parameters;
-    public DynamicClassEntity(String clazzName, String operation, String parameterTypes) {
+    public DynamicClassEntity(String clazzName, String operation, String parameterTypes, String keyFormula) {
         this.clazzName = clazzName;
         this.operation = operation;
         this.parameterTypes = parameterTypes;
@@ -27,6 +29,10 @@ public class DynamicClassEntity {
                 }
             }
         }
+
+        // fix dynamic response type is generic type
+        this.keyFormula = keyFormula;
+        this.returnType = null;
     }
 
     public String getClazzName() {
@@ -37,16 +43,27 @@ public class DynamicClassEntity {
         return this.operation;
     }
 
+    public String getKeyFormula() {
+        return keyFormula;
+    }
+
+    public String getReturnType() {
+        return returnType;
+    }
+
     public List<String> getParameters() {
         return this.parameters;
     }
 
+
     @Override
     public String toString() {
-        final StringBuilder builder = new StringBuilder("DynamicClassEntity{");
+        final StringBuilder builder = new StringBuilder("{");
         builder.append("clazzName=").append(clazzName);
         builder.append(", operation=").append(operation);
         builder.append(", parameterTypes=").append(parameterTypes);
+        builder.append(", keyFormula=").append(keyFormula);
+        builder.append(", returnType=").append(returnType);
         builder.append('}');
         return builder.toString();
     }

@@ -59,6 +59,11 @@ public class RequestTracingHandler extends ChannelInboundHandlerAdapter {
     }
 
     private boolean shouldSkip(HttpRequest request, String caseId) {
+        // Replay scene
+        if (StringUtil.isNotEmpty(caseId)) {
+            return false;
+        }
+
         String forceRecord = request.headers().get(Constants.FORCE_RECORD);
         // Do not skip if header with arex-force-record=true
         if (StringUtil.isEmpty(caseId) && Boolean.parseBoolean(forceRecord)) {
@@ -70,7 +75,7 @@ public class RequestTracingHandler extends ChannelInboundHandlerAdapter {
             return true;
         }
 
-        if (CaseInitializer.exceedRecordRate(caseId, request.uri())) {
+        if (CaseInitializer.exceedRecordRate(request.uri())) {
             return true;
         }
 

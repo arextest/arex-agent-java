@@ -1,9 +1,29 @@
 package io.arex.inst.dynamic;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
+
 import io.arex.foundation.api.MethodInstrumentation;
 import io.arex.foundation.context.ArexContext;
 import io.arex.foundation.context.ContextManager;
 import io.arex.foundation.model.DynamicClassEntity;
+import io.arex.foundation.util.StringUtil;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
+import net.bytebuddy.ByteBuddy;
+import net.bytebuddy.agent.builder.AgentBuilder;
+import net.bytebuddy.agent.builder.ResettableClassFileTransformer;
+import net.bytebuddy.description.method.MethodDescription;
+import net.bytebuddy.description.method.MethodDescription.ForLoadedMethod;
+import net.bytebuddy.matcher.ElementMatcher;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -11,21 +31,18 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.function.Predicate;
-import java.util.stream.Stream;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 @ExtendWith(MockitoExtension.class)
 class DynamicClassInstrumentationTest {
     static DynamicClassInstrumentation target = null;
-    static List<DynamicClassEntity> dynamicClassList = Collections.singletonList(new DynamicClassEntity("", "", ""));
+    static List<DynamicClassEntity> dynamicClassList = Collections.singletonList(
+        new DynamicClassEntity("", "", "", null));
+
+    DynamicClassInstrumentationTest() {
+    }
 
     @BeforeAll
     static void setUp() {
@@ -40,25 +57,60 @@ class DynamicClassInstrumentationTest {
 
     @Test
     void typeMatcher() {
-        assertNotNull(target.typeMatcher());
+        assertNotNull(target.matcher());
     }
 
-    @ParameterizedTest()
+    @ParameterizedTest(name = "[{index}] {0}")
     @MethodSource("methodAdvicesCase")
-    void methodAdvices(List<DynamicClassEntity> dynamicClassList, Predicate<List<MethodInstrumentation>> predicate) {
+    void testMethodAdvices(String testName, List<DynamicClassEntity> dynamicClassList, Predicate<List<MethodInstrumentation>> predicate) {
         target = new DynamicClassInstrumentation(dynamicClassList);
-        List<MethodInstrumentation> result = target.methodAdvices();
-        assertTrue(predicate.test(result));
+        List<MethodInstrumentation> methodAdvices = target.methodAdvices();
+        assertTrue(predicate.test(methodAdvices));
+    }
+
+    static Predicate<List<MethodInstrumentation>> NOT_EMPTY_PREDICATE = result -> !result.isEmpty();
+
+    static int matchedMethodCount(ElementMatcher<? super MethodDescription> matcher, Class<?> matchedClazz) {
+        Method[] methods = matchedClazz.getDeclaredMethods();
+        List<String> matchedMethods = new ArrayList<>();
+        List<String> nonMatchedMethods = new ArrayList<>();
+        for (Method method : methods) {
+            if (matcher.matches(new ForLoadedMethod(method))) {
+                matchedMethods.add(method.getName());
+            } else {
+                nonMatchedMethods.add(method.getName());
+            }
+        }
+
+        StringBuilder builder = new StringBuilder();
+        builder.append("matcher: ").append(matcher.toString()).append("\n")
+            .append("matched Class: ").append(matchedClazz.getName()).append("\n")
+            .append("matched ").append(matchedMethods.size()).append(" methods: ")
+            .append(StringUtil.join(matchedMethods, ", ")).append("\n")
+            .append("matched ").append(nonMatchedMethods.size()).append(" methods: ")
+            .append(StringUtil.join(nonMatchedMethods, ", ")).append("\n");
+        System.out.println(builder);
+
+        return matchedMethods.size();
     }
 
     static Stream<Arguments> methodAdvicesCase() {
-        Predicate<List<MethodInstrumentation>> predicate = result -> !result.isEmpty();
+        DynamicClassEntity emptyOperation = new DynamicClassEntity("io.arex.inst.dynamic.DynamicTestClass", "", "", "");
+        Predicate<List<MethodInstrumentation>> emptyOperationPredicate = methodAdvices -> {
+            ElementMatcher<? super MethodDescription> matcher = methodAdvices.get(0).getMethodMatcher();
+            return methodAdvices.size() == 1 && matchedMethodCount(matcher, DynamicTestClass.class) == 2;
+        };
+
+        DynamicClassEntity testReturnVoidEntity = new DynamicClassEntity("io.arex.inst.dynamic.DynamicTestClass", "testReturnVoid", "", "");
+        DynamicClassEntity testReturnVoidWithParameterEntity = new DynamicClassEntity("io.arex.inst.dynamic.DynamicTestClass", "testReturnVoidWithParameter", "java.lang.String", "java.lang.System.currentTimeMillis");
+        Predicate<List<MethodInstrumentation>> emptyOperationAndVoidPredicate = methodAdvices -> {
+            ElementMatcher<? super MethodDescription> matcher = methodAdvices.get(0).getMethodMatcher();
+            return methodAdvices.size() == 1 && matchedMethodCount(matcher, DynamicTestClass.class) == 3;
+        };
 
         return Stream.of(
-                arguments(Collections.singletonList(new DynamicClassEntity(
-                        "java.lang.System", "", "")), predicate),
-                arguments(Collections.singletonList(new DynamicClassEntity(
-                        "java.lang.System", "getenv", "java.lang.String")), predicate)
+            arguments("should_match_2_methods_when_empty_operation", Collections.singletonList(emptyOperation), NOT_EMPTY_PREDICATE.and(emptyOperationPredicate)),
+            arguments("should_match_4_method_when_with_return_void", Arrays.asList(emptyOperation, testReturnVoidEntity, testReturnVoidWithParameterEntity), NOT_EMPTY_PREDICATE.and(emptyOperationAndVoidPredicate))
         );
     }
 
@@ -88,5 +140,29 @@ class DynamicClassInstrumentationTest {
                 arguments(mockerNeedReplay),
                 arguments(mockerNeedRecord)
         );
+    }
+
+    @Test
+    void testTransformer() {
+        DynamicClassEntity testReturnPrimitiveType = new DynamicClassEntity("io.arex.inst.dynamic.DynamicTestClass", "testReturnPrimitiveType", "", "java.lang.System.currentTimeMillis");
+        DynamicClassEntity testReturnNonPrimitiveType = new DynamicClassEntity("io.arex.inst.dynamic.DynamicTestClass", "testReturnNonPrimitiveType", "", "java.util.UUID.randomUUID");
+        DynamicClassInstrumentation instrumentation = new DynamicClassInstrumentation(Arrays.asList(testReturnPrimitiveType, testReturnNonPrimitiveType));
+        try (MockedStatic<ReplaceMethodHelper> replaceTimeMillsMockMockedStatic = Mockito.mockStatic(
+            ReplaceMethodHelper.class)) {
+            replaceTimeMillsMockMockedStatic.when(ReplaceMethodHelper::currentTimeMillis).thenReturn(3L);
+            replaceTimeMillsMockMockedStatic.when(ReplaceMethodHelper::uuid).thenReturn(UUID.fromString("7eb4f958-671a-11ed-9022-0242ac120002"));
+
+
+            ResettableClassFileTransformer resettableClassFileTransformer =
+            new AgentBuilder.Default(new ByteBuddy())
+                .type(instrumentation.matcher())
+                .transform(instrumentation.transformer())
+                .installOnByteBuddyAgent();
+
+            DynamicTestClass testClass = new DynamicTestClass();
+//            assertEquals(3L, testClass.testReturnPrimitiveType());
+//            assertEquals("7eb4f958-671a-11ed-9022-0242ac120002", testClass.testReturnNonPrimitiveType());
+        }
+
     }
 }

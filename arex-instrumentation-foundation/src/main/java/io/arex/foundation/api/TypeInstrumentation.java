@@ -1,5 +1,6 @@
 package io.arex.foundation.api;
 
+import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
 
@@ -17,6 +18,10 @@ public abstract class TypeInstrumentation {
 
     // todo: auto find advice class
     public List<String> adviceClassNames() {
+        return null;
+    }
+
+    public AgentBuilder.Transformer transformer() {
         return null;
     }
 }

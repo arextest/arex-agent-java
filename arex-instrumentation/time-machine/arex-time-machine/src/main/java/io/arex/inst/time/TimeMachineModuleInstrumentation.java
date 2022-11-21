@@ -4,11 +4,8 @@ import com.google.auto.service.AutoService;
 import io.arex.foundation.api.ModuleInstrumentation;
 import io.arex.foundation.api.TypeInstrumentation;
 import io.arex.foundation.config.ConfigManager;
-
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
-
-import static java.util.Collections.singletonList;
 
 /**
  * TimeMachineModuleInstrumentation
@@ -16,15 +13,18 @@ import static java.util.Collections.singletonList;
 @AutoService(ModuleInstrumentation.class)
 public class TimeMachineModuleInstrumentation extends ModuleInstrumentation {
 
+
     public TimeMachineModuleInstrumentation() {
         super("time-machine");
     }
 
     @Override
     public List<TypeInstrumentation> instrumentationTypes() {
+        List<TypeInstrumentation> typeInstList = new ArrayList<>();
+
         if (ConfigManager.INSTANCE.startTimeMachine()) {
-            return singletonList(new TimeMachineInstrumentation());
+            typeInstList.add(new TimeMachineInstrumentation());
         }
-        return Collections.emptyList();
+        return typeInstList;
     }
 }

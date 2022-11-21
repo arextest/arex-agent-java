@@ -17,7 +17,7 @@ public class RecordHandler extends ApiHandler {
                         result.append("turn off record.");
                         break;
                     case "r": // set record rate
-                        ConfigManager.INSTANCE.setRecordRate(Integer.parseInt(argEntry.getValue()));
+                        ConfigManager.INSTANCE.setRecordRate(argEntry.getValue());
                         result.append("reset record rate.");
                         break;
                     default:

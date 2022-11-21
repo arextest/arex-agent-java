@@ -202,6 +202,7 @@ public class ConfigService {
         private String fullClassName;
         private String methodName;
         private String parameterTypes;
+        private String keyFormula;
         public String getFullClassName() {
             return fullClassName;
         }
@@ -224,6 +225,14 @@ public class ConfigService {
 
         public void setParameterTypes(String parameterTypes) {
             this.parameterTypes = parameterTypes;
+        }
+
+        public String getKeyFormula() {
+            return keyFormula;
+        }
+
+        public void setKeyFormula(String keyFormula) {
+            this.keyFormula = keyFormula;
         }
     }
 

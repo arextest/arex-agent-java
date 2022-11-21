@@ -7,9 +7,7 @@ import io.arex.foundation.services.TimerService;
 import io.arex.foundation.util.CollectionUtil;
 import io.arex.foundation.util.PropertyUtil;
 import io.arex.foundation.util.StringUtil;
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,6 +44,8 @@ public class ConfigManager {
     private static final String ALLOW_DAY_WEEKS = "arex.allow.day.weeks";
     private static final String ALLOW_TIME_FROM = "arex.allow.time.from";
     private static final String ALLOW_TIME_TO = "arex.allow.time.to";
+
+    private static final String DISABLE_INSTRUMENTATION_MODULE = "arex.disable.instrumentation.module";
     private boolean enableDebug;
     private String agentVersion;
     private String serviceName;
@@ -68,6 +68,7 @@ public class ConfigManager {
     private EnumSet<DayOfWeek> allowDayOfWeeks;
     private LocalTime allowTimeOfDayFrom;
     private LocalTime allowTimeOfDayTo;
+    private List<String> disabledInstrumentationModules;
 
     private static List<ConfigListener> listeners = new ArrayList<ConfigListener>();
     private static boolean stopped = false;
@@ -119,12 +120,16 @@ public class ConfigManager {
         System.setProperty(STORAGE_SERVICE_HOST, storageServiceHost);
     }
 
-    public void setRecordRate(int recordRate) {
-        if (recordRate <= 0) {
+    public void setRecordRate(String recordRate) {
+        if (StringUtil.isEmpty(recordRate)) {
             return;
         }
-        this.recordRate = recordRate;
-        System.setProperty(RECORD_RATE, String.valueOf(recordRate));
+        int rate = Integer.parseInt(recordRate);
+        if (rate <= 0) {
+            return;
+        }
+        this.recordRate = rate;
+        System.setProperty(RECORD_RATE, recordRate);
     }
 
     public void setDynamicResultSizeLimit(String dynamicResultSizeLimit) {
@@ -135,31 +140,34 @@ public class ConfigManager {
         System.setProperty(DYNAMIC_RESULT_SIZE_LIMIT, dynamicResultSizeLimit);
     }
 
-    public void setTimeMachine(boolean timeMachine) {
-        this.startTimeMachine = timeMachine;
-        System.setProperty(TIME_MACHINE, BooleanUtils.toStringTrueFalse(timeMachine));
+    public void setTimeMachine(String timeMachine) {
+        if (StringUtil.isEmpty(timeMachine)) {
+            return;
+        }
+        this.startTimeMachine = Boolean.parseBoolean(timeMachine);
+        System.setProperty(TIME_MACHINE, timeMachine);
     }
 
     public void setDynamicClassList(List<ConfigService.DynamicClassConfiguration> dynamicClassConfigList) {
         if (CollectionUtil.isEmpty(dynamicClassConfigList)) {
             return;
         }
-        List<DynamicClassEntity> dynamicClassEntityList = new ArrayList<>();
-        for (ConfigService.DynamicClassConfiguration dynamicClassConfig : dynamicClassConfigList) {
-            dynamicClassEntityList.add(new DynamicClassEntity(dynamicClassConfig.getFullClassName(),
-                    dynamicClassConfig.getMethodName(), dynamicClassConfig.getParameterTypes()));
+        List<DynamicClassEntity> resultList = new ArrayList<>(dynamicClassConfigList.size());
+        for (ConfigService.DynamicClassConfiguration config : dynamicClassConfigList) {
+            resultList.add(new DynamicClassEntity(config.getFullClassName(),
+                    config.getMethodName(), config.getParameterTypes(), config.getKeyFormula()));
         }
-        this.dynamicClassList = dynamicClassEntityList;
+        this.dynamicClassList = resultList;
     }
 
     @VisibleForTesting
     void init() {
         agentVersion = "0.0.1";
-        enableDebug = Boolean.parseBoolean(System.getProperty(ENABLE_DEBUG));
-        serviceName = StringUtils.strip(System.getProperty(SERVICE_NAME));
-        storageServiceHost = StringUtils.strip(System.getProperty(STORAGE_SERVICE_HOST));
+        setEnableDebug(System.getProperty(ENABLE_DEBUG));
+        setServiceName(StringUtils.strip(System.getProperty(SERVICE_NAME)));
+        setStorageServiceHost(StringUtils.strip(System.getProperty(STORAGE_SERVICE_HOST)));
         configPath = StringUtils.strip(System.getProperty(CONFIG_PATH));
-        recordRate = Integer.parseInt(System.getProperty(RECORD_RATE, "1"));
+        setRecordRate(System.getProperty(RECORD_RATE, "1"));
 
         storageServiceMode = System.getProperty(STORAGE_SERVICE_MODE);
         storageServiceJdbcUrl = System.getProperty(STORAGE_SERVICE_JDBC_URL, PropertyUtil.getProperty(STORAGE_SERVICE_JDBC_URL));
@@ -168,11 +176,12 @@ public class ConfigManager {
         storageServiceWebPort = System.getProperty(STORAGE_SERVICE_WEB_PORT, PropertyUtil.getProperty(STORAGE_SERVICE_WEB_PORT));
         serverServiceTcpPort = System.getProperty(SERVER_SERVICE_TCP_PORT, PropertyUtil.getProperty(SERVER_SERVICE_TCP_PORT));
 
-        dynamicResultSizeLimit = Integer.parseInt(System.getProperty(DYNAMIC_RESULT_SIZE_LIMIT, "1000"));
-        startTimeMachine = BooleanUtils.toBoolean(System.getProperty(TIME_MACHINE, Boolean.FALSE.toString()));
+        setDynamicResultSizeLimit(System.getProperty(DYNAMIC_RESULT_SIZE_LIMIT, "1000"));
+        setTimeMachine(System.getProperty(TIME_MACHINE));
         setAllowDayOfWeeks(Integer.parseInt(System.getProperty(ALLOW_DAY_WEEKS, "127")));
         setAllowTimeOfDayFrom(System.getProperty(ALLOW_TIME_FROM, "00:01"));
         setAllowTimeOfDayTo(System.getProperty(ALLOW_TIME_TO, "23:59"));
+        setDisabledInstrumentationModules(System.getProperty(DISABLE_INSTRUMENTATION_MODULE));
 
         TimerService.scheduleAtFixedRate(ConfigManager::update, 300, 300, TimeUnit.SECONDS);
     }
@@ -193,10 +202,11 @@ public class ConfigManager {
         setEnableDebug(configMap.get(ENABLE_DEBUG));
         setServiceName(configMap.get(SERVICE_NAME));
         setStorageServiceHost(configMap.get(STORAGE_SERVICE_HOST));
-        setRecordRate(NumberUtils.toInt(configMap.get(RECORD_RATE)));
+        setRecordRate(configMap.get(RECORD_RATE));
         setDynamicResultSizeLimit(configMap.get(DYNAMIC_RESULT_SIZE_LIMIT));
-        setTimeMachine(BooleanUtils.toBoolean(configMap.get(TIME_MACHINE)));
+        setTimeMachine(configMap.get(TIME_MACHINE));
         setStorageServiceMode(configMap.get(STORAGE_SERVICE_MODE));
+        setDisabledInstrumentationModules(configMap.get(DISABLE_INSTRUMENTATION_MODULE));
     }
 
     private static Map<String, String> parseConfigFile(String configPath) {
@@ -373,8 +383,8 @@ public class ConfigManager {
 
     public void parseServiceConfig(ConfigService.ResponseBody serviceConfig) {
         ConfigService.ServiceCollectConfig config = serviceConfig.getServiceCollectConfiguration();
-        setRecordRate(config.getSampleRate());
-        setTimeMachine(config.isTimeMock());
+        setRecordRate(String.valueOf(config.getSampleRate()));
+        setTimeMachine(String.valueOf(config.isTimeMock()));
         setAllowDayOfWeeks(config.getAllowDayOfWeeks());
         setAllowTimeOfDayFrom(config.getAllowTimeOfDayFrom());
         setAllowTimeOfDayTo(config.getAllowTimeOfDayTo());
@@ -399,6 +409,21 @@ public class ConfigManager {
         }
         LocalDateTime nextTime = LocalDateTime.of(dateTime.toLocalDate(), allowTimeOfDayFrom);
         return Duration.between(LocalDateTime.now(), nextTime).toMillis();
+    }
+
+    public List<String> getDisabledInstrumentationModules() {
+        return disabledInstrumentationModules;
+    }
+
+    public void setDisabledInstrumentationModules(String disabledInstrumentationModules) {
+        if (StringUtil.isEmpty(disabledInstrumentationModules)) {
+            if (this.disabledInstrumentationModules == null) {
+                this.disabledInstrumentationModules = Collections.emptyList();
+            }
+        }
+
+        this.disabledInstrumentationModules = new ArrayList<>(
+            Arrays.asList(StringUtil.split(disabledInstrumentationModules, ',')));
     }
 
     @Override
