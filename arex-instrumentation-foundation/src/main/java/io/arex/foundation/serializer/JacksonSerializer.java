@@ -34,7 +34,11 @@ import java.util.regex.Pattern;
 public final class JacksonSerializer implements SerializeUtils.StringSerializable {
     public static final String EXTENSION = "json";
 
-    private static List<String> MYBATIS_PLUS_CLASS_LIST = Arrays.asList("com.baomidou.mybatisplus.core.conditions.query.QueryWrapper", "com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper");
+    private static List<String> MYBATIS_PLUS_CLASS_LIST = Arrays.asList(
+            "com.baomidou.mybatisplus.core.conditions.query.QueryWrapper",
+            "com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper",
+            "com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper",
+            "com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper");
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JacksonSerializer.class);
 

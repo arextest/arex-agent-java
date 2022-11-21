@@ -18,6 +18,6 @@ public class MyBatisModuleInstrumentation extends ModuleInstrumentation {
 
     @Override
     public List<TypeInstrumentation> instrumentationTypes() {
-        return singletonList(new DefaultSqlSessionInstrumentation());
+        return singletonList(new ExecutorInstrumentation());
     }
 }
