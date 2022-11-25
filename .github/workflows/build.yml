@@ -1,7 +1,7 @@
 # This workflow will build a Java project with Maven, and cache/restore any dependencies to improve the workflow execution time
 # For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-maven
 
-name: Java CI with Maven
+name: Build and Test
 
 on: [push, pull_request, workflow_dispatch]
 
@@ -24,7 +24,7 @@ jobs:
       
   unit-test:
     needs: [build-source]
-    name: Unit test and sonar analyze
+    name: Unit Test and Sonar Analyze
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -50,7 +50,7 @@ jobs:
         path: ~/.m2
         key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
         restore-keys: ${{ runner.os }}-m2
-    - name: Maven test with sonar scan
+    - name: Maven Test with SonarCloud Scan
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
