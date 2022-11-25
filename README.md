@@ -1,4 +1,6 @@
-[![codecov](https://codecov.io/gh/arextest/arex-agent-java/branch/main/graph/badge.svg)](https://app.codecov.io/gh/arextest/arex-agent-java) 
+[![Build Status](https://github.com/arextest/arex-agent-java/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/arextest/arex-agent-java/actions/workflows/build.yml)
+[![codecov](https://codecov.io/gh/arextest/arex-agent-java/branch/main/graph/badge.svg)](https://app.codecov.io/gh/arextest/arex-agent-java)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=arextest_arex-agent-java&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=arextest_arex-agent-java)
 
 # <img src="https://avatars.githubusercontent.com/u/103105168?s=200&v=4" alt="Arex Icon" width="27" height=""> AREX
 
