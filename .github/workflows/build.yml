@@ -6,13 +6,11 @@ name: Java CI with Maven
 on: [push, pull_request, workflow_dispatch]
 
 jobs:
-  build:
-
+  build-source:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         java-version: [ 8, 11 ]
-
     steps:
     - uses: actions/checkout@v3
     - name: "Set up JDK ${{ matrix.java-version }}"
@@ -22,6 +20,41 @@ jobs:
         distribution: 'temurin'
         cache: maven
     - name: Build with Maven
-      run: mvn --batch-mode --no-transfer-progress package --file pom.xml
+      run: mvn --batch-mode --no-transfer-progress clean package --file pom.xml -DskipTests=true
+      
+  unit-test:
+    needs: [build-source]
+    name: Unit test and sonar analyze
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+    - name: "Set up JDK 11"
+      uses: actions/setup-java@v3
+      with:
+        java-version: 11
+        distribution: 'temurin'
+        cache: maven
+    - name: Cache SonarCloud packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.sonar/cache
+        key: ${{ runner.os }}-sonar
+        restore-keys: ${{ runner.os }}-sonar
+    - name: Cache Maven packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-m2
+    - name: Maven test with sonar scan
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      run: mvn --batch-mode --no-transfer-progress --fail-fast clean test verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=arextest_arex-agent-java -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=arextest -Dsonar.login=${SONAR_TOKEN} -DskipTests=false
     - name: Codecov
       uses: codecov/codecov-action@v3.1.0
+    
