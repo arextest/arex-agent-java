@@ -2,14 +2,19 @@ package io.arex.inst.httpservlet.inst;
 
 import io.arex.foundation.api.MethodInstrumentation;
 import io.arex.foundation.api.TypeInstrumentation;
-import io.arex.inst.httpservlet.ServletAdviceHelper;
+import io.arex.foundation.context.ContextManager;
+import io.arex.inst.httpservlet.ServletConstants;
 import io.arex.inst.httpservlet.adapter.ServletAdapter;
 import io.arex.inst.httpservlet.adapter.impl.ServletAdapterImplV3;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.context.request.NativeWebRequest;
+import org.springframework.web.context.request.async.DeferredResult;
 import org.springframework.web.method.support.InvocableHandlerMethod;
 
 import javax.servlet.http.HttpServletRequest;
@@ -56,7 +61,32 @@ public class InvocableHandlerInstrumentationV3 extends TypeInstrumentation {
         @Advice.OnMethodExit
         public static void onExit(@Advice.Argument(0) NativeWebRequest nativeWebRequest,
             @Advice.This InvocableHandlerMethod invocableHandlerMethod, @Advice.Return Object response) {
-            ServletAdviceHelper.onInvokeForRequestExit(ADAPTER, nativeWebRequest, invocableHandlerMethod, response);
+            if (response == null) {
+                return;
+            }
+
+            if (!ContextManager.needRecordOrReplay()) {
+                return;
+            }
+
+            // Do not set when async request
+            if (response instanceof CompletableFuture || response instanceof DeferredResult
+                || response instanceof Callable) {
+                return;
+            }
+
+            // Set response only when return response body
+            if (!invocableHandlerMethod.getReturnType().hasMethodAnnotation(ResponseBody.class)) {
+                return;
+            }
+
+            HttpServletRequest httpServletRequest = nativeWebRequest.getNativeRequest(HttpServletRequest.class);
+
+            if (httpServletRequest == null) {
+                return;
+            }
+
+            ADAPTER.setAttribute(httpServletRequest, ServletConstants.SERVLET_RESPONSE, response);
         }
     }
 }

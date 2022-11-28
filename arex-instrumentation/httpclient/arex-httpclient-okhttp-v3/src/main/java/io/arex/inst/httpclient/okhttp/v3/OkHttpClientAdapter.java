@@ -1,6 +1,7 @@
 package io.arex.inst.httpclient.okhttp.v3;
 
 
+import io.arex.foundation.util.StringUtil;
 import io.arex.inst.httpclient.common.HttpClientAdapter;
 import io.arex.inst.httpclient.common.HttpResponseWrapper;
 import io.arex.inst.httpclient.common.HttpResponseWrapper.StringTuple;
@@ -80,6 +81,9 @@ public class OkHttpClientAdapter implements HttpClientAdapter<Request, Response>
         }
         List<StringTuple> encodeHeaders = new ArrayList<>(headers.size());
         for (int i = 0; i < headers.size(); i++) {
+            if (StringUtil.isEmpty(headers.name(i))) {
+                continue;
+            }
             encodeHeaders.add(new StringTuple(headers.name(i), headers.value(i)));
         }
         return encodeHeaders;

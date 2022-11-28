@@ -1,5 +1,6 @@
 package io.arex.inst.httpclient.apache.common;
 
+import io.arex.foundation.util.StringUtil;
 import io.arex.inst.httpclient.common.HttpClientAdapter;
 import io.arex.inst.httpclient.common.HttpResponseWrapper;
 import io.arex.inst.httpclient.common.HttpResponseWrapper.StringTuple;
@@ -101,6 +102,9 @@ public class ApacheHttpClientAdapter implements HttpClientAdapter<HttpRequest, H
         Locale locale = response.getLocale();
         List<HttpResponseWrapper.StringTuple> headers = new ArrayList<>();
         for (Header header : response.getAllHeaders()) {
+            if (StringUtil.isEmpty(header.getName())) {
+                continue;
+            }
             headers.add(new HttpResponseWrapper.StringTuple(header.getName(), header.getValue()));
         }
 
