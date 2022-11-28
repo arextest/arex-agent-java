@@ -93,6 +93,20 @@ public class HttpResponseWrapper {
         public String value() {
             return s;
         }
+
+        /**
+         * Just for serialization
+         */
+        public String getF() {
+            return f;
+        }
+
+        /**
+         * Just for serialization
+         */
+        public String getS() {
+            return s;
+        }
     }
 
     public static HttpResponseWrapper of(ExceptionWrapper exception) {
