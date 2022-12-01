@@ -2,6 +2,7 @@ package io.arex.inst.database.mybatis3;
 
 import io.arex.foundation.context.ContextManager;
 import io.arex.foundation.context.RepeatedCollectManager;
+import io.arex.foundation.model.MockResult;
 import io.arex.inst.database.common.DatabaseExtractor;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -14,10 +15,12 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.sql.SQLException;
+import java.util.Collections;
+import java.util.Objects;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 @ExtendWith(MockitoExtension.class)
@@ -55,44 +58,45 @@ class ExecutorInstrumentationTest {
 
     @Test
     void onEnter() throws SQLException {
-        assertFalse(ExecutorInstrumentation.QueryAdvice.onMethodEnter());
-        assertFalse(ExecutorInstrumentation.Query1Advice.onMethodEnter());
+        Mockito.when(ContextManager.needReplay()).thenReturn(true);
+        assertFalse(ExecutorInstrumentation.QueryAdvice.onMethodEnter(null, null, null, MockResult.of("mock")));
+        assertFalse(ExecutorInstrumentation.Query1Advice.onMethodEnter(MockResult.of("mock"), null, null));
         Mockito.when(ContextManager.needRecordOrReplay()).thenReturn(true);
-        assertFalse(ExecutorInstrumentation.UpdateAdvice.onMethodEnter(null, null, null));
+        assertFalse(ExecutorInstrumentation.UpdateAdvice.onMethodEnter(null, null, null, null));
     }
 
     @ParameterizedTest
     @MethodSource("onExitCase")
-    void onExit(Runnable mocker) throws SQLException {
+    void onExit(Runnable mocker, MockResult mockResult, Predicate<MockResult> predicate) {
         mocker.run();
-        ExecutorInstrumentation.QueryAdvice.onExit(null, null, null, null, null);
-        ExecutorInstrumentation.Query1Advice.onExit(null, null, null, null);
+        ExecutorInstrumentation.QueryAdvice.onExit(null, null, null, null, null, mockResult);
+        ExecutorInstrumentation.Query1Advice.onExit(null, null, null, null, mockResult);
+        assertTrue(predicate.test(mockResult));
     }
 
     static Stream<Arguments> onExitCase() {
-        Runnable needReplay = () -> {
-            Mockito.when(ContextManager.needReplay()).thenReturn(true);
-        };
+        Runnable emptyMocker = () -> {};
         Runnable exitAndValidate = () -> {
-            Mockito.when(ContextManager.needReplay()).thenReturn(false);
+            Mockito.when(RepeatedCollectManager.exitAndValidate()).thenReturn(false);
         };
         Runnable needRecord = () -> {
-            Mockito.when(ContextManager.needReplay()).thenReturn(false);
             Mockito.when(RepeatedCollectManager.exitAndValidate()).thenReturn(true);
             Mockito.when(ContextManager.needRecord()).thenReturn(true);
         };
+        Predicate<MockResult> predicate1 = Objects::isNull;
+        Predicate<MockResult> predicate2 = Objects::nonNull;
         return Stream.of(
-                arguments(needReplay),
-                arguments(exitAndValidate),
-                arguments(needRecord)
+                arguments(emptyMocker, MockResult.of(Collections.singletonList("mock")), predicate2),
+                arguments(exitAndValidate, null, predicate1),
+                arguments(needRecord, null, predicate1)
         );
     }
 
     @ParameterizedTest
     @MethodSource("onUpdateExitCase")
-    void onUpdateExit(Runnable mocker, DatabaseExtractor extractor) throws SQLException {
+    void onUpdateExit(Runnable mocker, DatabaseExtractor extractor, MockResult mockResult) throws SQLException {
         mocker.run();
-        ExecutorInstrumentation.UpdateAdvice.onExit(null, null, null, extractor, null);
+        ExecutorInstrumentation.UpdateAdvice.onExit(null, null, null, extractor, null, mockResult);
     }
 
     static Stream<Arguments> onUpdateExitCase() {
@@ -101,17 +105,15 @@ class ExecutorInstrumentationTest {
         };
         Runnable exitAndValidate = () -> {
             Mockito.when(RepeatedCollectManager.exitAndValidate()).thenReturn(true);
-            Mockito.when(ContextManager.needReplay()).thenReturn(true);
         };
         Runnable needRecord = () -> {
-            Mockito.when(ContextManager.needReplay()).thenReturn(false);
             Mockito.when(ContextManager.needRecord()).thenReturn(true);
         };
-        DatabaseExtractor extractor = new DatabaseExtractor("", "");
+        DatabaseExtractor extractor = new DatabaseExtractor("", "", "");
         return Stream.of(
-                arguments(needReplay, null),
-                arguments(exitAndValidate, extractor),
-                arguments(needRecord, extractor)
+                arguments(needReplay, null, null),
+                arguments(exitAndValidate, extractor, MockResult.of(1)),
+                arguments(needRecord, extractor, null)
         );
     }
 }

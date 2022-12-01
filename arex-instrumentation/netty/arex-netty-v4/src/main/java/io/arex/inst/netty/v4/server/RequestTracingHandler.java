@@ -4,6 +4,7 @@ import io.arex.foundation.context.ContextManager;
 import io.arex.foundation.listener.CaseEvent;
 import io.arex.foundation.listener.CaseInitializer;
 import io.arex.foundation.listener.CaseListenerImpl;
+import io.arex.foundation.listener.EventSource;
 import io.arex.foundation.model.AbstractMocker;
 import io.arex.foundation.model.Constants;
 import io.arex.foundation.model.ServiceEntranceMocker;
@@ -31,8 +32,9 @@ public class RequestTracingHandler extends ChannelInboundHandlerAdapter {
                 return;
             }
 
+            String excludeMockTemplate = request.headers().get(Constants.HEADER_EXCLUDE_MOCK);
             CaseListenerImpl.INSTANCE.onEvent(
-                    new CaseEvent(StringUtil.defaultString(caseId), CaseEvent.Action.CREATE));
+                    new CaseEvent(EventSource.of(caseId, excludeMockTemplate), CaseEvent.Action.CREATE));
             if (ContextManager.needRecordOrReplay()) {
                 ServiceEntranceMocker mocker = new ServiceEntranceMocker();
                 mocker.setMethod(request.method().name());

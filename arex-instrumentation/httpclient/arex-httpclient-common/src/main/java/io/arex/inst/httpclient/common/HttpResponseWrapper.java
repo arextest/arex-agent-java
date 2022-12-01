@@ -22,7 +22,7 @@ public class HttpResponseWrapper {
     private List<StringTuple> headers;
     @JsonProperty("exceptionWrapper")
     private ExceptionWrapper exceptionWrapper;
-
+    private transient boolean ignoreMockResult;
     public void setHeaders(List<StringTuple> headers) {
         this.headers = headers;
     }
@@ -113,5 +113,13 @@ public class HttpResponseWrapper {
         HttpResponseWrapper wrapper = new HttpResponseWrapper();
         wrapper.exceptionWrapper = exception;
         return wrapper;
+    }
+
+    public boolean isIgnoreMockResult() {
+        return ignoreMockResult;
+    }
+
+    public void setIgnoreMockResult(boolean ignoreMockResult) {
+        this.ignoreMockResult = ignoreMockResult;
     }
 }

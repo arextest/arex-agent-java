@@ -1,6 +1,7 @@
 package io.arex.inst.database.common;
 
 import io.arex.foundation.model.DatabaseMocker;
+import io.arex.foundation.model.MockResult;
 import io.arex.foundation.serializer.SerializeUtils;
 import io.arex.foundation.services.IgnoreService;
 import io.arex.foundation.util.StringUtil;
@@ -20,7 +21,7 @@ public class DatabaseExtractor {
     private final String parameters;
     private final String dbName;
     private String keyHolder;
-
+    private String methodName;
     public String getKeyHolder() {
         return keyHolder;
     }
@@ -34,14 +35,15 @@ public class DatabaseExtractor {
     }
 
     // hibernate
-    public DatabaseExtractor(String sql, Object entity) {
-        this(sql, SerializeUtils.serialize(entity));
+    public DatabaseExtractor(String sql, Object entity, String methodName) {
+        this(sql, SerializeUtils.serialize(entity), methodName);
     }
 
-    public DatabaseExtractor(String sql, String parameters) {
+    public DatabaseExtractor(String sql, String parameters, String methodName) {
         this.dbName = "";
         this.sql = StringUtils.replaceEach(sql, SEARCH_LIST, REPLACE_LIST);
         this.parameters = parameters;
+        this.methodName = methodName;
     }
 
     public boolean isMockEnabled() {
@@ -50,20 +52,20 @@ public class DatabaseExtractor {
     }
 
     public void record(Object response) {
-        DatabaseMocker mocker = new DatabaseMocker(this.dbName, sql, parameters, response);
+        DatabaseMocker mocker = new DatabaseMocker(this.dbName, methodName, sql, parameters, response);
         mocker.setKeyHolder(keyHolder);
         mocker.record();
     }
 
     public void record(SQLException ex) {
-        DatabaseMocker mocker = new DatabaseMocker(this.dbName, sql, parameters);
+        DatabaseMocker mocker = new DatabaseMocker(this.dbName, methodName, sql, parameters);
         mocker.setExceptionMessage(ex.getMessage());
         mocker.record();
     }
 
-    public Object replay() throws SQLException {
-        DatabaseMocker mocker = new DatabaseMocker(this.dbName, sql, parameters);
-        Object value = mocker.replay();
+    public MockResult replay() throws SQLException {
+        DatabaseMocker mocker = new DatabaseMocker(this.dbName, methodName, sql, parameters);
+        MockResult value = MockResult.of(mocker.ignoreMockResult(), mocker.replay());
         if (StringUtil.isNotEmpty(mocker.getExceptionMessage())) {
             throw new SQLException(mocker.getExceptionMessage());
         }

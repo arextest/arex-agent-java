@@ -138,11 +138,6 @@ public class DataService {
                 if (responseMocker == null) {
                     return null;
                 }
-                if (requestMocker.ignoreMockResult()) {
-                    // All mock responses from the entry point are ignored. We send it just to compare requests.
-                    LOGGER.warn("{}ignore mock result, request: {}", logTitle, postJson);
-                    return null;
-                }
                 Object mockResponse = responseMocker.parseMockResponse(requestMocker);
                 if (mockResponse == null) {
                     LOGGER.warn("{}mock response is null, request: {}", logTitle, postJson);

@@ -3,10 +3,12 @@ package io.arex.foundation.listener;
 import io.arex.agent.bootstrap.TraceContextManager;
 import io.arex.agent.bootstrap.cache.TimeCache;
 import io.arex.foundation.config.ConfigManager;
+import io.arex.foundation.context.ArexContext;
 import io.arex.foundation.context.ContextManager;
 import io.arex.foundation.healthy.HealthManager;
 import io.arex.foundation.model.Constants;
 import io.arex.foundation.model.DynamicClassMocker;
+import io.arex.foundation.serializer.SerializeUtils;
 import io.arex.foundation.util.LogUtil;
 import io.arex.foundation.util.StringUtil;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -16,14 +18,17 @@ import org.slf4j.LoggerFactory;
 public class CaseInitializer {
     private static final Logger LOGGER = LoggerFactory.getLogger(CaseInitializer.class);
 
-    public static void initialize(String caseId){
-        initContext(caseId);
+    public static void initialize(EventSource source){
+        initContext(source);
         initClock();
     }
 
-    public static void initContext(String caseId){
+    public static void initContext(EventSource source){
         ContextManager.overdueCleanUp();
-        ContextManager.currentContext(true, caseId);
+        ArexContext context = ContextManager.currentContext(true, source.getCaseId());
+        if (context != null) {
+            context.setExcludeMockTemplate(SerializeUtils.deserialize(source.getExcludeMockTemplate(), Constants.EXCLUDE_MOCK_TYPE));
+        }
     }
 
     public static void initClock(){

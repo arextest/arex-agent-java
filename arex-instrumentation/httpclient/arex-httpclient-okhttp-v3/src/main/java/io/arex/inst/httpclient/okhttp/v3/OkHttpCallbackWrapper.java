@@ -3,6 +3,7 @@ package io.arex.inst.httpclient.okhttp.v3;
 import com.google.common.annotations.VisibleForTesting;
 import io.arex.agent.bootstrap.ctx.TraceTransmitter;
 import io.arex.foundation.context.RepeatedCollectManager;
+import io.arex.foundation.model.MockResult;
 import io.arex.inst.httpclient.common.ExceptionWrapper;
 import io.arex.inst.httpclient.common.HttpClientExtractor;
 import io.arex.inst.httpclient.common.HttpResponseWrapper;
@@ -16,7 +17,7 @@ import java.io.IOException;
 
 public class OkHttpCallbackWrapper implements Callback {
     private final Call call;
-    private final HttpClientExtractor<Request, Response> extractor;
+    private final HttpClientExtractor<Request, MockResult> extractor;
     private final Callback delegate;
     private final TraceTransmitter traceTransmitter;
 
@@ -25,7 +26,7 @@ public class OkHttpCallbackWrapper implements Callback {
     }
 
     @VisibleForTesting
-    OkHttpCallbackWrapper(Call call, Callback delegate, HttpClientExtractor<Request, Response> extractor) {
+    OkHttpCallbackWrapper(Call call, Callback delegate, HttpClientExtractor<Request, MockResult> extractor) {
         this.call = call;
         this.extractor = extractor;
         this.delegate = delegate;
@@ -48,7 +49,7 @@ public class OkHttpCallbackWrapper implements Callback {
         // call from record
         try (TraceTransmitter tm = traceTransmitter.transmit()) {
             if (RepeatedCollectManager.exitAndValidate()) {
-                extractor.record(response);
+                extractor.record(MockResult.of(response));
             }
             delegate.onResponse(call, response);
         }
@@ -60,14 +61,17 @@ public class OkHttpCallbackWrapper implements Callback {
             this.delegate.onFailure(this.call, new IOException("not found mock resource"));
             return;
         }
-        if (wrapped.getException() != null) {
-            this.delegate.onFailure(this.call, unwrap(wrapped.getException()));
-            return;
-        }
-        try {
-            this.delegate.onResponse(this.call, extractor.replay(wrapped));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        if (!wrapped.isIgnoreMockResult()) {
+            if (wrapped.getException() != null) {
+                this.delegate.onFailure(this.call, unwrap(wrapped.getException()));
+                return;
+            }
+            try {
+                MockResult mockResult = extractor.replay(wrapped);
+                this.delegate.onResponse(this.call, (Response) mockResult.getMockResult());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 

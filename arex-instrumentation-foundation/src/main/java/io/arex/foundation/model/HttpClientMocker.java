@@ -1,6 +1,7 @@
 package io.arex.foundation.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.arex.foundation.services.IgnoreService;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.function.Predicate;
@@ -62,5 +63,11 @@ public class HttpClientMocker extends AbstractMocker {
             }
             return true;
         };
+    }
+
+    @Override
+    public boolean ignoreMockResult() {
+        // todo http name undetermined
+        return IgnoreService.ignoreMockResult("http", url);
     }
 }

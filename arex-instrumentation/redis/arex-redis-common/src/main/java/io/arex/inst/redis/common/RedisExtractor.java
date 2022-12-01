@@ -1,5 +1,6 @@
 package io.arex.inst.redis.common;
 
+import io.arex.foundation.model.MockResult;
 import io.arex.foundation.model.RedisMocker;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -29,9 +30,9 @@ public class RedisExtractor {
         mocker.record();
     }
 
-    public Object replay() {
+    public MockResult replay() {
         RedisMocker mocker = new RedisMocker(this.clusterName, this.key, this.command, this.field);
-        return mocker.replay();
+        return MockResult.of(mocker.ignoreMockResult(), mocker.replay());
     }
 
     static class RedisCluster {

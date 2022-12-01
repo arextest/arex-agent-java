@@ -81,9 +81,9 @@ class ReplayHandlerTest {
                     .thenReturn(Collections.singletonList(httpClientMocker2));
             // Database
             DatabaseMocker databaseMocker1 = new DatabaseMocker(
-                    "testdb", "select * from MOCKER_INFO where userId = ?", "123");
+                    "testdb", "query", "select * from MOCKER_INFO where userId = ?", "123");
             DatabaseMocker databaseMocker2 = new DatabaseMocker(
-                    "testdb", "select * from MOCKER_INFO where userId = ?", "124");
+                    "testdb", "query", "select * from MOCKER_INFO where userId = ?", "124");
             stub.apply(DatabaseMocker.class)
                     .thenReturn(Collections.singletonList(databaseMocker1))
                     .thenReturn(Collections.singletonList(databaseMocker2));

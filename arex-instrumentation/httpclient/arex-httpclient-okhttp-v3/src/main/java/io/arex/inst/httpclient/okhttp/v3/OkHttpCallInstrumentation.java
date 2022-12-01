@@ -4,6 +4,7 @@ import io.arex.foundation.api.MethodInstrumentation;
 import io.arex.foundation.api.TypeInstrumentation;
 import io.arex.foundation.context.ContextManager;
 import io.arex.foundation.context.RepeatedCollectManager;
+import io.arex.foundation.model.MockResult;
 import io.arex.inst.httpclient.common.HttpClientExtractor;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
@@ -58,35 +59,41 @@ public class OkHttpCallInstrumentation extends TypeInstrumentation {
         @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class)
         public static boolean onEnter(
                 @Advice.This Call call,
-                @Advice.Local("wrapped") HttpClientExtractor<Request, Response> extractor) {
+                @Advice.Local("wrapped") HttpClientExtractor<Request, MockResult> extractor,
+                @Advice.Local("mockResult") MockResult mockResult) {
             OkHttpClientAdapter adapter;
             if (ContextManager.needRecordOrReplay()) {
                 RepeatedCollectManager.enter();
                 adapter = new OkHttpClientAdapter(call.request().newBuilder().build());
                 extractor = new HttpClientExtractor<>(adapter);
+                if (ContextManager.needReplay()) {
+                    mockResult = extractor.replay();
+                }
             }
-            return ContextManager.needReplay();
+            return mockResult != null && mockResult.notIgnoreMockResult();
         }
 
         @Advice.OnMethodExit(onThrowable = IOException.class)
         public static void onExit(
-                @Advice.Local("wrapped") HttpClientExtractor<Request, Response> extractor,
+                @Advice.Local("wrapped") HttpClientExtractor<Request, MockResult> extractor,
                 @Advice.Thrown(readOnly = false) Exception throwable,
-                @Advice.Return(readOnly = false) Response response) throws IOException {
+                @Advice.Return(readOnly = false) Response response,
+                @Advice.Local("mockResult") MockResult mockResult) throws IOException {
             if (extractor == null || !RepeatedCollectManager.exitAndValidate()) {
                 return;
             }
 
-            if (ContextManager.needReplay() && response == null) {
+            if (mockResult != null && mockResult.notIgnoreMockResult() && response == null) {
                 // noinspection resource
-                response = extractor.replay();
+                response = (Response) mockResult.getMockResult();
                 return;
             }
-
-            if (throwable != null) {
-                extractor.record(throwable);
-            } else {
-                extractor.record(response);
+            if (ContextManager.needRecord()) {
+                if (throwable != null) {
+                    extractor.record(throwable);
+                } else {
+                    extractor.record(MockResult.of(response));
+                }
             }
         }
     }

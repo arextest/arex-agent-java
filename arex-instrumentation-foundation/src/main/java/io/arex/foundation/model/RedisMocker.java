@@ -3,6 +3,7 @@ package io.arex.foundation.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.arex.foundation.serializer.SerializeUtils;
+import io.arex.foundation.services.IgnoreService;
 import io.arex.foundation.util.TypeUtil;
 import org.apache.commons.lang3.StringUtils;
 
@@ -16,6 +17,7 @@ public class RedisMocker extends AbstractMocker {
     private String clusterName;
     @JsonProperty("redisKey")
     private String redisKey;
+    private transient String act;
 
     @SuppressWarnings("deserialize")
     public RedisMocker() {
@@ -27,6 +29,7 @@ public class RedisMocker extends AbstractMocker {
 
         this.clusterName = clusterName;
         this.redisKey = SerializeUtils.serialize(RedisMultiKey.of(key, field, command));
+        this.act = command;
     }
 
     public RedisMocker(String clusterName, String key, String command, String field, Object response) {
@@ -79,5 +82,10 @@ public class RedisMocker extends AbstractMocker {
             }
             return true;
         };
+    }
+
+    @Override
+    public boolean ignoreMockResult() {
+        return IgnoreService.ignoreMockResult(clusterName, act);
     }
 }
