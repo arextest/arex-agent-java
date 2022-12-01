@@ -41,7 +41,7 @@ public class ConfigService {
 
             String postData = SerializeUtils.serialize(request);
 
-            String responseData = AsyncHttpClientUtil.executeSync(CONFIG_LOAD_URL, postData);
+            String responseData = AsyncHttpClientUtil.post(CONFIG_LOAD_URL, postData);
 
             if (StringUtils.isEmpty(responseData) || "{}".equals(responseData)) {
                 LOGGER.warn("Query agent config, response body is null. request: {}", postData);

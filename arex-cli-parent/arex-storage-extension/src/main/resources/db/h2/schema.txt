@@ -1,22 +1,21 @@
 CREATE TABLE IF NOT EXISTS MOCKER_INFO(
 id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
-caseId VARCHAR(100) NOT NULL,
+recordId VARCHAR(100) NOT NULL,
 replayId VARCHAR(100) NOT NULL,
 dataCreateTime TIMESTAMP,
 appId VARCHAR(100),
-category VARCHAR(20),
+categoryType VARCHAR(50),
 jsonData VARCHAR,
-exceptionMessage VARCHAR,
-createTime long
+creationTime long
 );
-CREATE INDEX idx_caseId ON MOCKER_INFO (caseId);
+CREATE INDEX idx_recordId ON MOCKER_INFO (recordId);
 CREATE INDEX idx_replayId ON MOCKER_INFO (replayId);
 --
 CREATE TABLE IF NOT EXISTS DIFF_RESULT(
 id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
 replayId VARCHAR(100) NOT NULL,
-caseId VARCHAR(100),
-category VARCHAR(50),
+recordId VARCHAR(100),
+categoryType VARCHAR(50),
 dataCreateTime TIMESTAMP,
 recordDiff VARCHAR,
 replayDiff VARCHAR

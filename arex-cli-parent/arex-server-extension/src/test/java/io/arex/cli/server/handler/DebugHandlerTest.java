@@ -1,7 +1,8 @@
 package io.arex.cli.server.handler;
 
-import io.arex.foundation.model.AbstractMocker;
-import io.arex.foundation.model.ServiceEntranceMocker;
+import com.arextest.model.mock.AREXMocker;
+import com.arextest.model.mock.Mocker;
+import io.arex.foundation.model.MockerUtils;
 import io.arex.foundation.services.StorageService;
 import io.arex.foundation.util.AsyncHttpClientUtil;
 import org.junit.jupiter.api.AfterAll;
@@ -19,7 +20,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -52,10 +53,14 @@ class DebugHandlerTest {
     }
 
     static Stream<Arguments> processCase() {
-        Runnable mocker1 = () -> {};
-        ServiceEntranceMocker servletMocker = new ServiceEntranceMocker();
-        servletMocker.setRequestHeaders("{}");
-        Runnable mockerQuery = () -> Mockito.when(storageService.query(any(AbstractMocker.class))).thenReturn(servletMocker);
+        Runnable mocker1 = () -> {
+        };
+        AREXMocker servletMocker = MockerUtils.createServlet("SERVLET");
+
+        servletMocker.getTargetRequest().setAttribute("Headers", new HashMap<>());
+        // servletMocker.setRequest("{}");
+        Runnable mockerQuery =
+                () -> Mockito.when(storageService.query(any(Mocker.class))).thenReturn(servletMocker);
         Runnable mocker2 = () -> {
             mockerQuery.run();
             Mockito.when(AsyncHttpClientUtil.executeAsyncIncludeHeader(anyString(), any(), any()))

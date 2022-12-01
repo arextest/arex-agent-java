@@ -1,26 +1,28 @@
 package io.arex.foundation.model;
 
+import com.arextest.model.mock.MockCategoryType;
+
 public class DiffMocker {
-    private String caseId;
+    private String recordId;
     private String replayId;
     private String recordDiff;
     private String replayDiff;
-    private MockerCategory category;
+    private MockCategoryType categoryType;
     private int diffCount;
 
     public DiffMocker() {
     }
 
-    public DiffMocker(MockerCategory category) {
-        this.category = category;
+    public DiffMocker(MockCategoryType category) {
+        this.categoryType = category;
     }
 
-    public String getCaseId() {
-        return caseId;
+    public String getRecordId() {
+        return recordId;
     }
 
-    public void setCaseId(String caseId) {
-        this.caseId = caseId;
+    public void setRecordId(String recordId) {
+        this.recordId = recordId;
     }
 
     public String getReplayId() {
@@ -47,12 +49,12 @@ public class DiffMocker {
         this.replayDiff = replayDiff;
     }
 
-    public MockerCategory getCategory() {
-        return category;
+    public MockCategoryType getCategoryType() {
+        return categoryType;
     }
 
-    public void setCategory(MockerCategory category) {
-        this.category = category;
+    public void setCategoryType(MockCategoryType categoryType) {
+        this.categoryType = categoryType;
     }
 
     public int getDiffCount() {

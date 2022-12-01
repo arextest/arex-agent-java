@@ -1,10 +1,13 @@
 package io.arex.cli.storage;
 
-import io.arex.foundation.model.AbstractMocker;
-import io.arex.foundation.model.DatabaseMocker;
+import com.arextest.model.mock.MockCategoryType;
+import com.arextest.model.mock.Mocker;
 import io.arex.foundation.model.DiffMocker;
-import io.arex.foundation.model.MockerCategory;
-import org.junit.jupiter.api.*;
+import io.arex.foundation.model.MockerUtils;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -15,7 +18,8 @@ import java.util.Map;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -35,7 +39,7 @@ class H2SqlParserTest {
     void generateInsertSql() {
         String tableName = "MOCKER_INFO";
         List<Object> mockers = new ArrayList<>();
-        AbstractMocker mocker = new DatabaseMocker();
+        Mocker mocker = MockerUtils.createDatabase(tableName);
         mockers.add(mocker);
         String sql = H2SqlParser.generateInsertSql(mockers, tableName, "");
         assertNotNull(sql);
@@ -43,17 +47,17 @@ class H2SqlParserTest {
 
     @ParameterizedTest
     @MethodSource("generateSelectSqlCase")
-    void generateSelectSql(AbstractMocker mocker, int count, Predicate<String> predicate) {
+    void generateSelectSql(Mocker mocker, int count, Predicate<String> predicate) {
         String sql = H2SqlParser.generateSelectSql(mocker, count);
         assertTrue(predicate.test(sql));
     }
 
     static Stream<Arguments> generateSelectSqlCase() {
-        AbstractMocker mocker1 = new DatabaseMocker();
-        mocker1.setCaseId(caseId);
+        Mocker mocker1 =MockerUtils.createDatabase("test1");
+        mocker1.setRecordId(caseId);
         mocker1.setReplayId(replayId);
-        AbstractMocker mocker2 = new DatabaseMocker();
-        mocker2.setCaseId(caseId);
+        Mocker mocker2 = MockerUtils.createDatabase("test1");
+        mocker2.setRecordId(caseId);
 
         Predicate<String> predicate1 = sql -> sql.contains("LIMIT 1");
         Predicate<String> predicate2 = sql -> sql.contains("REPLAYID = ''");
@@ -66,8 +70,8 @@ class H2SqlParserTest {
 
     @Test
     void generateSelectDiffSql() {
-        DiffMocker mocker = new DiffMocker(MockerCategory.DATABASE);
-        mocker.setCaseId(caseId);
+        DiffMocker mocker = new DiffMocker(MockCategoryType.DATABASE);
+        mocker.setRecordId(caseId);
         mocker.setReplayId(replayId);
         String result = H2SqlParser.generateSelectDiffSql(mocker);
         assertNotNull(result);

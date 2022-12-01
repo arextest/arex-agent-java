@@ -1,6 +1,7 @@
 package io.arex.cli.storage;
 
-import io.arex.foundation.model.*;
+import com.arextest.model.mock.Mocker;
+import io.arex.foundation.model.DiffMocker;
 import io.arex.foundation.util.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
@@ -88,19 +89,19 @@ public class H2SqlParser {
         return sqlBuilder.substring(0, sqlBuilder.length()-1);
     }
 
-    public static String generateSelectSql(AbstractMocker mocker, int count) {
+    public static String generateSelectSql(Mocker mocker, int count) {
         StringBuilder sqlBuilder = new StringBuilder("SELECT * FROM MOCKER_INFO");
         sqlBuilder.append(" WHERE 1 = 1");
-        if (StringUtils.isNotBlank(mocker.getCaseId())) {
-            sqlBuilder.append(" AND CASEID = '").append(mocker.getCaseId()).append("'");
+        if (StringUtils.isNotBlank(mocker.getRecordId())) {
+            sqlBuilder.append(" AND RECORDID = '").append(mocker.getRecordId()).append("'");
         }
         if (StringUtils.isNotBlank(mocker.getReplayId())) {
             sqlBuilder.append(" AND REPLAYID = '").append(mocker.getReplayId()).append("'");
         } else {
             sqlBuilder.append(" AND REPLAYID = ''");
         }
-        sqlBuilder.append(" AND CATEGORY = '").append(mocker.getCategory()).append("'");
-        sqlBuilder.append(" ORDER BY CREATETIME DESC");
+        sqlBuilder.append(" AND CATEGORYTYPE = '").append(mocker.getCategoryType()).append("'");
+        sqlBuilder.append(" ORDER BY CREATIONTIME DESC");
         if (count > 0) {
             sqlBuilder.append(" LIMIT ").append(count);
         }
@@ -109,9 +110,9 @@ public class H2SqlParser {
 
     public static String generateSelectDiffSql(DiffMocker mocker) {
         StringBuilder sqlBuilder = new StringBuilder("SELECT * FROM DIFF_RESULT ");
-        sqlBuilder.append(" WHERE CATEGORY = '").append(mocker.getCategory().name()).append("'");
-        if (StringUtils.isNotBlank(mocker.getCaseId())) {
-            sqlBuilder.append(" AND CASEID = '").append(mocker.getCaseId()).append("'");
+        sqlBuilder.append(" WHERE CATEGORYTYPE = '").append(mocker.getCategoryType().getName()).append("'");
+        if (StringUtils.isNotBlank(mocker.getRecordId())) {
+            sqlBuilder.append(" AND RECORDID = '").append(mocker.getRecordId()).append("'");
         }
         if (StringUtils.isNotBlank(mocker.getReplayId())) {
             sqlBuilder.append(" AND REPLAYID = '").append(mocker.getReplayId()).append("'");

@@ -1,12 +1,20 @@
 package io.arex.inst.httpclient.common;
 
-import io.arex.foundation.model.HttpClientMocker;
+import com.arextest.model.constants.MockAttributeNames;
+import com.arextest.model.mock.AREXMocker;
+import com.arextest.model.mock.Mocker;
+import io.arex.foundation.model.MockerUtils;
 import io.arex.foundation.serializer.SerializeUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class HttpClientExtractor<TRequest, TResponse> {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpClientExtractor.class);
@@ -23,9 +31,8 @@ public class HttpClientExtractor<TRequest, TResponse> {
         }
         try {
             String response = SerializeUtils.serialize(wrapped);
-            HttpClientMocker mocker = this.makeMocker();
-            mocker.setResponse(response);
-            mocker.record();
+            Mocker mocker = this.makeMocker(response);
+            MockerUtils.record(mocker);
         } catch (Throwable throwable) {
             LOGGER.warn("record error:{}", throwable.getMessage(), throwable);
         }
@@ -61,19 +68,21 @@ public class HttpClientExtractor<TRequest, TResponse> {
         return this.adapter.unwrap(wrapped);
     }
 
-    private HttpClientMocker makeMocker() {
-        HttpClientMocker mocker = new HttpClientMocker();
+    private Mocker makeMocker(String response) {
         String httpMethod = adapter.getMethod();
-        mocker.setMethod(httpMethod);
-        mocker.setUrl(adapter.getUri().toString());
-        mocker.setContentType(adapter.getRequestContentType());
-        mocker.setRequest(this.encodeRequest(httpMethod));
-        mocker.setResponseType(HttpResponseWrapper.class.getName());
+        AREXMocker mocker = MockerUtils.createHttpClient(httpMethod);
+        Map<String, Object> attributes = new HashMap<>();
+        mocker.getTargetRequest().setAttributes(attributes);
+        attributes.put(MockAttributeNames.URL, adapter.getUri().toString());
+        attributes.put(MockAttributeNames.CONTENT_TYPE, adapter.getRequestContentType());
+        mocker.getTargetRequest().setBody(this.encodeRequest(httpMethod));
+        mocker.getTargetResponse().setType(HttpResponseWrapper.class.getName());
+        mocker.getTargetResponse().setBody(response);
         return mocker;
     }
 
     public HttpResponseWrapper fetchMockResult() {
-        HttpClientMocker mocker = makeMocker();
+        Mocker mocker = makeMocker(StringUtils.EMPTY);
         HttpResponseWrapper wrapper = (HttpResponseWrapper) mocker.replay();
         wrapper.setIgnoreMockResult(mocker.ignoreMockResult());
         return wrapper;

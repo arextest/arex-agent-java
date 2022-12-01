@@ -1,5 +1,8 @@
 package io.arex.inst.netty.v4.server;
 
+import com.arextest.model.constants.MockAttributeNames;
+import com.arextest.model.mock.AREXMocker;
+import com.arextest.model.mock.Mocker;
 import io.arex.foundation.context.ContextManager;
 import io.arex.foundation.listener.CaseEvent;
 import io.arex.foundation.listener.CaseInitializer;
@@ -7,8 +10,7 @@ import io.arex.foundation.listener.CaseListenerImpl;
 import io.arex.foundation.listener.EventSource;
 import io.arex.foundation.model.AbstractMocker;
 import io.arex.foundation.model.Constants;
-import io.arex.foundation.model.ServiceEntranceMocker;
-import io.arex.foundation.serializer.SerializeUtils;
+import io.arex.foundation.model.MockerUtils;
 import io.arex.foundation.services.IgnoreService;
 import io.arex.foundation.util.StringUtil;
 import io.arex.inst.netty.v4.common.AttributeKey;
@@ -36,22 +38,21 @@ public class RequestTracingHandler extends ChannelInboundHandlerAdapter {
             CaseListenerImpl.INSTANCE.onEvent(
                     new CaseEvent(EventSource.of(caseId, excludeMockTemplate), CaseEvent.Action.CREATE));
             if (ContextManager.needRecordOrReplay()) {
-                ServiceEntranceMocker mocker = new ServiceEntranceMocker();
-                mocker.setMethod(request.method().name());
-                mocker.setPath(request.uri());
-                mocker.setRequestHeaders(SerializeUtils.serialize(NettyHelper.parseHeaders(request.headers())));
-
+                AREXMocker mocker = MockerUtils.createServlet(request.uri());
+                Mocker.Target target=mocker.getTargetRequest();
+                target.setAttribute(MockAttributeNames.HTTP_METHOD,request.method().name());
+                target.setAttribute(MockAttributeNames.HEADERS,NettyHelper.parseHeaders(request.headers()));
                 ctx.channel().attr(AttributeKey.TRACING_MOCKER).set(mocker);
             }
         }
 
         if (msg instanceof HttpContent) {
             LastHttpContent httpContent = (LastHttpContent) msg;
-            AbstractMocker mocker = ctx.channel().attr(AttributeKey.TRACING_MOCKER).get();
+            Mocker mocker = ctx.channel().attr(AttributeKey.TRACING_MOCKER).get();
             if (mocker != null) {
                 String content = NettyHelper.parseBody(httpContent.content());
                 if (content != null) {
-                    ((ServiceEntranceMocker) mocker).setRequest(content);
+                    mocker.getTargetRequest().setBody(content);
                     ctx.channel().attr(AttributeKey.TRACING_MOCKER).set(mocker);
                 }
             }

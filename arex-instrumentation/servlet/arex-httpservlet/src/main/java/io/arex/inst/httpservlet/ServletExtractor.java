@@ -1,10 +1,10 @@
 package io.arex.inst.httpservlet;
 
+import com.arextest.model.constants.MockAttributeNames;
+import com.arextest.model.mock.AREXMocker;
 import io.arex.foundation.context.ContextManager;
-import io.arex.foundation.listener.CaseEvent;
-import io.arex.foundation.listener.CaseListenerImpl;
 import io.arex.foundation.model.Constants;
-import io.arex.foundation.model.ServiceEntranceMocker;
+import io.arex.foundation.model.MockerUtils;
 import io.arex.foundation.serializer.SerializeUtils;
 import io.arex.inst.httpservlet.adapter.ServletAdapter;
 
@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
@@ -35,7 +36,7 @@ public class ServletExtractor<HttpServletRequest, HttpServletResponse> {
 
     public void execute() throws IOException {
         if (adapter.getResponseHeader(httpServletResponse, Constants.RECORD_ID) != null ||
-            adapter.getResponseHeader(httpServletResponse, Constants.REPLAY_ID) != null) {
+                adapter.getResponseHeader(httpServletResponse, Constants.REPLAY_ID) != null) {
             adapter.copyBodyToResponse(httpServletResponse);
             return;
         }
@@ -67,19 +68,20 @@ public class ServletExtractor<HttpServletRequest, HttpServletResponse> {
     }
 
     private void doExecute() {
-        ServiceEntranceMocker mocker = new ServiceEntranceMocker();
-        mocker.setMethod(adapter.getMethod(httpServletRequest));
-        mocker.setPath(adapter.getServletPath(httpServletRequest));
-        mocker.setPattern(getPattern());
-        mocker.setRequestHeaders(SerializeUtils.serialize(getRequestHeaders()));
-        mocker.setResponseHeaders(SerializeUtils.serialize(getResponseHeaders()));
-        mocker.setRequest(getRequest());
-        mocker.setResponse(getResponse());
-
+        AREXMocker mocker = MockerUtils.createServlet(getPattern());
+        Map<String, Object> attributes = new HashMap<>();
+        attributes.put(MockAttributeNames.HTTP_METHOD, adapter.getMethod(httpServletRequest));
+        attributes.put(MockAttributeNames.SERVLET_PATH, adapter.getServletPath(httpServletRequest));
+        attributes.put(MockAttributeNames.HEADERS, getRequestHeaders());
+        mocker.getTargetRequest().setAttributes(attributes);
+        mocker.getTargetRequest().setBody(getRequest());
+        attributes = Collections.singletonMap(MockAttributeNames.HEADERS, getResponseHeaders());
+        mocker.getTargetResponse().setAttributes(attributes);
+        mocker.getTargetResponse().setBody(getResponse());
         if (ContextManager.needReplay()) {
-            mocker.replay();
+            MockerUtils.replayBody(mocker);
         } else if (ContextManager.needRecord()) {
-            mocker.record();
+            MockerUtils.record(mocker);
         }
     }
 

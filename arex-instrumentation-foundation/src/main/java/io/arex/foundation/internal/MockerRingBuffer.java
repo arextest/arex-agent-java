@@ -1,10 +1,9 @@
 package io.arex.foundation.internal;
 
 
-import io.arex.foundation.model.AbstractMocker;
+import com.arextest.model.mock.Mocker;
 
 import java.util.Arrays;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -12,11 +11,11 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class MockerRingBuffer {
     private final static int DEFAULT_SIZE = 1024;
-    private AbstractMocker[] buffer;
+    private final Mocker[] buffer;
     private int head = 0;
     private volatile int tail = 0;
     private final int bufferSize;
-    private SpinLock locker = new SpinLock();
+    private final SpinLock locker = new SpinLock();
 
     public MockerRingBuffer(){
         this(DEFAULT_SIZE);
@@ -24,7 +23,7 @@ public class MockerRingBuffer {
 
     public MockerRingBuffer(int initSize){
         this.bufferSize = initSize;
-        this.buffer = new AbstractMocker[bufferSize];
+        this.buffer = new Mocker[bufferSize];
     }
 
     private boolean empty() {
@@ -41,7 +40,7 @@ public class MockerRingBuffer {
         this.tail = 0;
     }
 
-    public boolean put(AbstractMocker v) {
+    public boolean put(Mocker v) {
         try {
             locker.lock();
             if (full()) {
@@ -56,28 +55,28 @@ public class MockerRingBuffer {
         }
     }
 
-    public void putOnException(AbstractMocker v) {
-        ExceptionCaseBuffer.INSTANCE.put(v.getCaseId());
+    public void putOnException(Mocker v) {
+        ExceptionCaseBuffer.INSTANCE.put(v.getRecordId());
     }
 
     /**
      * Single-threaded
      */
-    public AbstractMocker get() {
+    public Mocker get() {
         if (empty()) {
             return null;
         }
 
-        AbstractMocker result = buffer[head];
+        Mocker result = buffer[head];
         buffer[head] = null;
         head = (head + 1) % bufferSize;
-        if (ExceptionCaseBuffer.INSTANCE.contains(result.getCaseId())) {
+        if (ExceptionCaseBuffer.INSTANCE.contains(result.getRecordId())) {
             result = get();
         }
         return result;
     }
 
-    class SpinLock {
+  private static  class SpinLock {
         final AtomicInteger locker = new AtomicInteger(0);
         long heldThread = 0;
 
@@ -102,7 +101,6 @@ public class MockerRingBuffer {
      */
     static class ExceptionCaseBuffer {
         private static final ExceptionCaseBuffer INSTANCE = new ExceptionCaseBuffer();
-        private final ConcurrentHashMap<String, Long> exceptionIDs = new ConcurrentHashMap<String, Long>(10);
         private final String[] caseIds = new String[10];
         private int index = 0;
         private long lastNanos = 0;

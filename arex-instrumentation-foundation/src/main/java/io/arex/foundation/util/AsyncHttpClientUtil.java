@@ -1,11 +1,14 @@
 package io.arex.foundation.util;
 
 import io.arex.foundation.config.ConfigManager;
-import io.arex.foundation.model.MockerCategory;
 import io.arex.foundation.util.async.AutoCleanedPoolingNHttpClientConnectionManager;
 import io.arex.foundation.util.async.ThreadFactoryImpl;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.*;
+import org.apache.http.Header;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpHeaders;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.concurrent.FutureCallback;
@@ -45,7 +48,7 @@ public class AsyncHttpClientUtil {
         }
     }
 
-    public static String executeSync(String urlAddress, String postData) {
+    public static String post(String urlAddress, String postData) {
         Map<String, String> requestHeaders = new HashMap<>();
         requestHeaders.put(HttpHeaders.CONTENT_TYPE, "application/json;charset=UTF-8");
 
@@ -54,14 +57,13 @@ public class AsyncHttpClientUtil {
         return executeAsync(urlAddress, httpEntity, requestHeaders).join();
     }
 
-    public static String executeSync(String urlAddress, String postData, MockerCategory category) {
-        return executeAsync(urlAddress, postData, category).join();
+    public static String zstdJSONPost(String urlAddress, String postData) {
+        return executeAsync(urlAddress, postData).join();
     }
 
-    public static CompletableFuture<String> executeAsync(String urlAddress, String postData, MockerCategory category) {
+    public static CompletableFuture<String> executeAsync(String urlAddress, String postData) {
         Map<String, String> requestHeaders = new HashMap<>();
         requestHeaders.put(HttpHeaders.CONTENT_TYPE, ClientConfig.STORAGE_CONTENT_TYPE);
-        requestHeaders.put("arex-mocker-category", category.getName());
 
         HttpEntity httpEntity = new ByteArrayEntity(CompressUtil.zstdCompress(postData, StandardCharsets.UTF_8));
         return executeAsync(urlAddress, httpEntity, requestHeaders);

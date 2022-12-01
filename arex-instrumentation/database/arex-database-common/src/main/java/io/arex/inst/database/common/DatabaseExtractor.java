@@ -1,11 +1,13 @@
 package io.arex.inst.database.common;
 
+import com.arextest.model.constants.MockAttributeNames;
+import com.arextest.model.mock.Mocker;
 import io.arex.foundation.model.DatabaseMocker;
 import io.arex.foundation.model.MockResult;
+import io.arex.foundation.model.MockerUtils;
 import io.arex.foundation.serializer.SerializeUtils;
 import io.arex.foundation.services.IgnoreService;
-import io.arex.foundation.util.StringUtil;
-
+import io.arex.foundation.util.TypeUtil;
 import org.apache.commons.lang3.StringUtils;
 
 import java.sql.SQLException;
@@ -55,6 +57,7 @@ public class DatabaseExtractor {
         DatabaseMocker mocker = new DatabaseMocker(this.dbName, methodName, sql, parameters, response);
         mocker.setKeyHolder(keyHolder);
         mocker.record();
+        MockerUtils.record(makeMocker(response));
     }
 
     public void record(SQLException ex) {
@@ -63,14 +66,23 @@ public class DatabaseExtractor {
         mocker.record();
     }
 
-    public MockResult replay() throws SQLException {
-        DatabaseMocker mocker = new DatabaseMocker(this.dbName, methodName, sql, parameters);
-        MockResult value = MockResult.of(mocker.ignoreMockResult(), mocker.replay());
-        if (StringUtil.isNotEmpty(mocker.getExceptionMessage())) {
-            throw new SQLException(mocker.getExceptionMessage());
+    public Object replay() throws SQLException {
+        Mocker replayMocker = MockerUtils.replayMocker(makeMocker(null));
+        Object replayBody = MockerUtils.parseMockResponseBody(replayMocker);
+        if (replayBody != null) {
+            this.setKeyHolder(replayMocker.getTargetResponse().attributeAsString(MockAttributeNames.DB_KEY_HOLDER));
         }
-        this.setKeyHolder(mocker.getKeyHolder());
-        return value;
+        return replayBody;
+    }
+
+    private Mocker makeMocker(Object response) {
+        Mocker mocker = MockerUtils.createDatabase(this.methodName);
+        mocker.getTargetRequest().setBody(this.sql);
+        mocker.getTargetRequest().setAttribute(MockAttributeNames.DB_NAME, this.dbName);
+        mocker.getTargetRequest().setAttribute(MockAttributeNames.DB_PARAMETERS, this.parameters);
+        mocker.getTargetRequest().setAttribute(MockAttributeNames.DB_KEY_HOLDER, this.keyHolder);
+        mocker.getTargetResponse().setBody(SerializeUtils.serialize(response));
+        mocker.getTargetResponse().setType(TypeUtil.getName(response));
+        return mocker;
     }
 }
-

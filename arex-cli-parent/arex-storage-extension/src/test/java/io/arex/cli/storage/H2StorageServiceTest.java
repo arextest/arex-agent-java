@@ -1,17 +1,25 @@
 package io.arex.cli.storage;
 
-import io.arex.foundation.model.AbstractMocker;
-import io.arex.foundation.model.DatabaseMocker;
+import com.arextest.model.mock.MockCategoryType;
+import com.arextest.model.mock.Mocker;
 import io.arex.foundation.model.DiffMocker;
-import io.arex.foundation.model.MockerCategory;
+import io.arex.foundation.model.MockerUtils;
 import io.arex.foundation.serializer.SerializeUtils;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class H2StorageServiceTest {
@@ -38,7 +46,7 @@ class H2StorageServiceTest {
     @Test
     @Order(2)
     void save() {
-        AbstractMocker mocker = new DatabaseMocker();
+        Mocker mocker = MockerUtils.createDatabase("db");
         String postJson = SerializeUtils.serialize(mocker);
         int count = target.save(mocker, postJson);
         assertEquals(1, count);
@@ -47,7 +55,7 @@ class H2StorageServiceTest {
     @Test
     @Order(3)
     void saveList() {
-        DiffMocker mocker = new DiffMocker(MockerCategory.DATABASE);
+        DiffMocker mocker = new DiffMocker(MockCategoryType.DATABASE);
         int count = target.saveList(Collections.singletonList(mocker));
         assertEquals(1, count);
     }
@@ -55,15 +63,16 @@ class H2StorageServiceTest {
     @Test
     @Order(4)
     void query() {
-        AbstractMocker mocker = new DatabaseMocker();
-        AbstractMocker result = target.query(mocker);
+        Mocker mocker = MockerUtils.createDatabase("db");
+        Mocker result = target.query(mocker);
         assertNotNull(result);
     }
 
     @Test
     @Order(5)
     void testQuery() {
-        String sql = "SELECT * FROM MOCKER_INFO WHERE 1 = 1 AND REPLAYID = '' AND CATEGORY = '3' ORDER BY CREATETIME DESC";
+        String sql = "SELECT * FROM MOCKER_INFO WHERE 1 = 1 AND REPLAYID = '' AND CATEGORYTYPE = 'Database' ORDER BY " +
+                "CREATIONTIME DESC";
         List<Map<String, String>> result = target.query(sql);
         assertTrue(result.size() > 0);
     }
@@ -71,15 +80,15 @@ class H2StorageServiceTest {
     @Test
     @Order(6)
     void queryList() {
-        AbstractMocker mocker = new DatabaseMocker();
-        List<AbstractMocker> result = target.queryList(mocker, 10);
+        Mocker mocker = MockerUtils.createDatabase("db");
+        List<Mocker> result = target.queryList(mocker, 10);
         assertTrue(result.size() > 0);
     }
 
     @Test
     @Order(7)
     void testQueryList() {
-        DiffMocker mocker = new DiffMocker(MockerCategory.DATABASE);
+        DiffMocker mocker = new DiffMocker(MockCategoryType.DATABASE);
         List<DiffMocker> result = target.queryList(mocker);
         assertTrue(result.size() > 0);
     }

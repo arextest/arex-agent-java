@@ -1,13 +1,12 @@
 package io.arex.foundation.model;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.arex.foundation.config.ConfigManager;
 import io.arex.foundation.context.ArexContext;
 import io.arex.foundation.context.ContextManager;
 import io.arex.foundation.serializer.SerializeUtils;
-import io.arex.foundation.services.DataService;
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.function.Predicate;
 
@@ -82,11 +81,12 @@ public abstract class AbstractMocker {
     }
 
     public void record() {
-        DataService.INSTANCE.save(this);
+       // DataService.INSTANCE.save(this);
     }
 
     public Object replay() {
-        return DataService.INSTANCE.get(this);
+       // return DataService.INSTANCE.get(this);
+        return null;
     }
 
     public int getCategory() {

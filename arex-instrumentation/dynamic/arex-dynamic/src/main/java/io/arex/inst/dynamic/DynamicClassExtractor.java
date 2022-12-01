@@ -1,9 +1,11 @@
 package io.arex.inst.dynamic;
 
+import com.arextest.model.mock.AREXMocker;
+import com.arextest.model.mock.Mocker;
 import io.arex.foundation.config.ConfigManager;
 import io.arex.foundation.context.ArexContext;
 import io.arex.foundation.context.ContextManager;
-import io.arex.foundation.model.DynamicClassMocker;
+import io.arex.foundation.model.MockerUtils;
 import io.arex.foundation.model.MockResult;
 import io.arex.foundation.serializer.GsonSerializer;
 import io.arex.foundation.util.LogUtil;
@@ -33,6 +35,7 @@ public class DynamicClassExtractor {
     public DynamicClassExtractor(String clazzName, String operation, Object[] args) {
         this(clazzName, operation, args, null);
     }
+
     public DynamicClassExtractor(String clazzName, String operation, Object[] args, Object result) {
         this.clazzName = clazzName;
         this.operation = operation;
@@ -44,22 +47,28 @@ public class DynamicClassExtractor {
 
     public void record() {
         if (needRecord()) {
-            DynamicClassMocker mocker = new DynamicClassMocker(this.clazzName, this.operation, this.operationKey, this.operationResult, this.resultClazz);
-            mocker.record();
+            MockerUtils.record(makeMocker());
             cacheMethodSignature();
         }
     }
 
-    public MockResult replay() {
+    private Mocker makeMocker() {
+        AREXMocker mocker = MockerUtils.createDynamicClass(this.clazzName, this.operation);
+        mocker.getTargetRequest().setBody(this.operationKey);
+        mocker.getTargetResponse().setBody(this.operationResult);
+        mocker.getTargetResponse().setType(this.resultClazz);
+        return mocker;
+    }
+
+    public Object replay() {
         if (!ContextManager.needReplay()) {
             return null;
         }
         String key = buildCacheKey();
         ArexContext context = ContextManager.currentContext();
-        MockResult mockResult = (MockResult)context.getCacheMap().get(key);
+        Object mockResult = context.getCacheMap().get(key);
         if (mockResult == null) {
-            DynamicClassMocker mocker = new DynamicClassMocker(this.clazzName, this.operation, this.operationKey);
-            Object replayResult = mocker.replay();
+            Object replayResult = MockerUtils.replayBody(makeMocker());
             mockResult = MockResult.of(mocker.ignoreMockResult(), replayResult);
             // no key no cache, no parameter methods may return different values
             if (key != null && replayResult != null) {
@@ -93,14 +102,14 @@ public class DynamicClassExtractor {
         try {
             int size = 0;
             if (result instanceof Collection<?>) {
-                size = ((Collection<?>)result).size();
+                size = ((Collection<?>) result).size();
             } else if (result instanceof Map<?, ?>) {
-                size = ((Map<?, ?>)result).size();
+                size = ((Map<?, ?>) result).size();
             } else if (result.getClass().isArray()) {
                 size = Array.getLength(result);
             }
             if (size > ConfigManager.INSTANCE.getDynamicResultSizeLimit()) {
-                LOGGER.warn("{}do not record method, cuz result size:{} > max limit: {}, method info: {}",
+                LOGGER.warn("{} do not record method, cuz result size:{} > max limit: {}, method info: {}",
                         logTitle, size, ConfigManager.INSTANCE.getDynamicResultSizeLimit(), methodSignatureKey);
                 return false;
             }
@@ -134,4 +143,3 @@ public class DynamicClassExtractor {
         return null;
     }
 }
-
