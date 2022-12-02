@@ -1,6 +1,7 @@
 package io.arex.inst.database.mybatis3;
 
 import io.arex.foundation.context.ContextManager;
+import io.arex.foundation.util.AsyncHttpClientUtil;
 import io.arex.inst.database.common.DatabaseExtractor;
 import org.apache.ibatis.mapping.BoundSql;
 import org.apache.ibatis.mapping.MappedStatement;
@@ -38,12 +39,13 @@ class InternalExecutorTest {
         target = new InternalExecutor();
         extractor = Mockito.mock(DatabaseExtractor.class);
         Mockito.when(extractor.getSql()).thenReturn("insert into");
-        Mockito.when(extractor.getKeyHolder()).thenReturn("key");
+        Mockito.when(extractor.getKeyHolder()).thenReturn("key,val");
         mappedStatement = Mockito.mock(MappedStatement.class);
         Mockito.when(mappedStatement.getKeyProperties()).thenReturn(new String[]{"key"});
         boundSql = Mockito.mock(BoundSql.class);
         Mockito.when(boundSql.getSql()).thenReturn("insert into");
         Mockito.mockStatic(ContextManager.class);
+        Mockito.mockStatic(AsyncHttpClientUtil.class);
     }
 
     @AfterAll
@@ -54,11 +56,12 @@ class InternalExecutorTest {
 
     @Test
     void replay() throws SQLException {
-        assertNull(target.replay(mappedStatement, new Object(), boundSql));
+        assertNotNull(target.replay(mappedStatement, new Object(), boundSql, "insert"));
     }
 
     @Test
     void testReplay() throws SQLException {
+        assertNull(target.replay(extractor, mappedStatement, null));
         assertNull(target.replay(extractor, mappedStatement, new Object()));
     }
 
@@ -66,7 +69,7 @@ class InternalExecutorTest {
     @NullSource
     @MethodSource("recordCase")
     void record(Throwable throwable) {
-        target.record(mappedStatement, new Object(), boundSql, null, throwable);
+        target.record(mappedStatement, new Object(), boundSql, null, throwable, "insert");
     }
 
     static Stream<Arguments> recordCase() {

@@ -6,7 +6,7 @@ public class CaseListenerImpl implements CaseListener {
     public void onEvent(CaseEvent event) {
         switch (event.action) {
             case CREATE:
-                CaseInitializer.initialize(String.valueOf(event.getSource()));
+                CaseInitializer.initialize((EventSource) event.getSource());
                 break;
             case DESTROY:
                 CaseInitializer.release();

@@ -2,6 +2,7 @@ package io.arex.inst.httpclient.apache.async;
 
 import io.arex.agent.bootstrap.ctx.TraceTransmitter;
 import io.arex.foundation.context.RepeatedCollectManager;
+import io.arex.foundation.model.MockResult;
 import io.arex.inst.httpclient.apache.common.ApacheHttpClientAdapter;
 import io.arex.inst.httpclient.common.ArexDataException;
 import io.arex.inst.httpclient.common.ExceptionWrapper;
@@ -19,9 +20,9 @@ public class FutureCallbackWrapper<T> implements FutureCallback<T> {
     private final FutureCallback<T> delegate;
     private final TraceTransmitter traceTransmitter;
 
-    private final HttpClientExtractor<HttpRequest, HttpResponse> extractor;
+    private final HttpClientExtractor<HttpRequest, MockResult> extractor;
 
-    public FutureCallbackWrapper(HttpClientExtractor<HttpRequest, HttpResponse> extractor, FutureCallback<T> delegate) {
+    public FutureCallbackWrapper(HttpClientExtractor<HttpRequest, MockResult> extractor, FutureCallback<T> delegate) {
         this.traceTransmitter = TraceTransmitter.create();
         this.delegate = delegate;
         this.extractor = extractor;
@@ -54,38 +55,42 @@ public class FutureCallbackWrapper<T> implements FutureCallback<T> {
         }
     }
 
-    public void replay() {
+    public boolean replay() {
         try {
-            mockResult(extractor.fetchMockResult());
+            return mockResult(extractor.fetchMockResult());
         } catch (Exception ex) {
             delegate.failed(new ArexDataException("mock data failed.", ex));
         }
+        return true;
     }
 
-    private void mockResult(HttpResponseWrapper wrapped) {
+    private boolean mockResult(HttpResponseWrapper wrapped) {
         if (wrapped == null) {
             delegate.failed(new ArexDataException("mock data failed."));
-            return;
+            return true;
         }
-
-        ExceptionWrapper exception = wrapped.getException();
-        if (exception != null) {
-            if (exception.isCancelled()) {
-                delegate.cancelled();
-            } else {
-                delegate.failed(exception.getOriginalException());
+        boolean notIgnoreMockResult = !wrapped.isIgnoreMockResult();
+        if (notIgnoreMockResult) {
+            ExceptionWrapper exception = wrapped.getException();
+            if (exception != null) {
+                if (exception.isCancelled()) {
+                    delegate.cancelled();
+                } else {
+                    delegate.failed(exception.getOriginalException());
+                }
+                return true;
             }
-            return;
+            // noinspection unchecked
+            MockResult mockResult = extractor.replay(wrapped);
+            delegate.completed((T) mockResult.getMockResult());
         }
-        // noinspection unchecked
-        delegate.completed((T) extractor.replay(wrapped));
-
+        return notIgnoreMockResult;
     }
 
     private void recordResponse(HttpResponse response) {
         try {
             if (extractor != null && RepeatedCollectManager.exitAndValidate()) {
-                extractor.record(response);
+                extractor.record(MockResult.of(response));
             }
         } catch (Exception ex) {
             LOGGER.warn("consume response content failed:{}", ex.getMessage(), ex);
@@ -107,7 +112,7 @@ public class FutureCallbackWrapper<T> implements FutureCallback<T> {
             return ((FutureCallbackWrapper<T>) delegate);
         }
         ApacheHttpClientAdapter adapter;
-        HttpClientExtractor<HttpRequest, HttpResponse> extractor;
+        HttpClientExtractor<HttpRequest, MockResult> extractor;
 
         try {
             adapter = new ApacheHttpClientAdapter(requestProducer.generateRequest());

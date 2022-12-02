@@ -1,6 +1,7 @@
 package io.arex.inst.lettuce.v6;
 
 import io.arex.foundation.context.ContextManager;
+import io.arex.foundation.model.MockResult;
 import io.arex.inst.redis.common.RedisExtractor;
 import io.arex.inst.redis.common.RedisKeyUtil;
 import io.lettuce.core.GetExArgs;
@@ -319,14 +320,14 @@ public class RedisReactiveCommandsImplWrapper<K, V> extends RedisReactiveCommand
     public Flux<V> lrange(K key, long start, long stop) {
         Command<K, V, List<V>> cmd = commandBuilder.lrange(key, start, stop);
         return createDissolvingFlux(() -> cmd, String.valueOf(key),
-            RedisKeyUtil.generate("start", String.valueOf(start), "stop", String.valueOf(stop)));
+                RedisKeyUtil.generate("start", String.valueOf(start), "stop", String.valueOf(stop)));
     }
 
     @Override
     public Mono<Long> lrange(ValueStreamingChannel<V> channel, K key, long start, long stop) {
         Command<K, V, Long> cmd = commandBuilder.lrange(channel, key, start, stop);
         return createMono(() -> cmd, String.valueOf(key),
-            RedisKeyUtil.generate("start", String.valueOf(start), "stop", String.valueOf(stop)));
+                RedisKeyUtil.generate("start", String.valueOf(start), "stop", String.valueOf(stop)));
     }
 
     @Override
@@ -339,7 +340,7 @@ public class RedisReactiveCommandsImplWrapper<K, V> extends RedisReactiveCommand
     public Mono<String> ltrim(K key, long start, long stop) {
         Command<K, V, String> cmd = commandBuilder.ltrim(key, start, stop);
         return createMono(() -> cmd, String.valueOf(key),
-            RedisKeyUtil.generate("start", String.valueOf(start), "stop", String.valueOf(stop)));
+                RedisKeyUtil.generate("start", String.valueOf(start), "stop", String.valueOf(stop)));
     }
 
     @Override
@@ -592,23 +593,24 @@ public class RedisReactiveCommandsImplWrapper<K, V> extends RedisReactiveCommand
         }
 
         if (ContextManager.needReplay()) {
-            return Mono.fromCallable(() -> {
-                RedisExtractor extractor =
+            RedisExtractor extractor =
                     new RedisExtractor(this.redisUri, commandSupplier.get().getType().name(), key, field);
-                return (T) extractor.replay();
-            });
+            MockResult mockResult = extractor.replay();
+            if (mockResult.notIgnoreMockResult()) {
+                return Mono.fromCallable(() -> (T) mockResult.getMockResult());
+            }
         }
 
         return super.createMono(commandSupplier).doOnNext(result -> {
             if (ContextManager.needRecord()) {
                 RedisExtractor extractor =
-                    new RedisExtractor(this.redisUri, commandSupplier.get().getType().name(), key, field);
+                        new RedisExtractor(this.redisUri, commandSupplier.get().getType().name(), key, field);
                 extractor.record(result);
             }
         }).doOnError(throwable -> {
             if (ContextManager.needRecord()) {
                 RedisExtractor extractor =
-                    new RedisExtractor(this.redisUri, commandSupplier.get().getType().name(), key, field);
+                        new RedisExtractor(this.redisUri, commandSupplier.get().getType().name(), key, field);
                 extractor.record(throwable);
             }
         });
@@ -621,29 +623,30 @@ public class RedisReactiveCommandsImplWrapper<K, V> extends RedisReactiveCommand
 
     @SuppressWarnings("unchecked")
     public <T, R> Flux<R> createDissolvingFlux(Supplier<RedisCommand<K, V, T>> commandSupplier, String key,
-        String field) {
+                                               String field) {
         if (redisUri == null) {
             redisUri = LettuceHelper.getRedisUri(this.getStatefulConnection().hashCode());
         }
 
         if (ContextManager.needReplay()) {
-            return Flux.fromStream(() -> {
-                RedisExtractor extractor =
+            RedisExtractor extractor =
                     new RedisExtractor(this.redisUri, commandSupplier.get().getType().name(), key, field);
-                return Stream.of((R) extractor.replay());
-            });
+            MockResult mockResult = extractor.replay();
+            if (mockResult.notIgnoreMockResult()) {
+                return Flux.fromStream(() -> Stream.of((R) mockResult.getMockResult()));
+            }
         }
 
         return (Flux<R>) super.createDissolvingFlux(commandSupplier).doOnNext(result -> {
             if (ContextManager.needRecord()) {
                 RedisExtractor extractor =
-                    new RedisExtractor(this.redisUri, commandSupplier.get().getType().name(), key, field);
+                        new RedisExtractor(this.redisUri, commandSupplier.get().getType().name(), key, field);
                 extractor.record(result);
             }
         }).doOnError(throwable -> {
             if (ContextManager.needRecord()) {
                 RedisExtractor extractor =
-                    new RedisExtractor(this.redisUri, commandSupplier.get().getType().name(), key, field);
+                        new RedisExtractor(this.redisUri, commandSupplier.get().getType().name(), key, field);
                 extractor.record(throwable);
             }
         });

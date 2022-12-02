@@ -1,6 +1,7 @@
 package io.arex.foundation.model;
 
 import io.arex.foundation.serializer.SerializeUtils;
+import io.arex.foundation.services.IgnoreService;
 import io.arex.foundation.util.TypeUtil;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.StringUtils;
@@ -23,24 +24,26 @@ public class DatabaseMocker extends AbstractMocker {
     private String sql;
     @JsonProperty("keyHolder")
     private String keyHolder;
-
+    @JsonProperty("methodName")
+    private String methodName;
     @SuppressWarnings("deserialize")
     public DatabaseMocker() {
         super(MockerCategory.DATABASE);
     }
 
-    public DatabaseMocker(String dbName, String sql, String parameters) {
-        this(dbName, sql, parameters, null, null);
+    public DatabaseMocker(String dbName, String methodName, String sql, String parameters) {
+        this(dbName, methodName, sql, parameters, null, null);
     }
 
-    public DatabaseMocker(String dbName, String sql, String parameters, Object response) {
-        this(dbName, sql, parameters, null, response);
+    public DatabaseMocker(String dbName, String methodName, String sql, String parameters, Object response) {
+        this(dbName, methodName, sql, parameters, null, response);
     }
-    
-    public DatabaseMocker(String dbName, String sql, String parameters, String tables, Object response) {
+
+    public DatabaseMocker(String dbName, String methodName, String sql, String parameters, String tables, Object response) {
         super(MockerCategory.DATABASE);
 
         this.dbName = dbName;
+        this.methodName = methodName;
         this.parameters = parameters;
         this.sql = sql;
         this.tables = tables;
@@ -99,5 +102,11 @@ public class DatabaseMocker extends AbstractMocker {
             ((DatabaseMocker)requestMocker).setKeyHolder(this.getKeyHolder());
         }
         return super.parseMockResponse(requestMocker);
+    }
+
+    @Override
+    public boolean ignoreMockResult() {
+        // todo database name undetermined
+        return IgnoreService.ignoreMockResult(MockerCategory.DATABASE.getName().toLowerCase(), methodName);
     }
 }

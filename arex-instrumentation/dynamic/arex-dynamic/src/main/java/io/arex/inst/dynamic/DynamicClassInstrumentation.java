@@ -5,6 +5,7 @@ import io.arex.foundation.api.MethodInstrumentation;
 import io.arex.foundation.api.TypeInstrumentation;
 import io.arex.foundation.context.ContextManager;
 import io.arex.foundation.model.DynamicClassEntity;
+import io.arex.foundation.model.MockResult;
 import io.arex.foundation.util.CollectionUtil;
 import io.arex.foundation.util.StringUtil;
 import java.lang.reflect.Method;
@@ -106,23 +107,28 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
     public final static class MethodAdvice {
 
         @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class)
-        public static boolean onEnter() {
+        public static boolean onEnter(@Advice.Origin("#t") String className,
+                                      @Advice.Origin("#m") String methodName,
+                                      @Advice.AllArguments Object[] args,
+                                      @Advice.Local("mockResult") MockResult mockResult) {
             RepeatedCollectManager.enter();
-            return ContextManager.needReplay();
+            DynamicClassExtractor extractor = new DynamicClassExtractor(className, methodName, args);
+            mockResult = extractor.replay();
+            return mockResult != null && mockResult.notIgnoreMockResult();
         }
 
         @Advice.OnMethodExit
         public static void onExit(@Advice.Origin("#t") String className, @Advice.Origin("#m") String methodName,
                                   @Advice.AllArguments Object[] args,
+                                  @Advice.Local("mockResult") MockResult mockResult,
                                   @Advice.Return(readOnly = false, typing = Assigner.Typing.DYNAMIC) Object result) {
             if (!RepeatedCollectManager.exitAndValidate()) {
                 return;
             }
 
             DynamicClassExtractor extractor;
-            if (ContextManager.needReplay()) {
-                extractor = new DynamicClassExtractor(className, methodName, args);
-                result = extractor.replay();
+            if (mockResult != null && mockResult.notIgnoreMockResult()) {
+                result = mockResult.getMockResult();
                 return;
             }
 
@@ -146,12 +152,12 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
         }
 
         String[] methods = dynamicClassList.stream().map(DynamicClassEntity::getOperation)
-            .toArray(String[]::new);
+                .toArray(String[]::new);
 
         return MemberSubstitution.relaxed()
-            .method(target -> target.toString().contains("System.currentTimeMillis()"))
-            .replaceWith(replaceMethod)
-            .on(namedOneOf(methods));
+                .method(target -> target.toString().contains("System.currentTimeMillis()"))
+                .replaceWith(replaceMethod)
+                .on(namedOneOf(methods));
     }
 
     private AsmVisitorWrapper replaceUuid(List<DynamicClassEntity> dynamicClassList) {
@@ -167,11 +173,11 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
         }
 
         String[] methods = dynamicClassList.stream().map(DynamicClassEntity::getOperation)
-            .toArray(String[]::new);
+                .toArray(String[]::new);
 
         return MemberSubstitution.relaxed()
-            .method(target -> target.toString().contains("UUID.randomUUID()"))
-            .replaceWith(replaceMethod)
-            .on(namedOneOf(methods));
+                .method(target -> target.toString().contains("UUID.randomUUID()"))
+                .replaceWith(replaceMethod)
+                .on(namedOneOf(methods));
     }
 }

@@ -74,7 +74,9 @@ public class HttpClientExtractor<TRequest, TResponse> {
 
     public HttpResponseWrapper fetchMockResult() {
         HttpClientMocker mocker = makeMocker();
-        return (HttpResponseWrapper) mocker.replay();
+        HttpResponseWrapper wrapper = (HttpResponseWrapper) mocker.replay();
+        wrapper.setIgnoreMockResult(mocker.ignoreMockResult());
+        return wrapper;
     }
 
     private String encodeRequest(String httpMethod) {

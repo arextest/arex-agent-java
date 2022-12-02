@@ -4,6 +4,7 @@ import io.arex.foundation.config.ConfigManager;
 import io.arex.foundation.context.ArexContext;
 import io.arex.foundation.context.ContextManager;
 import io.arex.foundation.model.DynamicClassMocker;
+import io.arex.foundation.model.MockResult;
 import io.arex.foundation.serializer.GsonSerializer;
 import io.arex.foundation.util.LogUtil;
 import io.arex.foundation.util.StringUtil;
@@ -49,19 +50,23 @@ public class DynamicClassExtractor {
         }
     }
 
-    public Object replay() {
+    public MockResult replay() {
+        if (!ContextManager.needReplay()) {
+            return null;
+        }
         String key = buildCacheKey();
         ArexContext context = ContextManager.currentContext();
-        Object result = context.getCacheMap().get(key);
-        if (result == null) {
+        MockResult mockResult = (MockResult)context.getCacheMap().get(key);
+        if (mockResult == null) {
             DynamicClassMocker mocker = new DynamicClassMocker(this.clazzName, this.operation, this.operationKey);
-            result = mocker.replay();
+            Object replayResult = mocker.replay();
+            mockResult = MockResult.of(mocker.ignoreMockResult(), replayResult);
             // no key no cache, no parameter methods may return different values
-            if (key != null && result != null) {
-                context.getCacheMap().put(key, result);
+            if (key != null && replayResult != null) {
+                context.getCacheMap().put(key, mockResult);
             }
         }
-        return result;
+        return mockResult;
     }
 
     private boolean needRecord() {

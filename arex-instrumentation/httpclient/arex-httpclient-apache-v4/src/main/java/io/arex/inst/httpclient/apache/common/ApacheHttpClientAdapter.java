@@ -1,5 +1,6 @@
 package io.arex.inst.httpclient.apache.common;
 
+import io.arex.foundation.model.MockResult;
 import io.arex.foundation.util.StringUtil;
 import io.arex.inst.httpclient.common.HttpClientAdapter;
 import io.arex.inst.httpclient.common.HttpResponseWrapper;
@@ -26,7 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-public class ApacheHttpClientAdapter implements HttpClientAdapter<HttpRequest, HttpResponse> {
+public class ApacheHttpClientAdapter implements HttpClientAdapter<HttpRequest, MockResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ApacheHttpClientAdapter.class);
     private final HttpRequestBase httpRequest;
 
@@ -76,7 +77,8 @@ public class ApacheHttpClientAdapter implements HttpClientAdapter<HttpRequest, H
 
 
     @Override
-    public HttpResponseWrapper wrap(HttpResponse response) {
+    public HttpResponseWrapper wrap(MockResult mockResult) {
+        HttpResponse response = (HttpResponse) mockResult.getMockResult();
         HttpEntity httpEntity = response.getEntity();
         if (!check(httpEntity)) {
             return null;
@@ -114,7 +116,7 @@ public class ApacheHttpClientAdapter implements HttpClientAdapter<HttpRequest, H
     }
 
     @Override
-    public HttpResponse unwrap(HttpResponseWrapper wrapped) {
+    public MockResult unwrap(HttpResponseWrapper wrapped) {
         HttpResponse response = DefaultHttpResponseFactory.INSTANCE.newHttpResponse(
                 ApacheHttpClientHelper.parseStatusLine(wrapped.getStatusLine()), null);
         response.setLocale(new Locale(wrapped.getLocale().name(), wrapped.getLocale().value()));
@@ -124,7 +126,7 @@ public class ApacheHttpClientAdapter implements HttpClientAdapter<HttpRequest, H
         entity.setContentLength(wrapped.getContent().length);
         response.setEntity(entity);
 
-        return response;
+        return MockResult.of(wrapped.isIgnoreMockResult(), response);
     }
 
     private static void appendHeaders(HttpResponse response, List<StringTuple> headers) {

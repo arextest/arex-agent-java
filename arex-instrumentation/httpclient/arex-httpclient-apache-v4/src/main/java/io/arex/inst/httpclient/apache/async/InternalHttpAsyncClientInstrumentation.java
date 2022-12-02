@@ -75,8 +75,7 @@ public class InternalHttpAsyncClientInstrumentation extends TypeInstrumentation 
         @Advice.OnMethodExit(suppress = Throwable.class)
         public static void onExit(@Advice.Local("wrapped") FutureCallbackWrapper<?> wrapped,
                                   @Advice.Return(readOnly = false) Future<?> future) {
-            if (ContextManager.needReplay()) {
-                wrapped.replay();
+            if (ContextManager.needReplay() && wrapped.replay()) {
                 future = new BasicFuture<>(wrapped);
             }
             // recording works in FutureCallbackWrapper

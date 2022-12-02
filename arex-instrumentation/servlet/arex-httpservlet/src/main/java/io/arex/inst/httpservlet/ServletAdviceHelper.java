@@ -5,6 +5,7 @@ import io.arex.agent.bootstrap.internal.Pair;
 import io.arex.foundation.listener.CaseEvent;
 import io.arex.foundation.listener.CaseInitializer;
 import io.arex.foundation.listener.CaseListenerImpl;
+import io.arex.foundation.listener.EventSource;
 import io.arex.foundation.model.Constants;
 import io.arex.foundation.util.LogUtil;
 import io.arex.foundation.util.StringUtil;
@@ -60,7 +61,8 @@ public class ServletAdviceHelper {
         }
 
         String caseId = adapter.getRequestHeader(httpServletRequest, Constants.RECORD_ID);
-        CaseListenerImpl.INSTANCE.onEvent(new CaseEvent(StringUtil.defaultString(caseId), CaseEvent.Action.CREATE));
+        String excludeMockTemplate = adapter.getRequestHeader(httpServletRequest, Constants.HEADER_EXCLUDE_MOCK);
+        CaseListenerImpl.INSTANCE.onEvent(new CaseEvent(EventSource.of(caseId, excludeMockTemplate), CaseEvent.Action.CREATE));
 
         if (ContextManager.needRecordOrReplay()) {
             httpServletRequest = adapter.wrapRequest(httpServletRequest);

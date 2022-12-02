@@ -1,5 +1,6 @@
 package io.arex.inst.database.mybatis3;
 
+import io.arex.foundation.model.MockResult;
 import io.arex.foundation.serializer.SerializeUtils;
 import io.arex.foundation.util.LogUtil;
 import io.arex.inst.database.common.DatabaseExtractor;
@@ -17,25 +18,25 @@ public class InternalExecutor {
 
     private static final String KEYHOLDER_TYPE_SEPARATOR = ",";
 
-    public static <U> U replay(MappedStatement ms, Object o, BoundSql boundSql) throws SQLException{
-        DatabaseExtractor extractor = createExtractor(ms, boundSql, o);
-        U replayResult = (U) extractor.replay();
+    public static MockResult replay(MappedStatement ms, Object o, BoundSql boundSql, String methodName) throws SQLException{
+        DatabaseExtractor extractor = createExtractor(ms, boundSql, o, methodName);
+        MockResult replayResult = extractor.replay();
         if (containKeyHolder(ms, extractor, o)) {
             restoreKeyHolder(ms, extractor, o);
         }
         return replayResult;
     }
 
-    public static <U> U replay(DatabaseExtractor extractor, MappedStatement ms, Object o) throws SQLException{
-        U replayResult = (U) extractor.replay();
+    public static MockResult replay(DatabaseExtractor extractor, MappedStatement ms, Object o) throws SQLException{
+        MockResult replayResult = extractor.replay();
         if (containKeyHolder(ms, extractor, o)) {
             restoreKeyHolder(ms, extractor, o);
         }
         return replayResult;
     }
 
-    public static <U> void record(MappedStatement ms, Object o, BoundSql boundSql, U result, Throwable throwable) {
-        DatabaseExtractor extractor = createExtractor(ms, boundSql, o);
+    public static <U> void record(MappedStatement ms, Object o, BoundSql boundSql, U result, Throwable throwable, String methodName) {
+        DatabaseExtractor extractor = createExtractor(ms, boundSql, o, methodName);
         try {
             if (containKeyHolder(ms, extractor, o)) {
                 saveKeyHolder(ms, extractor, o);
@@ -118,8 +119,8 @@ public class InternalExecutor {
     }
 
     public static DatabaseExtractor createExtractor(MappedStatement mappedStatement,
-                                                    BoundSql boundSql, Object parameters) {
+                                                    BoundSql boundSql, Object parameters, String methodName) {
         boundSql = boundSql == null ? mappedStatement.getBoundSql(parameters) : boundSql;
-        return new DatabaseExtractor(boundSql.getSql(), SerializeUtils.serialize(parameters));
+        return new DatabaseExtractor(boundSql.getSql(), SerializeUtils.serialize(parameters), methodName);
     }
 }

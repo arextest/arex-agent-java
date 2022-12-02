@@ -3,10 +3,7 @@ package io.arex.foundation.context;
 
 import io.arex.foundation.util.StringUtil;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.WeakHashMap;
+import java.util.*;
 
 public class ArexContext {
     private final String caseId;
@@ -15,6 +12,8 @@ public class ArexContext {
     private final SequenceProvider sequence;
     private final List<Integer> methodSignatureHashList = new ArrayList<>();
     private final Map<String, Object> cacheMap = new WeakHashMap<>();
+    private Map<String, Set<String>> excludeMockTemplate;
+
     public String getCaseId() {
         return this.caseId;
     }
@@ -69,10 +68,19 @@ public class ArexContext {
     public Map<String, Object> getCacheMap() {
         return cacheMap;
     }
+    public Map<String, Set<String>> getExcludeMockTemplate() {
+        return excludeMockTemplate;
+    }
 
+    public void setExcludeMockTemplate(Map<String, Set<String>> excludeMockTemplate) {
+        this.excludeMockTemplate = excludeMockTemplate;
+    }
     public void clear() {
         methodSignatureHashList.clear();
         cacheMap.clear();
         sequence.clear();
+        if (excludeMockTemplate != null) {
+            excludeMockTemplate.clear();
+        }
     }
 }

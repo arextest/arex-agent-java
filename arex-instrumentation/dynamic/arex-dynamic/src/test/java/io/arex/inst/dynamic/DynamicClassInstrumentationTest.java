@@ -9,13 +9,10 @@ import io.arex.foundation.api.MethodInstrumentation;
 import io.arex.foundation.context.ArexContext;
 import io.arex.foundation.context.ContextManager;
 import io.arex.foundation.model.DynamicClassEntity;
+import io.arex.foundation.model.MockResult;
 import io.arex.foundation.util.StringUtil;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import net.bytebuddy.ByteBuddy;
@@ -39,7 +36,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class DynamicClassInstrumentationTest {
     static DynamicClassInstrumentation target = null;
     static List<DynamicClassEntity> dynamicClassList = Collections.singletonList(
-        new DynamicClassEntity("", "", "", null));
+            new DynamicClassEntity("", "", "", null));
 
     DynamicClassInstrumentationTest() {
     }
@@ -84,11 +81,11 @@ class DynamicClassInstrumentationTest {
 
         StringBuilder builder = new StringBuilder();
         builder.append("matcher: ").append(matcher.toString()).append("\n")
-            .append("matched Class: ").append(matchedClazz.getName()).append("\n")
-            .append("matched ").append(matchedMethods.size()).append(" methods: ")
-            .append(StringUtil.join(matchedMethods, ", ")).append("\n")
-            .append("matched ").append(nonMatchedMethods.size()).append(" methods: ")
-            .append(StringUtil.join(nonMatchedMethods, ", ")).append("\n");
+                .append("matched Class: ").append(matchedClazz.getName()).append("\n")
+                .append("matched ").append(matchedMethods.size()).append(" methods: ")
+                .append(StringUtil.join(matchedMethods, ", ")).append("\n")
+                .append("matched ").append(nonMatchedMethods.size()).append(" methods: ")
+                .append(StringUtil.join(nonMatchedMethods, ", ")).append("\n");
         System.out.println(builder);
 
         return matchedMethods.size();
@@ -109,36 +106,38 @@ class DynamicClassInstrumentationTest {
         };
 
         return Stream.of(
-            arguments("should_match_2_methods_when_empty_operation", Collections.singletonList(emptyOperation), NOT_EMPTY_PREDICATE.and(emptyOperationPredicate)),
-            arguments("should_match_4_method_when_with_return_void", Arrays.asList(emptyOperation, testReturnVoidEntity, testReturnVoidWithParameterEntity), NOT_EMPTY_PREDICATE.and(emptyOperationAndVoidPredicate))
+                arguments("should_match_2_methods_when_empty_operation", Collections.singletonList(emptyOperation), NOT_EMPTY_PREDICATE.and(emptyOperationPredicate)),
+                arguments("should_match_4_method_when_with_return_void", Arrays.asList(emptyOperation, testReturnVoidEntity, testReturnVoidWithParameterEntity), NOT_EMPTY_PREDICATE.and(emptyOperationAndVoidPredicate))
         );
     }
 
     @Test
     void onEnter() {
-        assertFalse(DynamicClassInstrumentation.MethodAdvice.onEnter());
+        assertFalse(DynamicClassInstrumentation.MethodAdvice.onEnter(null, null, null, null));
     }
 
     @ParameterizedTest
     @MethodSource("onExitCase")
-    void onExit(Runnable mocker) {
+    void onExit(Runnable mocker, MockResult mockResult, Predicate<MockResult> predicate) {
         mocker.run();
         DynamicClassInstrumentation.MethodAdvice.onExit(
-                "java.lang.System", "getenv", new Object[]{"java.lang.String"}, null);
+                "java.lang.System", "getenv", new Object[]{"java.lang.String"}, mockResult, null);
+        assertTrue(predicate.test(mockResult));
     }
 
     static Stream<Arguments> onExitCase() {
         Runnable mockerNeedReplay = () -> {
-            Mockito.when(ContextManager.needReplay()).thenReturn(true);
             Mockito.when(ContextManager.currentContext()).thenReturn(ArexContext.of("test-case-id"));
         };
         Runnable mockerNeedRecord = () -> {
-            Mockito.when(ContextManager.needReplay()).thenReturn(false);
             Mockito.when(ContextManager.needRecord()).thenReturn(true);
         };
+        Predicate<MockResult> predicate1 = Objects::isNull;
+        Predicate<MockResult> predicate2 = Objects::nonNull;
         return Stream.of(
-                arguments(mockerNeedReplay),
-                arguments(mockerNeedRecord)
+                arguments(mockerNeedReplay, null, predicate1),
+                arguments(mockerNeedRecord, MockResult.of("mock"), predicate2),
+                arguments(mockerNeedRecord, null, predicate1)
         );
     }
 
@@ -148,16 +147,16 @@ class DynamicClassInstrumentationTest {
         DynamicClassEntity testReturnNonPrimitiveType = new DynamicClassEntity("io.arex.inst.dynamic.DynamicTestClass", "testReturnNonPrimitiveType", "", "java.util.UUID.randomUUID");
         DynamicClassInstrumentation instrumentation = new DynamicClassInstrumentation(Arrays.asList(testReturnPrimitiveType, testReturnNonPrimitiveType));
         try (MockedStatic<ReplaceMethodHelper> replaceTimeMillsMockMockedStatic = Mockito.mockStatic(
-            ReplaceMethodHelper.class)) {
+                ReplaceMethodHelper.class)) {
             replaceTimeMillsMockMockedStatic.when(ReplaceMethodHelper::currentTimeMillis).thenReturn(3L);
             replaceTimeMillsMockMockedStatic.when(ReplaceMethodHelper::uuid).thenReturn(UUID.fromString("7eb4f958-671a-11ed-9022-0242ac120002"));
 
 
             ResettableClassFileTransformer resettableClassFileTransformer =
-            new AgentBuilder.Default(new ByteBuddy())
-                .type(instrumentation.matcher())
-                .transform(instrumentation.transformer())
-                .installOnByteBuddyAgent();
+                    new AgentBuilder.Default(new ByteBuddy())
+                            .type(instrumentation.matcher())
+                            .transform(instrumentation.transformer())
+                            .installOnByteBuddyAgent();
 
             DynamicTestClass testClass = new DynamicTestClass();
 //            assertEquals(3L, testClass.testReturnPrimitiveType());

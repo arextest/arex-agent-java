@@ -1,6 +1,7 @@
 package io.arex.inst.httpclient.okhttp.v3;
 
 import io.arex.foundation.context.ContextManager;
+import io.arex.foundation.model.MockResult;
 import io.arex.inst.httpclient.common.HttpClientExtractor;
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -10,13 +11,15 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.MockedStatic;
 
 import java.io.IOException;
 import java.util.List;
+
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
@@ -39,33 +42,37 @@ public class OkHttpCallInstrumentationTest {
     public void executeAdviceEnterTest() {
         Call call = mock(Call.class);
         when(call.request()).thenReturn(OkHttpCallbackWrapperTest.createRequest());
-        HttpClientExtractor<Request, Response> extractor = null;
+        Mockito.mockConstruction(HttpClientExtractor.class, (mock, context) -> {
+            Mockito.when(mock.replay()).thenReturn(MockResult.of("mock"));
+        });
         try (MockedStatic<ContextManager> contextManager = mockStatic(ContextManager.class)) {
             contextManager.when(ContextManager::needRecordOrReplay).thenReturn(true);
-            boolean actResult = OkHttpCallInstrumentation.ExecuteAdvice.onEnter(call, extractor);
-            Assertions.assertFalse(actResult);
+            contextManager.when(ContextManager::needReplay).thenReturn(true);
+            boolean actResult = OkHttpCallInstrumentation.ExecuteAdvice.onEnter(call, null, null);
+            Assertions.assertTrue(actResult);
         }
     }
 
     @SuppressWarnings("unchecked")
     @Test
     public void executeAdviceExitTest() throws Exception {
-        HttpClientExtractor<Request, Response> extractor = mock(HttpClientExtractor.class);
+        HttpClientExtractor<Request, MockResult> extractor = mock(HttpClientExtractor.class);
         Exception throwable = new IOException("Not found");
-        Response response;
-        OkHttpCallInstrumentation.ExecuteAdvice.onExit(extractor, null, null);
+        Response response = OkHttpCallbackWrapperTest.createResponse();
+        OkHttpCallInstrumentation.ExecuteAdvice.onExit(null, null, null, null);
         verify(extractor, never()).replay();
+        MockResult mockResult = MockResult.of(response);
         try (MockedStatic<ContextManager> contextManager = mockStatic(ContextManager.class)) {
             contextManager.when(ContextManager::needReplay).thenReturn(true);
-            OkHttpCallInstrumentation.ExecuteAdvice.onExit(extractor, null, null);
-            verify(extractor).replay();
+            OkHttpCallInstrumentation.ExecuteAdvice.onExit(extractor, null, null, mockResult);
+            verify(extractor, never()).replay();
         }
-        response = OkHttpCallbackWrapperTest.createResponse();
         try (MockedStatic<ContextManager> contextManager = mockStatic(ContextManager.class)) {
             contextManager.when(ContextManager::needReplay).thenReturn(false);
-            OkHttpCallInstrumentation.ExecuteAdvice.onExit(extractor, null, response);
-            verify(extractor).record(response);
-            OkHttpCallInstrumentation.ExecuteAdvice.onExit(extractor, throwable, response);
+            contextManager.when(ContextManager::needRecord).thenReturn(true);
+            OkHttpCallInstrumentation.ExecuteAdvice.onExit(extractor, null, response, null);
+            verify(extractor).record(any(MockResult.class));
+            OkHttpCallInstrumentation.ExecuteAdvice.onExit(extractor, throwable, response, null);
             verify(extractor).record(throwable);
         }
     }

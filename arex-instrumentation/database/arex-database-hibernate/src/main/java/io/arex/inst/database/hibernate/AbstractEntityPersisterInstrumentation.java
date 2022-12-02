@@ -2,9 +2,9 @@ package io.arex.inst.database.hibernate;
 
 import io.arex.foundation.api.MethodInstrumentation;
 import io.arex.foundation.api.TypeInstrumentation;
-import io.arex.foundation.context.ArexContext;
 import io.arex.foundation.context.ContextManager;
 import io.arex.foundation.context.RepeatedCollectManager;
+import io.arex.foundation.model.MockResult;
 import io.arex.foundation.util.LogUtil;
 import io.arex.inst.database.common.DatabaseExtractor;
 import net.bytebuddy.asm.Advice;
@@ -22,6 +22,8 @@ import static net.bytebuddy.matcher.ElementMatchers.*;
 import static net.bytebuddy.matcher.ElementMatchers.takesArgument;
 
 public class AbstractEntityPersisterInstrumentation extends TypeInstrumentation {
+
+    private static final String METHOD_NAME_UPDATE = "update";
 
     @Override
     public ElementMatcher<TypeDescription> typeMatcher() {
@@ -64,41 +66,54 @@ public class AbstractEntityPersisterInstrumentation extends TypeInstrumentation 
     @SuppressWarnings("unused")
     public static class InsertAdvice {
 
-        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class, suppress = Throwable.class)
-        public static boolean onEnter() {
+        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class)
+        public static boolean onEnter(@Advice.Argument(2) String sql,
+                                      @Advice.Argument(3) Object object,
+                                      @Advice.Local("replayException") HibernateException replayException,
+                                      @Advice.Local("mockResult") MockResult mockResult,
+                                      @Advice.Local("extractor") DatabaseExtractor extractor) {
             RepeatedCollectManager.enter();
-            return ContextManager.needReplay();
+            if (ContextManager.needRecordOrReplay()) {
+                extractor = new DatabaseExtractor(sql, object, METHOD_NAME_UPDATE);
+                if (ContextManager.needReplay()) {
+                    try {
+                        mockResult = extractor.replay();
+                    } catch (SQLException sex) {
+                        replayException = new HibernateException(sex.getMessage());
+                    } catch (Exception ex) {
+                        LogUtil.warn("execute replay failed.", ex);
+                    }
+                }
+            }
+            return mockResult != null && mockResult.notIgnoreMockResult();
         }
 
         @Advice.OnMethodExit(onThrowable = SQLException.class)
         public static void onExit(
-                @Advice.Argument(2) String sql,
-                @Advice.Argument(3) Object object,
-                @Advice.Argument(4) SharedSessionContractImplementor session,
                 @Advice.Return(readOnly = false) Serializable serializable,
-                @Advice.Thrown(readOnly = false) HibernateException exception) throws HibernateException {
+                @Advice.Local("replayException") HibernateException replayException,
+                @Advice.Thrown(readOnly = false) HibernateException exception,
+                @Advice.Local("mockResult") MockResult mockResult,
+                @Advice.Local("extractor") DatabaseExtractor extractor) throws HibernateException {
             if (!RepeatedCollectManager.exitAndValidate()) {
                 return;
             }
 
-            ArexContext context = ContextManager.currentContext();
-            if (context != null) {
-                DatabaseExtractor extractor = new DatabaseExtractor(sql, object);
-                if (context.isReplay() && serializable == null) {
-                    try {
-                        serializable = (Serializable) extractor.replay();
-                    } catch (SQLException sex) {
-                        exception = new HibernateException(sex.getMessage());
-                    } catch (Exception ex) {
-                        LogUtil.warn("execute replay failed.", ex);
+            if (extractor != null) {
+                if (ContextManager.needReplay()) {
+                    if (replayException != null) {
+                        exception = replayException;
+                    } else if (mockResult != null && mockResult.notIgnoreMockResult() && serializable == null) {
+                        serializable = (Serializable) mockResult.getMockResult();
                     }
                     return;
                 }
-
-                if (exception != null) {
-                    extractor.record(exception);
-                } else {
-                    extractor.record(serializable);
+                if (ContextManager.needRecord()) {
+                    if (exception != null) {
+                        extractor.record(exception);
+                    } else {
+                        extractor.record(serializable);
+                    }
                 }
             }
         }
@@ -111,16 +126,18 @@ public class AbstractEntityPersisterInstrumentation extends TypeInstrumentation 
                 @Advice.Argument(7) Object object,
                 @Advice.Argument(8) String sql,
                 @Advice.Argument(9) SharedSessionContractImplementor session) throws HibernateException {
+            RepeatedCollectManager.enter();
             if (ContextManager.needReplay()) {
-                DatabaseExtractor extractor = new DatabaseExtractor(sql, object);
+                DatabaseExtractor extractor = new DatabaseExtractor(sql, object, METHOD_NAME_UPDATE);
                 try {
-                    extractor.replay();
-                    return 0;
+                    MockResult mockResult = extractor.replay();
+                    if (mockResult != null && mockResult.notIgnoreMockResult()) {
+                        return 0;
+                    }
                 } catch (Exception ex) {
                     throw new HibernateException(ex);
                 }
             }
-            RepeatedCollectManager.enter();
             return 1;
         }
 
@@ -128,10 +145,9 @@ public class AbstractEntityPersisterInstrumentation extends TypeInstrumentation 
         public static void onExit(
                 @Advice.Argument(7) Object object,
                 @Advice.Argument(8) String sql,
-                @Advice.Argument(9) SharedSessionContractImplementor session,
-                @Advice.Thrown HibernateException exception) {
+                @Advice.Thrown HibernateException exception) throws HibernateException {
             if (ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate()) {
-                DatabaseExtractor extractor = new DatabaseExtractor(sql, object);
+                DatabaseExtractor extractor = new DatabaseExtractor(sql, object, METHOD_NAME_UPDATE);
                 if (exception != null) {
                     extractor.record(exception);
                 } else {
