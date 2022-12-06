@@ -1,6 +1,10 @@
 package io.arex.inst.database.mybatis3;
 
+import io.arex.agent.bootstrap.model.ArexMocker;
+import io.arex.agent.bootstrap.model.MockResult;
+import io.arex.agent.bootstrap.model.Mocker.Target;
 import io.arex.foundation.context.ContextManager;
+import io.arex.foundation.services.MockService;
 import io.arex.foundation.util.AsyncHttpClientUtil;
 import io.arex.inst.database.common.DatabaseExtractor;
 import org.apache.ibatis.mapping.BoundSql;
@@ -16,6 +20,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.NullSource;
 import org.mockito.MockedConstruction;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -26,6 +31,7 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mockStatic;
 
 @ExtendWith(MockitoExtension.class)
 class InternalExecutorTest {
@@ -56,7 +62,17 @@ class InternalExecutorTest {
 
     @Test
     void replay() throws SQLException {
-        assertNotNull(target.replay(mappedStatement, new Object(), boundSql, "insert"));
+        try (MockedStatic<MockService> mockService = mockStatic(MockService.class)){
+            MockResult mockResult = MockResult.success(true, null);
+            mockService.when(() -> MockService.replayBody(any())).thenReturn(mockResult);
+
+            ArexMocker mocker = new ArexMocker();
+            mocker.setTargetRequest(new Target());
+            mocker.setTargetResponse(new Target());
+            mockService.when(() -> MockService.createDatabase(any())).thenReturn(mocker);
+
+            assertNotNull(InternalExecutor.replay(mappedStatement, new Object(), boundSql, "insert"));
+        }
     }
 
     @Test

@@ -1,8 +1,6 @@
 package io.arex.foundation.internal;
 
-
-import com.arextest.model.mock.Mocker;
-
+import io.arex.agent.bootstrap.model.Mocker;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 

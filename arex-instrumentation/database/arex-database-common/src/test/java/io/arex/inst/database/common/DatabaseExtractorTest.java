@@ -1,58 +1,51 @@
 package io.arex.inst.database.common;
 
-import io.arex.foundation.model.DatabaseMocker;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mockStatic;
+
+import io.arex.agent.bootstrap.model.ArexMocker;
+import io.arex.agent.bootstrap.model.MockResult;
+import io.arex.agent.bootstrap.model.Mocker.Target;
+import io.arex.foundation.services.IgnoreService;
+import io.arex.foundation.services.MockService;
+import java.sql.SQLException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.MockedConstruction;
-import org.mockito.Mockito;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.sql.SQLException;
-
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class DatabaseExtractorTest {
+
     @InjectMocks
     DatabaseExtractor target;
-    DatabaseMocker databaseMocker;
 
     @Test
     void record() {
-        try (MockedConstruction<DatabaseMocker> mocked = Mockito.mockConstruction(DatabaseMocker.class, (mock, context) -> {
-            databaseMocker = mock;
-        })) {
-            target.record(new Object());
-            verify(databaseMocker).record();
-        }
+        target.record(new Object());
     }
 
     @Test
     void testRecord() {
-        try (MockedConstruction<DatabaseMocker> mocked = Mockito.mockConstruction(DatabaseMocker.class, (mock, context) -> {
-            databaseMocker = mock;
-        })) {
-            target.record(new SQLException());
-            verify(databaseMocker).record();
-        }
-    }
-
-    @Test
-    void replayException() {
-        try (MockedConstruction<DatabaseMocker> mocked = Mockito.mockConstruction(DatabaseMocker.class, (mock, context) -> {
-            Mockito.when(mock.getExceptionMessage()).thenReturn("exception");
-        })) {
-            assertThrows(SQLException.class, target::replay);
-        }
+        target.record(new SQLException());
     }
 
     @Test
     void replay() throws SQLException {
-        try (MockedConstruction<DatabaseMocker> mocked = Mockito.mockConstruction(DatabaseMocker.class)) {
-            assertNotNull(target.replay());
+        try (MockedStatic<MockService> mockService = mockStatic(MockService.class);
+            MockedStatic<IgnoreService> ignoreService = mockStatic(IgnoreService.class)) {
+            ignoreService.when(() -> IgnoreService.ignoreMockResult(any(), any())).thenReturn(true);
+            MockResult mockResult = MockResult.success(true, null);
+            mockService.when(() -> MockService.replayBody(any())).thenReturn(mockResult);
+
+            ArexMocker mocker = new ArexMocker();
+            mocker.setTargetRequest(new Target());
+            mocker.setTargetResponse(new Target());
+            mockService.when(() -> MockService.createDatabase(any())).thenReturn(mocker);
+
+            assertEquals(mockResult.isIgnoreMockResult(), target.replay().isIgnoreMockResult());
         }
     }
 }

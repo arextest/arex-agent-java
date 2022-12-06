@@ -1,9 +1,9 @@
 package io.arex.cli.storage;
 
-import com.arextest.model.mock.MockCategoryType;
-import com.arextest.model.mock.Mocker;
+import io.arex.agent.bootstrap.model.MockCategoryType;
+import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.foundation.model.DiffMocker;
-import io.arex.foundation.model.MockerUtils;
+import io.arex.foundation.services.MockService;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -39,7 +39,7 @@ class H2SqlParserTest {
     void generateInsertSql() {
         String tableName = "MOCKER_INFO";
         List<Object> mockers = new ArrayList<>();
-        Mocker mocker = MockerUtils.createDatabase(tableName);
+        Mocker mocker = MockService.createDatabase(tableName);
         mockers.add(mocker);
         String sql = H2SqlParser.generateInsertSql(mockers, tableName, "");
         assertNotNull(sql);
@@ -53,10 +53,10 @@ class H2SqlParserTest {
     }
 
     static Stream<Arguments> generateSelectSqlCase() {
-        Mocker mocker1 =MockerUtils.createDatabase("test1");
+        Mocker mocker1 = MockService.createDatabase("test1");
         mocker1.setRecordId(caseId);
         mocker1.setReplayId(replayId);
-        Mocker mocker2 = MockerUtils.createDatabase("test1");
+        Mocker mocker2 = MockService.createDatabase("test1");
         mocker2.setRecordId(caseId);
 
         Predicate<String> predicate1 = sql -> sql.contains("LIMIT 1");

@@ -1,12 +1,11 @@
 package io.arex.inst.netty.v4.server;
 
-import com.arextest.model.constants.MockAttributeNames;
-import com.arextest.model.mock.Mocker;
+import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.foundation.context.ContextManager;
 import io.arex.foundation.listener.CaseEvent;
 import io.arex.foundation.listener.CaseListenerImpl;
-import io.arex.foundation.model.Constants;
-import io.arex.foundation.model.MockerUtils;
+import io.arex.agent.bootstrap.model.ArexConstants;
+import io.arex.foundation.services.MockService;
 import io.arex.foundation.util.StringUtil;
 import io.arex.inst.netty.v4.common.AttributeKey;
 import io.arex.inst.netty.v4.common.NettyHelper;
@@ -58,19 +57,19 @@ public class ResponseTracingHandler extends ChannelOutboundHandlerAdapter {
             return;
         }
         Map<String, String> headers=NettyHelper.parseHeaders(response.headers());
-        mocker.getTargetResponse().setAttribute(MockAttributeNames.HEADERS,headers);
+        mocker.getTargetResponse().setAttribute("Headers", headers);
         channel.attr(AttributeKey.TRACING_MOCKER).set(mocker);
         appendHeader(response);
     }
 
     private void appendHeader(HttpResponse response) {
         if (ContextManager.needRecord()) {
-            response.headers().set(Constants.RECORD_ID, ContextManager.currentContext().getCaseId());
+            response.headers().set(ArexConstants.RECORD_ID, ContextManager.currentContext().getCaseId());
             return;
         }
 
         if (ContextManager.needReplay()) {
-            response.headers().set(Constants.REPLAY_ID, ContextManager.currentContext().getReplayId());
+            response.headers().set(ArexConstants.REPLAY_ID, ContextManager.currentContext().getReplayId());
         }
     }
 
@@ -85,9 +84,9 @@ public class ResponseTracingHandler extends ChannelOutboundHandlerAdapter {
         }
         mocker.getTargetResponse().setBody(content);
         if (ContextManager.needReplay()) {
-           MockerUtils.replayBody(mocker);
+           MockService.replayBody(mocker);
         } else if (ContextManager.needRecord()) {
-            MockerUtils.record(mocker);
+            MockService.recordMocker(mocker);
         }
 
         CaseListenerImpl.INSTANCE.onEvent(new CaseEvent(this, CaseEvent.Action.DESTROY));

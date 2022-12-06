@@ -4,7 +4,7 @@ import io.arex.foundation.api.MethodInstrumentation;
 import io.arex.foundation.api.TypeInstrumentation;
 import io.arex.foundation.context.ContextManager;
 import io.arex.foundation.context.RepeatedCollectManager;
-import io.arex.foundation.model.MockResult;
+import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.inst.database.common.DatabaseExtractor;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
@@ -80,7 +80,7 @@ public class ExecutorInstrumentation extends TypeInstrumentation {
                                   @Advice.Return(readOnly = false) List<?> result,
                                   @Advice.Local("mockResult") MockResult mockResult) {
             if (mockResult != null && mockResult.notIgnoreMockResult()) {
-                result = (List<?>)mockResult.getMockResult();
+                result = (List<?>)mockResult.getResult();
                 return;
             }
 
@@ -114,7 +114,7 @@ public class ExecutorInstrumentation extends TypeInstrumentation {
                                   @Advice.Return(readOnly = false) List<?> result,
                                   @Advice.Local("mockResult") MockResult mockResult) {
             if (mockResult != null && mockResult.notIgnoreMockResult()) {
-                result = (List<?>)mockResult.getMockResult();
+                result = (List<?>)mockResult.getResult();
                 return;
             }
             if (!RepeatedCollectManager.exitAndValidate()) {
@@ -161,7 +161,7 @@ public class ExecutorInstrumentation extends TypeInstrumentation {
             }
 
             if (mockResult != null && mockResult.notIgnoreMockResult()) {
-                result = (Integer)mockResult.getMockResult();
+                result = (Integer)mockResult.getResult();
                 return;
             }
 

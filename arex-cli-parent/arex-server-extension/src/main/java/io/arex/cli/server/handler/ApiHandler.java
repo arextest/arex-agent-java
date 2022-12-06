@@ -1,7 +1,7 @@
 package io.arex.cli.server.handler;
 
-import com.arextest.model.mock.Mocker;
-import com.arextest.model.mock.Mocker.Target;
+import io.arex.agent.bootstrap.model.Mocker;
+import io.arex.agent.bootstrap.model.Mocker.Target;
 import io.arex.foundation.util.AsyncHttpClientUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;

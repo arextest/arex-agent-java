@@ -1,7 +1,7 @@
 package io.arex.cli;
 
 import io.arex.cli.util.SystemUtils;
-import io.arex.foundation.model.Constants;
+import io.arex.agent.bootstrap.model.ArexConstants;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 import org.jline.terminal.impl.DumbTerminal;
@@ -30,7 +30,7 @@ class ArexCliTest {
         Mockito.when(builder.jna(true)).thenReturn(builder);
         Mockito.when(builder.system(true)).thenReturn(builder);
         // mock reader.readLine
-        ByteArrayInputStream in = new ByteArrayInputStream((Constants.CLI_PROMPT+"test\n").getBytes(StandardCharsets.UTF_8 ) );
+        ByteArrayInputStream in = new ByteArrayInputStream((ArexConstants.CLI_PROMPT+"test\n").getBytes(StandardCharsets.UTF_8 ) );
         ByteArrayOutputStream out = new ByteArrayOutputStream(1024);
         Terminal terminal = new DumbTerminal(in, out);
 

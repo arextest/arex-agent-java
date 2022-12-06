@@ -1,6 +1,6 @@
 package io.arex.cli.storage;
 
-import com.arextest.model.mock.Mocker;
+import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.foundation.model.DiffMocker;
 import io.arex.foundation.util.IOUtils;
 import org.apache.commons.lang3.StringUtils;

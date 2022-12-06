@@ -1,6 +1,6 @@
 package io.arex.cli.server.handler;
 
-import io.arex.foundation.model.Constants;
+import io.arex.agent.bootstrap.model.ArexConstants;
 import io.arex.foundation.util.NetUtils;
 import io.arex.foundation.util.StringUtil;
 import io.termd.core.telnet.netty.NettyTelnetTtyBootstrap;
@@ -84,7 +84,7 @@ class ServerHandlerTest {
                 int b;
                 while ((b = in.read()) != -1) {
                     line.appendCodePoint(b);
-                    if(line.toString().endsWith(Constants.CLI_PROMPT)) {
+                    if(line.toString().endsWith(ArexConstants.CLI_PROMPT)) {
                         break;
                     }
                 }
@@ -104,7 +104,7 @@ class ServerHandlerTest {
             int b;
             while ((b = in.read()) != -1) {
                 line.appendCodePoint(b);
-                if(line.toString().endsWith(Constants.CLI_PROMPT)) {
+                if(line.toString().endsWith(ArexConstants.CLI_PROMPT)) {
                     break;
                 }
             }

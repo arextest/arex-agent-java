@@ -1,7 +1,7 @@
 package io.arex.cli.server.handler;
 
-import com.arextest.model.mock.AREXMocker;
-import com.arextest.model.mock.Mocker;
+import io.arex.agent.bootstrap.model.ArexMocker;
+import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.foundation.services.StorageService;
 
 import java.util.Map;
@@ -9,7 +9,7 @@ import java.util.Map;
 public class DebugHandler extends ApiHandler {
     @Override
     public String process(String args) throws Exception {
-        Mocker mocker = new AREXMocker();
+        Mocker mocker = new ArexMocker();
         mocker.setReplayId(args);
         Mocker resultMocker = StorageService.INSTANCE.query(mocker);
         if (resultMocker == null) {

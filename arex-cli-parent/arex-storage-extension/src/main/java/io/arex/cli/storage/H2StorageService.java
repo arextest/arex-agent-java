@@ -1,7 +1,7 @@
 package io.arex.cli.storage;
 
-import com.arextest.model.mock.AREXMocker;
-import com.arextest.model.mock.Mocker;
+import io.arex.agent.bootstrap.model.ArexMocker;
+import io.arex.agent.bootstrap.model.Mocker;
 import com.google.auto.service.AutoService;
 import io.arex.foundation.config.ConfigManager;
 import io.arex.foundation.model.DiffMocker;
@@ -94,7 +94,7 @@ public class H2StorageService extends StorageService {
             ResultSet rs = stmt.executeQuery(sql);
             while (rs.next()) {
                 String jsonData = URLDecoder.decode(rs.getString("jsonData"), StandardCharsets.UTF_8.name());
-                Mocker resultMocker = SerializeUtils.deserialize(jsonData, AREXMocker.class);
+                Mocker resultMocker = SerializeUtils.deserialize(jsonData, ArexMocker.class);
                 if (resultMocker == null) {
                     continue;
                 }

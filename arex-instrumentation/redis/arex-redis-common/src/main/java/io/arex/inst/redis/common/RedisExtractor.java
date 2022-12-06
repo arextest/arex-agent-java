@@ -1,12 +1,12 @@
 package io.arex.inst.redis.common;
 
-import io.arex.foundation.model.MockResult;
-import com.arextest.model.constants.MockAttributeNames;
-import com.arextest.model.mock.Mocker;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.arex.foundation.model.MockerUtils;
-import io.arex.foundation.model.RedisMocker;
+import io.arex.agent.bootstrap.model.MockResult;
+import io.arex.agent.bootstrap.model.Mocker;
+import io.arex.foundation.services.IgnoreService;
+import io.arex.foundation.services.MockService;
 import io.arex.foundation.serializer.SerializeUtils;
+import io.arex.foundation.util.ResponseExceptionMockUtil;
 import io.arex.foundation.util.TypeUtil;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -27,27 +27,13 @@ public class RedisExtractor {
         this.field = field;
     }
 
-    public void record(Object response) {
-        MockerUtils.record(makeMocker(response));
-    }
-
-    private Mocker makeMocker(Object response) {
-        String requestBody = SerializeUtils.serialize(new RedisMultiKey(key, field));
-        Mocker arexMocker = MockerUtils.createRedis(this.command);
-        arexMocker.getTargetRequest().setBody(requestBody);
-        arexMocker.getTargetRequest().setAttribute(MockAttributeNames.CLUSTER_NAME, this.clusterName);
-        arexMocker.getTargetResponse().setBody(SerializeUtils.serialize(response));
-        arexMocker.getTargetResponse().setType(normalizeTypeName(response));
-        return arexMocker;
-    }
-
-    private static class RedisMultiKey {
+    public static class RedisMultiKey {
         @JsonProperty("key")
         private final String key;
         @JsonProperty("filed")
         private final String field;
 
-        private RedisMultiKey(String key, String field) {
+        public RedisMultiKey(String key, String field) {
             this.key = key;
             this.field = field;
         }
@@ -61,15 +47,28 @@ public class RedisExtractor {
         return typeName;
     }
 
+    public void record(Object response) {
+        MockService.recordMocker(makeMocker(response));
+    }
+
     public void record(Throwable exception) {
-        RedisMocker mocker = new RedisMocker(this.clusterName, this.key, this.command, this.field, null);
-        mocker.setExceptionMessage(exception.getMessage());
-        mocker.record();
+        String response = ResponseExceptionMockUtil.formatResponseException(exception);
+        record(response);
     }
 
     public MockResult replay() {
-        RedisMocker mocker = new RedisMocker(this.clusterName, this.key, this.command, this.field);
-        return MockResult.of(mocker.ignoreMockResult(), mocker.replay());
+        boolean ignoreResult = IgnoreService.ignoreMockResult(clusterName, command);
+        Object replayBody = MockService.replayBody(makeMocker(null));
+        return MockResult.success(ignoreResult, replayBody);
+    }
+
+    private Mocker makeMocker(Object response) {
+        Mocker mocker = MockService.createRedis(this.command);
+        mocker.getTargetRequest().setBody(SerializeUtils.serialize(new RedisMultiKey(key, field)));
+        mocker.getTargetRequest().setAttribute("clusterName", this.clusterName);
+        mocker.getTargetResponse().setBody(SerializeUtils.serialize(response));
+        mocker.getTargetResponse().setType(normalizeTypeName(response));
+        return mocker;
     }
 
     static class RedisCluster {

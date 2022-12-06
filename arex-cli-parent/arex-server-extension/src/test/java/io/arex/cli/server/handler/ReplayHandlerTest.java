@@ -1,9 +1,8 @@
 package io.arex.cli.server.handler;
 
-import com.arextest.model.constants.MockAttributeNames;
-import com.arextest.model.mock.AREXMocker;
-import com.arextest.model.mock.Mocker;
-import io.arex.foundation.model.MockerUtils;
+import io.arex.agent.bootstrap.model.ArexMocker;
+import io.arex.agent.bootstrap.model.Mocker;
+import io.arex.foundation.services.MockService;
 import io.arex.foundation.services.StorageService;
 import io.arex.foundation.util.AsyncHttpClientUtil;
 import org.junit.jupiter.api.AfterAll;
@@ -66,53 +65,53 @@ class ReplayHandlerTest {
         Runnable mocker1 = () -> {
         };
         Runnable mocker2 = () -> StorageService.INSTANCE = storageService;
-        Mocker servletMocker = MockerUtils.createServlet("");
-        servletMocker.getTargetRequest().setAttribute(MockAttributeNames.HEADERS, new HashMap<>());
+        Mocker servletMocker = MockService.createServlet("");
+        servletMocker.getTargetRequest().setAttribute("Headers", new HashMap<>());
         Function<Class<? extends Mocker>, OngoingStubbing<List<Mocker>>> stub = clazz ->
                 Mockito.when(storageService.queryList(any(clazz), anyInt()));
-        Runnable mocker3 = () -> stub.apply(AREXMocker.class).thenReturn(Collections.singletonList(servletMocker));
+        Runnable mocker3 = () -> stub.apply(ArexMocker.class).thenReturn(Collections.singletonList(servletMocker));
         Runnable mocker4 = () -> {
             // ServletEntrance
-            Mocker servletMocker1 = MockerUtils.createServlet("errorCode: 0");
-            servletMocker1.getTargetRequest().setAttribute(MockAttributeNames.HEADERS, new HashMap<>());
+            Mocker servletMocker1 = MockService.createServlet("errorCode: 0");
+            servletMocker1.getTargetRequest().setAttribute("Headers", new HashMap<>());
             // servletMocker1.setResponse();
-            Mocker servletMocker2 = MockerUtils.createServlet("errorCode: 1");
+            Mocker servletMocker2 = MockService.createServlet("errorCode: 1");
             // servletMocker2.setResponse("errorCode: 1");
             stub.apply(Mocker.class)
                     .thenReturn(Collections.singletonList(servletMocker))
                     .thenReturn(Collections.singletonList(servletMocker1))
                     .thenReturn(Collections.singletonList(servletMocker2));
             // ServiceCall
-            Mocker httpClientMocker1 = MockerUtils.createHttpClient("POST");
+            Mocker httpClientMocker1 = MockService.createHttpClient("POST");
             //  httpClientMocker1.setRequest("userName: Lucas");
-            Mocker httpClientMocker2 = MockerUtils.createHttpClient("GET");
+            Mocker httpClientMocker2 = MockService.createHttpClient("GET");
             //  httpClientMocker2.setRequest("userName: Mason");
             stub.apply(Mocker.class)
                     .thenReturn(Collections.singletonList(httpClientMocker1))
                     .thenReturn(Collections.singletonList(httpClientMocker2));
             // Database
-            Mocker databaseMocker1 = MockerUtils.createDatabase("testdb");
+            Mocker databaseMocker1 = MockService.createDatabase("testdb");
             databaseMocker1.getTargetRequest().setBody(
                     "select * from MOCKER_INFO where userId = ?");
-            databaseMocker1.getTargetRequest().setAttribute(MockAttributeNames.DB_PARAMETERS, "123");
+            databaseMocker1.getTargetRequest().setAttribute("parameters", "123");
 
-            Mocker databaseMocker2 = MockerUtils.createDatabase("testdb");
+            Mocker databaseMocker2 = MockService.createDatabase("testdb");
             databaseMocker2.getTargetRequest().setBody(
                     "select * from MOCKER_INFO where userId = ?");
-            databaseMocker2.getTargetRequest().setAttribute(MockAttributeNames.DB_PARAMETERS, "124");
+            databaseMocker2.getTargetRequest().setAttribute("parameters", "124");
             stub.apply(Mocker.class)
                     .thenReturn(Collections.singletonList(databaseMocker1))
                     .thenReturn(Collections.singletonList(databaseMocker2));
             // redis
-            Mocker redisMocker1 = MockerUtils.createRedis("get1");
-            Mocker redisMocker2 = MockerUtils.createRedis("get2");
+            Mocker redisMocker1 = MockService.createRedis("get1");
+            Mocker redisMocker2 = MockService.createRedis("get2");
 
             stub.apply(Mocker.class)
                     .thenReturn(Collections.singletonList(redisMocker1))
                     .thenReturn(Collections.singletonList(redisMocker2));
             // dynamicClass
-            Mocker dynamicClassMocker1 = MockerUtils.createDynamicClass("com.test.Foo", "foo1");
-            Mocker dynamicClassMocker2 = MockerUtils.createDynamicClass("com.test.Foo", "foo2");
+            Mocker dynamicClassMocker1 = MockService.createDynamicClass("com.test.Foo", "foo1");
+            Mocker dynamicClassMocker2 = MockService.createDynamicClass("com.test.Foo", "foo2");
             stub.apply(Mocker.class)
                     .thenReturn(Collections.singletonList(dynamicClassMocker1))
                     .thenReturn(Collections.singletonList(dynamicClassMocker2));

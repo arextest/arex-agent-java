@@ -1,10 +1,9 @@
 package io.arex.inst.httpservlet;
 
-import com.arextest.model.constants.MockAttributeNames;
-import com.arextest.model.mock.AREXMocker;
+import io.arex.agent.bootstrap.model.ArexMocker;
 import io.arex.foundation.context.ContextManager;
-import io.arex.foundation.model.Constants;
-import io.arex.foundation.model.MockerUtils;
+import io.arex.agent.bootstrap.model.ArexConstants;
+import io.arex.foundation.services.MockService;
 import io.arex.foundation.serializer.SerializeUtils;
 import io.arex.inst.httpservlet.adapter.ServletAdapter;
 
@@ -35,8 +34,8 @@ public class ServletExtractor<HttpServletRequest, HttpServletResponse> {
     }
 
     public void execute() throws IOException {
-        if (adapter.getResponseHeader(httpServletResponse, Constants.RECORD_ID) != null ||
-                adapter.getResponseHeader(httpServletResponse, Constants.REPLAY_ID) != null) {
+        if (adapter.getResponseHeader(httpServletResponse, ArexConstants.RECORD_ID) != null ||
+                adapter.getResponseHeader(httpServletResponse, ArexConstants.REPLAY_ID) != null) {
             adapter.copyBodyToResponse(httpServletResponse);
             return;
         }
@@ -57,31 +56,34 @@ public class ServletExtractor<HttpServletRequest, HttpServletResponse> {
 
     private void setResponseHeader() {
         if (ContextManager.needRecord()) {
-            adapter.setResponseHeader(httpServletResponse, Constants.RECORD_ID,
+            adapter.setResponseHeader(httpServletResponse, ArexConstants.RECORD_ID,
                     ContextManager.currentContext().getCaseId());
         }
 
         if (ContextManager.needReplay()) {
-            adapter.setResponseHeader(httpServletResponse, Constants.REPLAY_ID,
+            adapter.setResponseHeader(httpServletResponse, ArexConstants.REPLAY_ID,
                     ContextManager.currentContext().getReplayId());
         }
     }
 
     private void doExecute() {
-        AREXMocker mocker = MockerUtils.createServlet(getPattern());
-        Map<String, Object> attributes = new HashMap<>();
-        attributes.put(MockAttributeNames.HTTP_METHOD, adapter.getMethod(httpServletRequest));
-        attributes.put(MockAttributeNames.SERVLET_PATH, adapter.getServletPath(httpServletRequest));
-        attributes.put(MockAttributeNames.HEADERS, getRequestHeaders());
-        mocker.getTargetRequest().setAttributes(attributes);
+        ArexMocker mocker = MockService.createServlet(getPattern());
+
+        Map<String, Object> requestAttributes = new HashMap<>();
+        requestAttributes.put("HttpMethod", adapter.getMethod(httpServletRequest));
+        requestAttributes.put("ServletPath", adapter.getServletPath(httpServletRequest));
+        requestAttributes.put("Headers", getRequestHeaders());
+
+        Map<String, Object> responseAttributes = Collections.singletonMap("Headers", getResponseHeaders());
+
+        mocker.getTargetRequest().setAttributes(requestAttributes);
         mocker.getTargetRequest().setBody(getRequest());
-        attributes = Collections.singletonMap(MockAttributeNames.HEADERS, getResponseHeaders());
-        mocker.getTargetResponse().setAttributes(attributes);
+        mocker.getTargetResponse().setAttributes(responseAttributes);
         mocker.getTargetResponse().setBody(getResponse());
         if (ContextManager.needReplay()) {
-            MockerUtils.replayBody(mocker);
+            MockService.replayBody(mocker);
         } else if (ContextManager.needRecord()) {
-            MockerUtils.record(mocker);
+            MockService.recordMocker(mocker);
         }
     }
 
@@ -113,10 +115,10 @@ public class ServletExtractor<HttpServletRequest, HttpServletResponse> {
     }
 
     private String getResponse() {
-        Object response = adapter.getAttribute(httpServletRequest, ServletConstants.SERVLET_RESPONSE);
+        Object response = adapter.getAttribute(httpServletRequest, ServletAdviceHelper.SERVLET_RESPONSE);
         // response body to json
         if (response != null) {
-            adapter.removeAttribute(httpServletRequest, ServletConstants.SERVLET_RESPONSE);
+            adapter.removeAttribute(httpServletRequest, ServletAdviceHelper.SERVLET_RESPONSE);
             return SerializeUtils.serialize(response);
         }
         // view to html

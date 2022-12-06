@@ -36,6 +36,10 @@
         <commons-lang3.version>3.7</commons-lang3.version>
         <version.junit-jupiter>5.8.2</version.junit-jupiter>
         <mockito-junit-jupiter.version>4.7.0</mockito-junit-jupiter.version>
+        <sonar.exclusions>
+            **/src/test/**,
+            **/target/**
+        </sonar.exclusions>
     </properties>
 
     <dependencyManagement>

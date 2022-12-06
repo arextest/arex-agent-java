@@ -23,7 +23,10 @@ public class ModuleVersionMatcher extends ElementMatcher.Junction.AbstractBase<C
 
     @Override
     public boolean matches(ClassLoader cl) {
-        return description == null || (cl != null && cache.computeIfAbsent(cl, this::versionMatches));
+        if (cl == null || cl.getClass().getName().startsWith("sun.reflect.DelegatingClassLoader")) {
+            return false;
+        }
+        return description == null || cache.computeIfAbsent(cl, this::versionMatches);
     }
 
     private boolean versionMatches(ClassLoader loader) {

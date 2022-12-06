@@ -1,6 +1,6 @@
 package io.arex.inst.httpclient.apache.common;
 
-import io.arex.foundation.model.MockResult;
+import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.inst.httpclient.common.HttpResponseWrapper;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
@@ -95,7 +95,7 @@ class ApacheHttpClientAdapterTest {
 
     static Stream<Arguments> wrapCase() {
         HttpResponse response1 = Mockito.mock(HttpResponse.class);
-        MockResult mockResult1 = MockResult.of(response1);
+        MockResult mockResult1 = MockResult.success(response1);
 
         Consumer<HttpResponse> mocker = httpResponse -> {
             Header Header = Mockito.mock(Header.class);
@@ -111,14 +111,14 @@ class ApacheHttpClientAdapterTest {
         HttpResponse response2 = Mockito.mock(HttpResponse.class);
         Mockito.when(response2.getEntity()).thenReturn(entity);
         mocker.accept(response2);
-        MockResult mockResult2 = MockResult.of(response2);
+        MockResult mockResult2 = MockResult.success(response2);
 
 
         HttpResponse response3 = Mockito.mock(HttpResponse.class);
         HttpEntityWrapper entityWrapper = new HttpEntityWrapper(entity);
         Mockito.when(response3.getEntity()).thenReturn(entityWrapper);
         mocker.accept(response3);
-        MockResult mockResult3 = MockResult.of(response3);
+        MockResult mockResult3 = MockResult.success(response3);
 
         Predicate<HttpResponseWrapper> predicate1 = Objects::isNull;
         Predicate<HttpResponseWrapper> predicate2 = Objects::nonNull;

@@ -1,8 +1,8 @@
 package io.arex.inst.database.hibernate;
 
+import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.foundation.context.ContextManager;
 import io.arex.foundation.context.RepeatedCollectManager;
-import io.arex.foundation.model.MockResult;
 import io.arex.foundation.util.AsyncHttpClientUtil;
 import io.arex.inst.database.common.DatabaseExtractor;
 import org.hibernate.HibernateException;
@@ -62,7 +62,11 @@ class AbstractEntityPersisterInstrumentationTest {
     void onInsertEnter() {
         Mockito.when(ContextManager.needRecordOrReplay()).thenReturn(true);
         Mockito.when(ContextManager.needReplay()).thenReturn(true);
-        assertTrue(AbstractEntityPersisterInstrumentation.InsertAdvice.onEnter(null, null, null, null, null));
+        try (MockedConstruction<DatabaseExtractor> mocked = Mockito.mockConstruction(DatabaseExtractor.class, (mock, context) -> {
+            Mockito.when(mock.replay()).thenReturn(MockResult.success(false, null));
+        })) {
+            assertTrue(AbstractEntityPersisterInstrumentation.InsertAdvice.onEnter(null, null, null, null, null));
+        }
     }
 
     @ParameterizedTest
@@ -71,7 +75,7 @@ class AbstractEntityPersisterInstrumentationTest {
         mocker.run();
         DatabaseExtractor extractor = Mockito.mock(DatabaseExtractor.class);
         Serializable serializable = Mockito.mock(Serializable.class);
-        AbstractEntityPersisterInstrumentation.InsertAdvice.onExit(null, replayException, exception, MockResult.of(serializable), extractor);
+        AbstractEntityPersisterInstrumentation.InsertAdvice.onExit(null, replayException, exception, MockResult.success(serializable), extractor);
         assertTrue(predicate.test(replayException));
     }
 
@@ -115,7 +119,7 @@ class AbstractEntityPersisterInstrumentationTest {
         Predicate<Integer> predicate1 = result -> result == 0;
         Predicate<Integer> predicate2 = result -> result == 1;
         return Stream.of(
-                arguments(needReplay, MockResult.of("mock"), predicate1),
+                arguments(needReplay, MockResult.success("mock"), predicate1),
                 arguments(needReplay, null, predicate2)
         );
     }

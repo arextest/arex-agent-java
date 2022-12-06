@@ -1,6 +1,6 @@
 package io.arex.inst.netty.v4.common;
 
-import com.arextest.model.mock.Mocker;
+import io.arex.agent.bootstrap.model.Mocker;
 
 public class AttributeKey {
 

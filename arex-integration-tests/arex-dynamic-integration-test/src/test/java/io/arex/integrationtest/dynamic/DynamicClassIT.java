@@ -1,7 +1,7 @@
 package io.arex.integrationtest.dynamic;
 
 import io.arex.agent.ArexJavaAgent;
-import io.arex.foundation.model.Constants;
+import io.arex.agent.bootstrap.model.ArexConstants;
 import io.arex.integrationtest.common.AbstractIT;
 import net.bytebuddy.agent.ByteBuddyAgent;
 import org.junit.jupiter.api.AfterAll;
@@ -63,7 +63,7 @@ public class DynamicClassIT extends AbstractIT  {
         assertNotNull(response);
         assertNotNull(response.getHeaders());
 
-        String recordId = response.getHeaders().getFirst(Constants.RECORD_ID);
+        String recordId = response.getHeaders().getFirst(ArexConstants.RECORD_ID);
         String recordValue = String.valueOf(response.getBody());
         assertNotNull(recordId);
 
@@ -71,7 +71,7 @@ public class DynamicClassIT extends AbstractIT  {
 
         // test replay
         HttpHeaders headers = new HttpHeaders();
-        headers.add(Constants.RECORD_ID, recordId);
+        headers.add(ArexConstants.RECORD_ID, recordId);
         HttpEntity<MultiValueMap<String, Object>> httpEntity = new HttpEntity(headers);
         response = restTemplate.exchange(requestUrl, HttpMethod.GET, httpEntity, String.class);
         String replayValue = String.valueOf(response.getBody());

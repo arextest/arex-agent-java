@@ -1,7 +1,7 @@
 package io.arex.inst.httpclient.okhttp.v3;
 
 
-import io.arex.foundation.model.MockResult;
+import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.inst.httpclient.common.ExceptionWrapper;
 import io.arex.inst.httpclient.common.HttpClientExtractor;
 import io.arex.inst.httpclient.common.HttpResponseWrapper;
@@ -73,7 +73,7 @@ public class OkHttpCallbackWrapperTest {
     public void replayFetchMockResultSuccessTest() throws IOException {
         HttpResponseWrapper httpResponseWrapper = new HttpResponseWrapper();
         when(httpClientExtractor.fetchMockResult()).thenReturn(httpResponseWrapper);
-        when(httpClientExtractor.replay(any(HttpResponseWrapper.class))).thenReturn(MockResult.of(createResponse()));
+        when(httpClientExtractor.replay(any(HttpResponseWrapper.class))).thenReturn(MockResult.success(createResponse()));
         okHttpCallbackWrapper.replay();
         verify(delegate).onResponse(any(), any());
         verify(delegate, never()).onFailure(any(), any());

@@ -1,11 +1,10 @@
 package io.arex.inst.httpclient.common;
 
-import com.arextest.model.constants.MockAttributeNames;
-import com.arextest.model.mock.AREXMocker;
-import com.arextest.model.mock.Mocker;
-import io.arex.foundation.model.MockerUtils;
+import io.arex.agent.bootstrap.model.ArexMocker;
+import io.arex.agent.bootstrap.model.Mocker;
+import io.arex.foundation.services.IgnoreService;
+import io.arex.foundation.services.MockService;
 import io.arex.foundation.serializer.SerializeUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,7 +31,7 @@ public class HttpClientExtractor<TRequest, TResponse> {
         try {
             String response = SerializeUtils.serialize(wrapped);
             Mocker mocker = this.makeMocker(response);
-            MockerUtils.record(mocker);
+            MockService.recordMocker(mocker);
         } catch (Throwable throwable) {
             LOGGER.warn("record error:{}", throwable.getMessage(), throwable);
         }
@@ -70,11 +69,14 @@ public class HttpClientExtractor<TRequest, TResponse> {
 
     private Mocker makeMocker(String response) {
         String httpMethod = adapter.getMethod();
-        AREXMocker mocker = MockerUtils.createHttpClient(httpMethod);
+        ArexMocker mocker = MockService.createHttpClient(adapter.getUri().getPath());
         Map<String, Object> attributes = new HashMap<>();
+
         mocker.getTargetRequest().setAttributes(attributes);
-        attributes.put(MockAttributeNames.URL, adapter.getUri().toString());
-        attributes.put(MockAttributeNames.CONTENT_TYPE, adapter.getRequestContentType());
+        attributes.put("HttpMethod", httpMethod);
+        attributes.put("QueryString", adapter.getUri().getQuery());
+        attributes.put("ContentType", adapter.getRequestContentType());
+
         mocker.getTargetRequest().setBody(this.encodeRequest(httpMethod));
         mocker.getTargetResponse().setType(HttpResponseWrapper.class.getName());
         mocker.getTargetResponse().setBody(response);
@@ -82,9 +84,9 @@ public class HttpClientExtractor<TRequest, TResponse> {
     }
 
     public HttpResponseWrapper fetchMockResult() {
-        Mocker mocker = makeMocker(StringUtils.EMPTY);
-        HttpResponseWrapper wrapper = (HttpResponseWrapper) mocker.replay();
-        wrapper.setIgnoreMockResult(mocker.ignoreMockResult());
+        boolean ignoreResult = IgnoreService.ignoreMockResult("http", adapter.getUri().getPath());
+        HttpResponseWrapper wrapper = (HttpResponseWrapper) MockService.replayBody(makeMocker(null));
+        wrapper.setIgnoreMockResult(ignoreResult);
         return wrapper;
     }
 

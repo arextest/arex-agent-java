@@ -1,11 +1,10 @@
 package io.arex.cli.server.handler;
 
-import com.arextest.model.constants.MockAttributeNames;
-import com.arextest.model.mock.AREXMocker;
-import com.arextest.model.mock.MockCategoryType;
-import com.arextest.model.mock.Mocker;
-import com.arextest.model.mock.Mocker.Target;
 import io.arex.agent.bootstrap.internal.Pair;
+import io.arex.agent.bootstrap.model.ArexMocker;
+import io.arex.agent.bootstrap.model.MockCategoryType;
+import io.arex.agent.bootstrap.model.Mocker;
+import io.arex.agent.bootstrap.model.Mocker.Target;
 import io.arex.foundation.model.DiffMocker;
 import io.arex.foundation.serializer.SerializeUtils;
 import io.arex.foundation.services.StorageService;
@@ -44,7 +43,7 @@ public class ReplayHandler extends ApiHandler {
             LOGGER.warn("storage service unavailable!");
             return null;
         }
-        Mocker mocker = new AREXMocker();
+        Mocker mocker = new ArexMocker();
         List<Mocker> mockerList = StorageService.INSTANCE.queryList(mocker, num);
         if (CollectionUtil.isEmpty(mockerList)) {
             LOGGER.warn("query no result.");
@@ -69,7 +68,7 @@ public class ReplayHandler extends ApiHandler {
             boolean hasDiff = false;
             int diffCount = 0;
             List<DiffMocker> diffDetailList = new ArrayList<>();
-            for (MockCategoryType category : MockCategoryType.DEFAULTS) {
+            for (MockCategoryType category : MockCategoryType.values()) {
                 Mocker mocker = generateMocker(category);
                 mocker.setRecordId(idPair.getFirst());
                 recordList = StorageService.INSTANCE.queryList(mocker, 0);
@@ -107,8 +106,7 @@ public class ReplayHandler extends ApiHandler {
     }
 
     private Mocker generateMocker(MockCategoryType category) {
-
-        return new AREXMocker(category);
+        return new ArexMocker(category);
     }
 
     private String getCompareJson(List<Mocker> mockerList, int index, MockCategoryType category) {
@@ -120,8 +118,8 @@ public class ReplayHandler extends ApiHandler {
                 compareMap.put("response", mocker.getTargetResponse().getBody());
             }
             if (category == MockCategoryType.DATABASE) {
-                compareMap.put("dbname", targetRequest.attributeAsString(MockAttributeNames.DB_NAME));
-                compareMap.put("parameters", targetRequest.attributeAsString(MockAttributeNames.DB_PARAMETERS));
+                compareMap.put("dbname", targetRequest.attributeAsString("dbName"));
+                compareMap.put("parameters", targetRequest.attributeAsString("parameters"));
                 compareMap.put("sql", targetRequest.getBody());
             }
             if (category == MockCategoryType.DYNAMIC_CLASS) {
@@ -132,11 +130,11 @@ public class ReplayHandler extends ApiHandler {
             }
             if (category == MockCategoryType.HTTP_CLIENT) {
 
-                compareMap.put("url", targetRequest.attributeAsString(MockAttributeNames.URL));
+                compareMap.put("url", targetRequest.attributeAsString("url"));
                 compareMap.put("request", targetRequest.getBody());
             }
             if (category == MockCategoryType.REDIS) {
-                compareMap.put("clusterName", targetRequest.attributeAsString(MockAttributeNames.CLUSTER_NAME));
+                compareMap.put("clusterName", targetRequest.attributeAsString("clusterName"));
                 compareMap.put("key", targetRequest.getBody());
             }
         }

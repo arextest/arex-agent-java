@@ -1,12 +1,12 @@
 package io.arex.inst.dynamic;
 
-import com.arextest.model.mock.AREXMocker;
-import com.arextest.model.mock.Mocker;
+import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.foundation.config.ConfigManager;
 import io.arex.foundation.context.ArexContext;
 import io.arex.foundation.context.ContextManager;
-import io.arex.foundation.model.MockerUtils;
-import io.arex.foundation.model.MockResult;
+import io.arex.foundation.services.IgnoreService;
+import io.arex.foundation.services.MockService;
+import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.foundation.serializer.GsonSerializer;
 import io.arex.foundation.util.LogUtil;
 import io.arex.foundation.util.StringUtil;
@@ -47,35 +47,39 @@ public class DynamicClassExtractor {
 
     public void record() {
         if (needRecord()) {
-            MockerUtils.record(makeMocker());
+            MockService.recordMocker(makeMocker());
             cacheMethodSignature();
         }
     }
 
     private Mocker makeMocker() {
-        AREXMocker mocker = MockerUtils.createDynamicClass(this.clazzName, this.operation);
+        Mocker mocker = MockService.createDynamicClass(this.clazzName, this.operation);
         mocker.getTargetRequest().setBody(this.operationKey);
         mocker.getTargetResponse().setBody(this.operationResult);
         mocker.getTargetResponse().setType(this.resultClazz);
         return mocker;
     }
 
-    public Object replay() {
+    public MockResult replay() {
         if (!ContextManager.needReplay()) {
             return null;
         }
         String key = buildCacheKey();
         ArexContext context = ContextManager.currentContext();
-        Object mockResult = context.getCacheMap().get(key);
-        if (mockResult == null) {
-            Object replayResult = MockerUtils.replayBody(makeMocker());
-            mockResult = MockResult.of(mocker.ignoreMockResult(), replayResult);
+        Object replayResult = context.getCachedReplayResultMap().get(key);
+        if (replayResult == null) {
+            Mocker replayMocker = MockService.replayMocker(makeMocker());
+            if (MockService.checkResponseMocker(replayMocker)) {
+                replayResult = GsonSerializer.INSTANCE.deserialize(replayMocker.getTargetResponse().getBody(),
+                    TypeUtil.forName(replayMocker.getTargetResponse().getType()));
+            }
             // no key no cache, no parameter methods may return different values
             if (key != null && replayResult != null) {
-                context.getCacheMap().put(key, mockResult);
+                context.getCachedReplayResultMap().put(key, replayResult);
             }
         }
-        return mockResult;
+        boolean ignoreMockResult = IgnoreService.ignoreMockResult(clazzName, operation);
+        return MockResult.success(ignoreMockResult, replayResult);
     }
 
     private boolean needRecord() {
@@ -110,7 +114,7 @@ public class DynamicClassExtractor {
             }
             if (size > ConfigManager.INSTANCE.getDynamicResultSizeLimit()) {
                 LOGGER.warn("{} do not record method, cuz result size:{} > max limit: {}, method info: {}",
-                        logTitle, size, ConfigManager.INSTANCE.getDynamicResultSizeLimit(), methodSignatureKey);
+                    logTitle, size, ConfigManager.INSTANCE.getDynamicResultSizeLimit(), methodSignatureKey);
                 return false;
             }
         } catch (Throwable e) {
@@ -140,6 +144,6 @@ public class DynamicClassExtractor {
         if (StringUtil.isNotEmpty(this.operationKey)) {
             return String.format("%s_%s_%s", this.clazzName, this.operation, this.operationKey);
         }
-        return null;
+        return StringUtil.EMPTY;
     }
 }

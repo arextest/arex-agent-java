@@ -1,6 +1,6 @@
 package io.arex.inst.httpclient.apache.common;
 
-import io.arex.foundation.model.MockResult;
+import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.foundation.util.StringUtil;
 import io.arex.inst.httpclient.common.HttpClientAdapter;
 import io.arex.inst.httpclient.common.HttpResponseWrapper;
@@ -78,7 +78,7 @@ public class ApacheHttpClientAdapter implements HttpClientAdapter<HttpRequest, M
 
     @Override
     public HttpResponseWrapper wrap(MockResult mockResult) {
-        HttpResponse response = (HttpResponse) mockResult.getMockResult();
+        HttpResponse response = (HttpResponse) mockResult.getResult();
         HttpEntity httpEntity = response.getEntity();
         if (!check(httpEntity)) {
             return null;
@@ -126,7 +126,7 @@ public class ApacheHttpClientAdapter implements HttpClientAdapter<HttpRequest, M
         entity.setContentLength(wrapped.getContent().length);
         response.setEntity(entity);
 
-        return MockResult.of(wrapped.isIgnoreMockResult(), response);
+        return MockResult.success(wrapped.isIgnoreMockResult(), response);
     }
 
     private static void appendHeaders(HttpResponse response, List<StringTuple> headers) {

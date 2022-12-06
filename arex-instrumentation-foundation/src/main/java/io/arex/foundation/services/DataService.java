@@ -1,8 +1,8 @@
 package io.arex.foundation.services;
 
-import com.arextest.model.mock.AREXMocker;
-import com.arextest.model.mock.MockCategoryType;
-import com.arextest.model.mock.Mocker;
+import io.arex.agent.bootstrap.model.ArexMocker;
+import io.arex.agent.bootstrap.model.MockCategoryType;
+import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.foundation.config.ConfigManager;
 import io.arex.foundation.healthy.HealthManager;
 import io.arex.foundation.internal.MockerRingBuffer;
@@ -51,7 +51,7 @@ public class DataService {
     }
 
     public Mocker getResponseMocker(Mocker mocker) {
-        return DATA_SAVER.getResponseMocker(mocker);
+        return DATA_SAVER.queryReplayData(mocker);
     }
 
     public void start() {
@@ -124,31 +124,9 @@ public class DataService {
             if (HealthManager.isFastRejection()) {
                 return;
             }
-            // requestMocker.setQueueTime(System.nanoTime());
             saveRecordData(requestMocker);
         }
 
-        public Mocker getResponseMocker(Mocker requestMocker) {
-            MockCategoryType category = requestMocker.getCategoryType();
-            String logTitle = LogUtil.buildTitle("record.", category.getName());
-            try {
-                String postJson = SerializeUtils.serialize(requestMocker);
-                Mocker responseMocker = queryReplayData(logTitle, requestMocker, postJson);
-                if (responseMocker == null) {
-                    return null;
-                }
-                Object mockResponse = responseMocker.parseMockResponse(requestMocker);
-                if (mockResponse == null) {
-                    LOGGER.warn("{}mock response is null, request: {}", logTitle, postJson);
-                    return null;
-                }
-                return responseMocker;
-
-            } catch (Throwable ex) {
-                LOGGER.warn(logTitle, ex);
-                return null;
-            }
-        }
 
         /**
          * Query replay data
@@ -156,12 +134,15 @@ public class DataService {
          * @param requestMocker request mocker
          * @return response string
          */
-        public Mocker queryReplayData(String logTitle, Mocker requestMocker, String postJson) {
-            LogUtil.addTag(requestMocker.getRecordId(), requestMocker.getReplayId());
+        public Mocker queryReplayData(Mocker requestMocker) {
             MockCategoryType category = requestMocker.getCategoryType();
+            String logTitle = LogUtil.buildTitle("record.", category.getName());
+            LogUtil.addTag(requestMocker.getRecordId(), requestMocker.getReplayId());
+
             StringBuilder logBuilder = new StringBuilder();
             long startTime = 0;
             long elapsedMills = 0;
+            String postJson = SerializeUtils.serialize(requestMocker);
             try {
                 logBuilder.append("arex replay ").append(category.getName());
 
@@ -179,7 +160,7 @@ public class DataService {
                         return null;
                     }
 
-                    responseMocker = SerializeUtils.deserialize(responseData, AREXMocker.class);
+                    responseMocker = SerializeUtils.deserialize(responseData, ArexMocker.class);
                 }
                 elapsedMills = System.currentTimeMillis() - startTime;
 
@@ -223,13 +204,13 @@ public class DataService {
                 } else {
                     cf = AsyncHttpClientUtil.executeAsync(saveApiUrl, postJson);
                 }
-                cf.whenComplete(saveMockDataConsumer(requestMocker, logBuilder, logTitle, postJson));
+                cf.whenComplete(saveRecordDataConsumer(requestMocker, logBuilder, logTitle, postJson));
             } catch (Throwable ex) {
                 LOGGER.warn("{}{}, exception: {}, request: {}", logTitle, logBuilder, ex, postJson);
             }
         }
 
-        private <T> BiConsumer<T, Throwable> saveMockDataConsumer(Mocker requestMocker, StringBuilder logBuilder, String logTitle, String postJson) {
+        private <T> BiConsumer<T, Throwable> saveRecordDataConsumer(Mocker requestMocker, StringBuilder logBuilder, String logTitle, String postJson) {
             return (response, throwable) -> {
                 long usedTime = System.currentTimeMillis() - requestMocker.getCreationTime();
                 logBuilder.append(", case id: ").append(requestMocker.getRecordId());

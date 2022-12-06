@@ -1,8 +1,8 @@
 package io.arex.cli.server.handler;
 
-import com.arextest.model.mock.AREXMocker;
-import com.arextest.model.mock.Mocker;
-import io.arex.foundation.model.MockerUtils;
+import io.arex.agent.bootstrap.model.ArexMocker;
+import io.arex.agent.bootstrap.model.Mocker;
+import io.arex.foundation.services.MockService;
 import io.arex.foundation.services.StorageService;
 import io.arex.foundation.util.AsyncHttpClientUtil;
 import org.junit.jupiter.api.AfterAll;
@@ -55,7 +55,7 @@ class DebugHandlerTest {
     static Stream<Arguments> processCase() {
         Runnable mocker1 = () -> {
         };
-        AREXMocker servletMocker = MockerUtils.createServlet("SERVLET");
+        ArexMocker servletMocker = MockService.createServlet("SERVLET");
 
         servletMocker.getTargetRequest().setAttribute("Headers", new HashMap<>());
         // servletMocker.setRequest("{}");

@@ -1,6 +1,6 @@
 package io.arex.foundation.model;
 
-import com.arextest.model.mock.MockCategoryType;
+import io.arex.agent.bootstrap.model.MockCategoryType;
 
 public class DiffMocker {
     private String recordId;

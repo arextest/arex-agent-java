@@ -4,6 +4,7 @@ package io.arex.foundation.context;
 import io.arex.foundation.util.StringUtil;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ArexContext {
     private final String caseId;
@@ -11,7 +12,7 @@ public class ArexContext {
     private final long createTime;
     private final SequenceProvider sequence;
     private final List<Integer> methodSignatureHashList = new ArrayList<>();
-    private final Map<String, Object> cacheMap = new WeakHashMap<>();
+    private final Map<String, Object> cachedReplayResultMap = new ConcurrentHashMap<>();
     private Map<String, Set<String>> excludeMockTemplate;
 
     public String getCaseId() {
@@ -65,8 +66,8 @@ public class ArexContext {
         return methodSignatureHashList;
     }
 
-    public Map<String, Object> getCacheMap() {
-        return cacheMap;
+    public Map<String, Object> getCachedReplayResultMap() {
+        return cachedReplayResultMap;
     }
     public Map<String, Set<String>> getExcludeMockTemplate() {
         return excludeMockTemplate;
@@ -77,7 +78,7 @@ public class ArexContext {
     }
     public void clear() {
         methodSignatureHashList.clear();
-        cacheMap.clear();
+        cachedReplayResultMap.clear();
         sequence.clear();
         if (excludeMockTemplate != null) {
             excludeMockTemplate.clear();

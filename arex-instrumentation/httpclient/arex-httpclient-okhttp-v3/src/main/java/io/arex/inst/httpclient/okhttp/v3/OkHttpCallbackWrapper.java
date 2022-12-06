@@ -3,7 +3,7 @@ package io.arex.inst.httpclient.okhttp.v3;
 import com.google.common.annotations.VisibleForTesting;
 import io.arex.agent.bootstrap.ctx.TraceTransmitter;
 import io.arex.foundation.context.RepeatedCollectManager;
-import io.arex.foundation.model.MockResult;
+import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.inst.httpclient.common.ExceptionWrapper;
 import io.arex.inst.httpclient.common.HttpClientExtractor;
 import io.arex.inst.httpclient.common.HttpResponseWrapper;
@@ -49,7 +49,7 @@ public class OkHttpCallbackWrapper implements Callback {
         // call from record
         try (TraceTransmitter tm = traceTransmitter.transmit()) {
             if (RepeatedCollectManager.exitAndValidate()) {
-                extractor.record(MockResult.of(response));
+                extractor.record(MockResult.success(response));
             }
             delegate.onResponse(call, response);
         }
@@ -68,7 +68,7 @@ public class OkHttpCallbackWrapper implements Callback {
             }
             try {
                 MockResult mockResult = extractor.replay(wrapped);
-                this.delegate.onResponse(this.call, (Response) mockResult.getMockResult());
+                this.delegate.onResponse(this.call, (Response) mockResult.getResult());
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

@@ -1,7 +1,7 @@
 package io.arex.inst.httpclient.apache.async;
 
 import io.arex.foundation.context.ContextManager;
-import io.arex.foundation.model.MockResult;
+import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.inst.httpclient.apache.common.ApacheHttpClientAdapter;
 import io.arex.inst.httpclient.common.ExceptionWrapper;
 import io.arex.inst.httpclient.common.HttpClientExtractor;
@@ -90,7 +90,7 @@ class FutureCallbackWrapperTest {
         };
         Runnable mocker4 = () -> {
             Mockito.when(wrapped.getException()).thenReturn(null);
-            Mockito.when(extractor.replay(any())).thenReturn(MockResult.of("mock"));
+            Mockito.when(extractor.replay(any())).thenReturn(MockResult.success("mock"));
         };
 
         Predicate<Boolean> predicate1 = result -> result;

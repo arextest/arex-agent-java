@@ -2,8 +2,7 @@ package io.arex.inst.dynamic;
 
 import io.arex.foundation.context.ArexContext;
 import io.arex.foundation.context.ContextManager;
-import io.arex.foundation.model.DynamicClassMocker;
-import io.arex.foundation.model.MockResult;
+import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.foundation.util.StringUtil;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -44,12 +43,10 @@ class DynamicClassExtractorTest {
     @ParameterizedTest
     @MethodSource("recordCase")
     void record(Runnable mocker, Object[] args, Object result, Predicate<Object> predicate) {
-        try (MockedConstruction<DynamicClassMocker> mocked = Mockito.mockConstruction(DynamicClassMocker.class)) {
-            mocker.run();
-            DynamicClassExtractor extractor = new DynamicClassExtractor("clazzName", "operation", args, result);
-            extractor.record();
-            assertTrue(predicate.test(result));
-        }
+        mocker.run();
+        DynamicClassExtractor extractor = new DynamicClassExtractor("clazzName", "operation", args, result);
+        extractor.record();
+        assertTrue(predicate.test(result));
     }
 
     static Stream<Arguments> recordCase() {
@@ -74,14 +71,10 @@ class DynamicClassExtractorTest {
     @ParameterizedTest
     @MethodSource("replayCase")
     void replay(Runnable mocker, Object[] args, Predicate<MockResult> predicate) {
-        try (MockedConstruction<DynamicClassMocker> mocked = Mockito.mockConstruction(DynamicClassMocker.class, (mock, context) -> {
-            Mockito.when(mock.replay()).thenReturn("mock");
-        })) {
-            mocker.run();
-            DynamicClassExtractor extractor = new DynamicClassExtractor(null, null, args);
-            MockResult mockResult = extractor.replay();
-            assertTrue(predicate.test(mockResult));
-        }
+        mocker.run();
+        DynamicClassExtractor extractor = new DynamicClassExtractor(null, null, args);
+        MockResult mockResult = extractor.replay();
+        assertTrue(predicate.test(mockResult));
     }
 
     static Stream<Arguments> replayCase() {

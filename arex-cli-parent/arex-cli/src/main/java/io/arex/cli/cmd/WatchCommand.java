@@ -1,8 +1,8 @@
 package io.arex.cli.cmd;
 
-import com.arextest.model.mock.MockCategoryType;
+import io.arex.agent.bootstrap.model.MockCategoryType;
 import io.arex.cli.util.LogUtil;
-import io.arex.foundation.model.Constants;
+import io.arex.agent.bootstrap.model.ArexConstants;
 import io.arex.foundation.model.DiffMocker;
 import io.arex.foundation.serializer.SerializeUtils;
 import io.arex.foundation.util.CollectionUtil;
@@ -144,7 +144,7 @@ public class WatchCommand implements Runnable {
         if (StringUtil.isEmpty(response) || !response.contains("{")) {
             return;
         }
-        List<DiffMocker> diffList = SerializeUtils.deserialize(response, TypeUtil.forName(Constants.TYPE_LIST_DIFFMOCKER));
+        List<DiffMocker> diffList = SerializeUtils.deserialize(response, TypeUtil.forName(ArexConstants.TYPE_LIST_DIFFMOCKER));
         if (CollectionUtil.isEmpty(diffList)) {
             return;
         }

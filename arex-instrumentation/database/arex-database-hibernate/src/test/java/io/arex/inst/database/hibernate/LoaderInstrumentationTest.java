@@ -2,7 +2,7 @@ package io.arex.inst.database.hibernate;
 
 import io.arex.foundation.context.ContextManager;
 import io.arex.foundation.context.RepeatedCollectManager;
-import io.arex.foundation.model.MockResult;
+import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.foundation.util.AsyncHttpClientUtil;
 import io.arex.inst.database.common.DatabaseExtractor;
 import org.hibernate.HibernateException;
@@ -14,6 +14,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.MockedConstruction;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -65,7 +66,11 @@ class LoaderInstrumentationTest {
         Mockito.when(ContextManager.needRecordOrReplay()).thenReturn(true);
         Mockito.when(ContextManager.needReplay()).thenReturn(true);
         Loader loader = Mockito.mock(Loader.class);
-        assertTrue(LoaderInstrumentation.QueryAdvice.onEnter(loader, null, null, null));
+        try (MockedConstruction<DatabaseExtractor> mocked = Mockito.mockConstruction(DatabaseExtractor.class, (mock, context) -> {
+            Mockito.when(mock.replay()).thenReturn(MockResult.success(false, null));
+        })) {
+            assertTrue(LoaderInstrumentation.QueryAdvice.onEnter(loader, null, null, null));
+        }
     }
 
     @ParameterizedTest
@@ -85,7 +90,7 @@ class LoaderInstrumentationTest {
         Predicate<HibernateException> predicate2 = Objects::nonNull;
         return Stream.of(
                 arguments(emptyMocker, null, null, predicate1),
-                arguments(exitAndValidate, null, MockResult.of(Collections.singletonList("mock")), predicate1),
+                arguments(exitAndValidate, null, MockResult.success(Collections.singletonList("mock")), predicate1),
                 arguments(needRecord, new HibernateException(""), null, predicate2),
                 arguments(needRecord, null, null, predicate1)
         );

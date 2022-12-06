@@ -1,6 +1,5 @@
 package io.arex.inst.redis.common;
 
-import io.arex.foundation.model.RedisMocker;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -15,7 +14,6 @@ import static org.mockito.Mockito.verify;
 @ExtendWith(MockitoExtension.class)
 class RedisExtractorTest {
     static RedisExtractor target;
-    RedisMocker redisMocker;
 
     @BeforeAll
     static void setUp() {
@@ -30,28 +28,16 @@ class RedisExtractorTest {
 
     @Test
     void record() {
-        try (MockedConstruction<RedisMocker> mocked = Mockito.mockConstruction(RedisMocker.class, (mock, context) -> {
-            redisMocker = mock;
-        })) {
-            target.record(new Object());
-            verify(redisMocker).record();
-        }
+        target.record(new Object());
     }
 
     @Test
     void testRecord() {
-        try (MockedConstruction<RedisMocker> mocked = Mockito.mockConstruction(RedisMocker.class, (mock, context) -> {
-            redisMocker = mock;
-        })) {
-            target.record(new NullPointerException());
-            verify(redisMocker).record();
-        }
+        target.record(new NullPointerException());
     }
 
     @Test
     void replay() {
-        try (MockedConstruction<RedisMocker> mocked = Mockito.mockConstruction(RedisMocker.class)) {
-            assertNotNull(target.replay());
-        }
+        assertNotNull(target.replay());
     }
 }

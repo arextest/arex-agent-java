@@ -3,7 +3,7 @@ package io.arex.cli.cmd;
 
 import io.arex.cli.util.LogUtil;
 import io.arex.cli.util.SystemUtils;
-import io.arex.foundation.model.Constants;
+import io.arex.agent.bootstrap.model.ArexConstants;
 import io.arex.foundation.util.IOUtils;
 import io.arex.foundation.util.StringUtil;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -220,7 +220,7 @@ public class RootCommand implements Runnable {
             int b;
             while ((b = in.read()) != -1) {
                 line.appendCodePoint(b);
-                if(line.toString().endsWith(Constants.CLI_PROMPT)) {
+                if(line.toString().endsWith(ArexConstants.CLI_PROMPT)) {
                     println("connect {} {}", ip, port);
                     return true;
                 }
@@ -261,7 +261,7 @@ public class RootCommand implements Runnable {
             int b;
             while ((b = in.read()) != -1) {
                 line.appendCodePoint(b);
-                if(line.toString().endsWith(Constants.CLI_PROMPT)) {
+                if(line.toString().endsWith(ArexConstants.CLI_PROMPT)) {
                     break;
                 }
             }

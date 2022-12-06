@@ -1,6 +1,6 @@
 package io.arex.cli.server.handler;
 
-import com.arextest.model.mock.MockCategoryType;
+import io.arex.agent.bootstrap.model.MockCategoryType;
 import io.arex.foundation.model.DiffMocker;
 import io.arex.foundation.serializer.SerializeUtils;
 import io.arex.foundation.services.StorageService;
@@ -15,7 +15,7 @@ public class WatchHandler extends ApiHandler {
     public String process(String args) throws Exception {
         List<DiffMocker> diffList = new ArrayList<>();
         DiffMocker mocker = new DiffMocker();
-        for (MockCategoryType category : MockCategoryType.DEFAULTS) {
+        for (MockCategoryType category : MockCategoryType.values()) {
             mocker.setReplayId(args);
             mocker.setCategoryType(category);
             List<DiffMocker> diffMockers = StorageService.INSTANCE.queryList(mocker);

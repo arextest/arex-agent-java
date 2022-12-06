@@ -2,7 +2,7 @@ package io.arex.inst.httpclient.apache.sync;
 
 import io.arex.foundation.context.ContextManager;
 import io.arex.foundation.context.RepeatedCollectManager;
-import io.arex.foundation.model.MockResult;
+import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.inst.httpclient.common.HttpClientExtractor;
 import org.apache.http.HttpRequest;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -60,7 +60,7 @@ class InternalHttpClientInstrumentationTest {
     @Test
     void onEnter() {
         try (MockedConstruction<HttpClientExtractor> mocked = Mockito.mockConstruction(HttpClientExtractor.class, (mock, context) -> {
-            Mockito.when(mock.replay()).thenReturn(MockResult.of("mock"));
+            Mockito.when(mock.replay()).thenReturn(MockResult.success("mock"));
         })) {
             Mockito.when(ContextManager.needRecordOrReplay()).thenReturn(true);
             Mockito.when(ContextManager.needReplay()).thenReturn(true);
@@ -72,7 +72,7 @@ class InternalHttpClientInstrumentationTest {
     @MethodSource("onExitCase")
     void onExit(HttpClientExtractor<HttpRequest, MockResult> extractor, Exception throwable,
                 CloseableHttpResponse response, Predicate<CloseableHttpResponse> predicate) throws IOException {
-        InternalHttpClientInstrumentation.ExecuteAdvice.onExit(extractor, throwable, response, MockResult.of(response));
+        InternalHttpClientInstrumentation.ExecuteAdvice.onExit(extractor, throwable, response, MockResult.success(response));
         assertTrue(predicate.test(response));
     }
 
