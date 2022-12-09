@@ -3,6 +3,8 @@ package io.arex.foundation.util;
 import io.arex.foundation.config.ConfigManager;
 import io.arex.foundation.util.async.AutoCleanedPoolingNHttpClientConnectionManager;
 import io.arex.foundation.util.async.ThreadFactoryImpl;
+import io.arex.inst.runtime.model.MockerCategory;
+import io.arex.inst.runtime.util.LogUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -64,6 +66,19 @@ public class AsyncHttpClientUtil {
     public static CompletableFuture<String> executeAsync(String urlAddress, String postData) {
         Map<String, String> requestHeaders = new HashMap<>();
         requestHeaders.put(HttpHeaders.CONTENT_TYPE, ClientConfig.STORAGE_CONTENT_TYPE);
+
+        HttpEntity httpEntity = new ByteArrayEntity(CompressUtil.zstdCompress(postData, StandardCharsets.UTF_8));
+        return executeAsync(urlAddress, httpEntity, requestHeaders);
+    }
+
+    public static String executeSync(String urlAddress, String postData, String category) {
+        return executeAsync(urlAddress, postData, category).join();
+    }
+
+    public static CompletableFuture<String> executeAsync(String urlAddress, String postData, String category) {
+        Map<String, String> requestHeaders = new HashMap<>();
+        requestHeaders.put(HttpHeaders.CONTENT_TYPE, ClientConfig.STORAGE_CONTENT_TYPE);
+        requestHeaders.put("arex-mocker-category", category);
 
         HttpEntity httpEntity = new ByteArrayEntity(CompressUtil.zstdCompress(postData, StandardCharsets.UTF_8));
         return executeAsync(urlAddress, httpEntity, requestHeaders);

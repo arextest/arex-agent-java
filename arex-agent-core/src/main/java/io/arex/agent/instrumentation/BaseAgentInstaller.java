@@ -1,10 +1,7 @@
 package io.arex.agent.instrumentation;
 
-import io.arex.agent.bootstrap.InstrumentationHolder;
-import io.arex.foundation.util.NetUtils;
 import io.arex.agent.bootstrap.AgentInstaller;
-import io.arex.agent.bootstrap.TraceContextManager;
-import io.arex.foundation.util.LogUtil;
+import io.arex.inst.runtime.util.LogUtil;
 import net.bytebuddy.agent.builder.ResettableClassFileTransformer;
 
 import java.io.File;
@@ -28,18 +25,11 @@ public abstract class BaseAgentInstaller implements AgentInstaller {
         ClassLoader savedContextClassLoader = Thread.currentThread().getContextClassLoader();
         try {
             Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
-            initArexContext();
             transformer = transform();
-            LogUtil.info(String.format("context class loader before: %s, after: %s", savedContextClassLoader,
-                getClass().getClassLoader()));
         } finally {
             Thread.currentThread().setContextClassLoader(savedContextClassLoader);
         }
         LogUtil.info("ArexJavaAgent AgentInstaller initialized.");
-    }
-
-    private void initArexContext() {
-        TraceContextManager.init(NetUtils.getIpAddress());
     }
 
     protected abstract ResettableClassFileTransformer transform();

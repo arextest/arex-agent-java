@@ -5,16 +5,20 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
-import io.arex.foundation.api.MethodInstrumentation;
-import io.arex.foundation.context.ArexContext;
-import io.arex.foundation.context.ContextManager;
-import io.arex.foundation.model.DynamicClassEntity;
-import io.arex.agent.bootstrap.model.MockResult;
-import io.arex.foundation.util.StringUtil;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+
+import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.inst.runtime.context.ArexContext;
+import io.arex.inst.runtime.context.ContextManager;
+import io.arex.inst.runtime.model.DynamicClassEntity;
+import io.arex.inst.extension.MethodInstrumentation;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.agent.builder.ResettableClassFileTransformer;

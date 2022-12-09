@@ -1,5 +1,6 @@
 package io.arex.inst.httpclient.common;
 
+import io.arex.inst.runtime.serializer.Serializer;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;

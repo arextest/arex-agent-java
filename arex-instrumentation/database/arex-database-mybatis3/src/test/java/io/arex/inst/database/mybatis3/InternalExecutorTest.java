@@ -1,9 +1,9 @@
 package io.arex.inst.database.mybatis3;
 
+import io.arex.inst.runtime.context.ContextManager;
 import io.arex.agent.bootstrap.model.ArexMocker;
 import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.agent.bootstrap.model.Mocker.Target;
-import io.arex.foundation.context.ContextManager;
 import io.arex.foundation.services.MockService;
 import io.arex.foundation.util.AsyncHttpClientUtil;
 import io.arex.inst.database.common.DatabaseExtractor;

@@ -3,10 +3,10 @@ package io.arex.inst.database.common;
 import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.foundation.services.MockService;
-import io.arex.foundation.serializer.SerializeUtils;
 import io.arex.foundation.services.IgnoreService;
 import io.arex.foundation.util.ResponseExceptionMockUtil;
 import io.arex.foundation.util.TypeUtil;
+import io.arex.inst.runtime.serializer.Serializer;
 import org.apache.commons.lang3.StringUtils;
 
 import java.sql.SQLException;
@@ -38,12 +38,12 @@ public class DatabaseExtractor {
 
     // hibernate
     public DatabaseExtractor(String sql, Object entity, String methodName) {
-        this(sql, SerializeUtils.serialize(entity), methodName);
+        this(sql, Serializer.serialize(entity), methodName);
     }
 
     public DatabaseExtractor(String sql, String parameters, String methodName) {
         this.dbName = "";
-        this.sql = StringUtils.replaceEach(sql, SEARCH_LIST, REPLACE_LIST);
+        this.sql = StringUtil.replaceEach(sql, SEARCH_LIST, REPLACE_LIST, false, 0);
         this.parameters = parameters;
         this.methodName = methodName;
     }

@@ -74,7 +74,7 @@ public class MockerRingBuffer {
         return result;
     }
 
-  private static  class SpinLock {
+    private static class SpinLock {
         final AtomicInteger locker = new AtomicInteger(0);
         long heldThread = 0;
 

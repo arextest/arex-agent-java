@@ -3,9 +3,9 @@ package io.arex.foundation.services;
 import io.arex.foundation.context.ArexContext;
 import io.arex.foundation.context.ContextManager;
 import io.arex.foundation.util.LogUtil;
-import io.arex.foundation.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import io.arex.agent.bootstrap.util.StringUtil;
 
 import java.util.*;
 

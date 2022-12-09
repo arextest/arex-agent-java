@@ -1,16 +1,14 @@
 package io.arex.inst.httpservlet;
 
-import io.arex.foundation.context.ContextManager;
 import io.arex.agent.bootstrap.internal.Pair;
-import io.arex.foundation.listener.CaseEvent;
-import io.arex.foundation.listener.CaseInitializer;
-import io.arex.foundation.listener.CaseListenerImpl;
-import io.arex.foundation.listener.EventSource;
-import io.arex.agent.bootstrap.model.ArexConstants;
-import io.arex.foundation.util.LogUtil;
-import io.arex.foundation.util.StringUtil;
+import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.inst.runtime.context.ContextManager;
+import io.arex.inst.runtime.context.RecordLimiter;
+import io.arex.inst.runtime.listener.CaseEvent;
+import io.arex.inst.runtime.listener.CaseEventDispatcher;
+import io.arex.inst.runtime.util.LogUtil;
 import io.arex.inst.httpservlet.adapter.ServletAdapter;
-import org.apache.http.HttpStatus;
+import io.arex.inst.runtime.model.Constants;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.context.request.async.DeferredResult;
@@ -48,26 +46,22 @@ public class ServletAdviceHelper {
     }
 
     public static <TRequest, TResponse> Pair<TRequest, TResponse> onServiceEnter(
-            ServletAdapter<TRequest, TResponse> adapter, Object servletRequest,
-            Object servletResponse) {
-        TRequest httpServletRequest = adapter.asHttpServletRequest(servletRequest);
-        TResponse httpServletResponse = adapter.asHttpServletResponse(servletResponse);
+            ServletAdapter<TRequest, TResponse> adapter, TRequest httpServletRequest,
+            TResponse httpServletResponse) {
         // Async listener will handle if attr with arex-async-flag
         if ("true".equals(adapter.getAttribute(httpServletRequest, SERVLET_ASYNC_FLAG))) {
             httpServletResponse = adapter.wrapResponse(httpServletResponse);
             return Pair.of(null, httpServletResponse);
         }
 
-        CaseInitializer.onEnter();
         if (shouldSkip(adapter, httpServletRequest)) {
             return null;
         }
 
         String caseId = adapter.getRequestHeader(httpServletRequest, ArexConstants.RECORD_ID);
         String excludeMockTemplate = adapter.getRequestHeader(httpServletRequest, ArexConstants.HEADER_EXCLUDE_MOCK);
-        CaseListenerImpl.INSTANCE.onEvent(new CaseEvent(EventSource.of(caseId, excludeMockTemplate), CaseEvent.Action.CREATE));
-
-        if (ContextManager.needRecordOrReplay()) {
+        if (ContextManager.currentContext(true, caseId) != null) {
+            CaseEventDispatcher.onEvent(new CaseEvent("", CaseEvent.Action.ENTER));
             httpServletRequest = adapter.wrapRequest(httpServletRequest);
             httpServletResponse = adapter.wrapResponse(httpServletResponse);
             return Pair.of(httpServletRequest, httpServletResponse);
@@ -78,17 +72,14 @@ public class ServletAdviceHelper {
 
 
     public static <TRequest, TResponse> void onServiceExit(
-            ServletAdapter<TRequest, TResponse> adapter, Object servletRequest,
-            Object servletResponse) {
+            ServletAdapter<TRequest, TResponse> adapter, TRequest httpServletRequest,
+            TResponse httpServletResponse) {
         try {
-            TRequest httpServletRequest = adapter.asHttpServletRequest(servletRequest);
-            TResponse httpServletResponse = adapter.asHttpServletResponse(servletResponse);
-
             if (!adapter.wrapped(httpServletRequest, httpServletResponse)) {
                 return;
             }
 
-            if (HttpStatus.SC_OK != adapter.getStatus(httpServletResponse)) {
+            if (200 != adapter.getStatus(httpServletResponse)) {
                 adapter.copyBodyToResponse(httpServletResponse);
                 return;
             }
@@ -117,11 +108,7 @@ public class ServletAdviceHelper {
     public static <TRequest, TResponse> void onInvokeForRequestExit(
             ServletAdapter<TRequest, TResponse> adapter, NativeWebRequest nativeWebRequest,
             InvocableHandlerMethod invocableHandlerMethod, Object response) {
-        if (response == null) {
-            return;
-        }
-
-        if (!ContextManager.needRecordOrReplay()) {
+        if (response == null || !ContextManager.needRecordOrReplay()) {
             return;
         }
 
@@ -137,7 +124,6 @@ public class ServletAdviceHelper {
         }
 
         TRequest httpServletRequest = adapter.getNativeRequest(nativeWebRequest);
-
         if (httpServletRequest == null) {
             return;
         }
@@ -147,6 +133,7 @@ public class ServletAdviceHelper {
 
     private static <TRequest> boolean shouldSkip(ServletAdapter<TRequest, ?> adapter,
                                                  TRequest httpServletRequest) {
+        String caseId = adapter.getRequestHeader(httpServletRequest, Constants.RECORD_ID);
         String caseId = adapter.getRequestHeader(httpServletRequest, ArexConstants.RECORD_ID);
 
         // Replay scene
@@ -178,6 +165,6 @@ public class ServletAdviceHelper {
         }
 
         String uri = adapter.getRequestURI(httpServletRequest);
-        return CaseInitializer.exceedRecordRate(uri);
+        return RecordLimiter.acquire(uri);
     }
 }

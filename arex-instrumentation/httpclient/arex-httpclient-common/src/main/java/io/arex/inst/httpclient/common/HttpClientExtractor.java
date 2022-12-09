@@ -1,10 +1,7 @@
 package io.arex.inst.httpclient.common;
 
-import io.arex.agent.bootstrap.model.ArexMocker;
-import io.arex.agent.bootstrap.model.Mocker;
-import io.arex.foundation.services.IgnoreService;
-import io.arex.foundation.services.MockService;
-import io.arex.foundation.serializer.SerializeUtils;
+import io.arex.inst.runtime.model.HttpClientMocker;
+import io.arex.inst.runtime.serializer.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +26,7 @@ public class HttpClientExtractor<TRequest, TResponse> {
             return;
         }
         try {
-            String response = SerializeUtils.serialize(wrapped);
+            String response = Serializer.serialize(wrapped);
             Mocker mocker = this.makeMocker(response);
             MockService.recordMocker(mocker);
         } catch (Throwable throwable) {

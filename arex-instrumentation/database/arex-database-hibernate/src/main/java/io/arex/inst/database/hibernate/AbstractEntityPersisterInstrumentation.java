@@ -1,12 +1,13 @@
 package io.arex.inst.database.hibernate;
 
 import io.arex.agent.bootstrap.model.MockResult;
-import io.arex.foundation.api.MethodInstrumentation;
-import io.arex.foundation.api.TypeInstrumentation;
-import io.arex.foundation.context.ContextManager;
-import io.arex.foundation.context.RepeatedCollectManager;
-import io.arex.foundation.util.LogUtil;
+import io.arex.inst.runtime.context.ArexContext;
+import io.arex.inst.runtime.context.ContextManager;
+import io.arex.inst.runtime.context.RepeatedCollectManager;
+import io.arex.inst.runtime.util.LogUtil;
 import io.arex.inst.database.common.DatabaseExtractor;
+import io.arex.inst.extension.MethodInstrumentation;
+import io.arex.inst.extension.TypeInstrumentation;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;

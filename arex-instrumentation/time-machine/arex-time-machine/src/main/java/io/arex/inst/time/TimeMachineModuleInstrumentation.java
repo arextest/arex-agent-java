@@ -1,9 +1,10 @@
 package io.arex.inst.time;
 
 import com.google.auto.service.AutoService;
-import io.arex.foundation.api.ModuleInstrumentation;
-import io.arex.foundation.api.TypeInstrumentation;
-import io.arex.foundation.config.ConfigManager;
+import io.arex.inst.runtime.config.Config;
+import io.arex.inst.extension.ModuleInstrumentation;
+import io.arex.inst.extension.TypeInstrumentation;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,7 +23,7 @@ public class TimeMachineModuleInstrumentation extends ModuleInstrumentation {
     public List<TypeInstrumentation> instrumentationTypes() {
         List<TypeInstrumentation> typeInstList = new ArrayList<>();
 
-        if (ConfigManager.INSTANCE.startTimeMachine()) {
+        if (Config.get().getBoolean("arex.time.machine", false)) {
             typeInstList.add(new TimeMachineInstrumentation());
         }
         return typeInstList;

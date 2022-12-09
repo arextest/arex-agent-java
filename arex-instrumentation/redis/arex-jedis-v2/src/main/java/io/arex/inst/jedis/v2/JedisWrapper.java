@@ -2,7 +2,8 @@ package io.arex.inst.jedis.v2;
 
 import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.foundation.context.ContextManager;
-import io.arex.foundation.serializer.SerializeUtils;
+import io.arex.inst.runtime.context.ContextManager;
+import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.redis.common.RedisExtractor;
 import io.arex.inst.redis.common.RedisKeyUtil;
 import redis.clients.jedis.Jedis;
@@ -191,12 +192,12 @@ public class JedisWrapper extends Jedis {
     @Override
     public Long hset(byte[] key, Map<byte[], byte[]> hash) {
         return call("hset", Base64.getEncoder().encodeToString(key),
-            SerializeUtils.serialize(hash.keySet()), () -> super.hset(key, hash), 0L);
+            Serializer.serialize(hash.keySet()), () -> super.hset(key, hash), 0L);
     }
 
     @Override
     public Long hset(final String key, final Map<String, String> hash) {
-        return call("hset", key, SerializeUtils.serialize(hash.keySet()), () -> super.hset(key, hash), 0L);
+        return call("hset", key, Serializer.serialize(hash.keySet()), () -> super.hset(key, hash), 0L);
     }
 
     @Override
@@ -218,7 +219,7 @@ public class JedisWrapper extends Jedis {
 
     @Override
     public String hmset(String key, Map<String, String> hash) {
-        return call("hmset", key, SerializeUtils.serialize(hash.keySet()), () -> super.hmset(key, hash),
+        return call("hmset", key, Serializer.serialize(hash.keySet()), () -> super.hmset(key, hash),
                 null);
     }
 

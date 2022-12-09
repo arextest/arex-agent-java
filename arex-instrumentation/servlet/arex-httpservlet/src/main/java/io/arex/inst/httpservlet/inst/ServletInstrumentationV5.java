@@ -1,14 +1,11 @@
 package io.arex.inst.httpservlet.inst;
 
-import io.arex.foundation.api.MethodInstrumentation;
-import io.arex.foundation.api.TypeInstrumentation;
 import io.arex.agent.bootstrap.internal.Pair;
+import io.arex.inst.extension.MethodInstrumentation;
+import io.arex.inst.extension.TypeInstrumentation;
 import io.arex.inst.httpservlet.ServletAdviceHelper;
-import io.arex.inst.httpservlet.adapter.ServletAdapter;
 import io.arex.inst.httpservlet.adapter.impl.ServletAdapterImplV5;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.ServletRequest;
-import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import net.bytebuddy.asm.Advice;
@@ -19,10 +16,9 @@ import net.bytebuddy.matcher.ElementMatcher;
 import java.util.Collections;
 import java.util.List;
 
+import static io.arex.inst.extension.matcher.SafeExtendsClassMatcher.extendsClass;
 import static java.util.Arrays.asList;
-import static net.bytebuddy.matcher.ElementMatchers.isPublic;
-import static net.bytebuddy.matcher.ElementMatchers.named;
-import static net.bytebuddy.matcher.ElementMatchers.takesArgument;
+import static net.bytebuddy.matcher.ElementMatchers.*;
 
 /**
  * ServletInstrumentation
@@ -33,14 +29,15 @@ public class ServletInstrumentationV5 extends TypeInstrumentation {
 
     @Override
     public ElementMatcher<TypeDescription> typeMatcher() {
-        return named("jakarta.servlet.http.HttpServlet");
+        return extendsClass(named("jakarta.servlet.http.HttpServlet"), false);
     }
 
     @Override
     public List<MethodInstrumentation> methodAdvices() {
         ElementMatcher<MethodDescription> matcher =
-            named("service").and(isPublic()).and(takesArgument(0, named("jakarta.servlet.ServletRequest")))
-                .and(takesArgument(1, named("jakarta.servlet.ServletResponse")));
+            named("service").and(isProtected())
+                    .and(takesArgument(0, named("jakarta.servlet.http.HttpServletRequest")))
+                    .and(takesArgument(1, named("jakarta.servlet.http.HttpServletResponse")));
 
         String adviceClassName = this.getClass().getName() + "$ServiceAdvice";
 
@@ -50,7 +47,6 @@ public class ServletInstrumentationV5 extends TypeInstrumentation {
     @Override
     public List<String> adviceClassNames() {
         return asList(
-                "io.arex.inst.httpservlet.inst.ServletInstrumentationV5$ServiceAdvice",
                 "io.arex.inst.httpservlet.adapter.ServletAdapter",
                 "io.arex.inst.httpservlet.adapter.impl.ServletAdapterImplV5",
                 "io.arex.inst.httpservlet.ServletAdviceHelper",
@@ -65,14 +61,12 @@ public class ServletInstrumentationV5 extends TypeInstrumentation {
     }
 
     public static class ServiceAdvice {
-        public static final ServletAdapter<HttpServletRequest, HttpServletResponse> ADAPTER =
-            ServletAdapterImplV5.getInstance();
 
         @Advice.OnMethodEnter
-        public static void onEnter(@Advice.Argument(value = 0, readOnly = false) ServletRequest request,
-            @Advice.Argument(value = 1, readOnly = false) ServletResponse response) throws ServletException {
+        public static void onEnter(@Advice.Argument(value = 0, readOnly = false) HttpServletRequest request,
+            @Advice.Argument(value = 1, readOnly = false) HttpServletResponse response) throws ServletException {
             Pair<HttpServletRequest, HttpServletResponse> pair =
-                ServletAdviceHelper.onServiceEnter(ADAPTER, request, response);
+                ServletAdviceHelper.onServiceEnter(ServletAdapterImplV5.getInstance(), request, response);
 
             if (pair == null) {
                 return;
@@ -88,9 +82,9 @@ public class ServletInstrumentationV5 extends TypeInstrumentation {
         }
 
         @Advice.OnMethodExit
-        public static void onExit(@Advice.Argument(value = 0, readOnly = false) ServletRequest request,
-            @Advice.Argument(value = 1, readOnly = false) ServletResponse response) {
-            ServletAdviceHelper.onServiceExit(ADAPTER, request, response);
+        public static void onExit(@Advice.Argument(value = 0, readOnly = false) HttpServletRequest request,
+            @Advice.Argument(value = 1, readOnly = false) HttpServletResponse response) {
+            ServletAdviceHelper.onServiceExit(ServletAdapterImplV5.getInstance(), request, response);
         }
     }
 }

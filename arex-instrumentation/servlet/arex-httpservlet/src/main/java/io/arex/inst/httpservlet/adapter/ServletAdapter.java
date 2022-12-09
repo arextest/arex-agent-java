@@ -11,11 +11,6 @@ import java.util.Enumeration;
  * ServletAdapter
  */
 public interface ServletAdapter<HttpServletRequest, HttpServletResponse> {
-    @Nullable
-    HttpServletRequest asHttpServletRequest(Object servletRequest);
-
-    @Nullable
-    HttpServletResponse asHttpServletResponse(Object servletResponse);
 
     @Nullable
     HttpServletRequest getNativeRequest(NativeWebRequest nativeWebRequest);

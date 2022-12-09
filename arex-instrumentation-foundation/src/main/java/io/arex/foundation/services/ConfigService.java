@@ -1,10 +1,10 @@
 package io.arex.foundation.services;
 
 import io.arex.foundation.config.ConfigManager;
-import io.arex.foundation.serializer.SerializeUtils;
 import io.arex.foundation.util.AsyncHttpClientUtil;
 import io.arex.foundation.util.NetUtils;
-import io.arex.foundation.util.StringUtil;
+import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.inst.runtime.serializer.Serializer;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,7 +14,7 @@ import java.util.Set;
 
 /**
  * ConfigService
- *
+ * todo: config file, run backend
  *
  * @date 2022/03/16
  */
@@ -24,8 +24,7 @@ public class ConfigService {
     private static final String CONFIG_LOAD_URL =
             String.format("http://%s/api/config/agent/load", ConfigManager.INSTANCE.getStorageServiceHost());
 
-    private ConfigService() {
-
+    ConfigService() {
     }
 
     public void loadAgentConfig(String agentArgs) {
@@ -39,7 +38,7 @@ public class ConfigService {
             request.appId = ConfigManager.INSTANCE.getServiceName();
             request.host = NetUtils.getIpAddress();
 
-            String postData = SerializeUtils.serialize(request);
+            String postData = Serializer.serialize(request);
 
             String responseData = AsyncHttpClientUtil.post(CONFIG_LOAD_URL, postData);
 
@@ -48,7 +47,7 @@ public class ConfigService {
                 return;
             }
             LOGGER.info("Agent config: {}", responseData);
-            ConfigQueryResponse responseModel = SerializeUtils.deserialize(responseData, ConfigQueryResponse.class);
+            ConfigQueryResponse responseModel = Serializer.deserialize(responseData, ConfigQueryResponse.class);
             if (responseModel != null && responseModel.getBody() != null && responseModel.getBody().getServiceCollectConfiguration() != null) {
                 ConfigManager.INSTANCE.parseServiceConfig(responseModel.getBody());
             }
@@ -77,7 +76,6 @@ public class ConfigService {
             this.body = body;
         }
     }
-
 
     public static class ResponseStatusType {
         private int responseCode;
@@ -109,7 +107,6 @@ public class ConfigService {
         }
     }
 
-
     public static class ResponseBody {
         private ServiceCollectConfig serviceCollectConfiguration;
         private int status;
@@ -130,7 +127,6 @@ public class ConfigService {
             this.dynamicClassConfigurationList = dynamicClassConfigurationList;
         }
     }
-
 
     public static class ServiceCollectConfig {
         private String appId;

@@ -1,24 +1,16 @@
 package io.arex.inst.httpservlet.inst;
 
-import io.arex.foundation.api.MethodInstrumentation;
-import io.arex.foundation.api.TypeInstrumentation;
-import io.arex.foundation.context.ContextManager;
+import io.arex.inst.extension.MethodInstrumentation;
+import io.arex.inst.extension.TypeInstrumentation;
 import io.arex.inst.httpservlet.ServletAdviceHelper;
-import io.arex.inst.httpservlet.adapter.ServletAdapter;
 import io.arex.inst.httpservlet.adapter.impl.ServletAdapterImplV3;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CompletableFuture;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.context.request.NativeWebRequest;
-import org.springframework.web.context.request.async.DeferredResult;
 import org.springframework.web.method.support.InvocableHandlerMethod;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
 import static java.util.Collections.singletonList;
@@ -49,14 +41,7 @@ public class InvocableHandlerInstrumentationV3 extends TypeInstrumentation {
         return singletonList(new MethodInstrumentation(matcher, adviceClassName));
     }
 
-    @Override
-    public List<String> adviceClassNames() {
-        return singletonList("io.arex.inst.httpservlet.inst.InvocableHandlerInstrumentationV3$InvokeAdvice");
-    }
-
     public static class InvokeAdvice {
-        public static final ServletAdapter<HttpServletRequest, HttpServletResponse> ADAPTER =
-            ServletAdapterImplV3.getInstance();
 
         @Advice.OnMethodExit
         public static void onExit(@Advice.Argument(0) NativeWebRequest nativeWebRequest,

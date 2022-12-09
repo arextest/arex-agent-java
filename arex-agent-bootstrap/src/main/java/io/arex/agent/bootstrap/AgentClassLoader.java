@@ -88,6 +88,10 @@ public class AgentClassLoader extends URLClassLoader {
 
     @Override
     protected Class<?> findClass(String name) throws ClassNotFoundException {
+        if (name.startsWith("io.arex.foundation") || name.startsWith("io.arex.inst.runtime")) {
+            return null;
+        }
+
         JarEntryInfo jarEntryInfo = findJarEntry(name.replace('.', '/') + ".class");
         if (jarEntryInfo != null && jarEntryInfo.getJarEntry() != null) {
             byte[] bytes;

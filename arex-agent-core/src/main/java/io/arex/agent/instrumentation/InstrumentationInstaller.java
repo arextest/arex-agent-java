@@ -1,15 +1,18 @@
 package io.arex.agent.instrumentation;
 
+import io.arex.foundation.serializer.JacksonSerializer;
+import io.arex.inst.runtime.serializer.Serializer;
+import io.arex.inst.runtime.serializer.StringSerializable;
+import io.arex.inst.extension.ModuleInstrumentation;
+import io.arex.inst.extension.MethodInstrumentation;
+import io.arex.inst.extension.TypeInstrumentation;
 import io.arex.agent.bootstrap.InstrumentationHolder;
-import io.arex.foundation.api.MethodInstrumentation;
-import io.arex.foundation.api.ModuleInstrumentation;
-import io.arex.foundation.api.TypeInstrumentation;
-import io.arex.foundation.bytebuddy.AdviceInjector;
+import io.arex.agent.instrumentation.bytebuddy.AdviceInjector;
 import io.arex.foundation.config.ConfigManager;
-import io.arex.foundation.services.ConfigService;
 import io.arex.foundation.util.CollectionUtil;
 import io.arex.foundation.util.SPIUtil;
 import java.io.IOException;
+
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.agent.builder.ResettableClassFileTransformer;
@@ -39,7 +42,6 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
 
     @Override
     protected ResettableClassFileTransformer transform() {
-        ConfigService.INSTANCE.loadAgentConfig(agentArgs);
         if (ConfigManager.INSTANCE.invalid()) {
             LOGGER.warn("[arex] config is invalid and stop instrument");
             return null;
@@ -60,6 +62,14 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
 
     private List<ModuleInstrumentation> loadInstrumentationModules() {
         return SPIUtil.load(ModuleInstrumentation.class);
+    }
+
+    private void installSerializer() {
+        Serializer.Builder builder = Serializer.builder(JacksonSerializer.INSTANCE);
+        List<StringSerializable> serializableList = SPIUtil.load(StringSerializable.class);
+        for (StringSerializable serializable : serializableList) {
+            builder.addSerializer(serializable.name(), serializable);
+        }
     }
 
     private AgentBuilder installModule(AgentBuilder builder, ModuleInstrumentation module) {

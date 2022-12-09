@@ -1,10 +1,10 @@
 package io.arex.inst.dynamic;
 
 import io.arex.agent.bootstrap.cache.TimeCache;
+import io.arex.inst.runtime.context.ContextManager;
+import io.arex.inst.runtime.model.DynamicClassMocker;
 import io.arex.agent.bootstrap.model.Mocker;
-import io.arex.foundation.context.ContextManager;
 import io.arex.foundation.services.MockService;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.UUID;
 
@@ -38,7 +38,7 @@ public class ReplaceMethodHelper {
 
     private static Mocker createMocker() {
         Mocker mocker = MockService.createDynamicClass(UUID.class.getName(), "randomUUID");
-        mocker.getTargetRequest().setBody(StringUtils.EMPTY);
+        mocker.getTargetRequest().setBody(StringUtil.EMPTY);
         return mocker;
     }
 }

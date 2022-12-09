@@ -25,24 +25,6 @@ public class ServletAdapterImplV5 implements ServletAdapter<HttpServletRequest, 
 
     @Nullable
     @Override
-    public HttpServletRequest asHttpServletRequest(Object servletRequest) {
-        if (servletRequest instanceof HttpServletRequest) {
-            return (HttpServletRequest) servletRequest;
-        }
-        return null;
-    }
-
-    @Nullable
-    @Override
-    public HttpServletResponse asHttpServletResponse(Object servletResponse) {
-        if (servletResponse instanceof HttpServletResponse) {
-            return (HttpServletResponse) servletResponse;
-        }
-        return null;
-    }
-
-    @Nullable
-    @Override
     public HttpServletRequest getNativeRequest(NativeWebRequest nativeWebRequest) {
         return nativeWebRequest.getNativeRequest(HttpServletRequest.class);
     }

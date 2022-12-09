@@ -1,10 +1,9 @@
 package io.arex.inst.httpservlet;
 
-import io.arex.agent.bootstrap.model.ArexMocker;
-import io.arex.foundation.context.ContextManager;
-import io.arex.agent.bootstrap.model.ArexConstants;
-import io.arex.foundation.services.MockService;
-import io.arex.foundation.serializer.SerializeUtils;
+import io.arex.inst.runtime.context.ContextManager;
+import io.arex.inst.runtime.model.Constants;
+import io.arex.inst.runtime.model.ServiceEntranceMocker;
+import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.httpservlet.adapter.ServletAdapter;
 
 import java.io.IOException;
@@ -119,7 +118,7 @@ public class ServletExtractor<HttpServletRequest, HttpServletResponse> {
         // response body to json
         if (response != null) {
             adapter.removeAttribute(httpServletRequest, ServletAdviceHelper.SERVLET_RESPONSE);
-            return SerializeUtils.serialize(response);
+            return Serializer.serialize(response);
         }
         // view to html
         return new String(adapter.getResponseBytes(httpServletResponse), StandardCharsets.UTF_8);

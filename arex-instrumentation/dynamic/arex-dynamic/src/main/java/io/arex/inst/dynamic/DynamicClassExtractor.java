@@ -1,17 +1,16 @@
 package io.arex.inst.dynamic;
 
 import io.arex.agent.bootstrap.model.Mocker;
-import io.arex.foundation.config.ConfigManager;
-import io.arex.foundation.context.ArexContext;
-import io.arex.foundation.context.ContextManager;
 import io.arex.foundation.services.IgnoreService;
 import io.arex.foundation.services.MockService;
+import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.inst.runtime.config.Config;
+import io.arex.inst.runtime.context.ArexContext;
+import io.arex.inst.runtime.context.ContextManager;
 import io.arex.agent.bootstrap.model.MockResult;
-import io.arex.foundation.serializer.GsonSerializer;
-import io.arex.foundation.util.LogUtil;
-import io.arex.foundation.util.StringUtil;
-import io.arex.foundation.util.TypeUtil;
-import org.apache.commons.lang3.StringUtils;
+import io.arex.inst.runtime.serializer.Serializer;
+import io.arex.inst.runtime.util.LogUtil;
+import io.arex.inst.runtime.util.TypeUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,8 +38,8 @@ public class DynamicClassExtractor {
     public DynamicClassExtractor(String clazzName, String operation, Object[] args, Object result) {
         this.clazzName = clazzName;
         this.operation = operation;
-        this.operationKey = GsonSerializer.INSTANCE.serialize(args);
-        this.operationResult = GsonSerializer.INSTANCE.serialize(result);
+        this.operationKey = Serializer.serialize(args, "gson");
+        this.operationResult = Serializer.serialize(result, "gson");
         this.resultClazz = TypeUtil.getName(result);
         this.result = result;
     }
@@ -70,7 +69,7 @@ public class DynamicClassExtractor {
         if (replayResult == null) {
             Mocker replayMocker = MockService.replayMocker(makeMocker());
             if (MockService.checkResponseMocker(replayMocker)) {
-                replayResult = GsonSerializer.INSTANCE.deserialize(replayMocker.getTargetResponse().getBody(),
+                replayResult = Serializer.INSTANCE.deserialize(replayMocker.getTargetResponse().getBody(),
                     TypeUtil.forName(replayMocker.getTargetResponse().getType()));
             }
             // no key no cache, no parameter methods may return different values
@@ -124,7 +123,7 @@ public class DynamicClassExtractor {
     }
 
     private String buildDuplicateMethodKey() {
-        if (StringUtils.isEmpty(operationResult)) {
+        if (StringUtil.isEmpty(operationResult)) {
             return String.format("%s_%s_%s_no_result", clazzName, operation, operationKey);
         }
         return String.format("%s_%s_%s_has_result", clazzName, operation, operationKey);

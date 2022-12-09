@@ -15,7 +15,6 @@ import okhttp3.Response.Builder;
 import okhttp3.ResponseBody;
 import okhttp3.internal.http.StatusLine;
 import okio.Buffer;
-import org.apache.commons.lang3.StringUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -101,7 +100,8 @@ public class OkHttpClientAdapter implements HttpClientAdapter<Request, MockResul
         for (int i = 0; i < headers.size(); i++) {
             stringTuple = headers.get(i);
             headersBuilder.add(stringTuple.name(), stringTuple.value());
-            if (StringUtils.equalsIgnoreCase(stringTuple.name(), CONTENT_TYPE_NAME)) {
+
+            if (stringTuple.name().equalsIgnoreCase(CONTENT_TYPE_NAME)) {
                 contentType = stringTuple.value();
             }
         }

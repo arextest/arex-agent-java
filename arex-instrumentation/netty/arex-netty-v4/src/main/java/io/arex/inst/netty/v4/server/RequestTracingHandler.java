@@ -1,16 +1,15 @@
 package io.arex.inst.netty.v4.server;
 
-import io.arex.agent.bootstrap.model.ArexMocker;
-import io.arex.agent.bootstrap.model.Mocker;
-import io.arex.foundation.context.ContextManager;
-import io.arex.foundation.listener.CaseEvent;
-import io.arex.foundation.listener.CaseInitializer;
-import io.arex.foundation.listener.CaseListenerImpl;
-import io.arex.foundation.listener.EventSource;
-import io.arex.agent.bootstrap.model.ArexConstants;
-import io.arex.foundation.services.MockService;
-import io.arex.foundation.services.IgnoreService;
-import io.arex.foundation.util.StringUtil;
+import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.inst.runtime.context.ContextManager;
+import io.arex.inst.runtime.context.RecordLimiter;
+import io.arex.inst.runtime.listener.CaseEvent;
+import io.arex.inst.runtime.listener.EventProcessor;
+import io.arex.inst.runtime.listener.CaseEventDispatcher;
+import io.arex.inst.runtime.model.AbstractMocker;
+import io.arex.inst.runtime.model.Constants;
+import io.arex.inst.runtime.model.ServiceEntranceMocker;
+import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.netty.v4.common.AttributeKey;
 import io.arex.inst.netty.v4.common.NettyHelper;
 import io.netty.channel.ChannelHandlerContext;
@@ -23,7 +22,7 @@ public class RequestTracingHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
-        CaseInitializer.onEnter();
+        EventProcessor.onRequest();
         if (msg instanceof HttpRequest) {
             HttpRequest request = (HttpRequest) msg;
             String caseId = request.headers().get(ArexConstants.RECORD_ID);
@@ -33,8 +32,8 @@ public class RequestTracingHandler extends ChannelInboundHandlerAdapter {
             }
 
             String excludeMockTemplate = request.headers().get(ArexConstants.HEADER_EXCLUDE_MOCK);
-            CaseListenerImpl.INSTANCE.onEvent(
-                    new CaseEvent(EventSource.of(caseId, excludeMockTemplate), CaseEvent.Action.CREATE));
+            CaseEventDispatcher.onEvent(
+                new CaseEvent(StringUtil.defaultString(caseId), CaseEvent.Action.CREATE));
             if (ContextManager.needRecordOrReplay()) {
                 ArexMocker mocker = MockService.createServlet(request.uri());
                 Mocker.Target target = mocker.getTargetRequest();
@@ -76,7 +75,7 @@ public class RequestTracingHandler extends ChannelInboundHandlerAdapter {
             return true;
         }
 
-        if (CaseInitializer.exceedRecordRate(request.uri())) {
+        if (RecordLimiter.acquire(request.uri())) {
             return true;
         }
 

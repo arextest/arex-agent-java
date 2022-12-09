@@ -1,6 +1,7 @@
 package io.arex.foundation.util;
 
 import io.arex.agent.bootstrap.InstrumentationHolder;
+import io.arex.inst.runtime.util.LogUtil;
 
 import java.io.InputStream;
 import java.util.*;
