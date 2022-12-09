@@ -7,19 +7,17 @@ import java.lang.reflect.Method;
 
 public class AgentInitializer {
 
-    private static ClassLoader agentClassLoader;
+    private static ClassLoader classLoader;
 
     public static void initialize(Instrumentation inst, File agentFile, String agentArgs)
             throws Exception {
-        if (agentClassLoader != null) {
+        if (classLoader != null) {
             return;
         }
 
-        System.out.println("[AREX]--AgentInitializer class loader:" + AgentInitializer.class.getClassLoader());
         System.setProperty("arex-agent-jar-file-path", agentFile.getAbsolutePath());
-
-        agentClassLoader = createAgentClassLoader(agentFile);
-        InstrumentationHolder.setAgentClassLoader(agentClassLoader);
+        classLoader = createAgentClassLoader(agentFile);
+        InstrumentationHolder.setAgentClassLoader(classLoader);
         AgentInstaller installer = createAgentInstaller(inst, agentFile, agentArgs);
         installer.install();
     }
@@ -29,8 +27,7 @@ public class AgentInitializer {
     }
 
     private static AgentInstaller createAgentInstaller(Instrumentation inst, File file, String agentArgs) throws Exception {
-        Class<?> clazz =
-            AgentInitializer.class.getClassLoader().loadClass("io.arex.agent.instrumentation.InstrumentationInstaller");
+        Class<?> clazz = classLoader.loadClass("io.arex.agent.instrumentation.InstrumentationInstaller");
         Constructor<?> constructor = clazz.getDeclaredConstructor(Instrumentation.class, File.class, String.class);
         return (AgentInstaller) constructor.newInstance(inst, file, agentArgs);
     }

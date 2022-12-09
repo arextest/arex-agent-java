@@ -379,6 +379,20 @@ public class StringUtil {
         return false;
     }
 
+    public static boolean startWithFrom(String source, String prefix, int checkStartIndex) {
+        int length = prefix.length();
+        if (checkStartIndex < 0 || checkStartIndex + length > source.length()) {
+            return false;
+        }
+
+        for (int i = 0; i < length; i++) {
+            if (prefix.charAt(i) != source.charAt(checkStartIndex++)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     static boolean regionMatches(CharSequence cs, boolean ignoreCase, int thisStart, CharSequence substring, int start, int length) {
         if (cs instanceof String && substring instanceof String) {
             return ((String)cs).regionMatches(ignoreCase, thisStart, (String)substring, start, length);

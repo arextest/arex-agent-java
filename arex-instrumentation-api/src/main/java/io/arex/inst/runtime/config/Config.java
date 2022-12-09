@@ -1,31 +1,41 @@
 package io.arex.inst.runtime.config;
 
+import io.arex.inst.runtime.model.DynamicClassEntity;
+
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
 public class Config {
     private static volatile Config INSTANCE = null;
 
-    static void update(boolean enableDebug, String serviceName, Map<String, String> properties) {
-        INSTANCE = new Config(enableDebug, serviceName, properties);
+    static void update(boolean enableDebug, String serviceName, List<DynamicClassEntity> entities,
+                       Map<String, String> properties) {
+        INSTANCE = new Config(enableDebug, serviceName, entities, properties);
     }
 
     public static Config get() {
         return INSTANCE;
     }
 
-    private boolean enableDebug;
-    private String serviceName;
+    private final boolean enableDebug;
+    private final String serviceName;
+    private final List<DynamicClassEntity> entities;
     private Map<String, String> properties;
 
-    Config(boolean enableDebug, String serviceName, Map<String, String> properties) {
+    Config(boolean enableDebug, String serviceName, List<DynamicClassEntity> entities, Map<String, String> properties) {
         this.enableDebug = enableDebug;
         this.serviceName = serviceName;
+        this.entities = entities;
         this.properties = properties;
     }
 
     public boolean isEnableDebug() {
         return this.enableDebug;
+    }
+
+    public List<DynamicClassEntity> dynamicClassEntities() {
+        return this.entities;
     }
 
     public String getServiceName() {

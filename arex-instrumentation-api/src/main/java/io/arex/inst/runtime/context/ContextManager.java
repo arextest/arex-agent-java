@@ -23,7 +23,6 @@ public class ContextManager {
      * agent call this method
      */
     public static ArexContext currentContext() {
-        System.out.println("[AREX] ContextManager classloader:" + ContextManager.class.getClassLoader());
         return currentContext(false, null);
     }
 
@@ -63,7 +62,6 @@ public class ContextManager {
     }
 
     public static void overdueCleanUp() {
-        TraceContextManager.remove();
         if (RECORD_MAP.size() > 0 && CLEANUP_LOCK.tryLock()) {
             List<String> removeRecordIds = new ArrayList<>(RECORD_MAP.size());
             try {

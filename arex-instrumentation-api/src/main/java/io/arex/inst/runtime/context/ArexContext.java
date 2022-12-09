@@ -1,15 +1,16 @@
 package io.arex.inst.runtime.context;
 
-import io.arex.agent.bootstrap.cache.TimeCache;
 import io.arex.agent.bootstrap.util.StringUtil;
-import io.arex.inst.runtime.config.Config;
-import io.arex.inst.runtime.model.Constants;
-import io.arex.inst.runtime.model.DynamicClassMocker;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 public class ArexContext {
     private static final Logger LOGGER = LoggerFactory.getLogger(ArexContext.class);
@@ -38,10 +39,6 @@ public class ArexContext {
         this.caseId = caseId;
         this.sequence = new SequenceProvider();
         this.replayId = replayId;
-
-        System.out.println("[AREX] ArexContext classloader:" + this.getClass().getClassLoader());
-
-        //init();
     }
 
     public boolean isReplay() {
@@ -70,28 +67,6 @@ public class ArexContext {
 
     public static ArexContext of(String caseId, String replayId) {
         return new ArexContext(caseId, replayId);
-    }
-
-    private void init() {
-        System.out.println("[AREX] ArexContext init enter.");
-        TimeCache.remove();
-        try {
-            if (StringUtil.isNotEmpty(replayId) && Config.get().getBoolean("arex.time.machine", false)) {
-                DynamicClassMocker mocker = new DynamicClassMocker(Constants.CLOCK_CLASS, Constants.CLOCK_METHOD, null);
-                Object result = mocker.replay();
-                long millis = Long.parseLong(String.valueOf(result));
-                if (millis > 0) {
-                    TimeCache.put(millis);
-                }
-            } else {
-                DynamicClassMocker mocker = new DynamicClassMocker(Constants.CLOCK_CLASS, Constants.CLOCK_METHOD,
-                        null, String.valueOf(System.currentTimeMillis()), Long.class.getName());
-                mocker.record();
-            }
-        } catch (Throwable e) {
-            LOGGER.warn("ArexContext init failed.", e);
-        }
-        System.out.println("[AREX] ArexContext init exit.");
     }
 
     public List<Integer> getMethodSignatureHashList() {

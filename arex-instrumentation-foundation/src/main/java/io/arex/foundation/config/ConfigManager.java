@@ -226,7 +226,6 @@ public class ConfigManager {
     }
 
     private void update() {
-        System.out.println("[AREX] TimerService.ConfigManager classloader:" + ConfigManager.class.getClassLoader());
         ConfigService.INSTANCE.loadAgentConfig(null);
     }
 

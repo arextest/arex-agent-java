@@ -11,7 +11,7 @@ import java.util.WeakHashMap;
 
 public class ModuleVersionMatcher extends ElementMatcher.Junction.AbstractBase<ClassLoader> {
     public static ElementMatcher.Junction<ClassLoader> versionMatch(ModuleDescription description) {
-        return new ModuleVersionMatcher(description);
+        return new IgnoreClassloaderMatcher(new ModuleVersionMatcher(description));
     }
 
     private final Map<ClassLoader, Boolean> cache = new WeakHashMap<>();
@@ -30,15 +30,33 @@ public class ModuleVersionMatcher extends ElementMatcher.Junction.AbstractBase<C
     }
 
     private boolean versionMatches(ClassLoader loader) {
-        if (loader == null) {
-            return false;
-        }
-
+        System.out.println("[AREX]2 Module Version matches:" + description.getModuleName() + ", Loader:" + loader);
         ResourceManager.registerResources(loader);
         Pair<Integer, Integer> version = LoadedModuleCache.get(description.getModuleName());
         if (version == null) {
             return true;
         }
         return description.isSupported(version);
+    }
+
+    static class IgnoreClassloaderMatcher extends ElementMatcher.Junction.AbstractBase<ClassLoader> {
+        private ElementMatcher<ClassLoader> matcher;
+
+        public IgnoreClassloaderMatcher(ElementMatcher<ClassLoader> matcher) {
+            this.matcher = matcher;
+        }
+
+        @Override
+        public boolean matches(ClassLoader loader) {
+            if (loader == null) {
+                return false;
+            }
+
+            String loaderName = loader.getClass().getName();
+            if (loaderName.startsWith("sun.reflect") || loaderName.startsWith("jdk.internal.reflect")) {
+                return false;
+            }
+            return matcher.matches(loader);
+        }
     }
 }

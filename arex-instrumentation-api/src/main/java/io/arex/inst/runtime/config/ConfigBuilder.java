@@ -1,14 +1,14 @@
 package io.arex.inst.runtime.config;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import io.arex.inst.runtime.model.DynamicClassEntity;
+
+import java.util.*;
 
 public class ConfigBuilder {
     private final Map<String, String> properties;
     private boolean enableDebug = false;
     private final String serviceName;
+    private List<DynamicClassEntity> entities;
 
     public static ConfigBuilder create(String serviceName) {
         return new ConfigBuilder(serviceName);
@@ -21,6 +21,11 @@ public class ConfigBuilder {
 
     public ConfigBuilder enableDebug(boolean enableDebug) {
         this.enableDebug = enableDebug;
+        return this;
+    }
+
+    public ConfigBuilder dynamicClassList(List<DynamicClassEntity> entities) {
+        this.entities = entities;
         return this;
     }
 
@@ -47,6 +52,6 @@ public class ConfigBuilder {
     }
 
     public void build() {
-        Config.update(enableDebug, serviceName, Collections.unmodifiableMap(new HashMap<>(properties)));
+        Config.update(enableDebug, serviceName, entities, Collections.unmodifiableMap(new HashMap<>(properties)));
     }
 }

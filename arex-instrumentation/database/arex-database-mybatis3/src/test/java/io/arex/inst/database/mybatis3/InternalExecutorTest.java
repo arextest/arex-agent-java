@@ -1,5 +1,6 @@
 package io.arex.inst.database.mybatis3;
 
+import io.arex.inst.runtime.config.ConfigBuilder;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.agent.bootstrap.model.ArexMocker;
 import io.arex.agent.bootstrap.model.MockResult;
@@ -26,6 +27,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.lang.reflect.InvocationTargetException;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;

@@ -18,7 +18,8 @@ public class InjectClassInstrumentation extends TypeInstrumentation {
     @Override
     protected ElementMatcher<TypeDescription> typeMatcher() {
         return extendsClass(named("java.lang.ClassLoader"))
-                .and(not(named("io.arex.agent.bootstrap.AgentClassLoader")));
+                .and(not(namedOneOf("io.arex.agent.bootstrap.AgentClassLoader",
+                        "sun.misc.Launcher$AppClassLoader", "jdk.internal.loader.BuiltinClassLoader")));
     }
 
     @Override

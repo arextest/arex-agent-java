@@ -44,6 +44,15 @@ public class SPIUtil {
         return null;
     }
 
+    public static <T> ServiceLoader<T> load(Class<T> spiType, ClassLoader cl) {
+        try {
+            return ServiceLoader.load(spiType, cl);
+        } catch (Throwable e) {
+            LOGGER.error("Arex spi load class: {} error", spiType.getCanonicalName(), e);
+        }
+        return null;
+    }
+
     private static List<URL> getJarUrls(String jarDir) throws Exception {
         File file = new File(jarDir);
         List<URL> jarPaths = new ArrayList<>();

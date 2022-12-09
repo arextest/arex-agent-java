@@ -64,14 +64,6 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
         return SPIUtil.load(ModuleInstrumentation.class);
     }
 
-    private void installSerializer() {
-        Serializer.Builder builder = Serializer.builder(JacksonSerializer.INSTANCE);
-        List<StringSerializable> serializableList = SPIUtil.load(StringSerializable.class);
-        for (StringSerializable serializable : serializableList) {
-            builder.addSerializer(serializable.name(), serializable);
-        }
-    }
-
     private AgentBuilder installModule(AgentBuilder builder, ModuleInstrumentation module) {
         if (disabledModule(module.name())) {
             LOGGER.warn("[arex] disabled instrumentation module: {}", module.name());
@@ -107,7 +99,6 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
         }
 
         List<MethodInstrumentation> methodAdvices = type.methodAdvices();
-
         if (CollectionUtil.isEmpty(methodAdvices)) {
             return (AgentBuilder) identified;
         }
@@ -122,10 +113,9 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
 
     private AgentBuilder.Identified.Extendable installMethod(AgentBuilder.Identified builder,
         MethodInstrumentation method) {
-        LOGGER.warn("[arex] installed advice class: {}", method.getAdviceClassName());
         return builder.transform(new AgentBuilder.Transformer.ForAdvice()
-            .include(InstrumentationHolder.getAgentClassLoader())
-            .advice(method.getMethodMatcher(), method.getAdviceClassName()));
+                        .include(InstrumentationHolder.getAgentClassLoader())
+                        .advice(method.getMethodMatcher(), method.getAdviceClassName()));
     }
 
 

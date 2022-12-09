@@ -46,5 +46,6 @@ public class EventProcessor {
     public static void onRequest(){
         TimeCache.remove();
         TraceContextManager.remove();
+        ContextManager.overdueCleanUp();
     }
 }
