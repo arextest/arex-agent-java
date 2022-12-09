@@ -1,7 +1,7 @@
 package io.arex.cli.server.handler;
 
-import io.arex.foundation.model.ServiceEntranceMocker;
-import io.arex.foundation.serializer.SerializeUtils;
+import io.arex.agent.bootstrap.model.Mocker;
+import io.arex.agent.bootstrap.model.Mocker.Target;
 import io.arex.foundation.util.AsyncHttpClientUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
@@ -9,20 +9,28 @@ import org.apache.http.HttpHeaders;
 import org.apache.http.entity.ByteArrayEntity;
 
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public abstract class ApiHandler {
 
-    public Map<String, String> request(ServiceEntranceMocker servletMocker) {
-        Map<String, String> mockerHeader = SerializeUtils.deserialize(servletMocker.getRequestHeaders(), Map.class);
+    public Map<String, String> request(Mocker servletMocker) {
+        if (!servletMocker.getCategoryType().isEntryPoint()) {
+            return Collections.emptyMap();
+        }
+        Target target = servletMocker.getTargetRequest();
+
+        Map<String, String> mockerHeader = (Map<String, String>) target.getAttribute("Headers");
 
         Map<String, String> requestHeaders = new HashMap<>();
         requestHeaders.put(HttpHeaders.CONTENT_TYPE, "application/json;charset=UTF-8");
-        requestHeaders.put("arex-record-id", servletMocker.getCaseId());
+        requestHeaders.put("arex-record-id", servletMocker.getRecordId());
 
-        String request = StringUtils.isNotBlank(servletMocker.getRequest()) ? servletMocker.getRequest() : "";
+        String request = StringUtils.isNotBlank(target.getBody()) ? target.getBody() : "";
         HttpEntity httpEntity = new ByteArrayEntity(request.getBytes(StandardCharsets.UTF_8));
-        String url = "http://" + mockerHeader.get("host") + servletMocker.getPath();
+        String url = "http://" + mockerHeader.get("host") + target.attributeAsString("path");
         return AsyncHttpClientUtil.executeAsyncIncludeHeader(url, httpEntity, requestHeaders).join();
     }
 

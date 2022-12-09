@@ -6,7 +6,7 @@ import io.arex.foundation.listener.CaseEvent;
 import io.arex.foundation.listener.CaseInitializer;
 import io.arex.foundation.listener.CaseListenerImpl;
 import io.arex.foundation.listener.EventSource;
-import io.arex.foundation.model.Constants;
+import io.arex.agent.bootstrap.model.ArexConstants;
 import io.arex.foundation.util.LogUtil;
 import io.arex.foundation.util.StringUtil;
 import io.arex.inst.httpservlet.adapter.ServletAdapter;
@@ -25,8 +25,11 @@ import java.util.concurrent.CompletableFuture;
  * ServletAdviceHelper
  */
 public class ServletAdviceHelper {
+    public static final String SERVLET_ASYNC_FLAG = "arex-async-flag";
+    public static final String SERVLET_RESPONSE = "arex-servlet-response";
     private static final Set<String> FILTERED_CONTENT_TYPE = new HashSet<>();
     private static final Set<String> FILTERED_GET_URL_SUFFIX = new HashSet<>();
+    private static final String HTTP_METHOD_GET = "GET";
 
     static {
         FILTERED_CONTENT_TYPE.add("/javascript");
@@ -50,7 +53,7 @@ public class ServletAdviceHelper {
         TRequest httpServletRequest = adapter.asHttpServletRequest(servletRequest);
         TResponse httpServletResponse = adapter.asHttpServletResponse(servletResponse);
         // Async listener will handle if attr with arex-async-flag
-        if ("true".equals(adapter.getAttribute(httpServletRequest, ServletConstants.SERVLET_ASYNC_FLAG))) {
+        if ("true".equals(adapter.getAttribute(httpServletRequest, SERVLET_ASYNC_FLAG))) {
             httpServletResponse = adapter.wrapResponse(httpServletResponse);
             return Pair.of(null, httpServletResponse);
         }
@@ -60,8 +63,8 @@ public class ServletAdviceHelper {
             return null;
         }
 
-        String caseId = adapter.getRequestHeader(httpServletRequest, Constants.RECORD_ID);
-        String excludeMockTemplate = adapter.getRequestHeader(httpServletRequest, Constants.HEADER_EXCLUDE_MOCK);
+        String caseId = adapter.getRequestHeader(httpServletRequest, ArexConstants.RECORD_ID);
+        String excludeMockTemplate = adapter.getRequestHeader(httpServletRequest, ArexConstants.HEADER_EXCLUDE_MOCK);
         CaseListenerImpl.INSTANCE.onEvent(new CaseEvent(EventSource.of(caseId, excludeMockTemplate), CaseEvent.Action.CREATE));
 
         if (ContextManager.needRecordOrReplay()) {
@@ -91,15 +94,15 @@ public class ServletAdviceHelper {
             }
 
             // Async listener will handle async request
-            if ("true".equals(adapter.getAttribute(httpServletRequest, ServletConstants.SERVLET_ASYNC_FLAG))) {
-                adapter.removeAttribute(httpServletRequest, ServletConstants.SERVLET_ASYNC_FLAG);
+            if ("true".equals(adapter.getAttribute(httpServletRequest, SERVLET_ASYNC_FLAG))) {
+                adapter.removeAttribute(httpServletRequest, SERVLET_ASYNC_FLAG);
                 adapter.copyBodyToResponse(httpServletResponse);
                 return;
             }
 
             // Add async listener for async request
             if (adapter.isAsyncStarted(httpServletRequest)) {
-                adapter.setAttribute(httpServletRequest, ServletConstants.SERVLET_ASYNC_FLAG, "true");
+                adapter.setAttribute(httpServletRequest, SERVLET_ASYNC_FLAG, "true");
                 adapter.addListener(adapter, httpServletRequest, httpServletResponse);
                 return;
             }
@@ -139,31 +142,31 @@ public class ServletAdviceHelper {
             return;
         }
 
-        adapter.setAttribute(httpServletRequest, ServletConstants.SERVLET_RESPONSE, response);
+        adapter.setAttribute(httpServletRequest, SERVLET_RESPONSE, response);
     }
 
     private static <TRequest> boolean shouldSkip(ServletAdapter<TRequest, ?> adapter,
                                                  TRequest httpServletRequest) {
-        String caseId = adapter.getRequestHeader(httpServletRequest, Constants.RECORD_ID);
+        String caseId = adapter.getRequestHeader(httpServletRequest, ArexConstants.RECORD_ID);
 
         // Replay scene
         if (StringUtil.isNotEmpty(caseId)) {
             return false;
         }
 
-        String forceRecord = adapter.getRequestHeader(httpServletRequest, Constants.FORCE_RECORD);
+        String forceRecord = adapter.getRequestHeader(httpServletRequest, ArexConstants.FORCE_RECORD);
         // Do not skip if header with arex-force-record=true
         if (Boolean.parseBoolean(forceRecord)) {
             return false;
         }
 
         // Skip if request header with arex-replay-warm-up=true
-        if (Boolean.parseBoolean(adapter.getRequestHeader(httpServletRequest, Constants.REPLAY_WARM_UP))) {
+        if (Boolean.parseBoolean(adapter.getRequestHeader(httpServletRequest, ArexConstants.REPLAY_WARM_UP))) {
             return true;
         }
 
         // Filter invalid servlet path suffix
-        if ("GET".equals(adapter.getMethod(httpServletRequest))) {
+        if (HTTP_METHOD_GET.equals(adapter.getMethod(httpServletRequest))) {
             String servletPath = adapter.getServletPath(httpServletRequest);
             return StringUtil.isEmpty(servletPath) || FILTERED_GET_URL_SUFFIX.stream().anyMatch(servletPath::contains);
         }

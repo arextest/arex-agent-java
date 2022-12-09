@@ -2,7 +2,7 @@ package io.arex.inst.httpclient.apache.async;
 
 import io.arex.agent.bootstrap.ctx.TraceTransmitter;
 import io.arex.foundation.context.RepeatedCollectManager;
-import io.arex.foundation.model.MockResult;
+import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.inst.httpclient.apache.common.ApacheHttpClientAdapter;
 import io.arex.inst.httpclient.common.ArexDataException;
 import io.arex.inst.httpclient.common.ExceptionWrapper;
@@ -82,7 +82,7 @@ public class FutureCallbackWrapper<T> implements FutureCallback<T> {
             }
             // noinspection unchecked
             MockResult mockResult = extractor.replay(wrapped);
-            delegate.completed((T) mockResult.getMockResult());
+            delegate.completed((T) mockResult.getResult());
         }
         return notIgnoreMockResult;
     }
@@ -90,7 +90,7 @@ public class FutureCallbackWrapper<T> implements FutureCallback<T> {
     private void recordResponse(HttpResponse response) {
         try {
             if (extractor != null && RepeatedCollectManager.exitAndValidate()) {
-                extractor.record(MockResult.of(response));
+                extractor.record(MockResult.success(response));
             }
         } catch (Exception ex) {
             LOGGER.warn("consume response content failed:{}", ex.getMessage(), ex);

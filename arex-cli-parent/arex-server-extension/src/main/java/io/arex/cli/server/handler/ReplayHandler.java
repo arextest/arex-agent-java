@@ -1,7 +1,11 @@
 package io.arex.cli.server.handler;
 
 import io.arex.agent.bootstrap.internal.Pair;
-import io.arex.foundation.model.*;
+import io.arex.agent.bootstrap.model.ArexMocker;
+import io.arex.agent.bootstrap.model.MockCategoryType;
+import io.arex.agent.bootstrap.model.Mocker;
+import io.arex.agent.bootstrap.model.Mocker.Target;
+import io.arex.foundation.model.DiffMocker;
 import io.arex.foundation.serializer.SerializeUtils;
 import io.arex.foundation.services.StorageService;
 import io.arex.foundation.util.CollectionUtil;
@@ -10,7 +14,11 @@ import io.arex.foundation.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 public class ReplayHandler extends ApiHandler {
 
@@ -35,16 +43,16 @@ public class ReplayHandler extends ApiHandler {
             LOGGER.warn("storage service unavailable!");
             return null;
         }
-        ServiceEntranceMocker mocker = new ServiceEntranceMocker();
-        List<AbstractMocker> mockerList = StorageService.INSTANCE.queryList(mocker, num);
+        Mocker mocker = new ArexMocker();
+        List<Mocker> mockerList = StorageService.INSTANCE.queryList(mocker, num);
         if (CollectionUtil.isEmpty(mockerList)) {
             LOGGER.warn("query no result.");
             return null;
         }
         List<Pair<String, String>> pairs = new ArrayList<>();
-        for (AbstractMocker mockerInfo : mockerList) {
-            Map<String, String> responseMap = request((ServiceEntranceMocker)mockerInfo);
-            pairs.add(Pair.of(mockerInfo.getCaseId(), responseMap.get("arex-replay-id")));
+        for (Mocker mockerInfo : mockerList) {
+            Map<String, String> responseMap = request(mockerInfo);
+            pairs.add(Pair.of(mockerInfo.getRecordId(), responseMap.get("arex-replay-id")));
         }
         return pairs;
     }
@@ -52,20 +60,17 @@ public class ReplayHandler extends ApiHandler {
     private List<DiffMocker> computeDiff(List<Pair<String, String>> idPairs) {
         List<DiffMocker> diffSummaryList = new ArrayList<>();
         DiffUtils dmp = new DiffUtils();
-        List<AbstractMocker> recordList;
-        List<AbstractMocker> replayList;
+        List<Mocker> recordList;
+        List<Mocker> replayList;
         String recordJson;
         String replayJson;
         for (Pair<String, String> idPair : idPairs) {
             boolean hasDiff = false;
             int diffCount = 0;
             List<DiffMocker> diffDetailList = new ArrayList<>();
-            for (MockerCategory category : MockerCategory.values()) {
-                AbstractMocker mocker = generateMocker(category);
-                if (mocker == null) {
-                    continue;
-                }
-                mocker.setCaseId(idPair.getFirst());
+            for (MockCategoryType category : MockCategoryType.values()) {
+                Mocker mocker = generateMocker(category);
+                mocker.setRecordId(idPair.getFirst());
                 recordList = StorageService.INSTANCE.queryList(mocker, 0);
                 mocker.setReplayId(idPair.getSecond());
                 replayList = StorageService.INSTANCE.queryList(mocker, 0);
@@ -90,7 +95,7 @@ public class ReplayHandler extends ApiHandler {
             if (hasDiff) {
                 StorageService.INSTANCE.saveList(diffDetailList);
                 DiffMocker diffMocker = new DiffMocker();
-                diffMocker.setCaseId(idPair.getFirst());
+                diffMocker.setRecordId(idPair.getFirst());
                 diffMocker.setReplayId(idPair.getSecond());
                 diffMocker.setDiffCount(diffCount);
                 diffSummaryList.add(diffMocker);
@@ -100,63 +105,49 @@ public class ReplayHandler extends ApiHandler {
         return diffSummaryList;
     }
 
-    private AbstractMocker generateMocker(MockerCategory category) {
-        switch (category) {
-            case SERVLET_ENTRANCE:
-                return new ServiceEntranceMocker();
-            case DATABASE:
-                return new DatabaseMocker();
-            case SERVICE_CALL:
-                return new HttpClientMocker();
-            case REDIS:
-                return new RedisMocker();
-            case DYNAMIC_CLASS:
-                return new DynamicClassMocker();
-        }
-        return null;
+    private Mocker generateMocker(MockCategoryType category) {
+        return new ArexMocker(category);
     }
 
-    private String getCompareJson(List<AbstractMocker> mockerList, int index, MockerCategory category) {
+    private String getCompareJson(List<Mocker> mockerList, int index, MockCategoryType category) {
         Map<String, String> compareMap = new HashMap<>();
         if (mockerList.size() > index) {
-            switch (category) {
-                case SERVLET_ENTRANCE:
-                    ServiceEntranceMocker servletMocker = (ServiceEntranceMocker)mockerList.get(index);
-                    compareMap.put("response", servletMocker.getResponse());
-                    break;
-                case DATABASE:
-                    DatabaseMocker databaseMocker = (DatabaseMocker)mockerList.get(index);
-                    compareMap.put("dbname", databaseMocker.getDbName());
-                    compareMap.put("parameters", databaseMocker.getParameters());
-                    compareMap.put("sql", databaseMocker.getSql());
-                    break;
-                case DYNAMIC_CLASS:
-                    DynamicClassMocker dynamicClassMocker = (DynamicClassMocker)mockerList.get(index);
-                    compareMap.put("className", dynamicClassMocker.getClazzName());
-                    compareMap.put("method", dynamicClassMocker.getOperation());
-                    compareMap.put("parameter", dynamicClassMocker.getOperationKey());
-                    break;
-                case SERVICE_CALL:
-                    HttpClientMocker httpClientMocker = (HttpClientMocker)mockerList.get(index);
-                    compareMap.put("url", httpClientMocker.getUrl());
-                    compareMap.put("request", httpClientMocker.getRequest());
-                    break;
-                case REDIS:
-                    RedisMocker redisMocker = (RedisMocker)mockerList.get(index);
-                    compareMap.put("clusterName", redisMocker.getClusterName());
-                    compareMap.put("key", redisMocker.getRedisKey());
-                    break;
+            Mocker mocker = mockerList.get(index);
+            Target targetRequest = mocker.getTargetRequest();
+            if (category.isEntryPoint()) {
+                compareMap.put("response", mocker.getTargetResponse().getBody());
+            }
+            if (category == MockCategoryType.DATABASE) {
+                compareMap.put("dbname", targetRequest.attributeAsString("dbName"));
+                compareMap.put("parameters", targetRequest.attributeAsString("parameters"));
+                compareMap.put("sql", targetRequest.getBody());
+            }
+            if (category == MockCategoryType.DYNAMIC_CLASS) {
+
+                //  compareMap.put("className", dynamicClassMocker.getClazzName());
+                compareMap.put("method", mocker.getOperationName());
+                compareMap.put("parameter", targetRequest.getBody());
+            }
+            if (category == MockCategoryType.HTTP_CLIENT) {
+
+                compareMap.put("url", targetRequest.attributeAsString("url"));
+                compareMap.put("request", targetRequest.getBody());
+            }
+            if (category == MockCategoryType.REDIS) {
+                compareMap.put("clusterName", targetRequest.attributeAsString("clusterName"));
+                compareMap.put("key", targetRequest.getBody());
             }
         }
+
         if (compareMap.size() > 1) {
             return SerializeUtils.serialize(compareMap);
         }
         return compareMap.values().stream().filter(Objects::nonNull).findFirst().orElse(null);
     }
 
-    private DiffMocker getDiffMocker(Pair<String, String> idPair, Pair<String, String> diffPair, MockerCategory category) {
+    private DiffMocker getDiffMocker(Pair<String, String> idPair, Pair<String, String> diffPair, MockCategoryType category) {
         DiffMocker diffMocker = new DiffMocker(category);
-        diffMocker.setCaseId(idPair.getFirst());
+        diffMocker.setRecordId(idPair.getFirst());
         diffMocker.setReplayId(idPair.getSecond());
         diffMocker.setRecordDiff(diffPair.getFirst());
         diffMocker.setReplayDiff(diffPair.getSecond());

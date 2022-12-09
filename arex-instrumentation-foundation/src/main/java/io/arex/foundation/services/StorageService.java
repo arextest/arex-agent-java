@@ -1,6 +1,6 @@
 package io.arex.foundation.services;
 
-import io.arex.foundation.model.AbstractMocker;
+import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.foundation.model.DiffMocker;
 import io.arex.foundation.util.SPIUtil;
 import org.slf4j.Logger;
@@ -47,7 +47,7 @@ public abstract class StorageService {
         }
     }
 
-    public CompletableFuture<String> saveRecord(AbstractMocker mocker, String postJson) {
+    public CompletableFuture<String> saveRecord(Mocker mocker, String postJson) {
         CompletableFuture<String> future = new CompletableFuture<>();
         int count = save(mocker, postJson);
         if (count > 0) {
@@ -58,7 +58,7 @@ public abstract class StorageService {
         return future;
     }
 
-    public AbstractMocker queryReplay(AbstractMocker mocker, String postJson) {
+    public Mocker queryReplay(Mocker mocker, String postJson) {
         save(mocker, postJson);
         mocker.setReplayId(null);
         return query(mocker);
@@ -66,15 +66,15 @@ public abstract class StorageService {
 
     public abstract boolean start() throws Exception;
 
-    public abstract int save(AbstractMocker mocker, String postJson);
+    public abstract int save(Mocker mocker, String postJson);
 
     public abstract int saveList(List<DiffMocker> mockers);
 
-    public abstract AbstractMocker query(AbstractMocker mocker);
+    public abstract Mocker query(Mocker mocker);
 
     public abstract List<Map<String, String>> query(String sql);
 
-    public abstract List<AbstractMocker> queryList(AbstractMocker mocker, int count);
+    public abstract List<Mocker> queryList(Mocker mocker, int count);
 
     public abstract List<DiffMocker> queryList(DiffMocker mocker);
 }

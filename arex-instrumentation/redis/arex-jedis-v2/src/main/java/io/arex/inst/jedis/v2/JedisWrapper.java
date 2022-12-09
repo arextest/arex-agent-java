@@ -1,7 +1,7 @@
 package io.arex.inst.jedis.v2;
 
+import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.foundation.context.ContextManager;
-import io.arex.foundation.model.MockResult;
 import io.arex.foundation.serializer.SerializeUtils;
 import io.arex.inst.redis.common.RedisExtractor;
 import io.arex.inst.redis.common.RedisKeyUtil;
@@ -550,7 +550,7 @@ public class JedisWrapper extends Jedis {
             extractor = new RedisExtractor(this.url, command, key, field);
             MockResult mockResult = extractor.replay();
             if (mockResult.notIgnoreMockResult()) {
-                return mockResult.getMockResult() == null ? defaultValue : (U) mockResult.getMockResult();
+                return mockResult.getResult() == null ? defaultValue : (U) mockResult.getResult();
             }
         }
         

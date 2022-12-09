@@ -77,7 +77,7 @@ public class ResponseExceptionMockUtil {
      * Parse exception in reverse order
      */
     private static Map<String, String> parseExceptionInfo(String exceptionInfo) {
-        if (StringUtil.isEmpty(exceptionInfo)) {
+        if (StringUtil.isEmpty(exceptionInfo) || !exceptionInfo.contains(EXCEPTION_SEPARATOR)) {
             return null;
         }
 

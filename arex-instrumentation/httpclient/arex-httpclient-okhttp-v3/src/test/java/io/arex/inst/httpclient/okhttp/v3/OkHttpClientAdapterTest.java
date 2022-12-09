@@ -1,6 +1,6 @@
 package io.arex.inst.httpclient.okhttp.v3;
 
-import io.arex.foundation.model.MockResult;
+import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.inst.httpclient.common.HttpResponseWrapper;
 import okhttp3.HttpUrl;
 import okhttp3.MediaType;
@@ -62,7 +62,7 @@ public class OkHttpClientAdapterTest {
     @Test
     public void wrapTest() {
         Response response = createResponse();
-        HttpResponseWrapper actResult = okHttpClientAdapter.wrap(MockResult.of(response));
+        HttpResponseWrapper actResult = okHttpClientAdapter.wrap(MockResult.success(response));
         Assertions.assertNotNull(actResult);
         Assertions.assertNotNull(actResult.getContent());
         Assertions.assertEquals(13, actResult.getContent().length);
@@ -72,7 +72,7 @@ public class OkHttpClientAdapterTest {
 
     private void unwrapTest(HttpResponseWrapper wrapper) {
         MockResult mockResult = okHttpClientAdapter.unwrap(wrapper);
-        Response actResult = (Response) mockResult.getMockResult();
+        Response actResult = (Response) mockResult.getResult();
         Assertions.assertNotNull(actResult);
         Assertions.assertEquals(200, actResult.code());
         Assertions.assertNotNull(actResult.body());

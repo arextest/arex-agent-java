@@ -1,25 +1,28 @@
 package io.arex.inst.httpclient.common;
 
-import io.arex.foundation.model.HttpClientMocker;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
+
+import io.arex.agent.bootstrap.model.ArexMocker;
+import io.arex.agent.bootstrap.model.Mocker.Target;
 import io.arex.foundation.serializer.SerializeUtils;
+import io.arex.foundation.services.IgnoreService;
+import io.arex.foundation.services.MockService;
+import java.io.IOException;
+import java.net.URI;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.MockedConstruction;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
-
-import java.io.IOException;
-import java.net.URI;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -27,12 +30,17 @@ public class HttpClientExtractorTest {
     static HttpClientAdapter<?, Object> adapter;
     @InjectMocks
     private HttpClientExtractor<?, Object> httpClientExtractor;
-    HttpClientMocker httpClientMocker;
 
     @BeforeAll
     public static void beforeClass() throws Exception {
         adapter = Mockito.mock(HttpClientAdapter.class);
+
         when(adapter.getUri()).thenReturn(new URI("http://localhost"));
+        when(adapter.getMethod()).thenReturn("POST");
+        when(adapter.getRequestBytes()).thenReturn("mock request".getBytes());
+        when(adapter.getRequestContentType()).thenReturn("application/json");
+        when(adapter.wrap(any())).thenReturn(new HttpResponseWrapper());
+
         Mockito.mockStatic(SerializeUtils.class);
     }
 
@@ -51,23 +59,12 @@ public class HttpClientExtractorTest {
 
     @Test
     public void recordResponseTest() {
-        try (MockedConstruction<HttpClientMocker> mocked = Mockito.mockConstruction(HttpClientMocker.class, (mock, context) -> {
-            httpClientMocker = mock;
-        })){
-            when(adapter.wrap(any())).thenReturn(new HttpResponseWrapper());
-            httpClientExtractor.record(new Object());
-            verify(httpClientMocker).record();
-        }
+        httpClientExtractor.record(new Object());
     }
 
     @Test
     void recordExceptionTest() {
-        try (MockedConstruction<HttpClientMocker> mocked = Mockito.mockConstruction(HttpClientMocker.class, (mock, context) -> {
-            httpClientMocker = mock;
-        })){
-            httpClientExtractor.record(new IOException("Connection timeout"));
-            verify(httpClientMocker).record();
-        }
+        httpClientExtractor.record(new IOException("Connection timeout"));
     }
 
     @Test
@@ -88,13 +85,21 @@ public class HttpClientExtractorTest {
 
     @Test
     void fetchMockResult() {
-        try (MockedConstruction<HttpClientMocker> mocked = Mockito.mockConstruction(HttpClientMocker.class, (mock, context) -> {
-            Mockito.when(mock.replay()).thenReturn(new HttpResponseWrapper());
-        })) {
-            when(adapter.getMethod()).thenReturn("POST");
-            when(adapter.getRequestBytes()).thenReturn("mock request".getBytes());
+        try (MockedStatic<MockService> mockService = mockStatic(MockService.class);
+            MockedStatic<IgnoreService> ignoreService = mockStatic(IgnoreService.class)) {
+            ignoreService.when(()-> IgnoreService.ignoreMockResult(any(), any())).thenReturn(true);
+
+            HttpResponseWrapper responseWrapper = new HttpResponseWrapper();
+            mockService.when(()->  MockService.replayBody(any())).thenReturn(responseWrapper);
+
+            ArexMocker mocker = new ArexMocker();
+            mocker.setTargetRequest(new Target());
+            mocker.setTargetResponse(new Target());
+            mockService.when(()-> MockService.createHttpClient(any())).thenReturn(mocker);
+
             HttpResponseWrapper wrapper = httpClientExtractor.fetchMockResult();
-            assertFalse(wrapper.isIgnoreMockResult());
+            assertEquals(responseWrapper, wrapper);;
+            assertTrue(wrapper.isIgnoreMockResult());
         }
     }
 }

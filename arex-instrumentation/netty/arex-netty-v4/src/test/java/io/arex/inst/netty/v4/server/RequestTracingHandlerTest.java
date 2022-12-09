@@ -1,9 +1,10 @@
 package io.arex.inst.netty.v4.server;
 
+import io.arex.agent.bootstrap.model.ArexMocker;
+import io.arex.agent.bootstrap.model.Mocker.Target;
 import io.arex.foundation.context.ContextManager;
 import io.arex.foundation.listener.CaseInitializer;
-import io.arex.foundation.model.Constants;
-import io.arex.foundation.model.ServiceEntranceMocker;
+import io.arex.agent.bootstrap.model.ArexConstants;
 import io.arex.foundation.services.IgnoreService;
 import io.arex.inst.netty.v4.common.NettyHelper;
 import io.netty.channel.Channel;
@@ -16,6 +17,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -23,7 +25,6 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
@@ -66,19 +67,19 @@ class RequestTracingHandlerTest {
 
     static Stream<Arguments> channelReadCase() {
         Runnable mocker1 = () -> {
-            Mockito.when(headers.get(eq(Constants.RECORD_ID))).thenReturn("mock");
+            Mockito.when(headers.get(ArgumentMatchers.eq(ArexConstants.RECORD_ID))).thenReturn("mock");
         };
         Runnable mocker2 = () -> {
-            Mockito.when(headers.get(eq(Constants.RECORD_ID))).thenReturn("");
-            Mockito.when(headers.get(eq(Constants.FORCE_RECORD))).thenReturn("true");
+            Mockito.when(headers.get(ArgumentMatchers.eq(ArexConstants.RECORD_ID))).thenReturn("");
+            Mockito.when(headers.get(ArgumentMatchers.eq(ArexConstants.FORCE_RECORD))).thenReturn("true");
             Mockito.when(request.method()).thenReturn(HttpMethod.POST);
         };
         Runnable mocker3 = () -> {
-            Mockito.when(headers.get(eq(Constants.FORCE_RECORD))).thenReturn("false");
-            Mockito.when(headers.get(eq(Constants.REPLAY_WARM_UP))).thenReturn("true");
+            Mockito.when(headers.get(ArgumentMatchers.eq(ArexConstants.FORCE_RECORD))).thenReturn("false");
+            Mockito.when(headers.get(ArgumentMatchers.eq(ArexConstants.REPLAY_WARM_UP))).thenReturn("true");
         };
         Runnable mocker4 = () -> {
-            Mockito.when(headers.get(eq(Constants.REPLAY_WARM_UP))).thenReturn("false");
+            Mockito.when(headers.get(ArgumentMatchers.eq(ArexConstants.REPLAY_WARM_UP))).thenReturn("false");
             Mockito.when(CaseInitializer.exceedRecordRate(any())).thenReturn(true);
         };
         Runnable mocker5 = () -> {
@@ -94,7 +95,10 @@ class RequestTracingHandlerTest {
             Mockito.when(channel.attr(any())).thenReturn(attribute);
         };
         Runnable mocker7 = () -> {
-            Mockito.when(attribute.get()).thenReturn(Mockito.mock(ServiceEntranceMocker.class));
+            ArexMocker mocker = new ArexMocker();
+            mocker.setTargetRequest(new Target());
+            mocker.setTargetResponse(new Target());
+            Mockito.when(attribute.get()).thenReturn(mocker);
             Mockito.when(NettyHelper.parseBody(any())).thenReturn("mock");
         };
 

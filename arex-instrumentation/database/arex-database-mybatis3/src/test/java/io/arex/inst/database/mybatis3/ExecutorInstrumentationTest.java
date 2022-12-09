@@ -2,7 +2,7 @@ package io.arex.inst.database.mybatis3;
 
 import io.arex.foundation.context.ContextManager;
 import io.arex.foundation.context.RepeatedCollectManager;
-import io.arex.foundation.model.MockResult;
+import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.inst.database.common.DatabaseExtractor;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -59,8 +59,8 @@ class ExecutorInstrumentationTest {
     @Test
     void onEnter() throws SQLException {
         Mockito.when(ContextManager.needReplay()).thenReturn(true);
-        assertFalse(ExecutorInstrumentation.QueryAdvice.onMethodEnter(null, null, null, MockResult.of("mock")));
-        assertFalse(ExecutorInstrumentation.Query1Advice.onMethodEnter(MockResult.of("mock"), null, null));
+        assertFalse(ExecutorInstrumentation.QueryAdvice.onMethodEnter(null, null, null, MockResult.success("mock")));
+        assertFalse(ExecutorInstrumentation.Query1Advice.onMethodEnter(MockResult.success("mock"), null, null));
         Mockito.when(ContextManager.needRecordOrReplay()).thenReturn(true);
         assertFalse(ExecutorInstrumentation.UpdateAdvice.onMethodEnter(null, null, null, null));
     }
@@ -86,7 +86,7 @@ class ExecutorInstrumentationTest {
         Predicate<MockResult> predicate1 = Objects::isNull;
         Predicate<MockResult> predicate2 = Objects::nonNull;
         return Stream.of(
-                arguments(emptyMocker, MockResult.of(Collections.singletonList("mock")), predicate2),
+                arguments(emptyMocker, MockResult.success(Collections.singletonList("mock")), predicate2),
                 arguments(exitAndValidate, null, predicate1),
                 arguments(needRecord, null, predicate1)
         );
@@ -115,7 +115,7 @@ class ExecutorInstrumentationTest {
         Predicate<MockResult> predicate2 = Objects::nonNull;
         return Stream.of(
                 arguments(needReplay, null, null, predicate1),
-                arguments(exitAndValidate, extractor, MockResult.of(1), predicate2),
+                arguments(exitAndValidate, extractor, MockResult.success(1), predicate2),
                 arguments(needRecord, extractor, null, predicate1)
         );
     }

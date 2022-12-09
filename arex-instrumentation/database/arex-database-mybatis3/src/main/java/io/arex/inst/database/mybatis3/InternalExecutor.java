@@ -1,6 +1,6 @@
 package io.arex.inst.database.mybatis3;
 
-import io.arex.foundation.model.MockResult;
+import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.foundation.serializer.SerializeUtils;
 import io.arex.foundation.util.LogUtil;
 import io.arex.inst.database.common.DatabaseExtractor;

@@ -1,8 +1,10 @@
 package io.arex.cli.storage;
 
+import io.arex.agent.bootstrap.model.ArexMocker;
+import io.arex.agent.bootstrap.model.Mocker;
 import com.google.auto.service.AutoService;
 import io.arex.foundation.config.ConfigManager;
-import io.arex.foundation.model.*;
+import io.arex.foundation.model.DiffMocker;
 import io.arex.foundation.serializer.SerializeUtils;
 import io.arex.foundation.services.StorageService;
 import io.arex.foundation.util.CollectionUtil;
@@ -14,7 +16,11 @@ import org.slf4j.LoggerFactory;
 
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -30,14 +36,14 @@ public class H2StorageService extends StorageService {
 
     private static Statement stmt = null;
 
-    public int save(AbstractMocker mocker, String postJson){
+    public int save(Mocker mocker, String postJson) {
         String tableName = "MOCKER_INFO";
         List<Object> mockers = new ArrayList<>();
         mockers.add(mocker);
         return batchSave(mockers, tableName, postJson);
     }
 
-    public int saveList(List<DiffMocker> mockers){
+    public int saveList(List<DiffMocker> mockers) {
         if (CollectionUtil.isEmpty(mockers)) {
             return 0;
         }
@@ -45,23 +51,23 @@ public class H2StorageService extends StorageService {
         return batchSave(new ArrayList<>(mockers), tableName, null);
     }
 
-    public int batchSave(List<Object> mockers, String tableName, String jsonData){
+    public int batchSave(List<Object> mockers, String tableName, String jsonData) {
         int count = 0;
         try {
             String sql = io.arex.cli.storage.H2SqlParser.generateInsertSql(mockers, tableName, jsonData);
             count = stmt.executeUpdate(sql);
         } catch (Throwable e) {
-            LOGGER.warn("h2database batch save error: {}",e.getMessage(), e);
+            LOGGER.warn("h2database batch save error: {}", e.getMessage(), e);
         }
         return count;
     }
 
-    public AbstractMocker query(AbstractMocker mocker){
-        List<AbstractMocker> result = queryList(mocker, 0);
+    public Mocker query(Mocker mocker) {
+        List<Mocker> result = queryList(mocker, 0);
         return CollectionUtil.isNotEmpty(result) ? result.get(0) : null;
     }
 
-    public List<Map<String, String>> query(String sql){
+    public List<Map<String, String>> query(String sql) {
         List<Map<String, String>> result = new ArrayList<>();
         try {
             ResultSet rs = stmt.executeQuery(sql);
@@ -81,15 +87,15 @@ public class H2StorageService extends StorageService {
         return result;
     }
 
-    public List<AbstractMocker> queryList(AbstractMocker mocker, int count){
-        List<AbstractMocker> result = new ArrayList<>();
+    public List<Mocker> queryList(Mocker mocker, int count) {
+        List<Mocker> result = new ArrayList<>();
         try {
             String sql = io.arex.cli.storage.H2SqlParser.generateSelectSql(mocker, count);
             ResultSet rs = stmt.executeQuery(sql);
             while (rs.next()) {
                 String jsonData = URLDecoder.decode(rs.getString("jsonData"), StandardCharsets.UTF_8.name());
-                AbstractMocker resultMocker = SerializeUtils.deserialize(jsonData, mocker.getClass());
-                if (resultMocker == null || !mocker.matchLocalStorage(resultMocker)) {
+                Mocker resultMocker = SerializeUtils.deserialize(jsonData, ArexMocker.class);
+                if (resultMocker == null) {
                     continue;
                 }
                 result.add(resultMocker);
@@ -108,8 +114,8 @@ public class H2StorageService extends StorageService {
             while (rs.next()) {
                 DiffMocker diffMocker = new DiffMocker();
                 diffMocker.setReplayId(rs.getString("replayId"));
-                diffMocker.setCaseId(rs.getString("caseId"));
-                diffMocker.setCategory(MockerCategory.valueOf(rs.getString("category")));
+                diffMocker.setRecordId(rs.getString("recordId"));
+                diffMocker.setCategoryType(mocker.getCategoryType());
                 diffMocker.setRecordDiff(rs.getString("recordDiff"));
                 diffMocker.setReplayDiff(rs.getString("replayDiff"));
                 result.add(diffMocker);

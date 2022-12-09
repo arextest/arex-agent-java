@@ -3,7 +3,7 @@ package io.arex.inst.httpservlet;
 import io.arex.agent.bootstrap.internal.Pair;
 import io.arex.foundation.context.ContextManager;
 import io.arex.foundation.listener.CaseInitializer;
-import io.arex.foundation.model.Constants;
+import io.arex.agent.bootstrap.model.ArexConstants;
 import io.arex.inst.httpservlet.adapter.ServletAdapter;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.AfterAll;
@@ -72,18 +72,18 @@ class ServletAdviceHelperTest {
         };
         Runnable mocker2 = () -> {
             Mockito.when(adapter.getAttribute(any(), any())).thenReturn("false");
-            Mockito.when(adapter.getRequestHeader(any(), eq(Constants.RECORD_ID))).thenReturn("mock");
+            Mockito.when(adapter.getRequestHeader(any(), eq(ArexConstants.RECORD_ID))).thenReturn("mock");
         };
         Runnable mocker3 = () -> {
-            Mockito.when(adapter.getRequestHeader(any(), eq(Constants.RECORD_ID))).thenReturn("");
-            Mockito.when(adapter.getRequestHeader(any(), eq(Constants.FORCE_RECORD))).thenReturn("true");
+            Mockito.when(adapter.getRequestHeader(any(), eq(ArexConstants.RECORD_ID))).thenReturn("");
+            Mockito.when(adapter.getRequestHeader(any(), eq(ArexConstants.FORCE_RECORD))).thenReturn("true");
         };
         Runnable mocker4 = () -> {
-            Mockito.when(adapter.getRequestHeader(any(), eq(Constants.FORCE_RECORD))).thenReturn("false");
-            Mockito.when(adapter.getRequestHeader(any(), eq(Constants.REPLAY_WARM_UP))).thenReturn("true");
+            Mockito.when(adapter.getRequestHeader(any(), eq(ArexConstants.FORCE_RECORD))).thenReturn("false");
+            Mockito.when(adapter.getRequestHeader(any(), eq(ArexConstants.REPLAY_WARM_UP))).thenReturn("true");
         };
         Runnable mocker5 = () -> {
-            Mockito.when(adapter.getRequestHeader(any(), eq(Constants.REPLAY_WARM_UP))).thenReturn("false");
+            Mockito.when(adapter.getRequestHeader(any(), eq(ArexConstants.REPLAY_WARM_UP))).thenReturn("false");
             Mockito.when(adapter.getMethod(any())).thenReturn("GET");
             Mockito.when(adapter.getServletPath(any())).thenReturn("mock");
         };
@@ -135,10 +135,10 @@ class ServletAdviceHelperTest {
         };
         Runnable mocker4 = () -> {
             Mockito.when(adapter.getStatus(any())).thenReturn(HttpStatus.SC_OK);
-            Mockito.when(adapter.getAttribute(any(), eq(ServletConstants.SERVLET_ASYNC_FLAG))).thenReturn("true");
+            Mockito.when(adapter.getAttribute(any(), eq(ServletAdviceHelper.SERVLET_ASYNC_FLAG))).thenReturn("true");
         };
         Runnable mocker5 = () -> {
-            Mockito.when(adapter.getAttribute(any(), eq(ServletConstants.SERVLET_ASYNC_FLAG))).thenReturn("false");
+            Mockito.when(adapter.getAttribute(any(), eq(ServletAdviceHelper.SERVLET_ASYNC_FLAG))).thenReturn("false");
             Mockito.when(adapter.isAsyncStarted(any())).thenReturn(true);
         };
         Runnable mocker6 = () -> {

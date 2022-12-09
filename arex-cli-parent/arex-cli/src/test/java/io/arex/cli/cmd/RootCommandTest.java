@@ -1,7 +1,7 @@
 package io.arex.cli.cmd;
 
+import io.arex.agent.bootstrap.model.ArexConstants;
 import io.arex.cli.util.SystemUtils;
-import io.arex.foundation.model.*;
 import io.arex.foundation.util.NetUtils;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
@@ -45,7 +45,7 @@ class RootCommandTest {
         rootCommand.ip = "127.0.0.1";
         rootCommand.port = NetUtils.checkTcpPortAvailable(4000);
         rootCommand.pStream = System.out;
-        rootCommand.inputStream = new ByteArrayInputStream(Constants.CLI_PROMPT.getBytes());
+        rootCommand.inputStream = new ByteArrayInputStream(ArexConstants.CLI_PROMPT.getBytes());
         rootCommand.out = new PrintWriter(System.out);
         rootCommand.err = new PrintWriter(System.err);
         parentCmd = new CommandLine(rootCommand);
@@ -56,7 +56,7 @@ class RootCommandTest {
     }
 
     static void setInputStream(String inputStr) {
-        rootCommand.inputStream = new ByteArrayInputStream((inputStr + Constants.CLI_PROMPT).getBytes());
+        rootCommand.inputStream = new ByteArrayInputStream((inputStr + ArexConstants.CLI_PROMPT).getBytes());
     }
 
     static void setTerminal(Size size, String inputStr) {
@@ -152,7 +152,7 @@ class RootCommandTest {
                 server = new ServerSocket(port);
                 Socket socket = server.accept();
                 PrintStream printStream = new PrintStream(socket.getOutputStream());
-                printStream.println(Constants.CLI_PROMPT);
+                printStream.println(ArexConstants.CLI_PROMPT);
                 printStream.close();
                 socket.close();
             } catch (IOException ignored) {

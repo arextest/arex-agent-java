@@ -1,7 +1,7 @@
 package io.arex.inst.httpclient.okhttp.v3;
 
 import io.arex.foundation.context.ContextManager;
-import io.arex.foundation.model.MockResult;
+import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.inst.httpclient.common.HttpClientExtractor;
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -43,7 +43,7 @@ public class OkHttpCallInstrumentationTest {
         Call call = mock(Call.class);
         when(call.request()).thenReturn(OkHttpCallbackWrapperTest.createRequest());
         Mockito.mockConstruction(HttpClientExtractor.class, (mock, context) -> {
-            Mockito.when(mock.replay()).thenReturn(MockResult.of("mock"));
+            Mockito.when(mock.replay()).thenReturn(MockResult.success("mock"));
         });
         try (MockedStatic<ContextManager> contextManager = mockStatic(ContextManager.class)) {
             contextManager.when(ContextManager::needRecordOrReplay).thenReturn(true);
@@ -61,7 +61,7 @@ public class OkHttpCallInstrumentationTest {
         Response response = OkHttpCallbackWrapperTest.createResponse();
         OkHttpCallInstrumentation.ExecuteAdvice.onExit(null, null, null, null);
         verify(extractor, never()).replay();
-        MockResult mockResult = MockResult.of(response);
+        MockResult mockResult = MockResult.success(response);
         try (MockedStatic<ContextManager> contextManager = mockStatic(ContextManager.class)) {
             contextManager.when(ContextManager::needReplay).thenReturn(true);
             OkHttpCallInstrumentation.ExecuteAdvice.onExit(extractor, null, null, mockResult);

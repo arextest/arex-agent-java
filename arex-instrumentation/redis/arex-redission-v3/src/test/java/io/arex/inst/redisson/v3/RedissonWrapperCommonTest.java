@@ -1,7 +1,7 @@
 package io.arex.inst.redisson.v3;
 
 import io.arex.foundation.context.ContextManager;
-import io.arex.foundation.model.MockResult;
+import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.inst.redis.common.RedisExtractor;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -28,7 +28,7 @@ class RedissonWrapperCommonTest {
     @BeforeAll
     static void setUp() {
         Mockito.mockConstruction(RedisExtractor.class, (mock, context) -> {
-            Mockito.when(mock.replay()).thenReturn(MockResult.of("mock"));
+            Mockito.when(mock.replay()).thenReturn(MockResult.success("mock"));
         });
         Mockito.mockStatic(ContextManager.class);
     }

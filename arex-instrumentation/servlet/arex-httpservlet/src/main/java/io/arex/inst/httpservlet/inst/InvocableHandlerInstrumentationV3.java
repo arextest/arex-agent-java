@@ -3,7 +3,7 @@ package io.arex.inst.httpservlet.inst;
 import io.arex.foundation.api.MethodInstrumentation;
 import io.arex.foundation.api.TypeInstrumentation;
 import io.arex.foundation.context.ContextManager;
-import io.arex.inst.httpservlet.ServletConstants;
+import io.arex.inst.httpservlet.ServletAdviceHelper;
 import io.arex.inst.httpservlet.adapter.ServletAdapter;
 import io.arex.inst.httpservlet.adapter.impl.ServletAdapterImplV3;
 import java.util.concurrent.Callable;
@@ -86,7 +86,7 @@ public class InvocableHandlerInstrumentationV3 extends TypeInstrumentation {
                 return;
             }
 
-            ADAPTER.setAttribute(httpServletRequest, ServletConstants.SERVLET_RESPONSE, response);
+            ADAPTER.setAttribute(httpServletRequest, ServletAdviceHelper.SERVLET_RESPONSE, response);
         }
     }
 }

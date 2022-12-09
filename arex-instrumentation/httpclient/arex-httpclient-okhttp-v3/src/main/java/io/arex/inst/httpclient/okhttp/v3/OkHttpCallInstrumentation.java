@@ -4,7 +4,7 @@ import io.arex.foundation.api.MethodInstrumentation;
 import io.arex.foundation.api.TypeInstrumentation;
 import io.arex.foundation.context.ContextManager;
 import io.arex.foundation.context.RepeatedCollectManager;
-import io.arex.foundation.model.MockResult;
+import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.inst.httpclient.common.HttpClientExtractor;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
@@ -85,14 +85,14 @@ public class OkHttpCallInstrumentation extends TypeInstrumentation {
 
             if (mockResult != null && mockResult.notIgnoreMockResult() && response == null) {
                 // noinspection resource
-                response = (Response) mockResult.getMockResult();
+                response = (Response) mockResult.getResult();
                 return;
             }
             if (ContextManager.needRecord()) {
                 if (throwable != null) {
                     extractor.record(throwable);
                 } else {
-                    extractor.record(MockResult.of(response));
+                    extractor.record(MockResult.success(response));
                 }
             }
         }

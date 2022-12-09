@@ -1,8 +1,8 @@
 package io.arex.inst.lettuce.v6;
 
 import io.arex.agent.bootstrap.ctx.TraceTransmitter;
+import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.foundation.context.ContextManager;
-import io.arex.foundation.model.MockResult;
 import io.arex.inst.redis.common.RedisExtractor;
 import io.arex.inst.redis.common.RedisKeyUtil;
 import io.lettuce.core.GetExArgs;
@@ -589,7 +589,7 @@ public class RedisAsyncCommandsImplWrapper<K, V> extends RedisAsyncCommandsImpl<
             RedisExtractor extractor = new RedisExtractor(this.redisUri, cmd.getType().name(), key, field);
             MockResult mockResult = extractor.replay();
             if (mockResult.notIgnoreMockResult()) {
-                asyncCommand.complete((T) mockResult.getMockResult());
+                asyncCommand.complete((T) mockResult.getResult());
                 return asyncCommand;
             }
         }

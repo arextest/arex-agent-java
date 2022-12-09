@@ -1,10 +1,10 @@
 package io.arex.inst.database.hibernate;
 
+import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.foundation.api.MethodInstrumentation;
 import io.arex.foundation.api.TypeInstrumentation;
 import io.arex.foundation.context.ContextManager;
 import io.arex.foundation.context.RepeatedCollectManager;
-import io.arex.foundation.model.MockResult;
 import io.arex.foundation.util.LogUtil;
 import io.arex.inst.database.common.DatabaseExtractor;
 import net.bytebuddy.asm.Advice;
@@ -78,8 +78,6 @@ public class AbstractEntityPersisterInstrumentation extends TypeInstrumentation 
                 if (ContextManager.needReplay()) {
                     try {
                         mockResult = extractor.replay();
-                    } catch (SQLException sex) {
-                        replayException = new HibernateException(sex.getMessage());
                     } catch (Exception ex) {
                         LogUtil.warn("execute replay failed.", ex);
                     }
@@ -104,7 +102,7 @@ public class AbstractEntityPersisterInstrumentation extends TypeInstrumentation 
                     if (replayException != null) {
                         exception = replayException;
                     } else if (mockResult != null && mockResult.notIgnoreMockResult() && serializable == null) {
-                        serializable = (Serializable) mockResult.getMockResult();
+                        serializable = (Serializable) mockResult.getResult();
                     }
                     return;
                 }

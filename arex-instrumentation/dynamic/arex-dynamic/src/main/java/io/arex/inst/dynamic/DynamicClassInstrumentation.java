@@ -5,7 +5,7 @@ import io.arex.foundation.api.MethodInstrumentation;
 import io.arex.foundation.api.TypeInstrumentation;
 import io.arex.foundation.context.ContextManager;
 import io.arex.foundation.model.DynamicClassEntity;
-import io.arex.foundation.model.MockResult;
+import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.foundation.util.CollectionUtil;
 import io.arex.foundation.util.StringUtil;
 import java.lang.reflect.Method;
@@ -128,7 +128,7 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
 
             DynamicClassExtractor extractor;
             if (mockResult != null && mockResult.notIgnoreMockResult()) {
-                result = mockResult.getMockResult();
+                result = mockResult.getResult();
                 return;
             }
 

@@ -29,7 +29,7 @@ public class ResourceManager {
         }
 
         String name = loader.getClass().getName();
-        if (name.equals("sun.reflect.DelegatingClassLoader") || name.startsWith(BYTEBUDDY_PREFIX)) {
+        if (name.startsWith("sun.reflect.DelegatingClassLoader") || name.startsWith(BYTEBUDDY_PREFIX)) {
             cache.add(loader);
             return false;
         }

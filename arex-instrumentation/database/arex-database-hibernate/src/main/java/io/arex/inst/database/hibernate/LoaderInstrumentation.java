@@ -4,7 +4,7 @@ import io.arex.foundation.context.RepeatedCollectManager;
 import io.arex.foundation.api.MethodInstrumentation;
 import io.arex.foundation.api.TypeInstrumentation;
 import io.arex.foundation.context.ContextManager;
-import io.arex.foundation.model.MockResult;
+import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.inst.database.common.DatabaseExtractor;
 import io.arex.inst.database.common.DatabaseHelper;
 import net.bytebuddy.asm.Advice;
@@ -79,7 +79,7 @@ public class LoaderInstrumentation extends TypeInstrumentation {
 
             if (extractor != null) {
                 if (mockResult != null && mockResult.notIgnoreMockResult() && list == null) {
-                    list = (List<?>) mockResult.getMockResult();
+                    list = (List<?>) mockResult.getResult();
                     return;
                 }
                 if (ContextManager.needRecord()) {

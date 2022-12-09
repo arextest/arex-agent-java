@@ -9,7 +9,7 @@ import io.arex.foundation.api.MethodInstrumentation;
 import io.arex.foundation.context.ArexContext;
 import io.arex.foundation.context.ContextManager;
 import io.arex.foundation.model.DynamicClassEntity;
-import io.arex.foundation.model.MockResult;
+import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.foundation.util.StringUtil;
 import java.lang.reflect.Method;
 import java.util.*;
@@ -50,6 +50,7 @@ class DynamicClassInstrumentationTest {
     @AfterAll
     static void tearDown() {
         target = null;
+        Mockito.clearAllCaches();
     }
 
     @Test
@@ -136,7 +137,7 @@ class DynamicClassInstrumentationTest {
         Predicate<MockResult> predicate2 = Objects::nonNull;
         return Stream.of(
                 arguments(mockerNeedReplay, null, predicate1),
-                arguments(mockerNeedRecord, MockResult.of("mock"), predicate2),
+                arguments(mockerNeedRecord, MockResult.success("mock"), predicate2),
                 arguments(mockerNeedRecord, null, predicate1)
         );
     }

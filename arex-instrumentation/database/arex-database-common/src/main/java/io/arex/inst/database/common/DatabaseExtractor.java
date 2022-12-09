@@ -1,11 +1,12 @@
 package io.arex.inst.database.common;
 
-import io.arex.foundation.model.DatabaseMocker;
-import io.arex.foundation.model.MockResult;
+import io.arex.agent.bootstrap.model.MockResult;
+import io.arex.agent.bootstrap.model.Mocker;
+import io.arex.foundation.services.MockService;
 import io.arex.foundation.serializer.SerializeUtils;
 import io.arex.foundation.services.IgnoreService;
-import io.arex.foundation.util.StringUtil;
-
+import io.arex.foundation.util.ResponseExceptionMockUtil;
+import io.arex.foundation.util.TypeUtil;
 import org.apache.commons.lang3.StringUtils;
 
 import java.sql.SQLException;
@@ -20,8 +21,9 @@ public class DatabaseExtractor {
     private final String sql;
     private final String parameters;
     private final String dbName;
-    private String keyHolder;
     private String methodName;
+    private String keyHolder;
+
     public String getKeyHolder() {
         return keyHolder;
     }
@@ -46,31 +48,41 @@ public class DatabaseExtractor {
         this.methodName = methodName;
     }
 
-    public boolean isMockEnabled() {
-        // todo
-        return IgnoreService.isServiceEnabled(this.dbName);
-    }
-
     public void record(Object response) {
-        DatabaseMocker mocker = new DatabaseMocker(this.dbName, methodName, sql, parameters, response);
-        mocker.setKeyHolder(keyHolder);
-        mocker.record();
+        MockService.recordMocker(makeMocker(response));
     }
 
     public void record(SQLException ex) {
-        DatabaseMocker mocker = new DatabaseMocker(this.dbName, methodName, sql, parameters);
-        mocker.setExceptionMessage(ex.getMessage());
-        mocker.record();
+        String response = ResponseExceptionMockUtil.formatResponseException(ex);
+        record(response);
     }
 
-    public MockResult replay() throws SQLException {
-        DatabaseMocker mocker = new DatabaseMocker(this.dbName, methodName, sql, parameters);
-        MockResult value = MockResult.of(mocker.ignoreMockResult(), mocker.replay());
-        if (StringUtil.isNotEmpty(mocker.getExceptionMessage())) {
-            throw new SQLException(mocker.getExceptionMessage());
+    public MockResult replay() {
+        // TODO: Temporarily use DataBase
+        boolean ignoreMockResult = IgnoreService.ignoreMockResult(this.dbName, methodName);
+        Mocker replayMocker = MockService.replayMocker(makeMocker(null));
+        Object replayResult = null;
+        if (MockService.checkResponseMocker(replayMocker)) {
+            replayResult = SerializeUtils.deserialize(replayMocker.getTargetResponse().getBody(),
+                replayMocker.getTargetResponse().getType());
+
+            if (replayResult != null) {
+                // restore keyHolder
+                setKeyHolder(replayMocker.getTargetResponse().attributeAsString("keyHolder"));
+            }
         }
-        this.setKeyHolder(mocker.getKeyHolder());
-        return value;
+
+        return MockResult.success(ignoreMockResult, replayResult);
+    }
+
+    private Mocker makeMocker(Object response) {
+        Mocker mocker = MockService.createDatabase(this.methodName);
+        mocker.getTargetRequest().setBody(this.sql);
+        mocker.getTargetRequest().setAttribute("dbName", this.dbName);
+        mocker.getTargetRequest().setAttribute("parameters", this.parameters);
+        mocker.getTargetRequest().setAttribute("keyHolder", this.keyHolder);
+        mocker.getTargetResponse().setBody(SerializeUtils.serialize(response));
+        mocker.getTargetResponse().setType(TypeUtil.getName(response));
+        return mocker;
     }
 }
-

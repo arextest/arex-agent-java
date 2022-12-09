@@ -1,8 +1,8 @@
 package io.arex.inst.redisson.v3;
 
 import io.arex.agent.bootstrap.ctx.TraceTransmitter;
+import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.foundation.context.ContextManager;
-import io.arex.foundation.model.MockResult;
 import io.arex.inst.redis.common.RedisExtractor;
 import org.redisson.api.RFuture;
 import org.redisson.misc.CompletableFutureWrapper;
@@ -24,7 +24,7 @@ public class RedissonWrapperCommon {
             RedisExtractor extractor = new RedisExtractor(redisUri, cmd, key, field);
             MockResult mockResult = extractor.replay();
             if (mockResult.notIgnoreMockResult()) {
-                return new CompletableFutureWrapper<R>((R) mockResult.getMockResult());
+                return new CompletableFutureWrapper<R>((R) mockResult.getResult());
             }
         }
 

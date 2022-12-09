@@ -1,7 +1,7 @@
 package io.arex.inst.lettuce.v6;
 
 import io.arex.foundation.context.ContextManager;
-import io.arex.foundation.model.MockResult;
+import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.inst.redis.common.RedisExtractor;
 import io.lettuce.core.ClientOptions;
 import io.lettuce.core.api.StatefulRedisConnection;
@@ -37,7 +37,7 @@ class RedisReactiveCommandsImplWrapperTest {
             Mockito.when(mock.hget(any(), any())).thenReturn(cmd);
         })) {}
         try (MockedConstruction<RedisExtractor> mocked = Mockito.mockConstruction(RedisExtractor.class, (mock, context) -> {
-            Mockito.when(mock.replay()).thenReturn(MockResult.of("mock"));
+            Mockito.when(mock.replay()).thenReturn(MockResult.success("mock"));
         })) {}
         Mockito.mockStatic(ContextManager.class);
         Mockito.mockStatic(LettuceHelper.class);

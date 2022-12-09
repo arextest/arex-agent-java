@@ -4,7 +4,7 @@ import io.arex.foundation.api.MethodInstrumentation;
 import io.arex.foundation.api.TypeInstrumentation;
 import io.arex.foundation.context.ContextManager;
 import io.arex.foundation.context.RepeatedCollectManager;
-import io.arex.foundation.model.MockResult;
+import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.inst.httpclient.apache.common.ApacheHttpClientAdapter;
 import io.arex.inst.httpclient.common.HttpClientAdapter;
 import io.arex.inst.httpclient.common.HttpClientExtractor;
@@ -75,14 +75,14 @@ public class InternalHttpClientInstrumentation extends TypeInstrumentation {
             }
 
             if (mockResult != null && mockResult.notIgnoreMockResult() && response == null) {
-                response = (CloseableHttpResponse) mockResult.getMockResult();
+                response = (CloseableHttpResponse) mockResult.getResult();
                 return;
             }
             if (ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate()) {
                 if (throwable != null) {
                     extractor.record(throwable);
                 } else {
-                    extractor.record(MockResult.of(response));
+                    extractor.record(MockResult.success(response));
                 }
             }
         }

@@ -1,9 +1,9 @@
 package io.arex.cli.cmd;
 
+import io.arex.agent.bootstrap.model.MockCategoryType;
 import io.arex.cli.util.LogUtil;
-import io.arex.foundation.model.Constants;
+import io.arex.agent.bootstrap.model.ArexConstants;
 import io.arex.foundation.model.DiffMocker;
-import io.arex.foundation.model.MockerCategory;
 import io.arex.foundation.serializer.SerializeUtils;
 import io.arex.foundation.util.CollectionUtil;
 import io.arex.foundation.util.StringUtil;
@@ -144,16 +144,16 @@ public class WatchCommand implements Runnable {
         if (StringUtil.isEmpty(response) || !response.contains("{")) {
             return;
         }
-        List<DiffMocker> diffList = SerializeUtils.deserialize(response, TypeUtil.forName(Constants.TYPE_LIST_DIFFMOCKER));
+        List<DiffMocker> diffList = SerializeUtils.deserialize(response, TypeUtil.forName(ArexConstants.TYPE_LIST_DIFFMOCKER));
         if (CollectionUtil.isEmpty(diffList)) {
             return;
         }
         for (DiffMocker diffMocker : diffList) {
-            drawTable(diffMocker.getRecordDiff(), diffMocker.getReplayDiff(), diffMocker.getCategory());
+            drawTable(diffMocker.getRecordDiff(), diffMocker.getReplayDiff(), diffMocker.getCategoryType());
         }
     }
 
-    private void drawTable(String diff1, String diff2, MockerCategory category) {
+    private void drawTable(String diff1, String diff2, MockCategoryType category) {
         String[] diffArray1 = diff1.split("\n");
         String[] diffArray2 = diff2.split("\n");
 
@@ -184,7 +184,7 @@ public class WatchCommand implements Runnable {
         if (diffNum > 0) {
             color = "@|bold,red ";
         }
-        parent.println(category.name() +": "+ CommandLine.Help.Ansi.AUTO.string(
+        parent.println(category.getName() +": "+ CommandLine.Help.Ansi.AUTO.string(
                 color + diffNum + "|@") + " differences");
         parent.println(textTable.toString());
         parent.println("");

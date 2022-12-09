@@ -1,7 +1,7 @@
 package io.arex.inst.httpclient.okhttp.v3;
 
 
-import io.arex.foundation.model.MockResult;
+import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.foundation.util.StringUtil;
 import io.arex.inst.httpclient.common.HttpClientAdapter;
 import io.arex.inst.httpclient.common.HttpResponseWrapper;
@@ -62,7 +62,7 @@ public class OkHttpClientAdapter implements HttpClientAdapter<Request, MockResul
 
     @Override
     public HttpResponseWrapper wrap(MockResult mockResult) {
-        Response response = (Response) mockResult.getMockResult();
+        Response response = (Response) mockResult.getResult();
         HttpResponseWrapper wrapper = new HttpResponseWrapper();
         StatusLine statusLine = new StatusLine(response.protocol(), response.code(), response.message());
         wrapper.setStatusLine(statusLine.toString());
@@ -120,7 +120,7 @@ public class OkHttpClientAdapter implements HttpClientAdapter<Request, MockResul
         } catch (IOException e) {
             LOGGER.warn("decode response StatusLine error:{}", e.getMessage(), e);
         }
-        return MockResult.of(wrapped.isIgnoreMockResult(), responseBuilder.build());
+        return MockResult.success(wrapped.isIgnoreMockResult(), responseBuilder.build());
     }
 
     @Override
