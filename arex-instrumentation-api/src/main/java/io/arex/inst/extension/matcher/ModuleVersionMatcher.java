@@ -30,7 +30,6 @@ public class ModuleVersionMatcher extends ElementMatcher.Junction.AbstractBase<C
     }
 
     private boolean versionMatches(ClassLoader loader) {
-        System.out.println("[AREX]2 Module Version matches:" + description.getModuleName() + ", Loader:" + loader);
         ResourceManager.registerResources(loader);
         Pair<Integer, Integer> version = LoadedModuleCache.get(description.getModuleName());
         if (version == null) {
