@@ -4,11 +4,17 @@ import io.arex.inst.extension.MethodInstrumentation;
 import io.arex.inst.extension.TypeInstrumentation;
 import io.arex.inst.httpservlet.ServletAdviceHelper;
 import io.arex.inst.httpservlet.adapter.impl.ServletAdapterImplV3;
+import io.arex.inst.runtime.context.ContextManager;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
+import javax.servlet.http.HttpServletRequest;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.context.request.NativeWebRequest;
+import org.springframework.web.context.request.async.DeferredResult;
 import org.springframework.web.method.support.InvocableHandlerMethod;
 
 import java.util.List;
@@ -71,7 +77,7 @@ public class InvocableHandlerInstrumentationV3 extends TypeInstrumentation {
                 return;
             }
 
-            ADAPTER.setAttribute(httpServletRequest, ServletAdviceHelper.SERVLET_RESPONSE, response);
+            ServletAdapterImplV3.getInstance().setAttribute(httpServletRequest, ServletAdviceHelper.SERVLET_RESPONSE, response);
         }
     }
 }

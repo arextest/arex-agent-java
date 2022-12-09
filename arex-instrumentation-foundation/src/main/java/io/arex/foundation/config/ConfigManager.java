@@ -4,7 +4,7 @@ import com.google.common.annotations.VisibleForTesting;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.foundation.services.ConfigService;
 import io.arex.foundation.services.TimerService;
-import io.arex.foundation.util.CollectionUtil;
+import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.foundation.util.PropertyUtil;
 import io.arex.inst.runtime.config.ConfigBuilder;
 import io.arex.inst.runtime.config.ConfigListener;
@@ -25,7 +25,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
-import static io.arex.foundation.internal.Constants.*;
+import static io.arex.foundation.config.ConfigConstants.*;
 
 // todo: use file
 public class ConfigManager {

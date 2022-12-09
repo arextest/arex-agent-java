@@ -1,15 +1,14 @@
 package io.arex.inst.netty.v4.server;
 
+import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.listener.CaseEvent;
 import io.arex.inst.runtime.listener.CaseEventDispatcher;
-import io.arex.inst.runtime.model.AbstractMocker;
-import io.arex.inst.runtime.model.Constants;
-import io.arex.inst.runtime.model.ServiceEntranceMocker;
-import io.arex.inst.runtime.serializer.Serializer;
+import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.netty.v4.common.AttributeKey;
 import io.arex.inst.netty.v4.common.NettyHelper;
+import io.arex.inst.runtime.util.MockUtils;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpResponse;
@@ -82,11 +81,11 @@ public class ResponseTracingHandler extends ChannelOutboundHandlerAdapter {
         }
         mocker.getTargetResponse().setBody(content);
         if (ContextManager.needReplay()) {
-           MockService.replayBody(mocker);
+           MockUtils.replayBody(mocker);
         } else if (ContextManager.needRecord()) {
-            MockService.recordMocker(mocker);
+            MockUtils.recordMocker(mocker);
         }
 
-        CaseEventDispatcher.onEvent(new CaseEvent(this, CaseEvent.Action.DESTROY));
+        CaseEventDispatcher.onEvent(CaseEvent.ofEnterEvent());
     }
 }

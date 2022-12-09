@@ -1,4 +1,4 @@
-package io.arex.foundation.util;
+package io.arex.agent.bootstrap.util;
 
 import java.util.Collection;
 

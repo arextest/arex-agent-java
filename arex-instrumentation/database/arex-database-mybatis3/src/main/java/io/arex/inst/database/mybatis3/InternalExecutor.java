@@ -39,8 +39,8 @@ public class InternalExecutor {
             saveKeyHolder(ms, extractor, o);
         }
 
-        if (throwable != null && throwable instanceof SQLException) {
-            extractor.record((SQLException) throwable);
+        if (throwable instanceof SQLException) {
+            extractor.record(throwable);
         } else {
             extractor.record(result);
         }
@@ -52,8 +52,8 @@ public class InternalExecutor {
             saveKeyHolder(ms, extractor, o);
         }
 
-        if (throwable != null && throwable instanceof SQLException) {
-            extractor.record((SQLException) throwable);
+        if (throwable instanceof SQLException) {
+            extractor.record(throwable);
         } else {
             extractor.record(result);
         }
@@ -78,9 +78,7 @@ public class InternalExecutor {
                 Object keyHolderValue = Serializer.deserialize(valueType[0], valueType[1]);
                 reflector.getSetInvoker(keyProperties[i]).invoke(o, new Object[]{keyHolderValue});
             }
-        } catch (Exception ex) {
-
-        }
+        } catch (Exception ignored) {}
     }
 
     private static void saveKeyHolder(MappedStatement ms, DatabaseExtractor executor, Object o) {
@@ -93,8 +91,7 @@ public class InternalExecutor {
                     continue;
                 }
                 builder.append(keyHolderValue).append(KEYHOLDER_TYPE_SEPARATOR).append(keyHolderValue.getClass().getName()).append(KEYHOLDER_SEPARATOR);
-            } catch (Exception ex) {
-                continue;
+            } catch (Exception ignored) {
             }
         }
         executor.setKeyHolder(builder.toString());

@@ -2,11 +2,11 @@ package io.arex.inst.netty.v4.server;
 
 import io.arex.agent.bootstrap.model.ArexMocker;
 import io.arex.agent.bootstrap.model.Mocker.Target;
-import io.arex.foundation.context.ContextManager;
-import io.arex.foundation.listener.CaseInitializer;
-import io.arex.agent.bootstrap.model.ArexConstants;
-import io.arex.foundation.services.IgnoreService;
+import io.arex.inst.runtime.context.ContextManager;
+import io.arex.inst.runtime.context.RecordLimiter;
+import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.netty.v4.common.NettyHelper;
+import io.arex.inst.runtime.util.IgnoreUtils;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.*;
@@ -17,7 +17,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -42,10 +41,10 @@ class RequestTracingHandlerTest {
         request = Mockito.mock(HttpRequest.class);
         headers = Mockito.mock(HttpHeaders.class);
         Mockito.when(request.headers()).thenReturn(headers);
-        Mockito.mockStatic(CaseInitializer.class);
         Mockito.mockStatic(ContextManager.class);
-        Mockito.mockStatic(IgnoreService.class);
+        Mockito.mockStatic(IgnoreUtils.class);
         Mockito.mockStatic(NettyHelper.class);
+        Mockito.mockStatic(RecordLimiter.class);
     }
 
     @AfterAll
@@ -67,29 +66,29 @@ class RequestTracingHandlerTest {
 
     static Stream<Arguments> channelReadCase() {
         Runnable mocker1 = () -> {
-            Mockito.when(headers.get(ArgumentMatchers.eq(ArexConstants.RECORD_ID))).thenReturn("mock");
+            Mockito.when(headers.get(ArexConstants.RECORD_ID)).thenReturn("mock");
         };
         Runnable mocker2 = () -> {
-            Mockito.when(headers.get(ArgumentMatchers.eq(ArexConstants.RECORD_ID))).thenReturn("");
-            Mockito.when(headers.get(ArgumentMatchers.eq(ArexConstants.FORCE_RECORD))).thenReturn("true");
+            Mockito.when(headers.get(ArexConstants.RECORD_ID)).thenReturn("");
+            Mockito.when(headers.get(ArexConstants.FORCE_RECORD)).thenReturn("true");
             Mockito.when(request.method()).thenReturn(HttpMethod.POST);
         };
         Runnable mocker3 = () -> {
-            Mockito.when(headers.get(ArgumentMatchers.eq(ArexConstants.FORCE_RECORD))).thenReturn("false");
-            Mockito.when(headers.get(ArgumentMatchers.eq(ArexConstants.REPLAY_WARM_UP))).thenReturn("true");
+            Mockito.when(headers.get(ArexConstants.FORCE_RECORD)).thenReturn("false");
+            Mockito.when(headers.get(ArexConstants.REPLAY_WARM_UP)).thenReturn("true");
         };
         Runnable mocker4 = () -> {
-            Mockito.when(headers.get(ArgumentMatchers.eq(ArexConstants.REPLAY_WARM_UP))).thenReturn("false");
-            Mockito.when(CaseInitializer.exceedRecordRate(any())).thenReturn(true);
+            Mockito.when(headers.get(ArexConstants.REPLAY_WARM_UP)).thenReturn("false");
+            Mockito.when(RecordLimiter.acquire(any())).thenReturn(true);
         };
         Runnable mocker5 = () -> {
-            Mockito.when(CaseInitializer.exceedRecordRate(any())).thenReturn(false);
-            Mockito.when(IgnoreService.isServiceEnabled(any())).thenReturn(true);
+            Mockito.when(RecordLimiter.acquire(any())).thenReturn(false);
+            Mockito.when(IgnoreUtils.isServiceEnabled(any())).thenReturn(true);
         };
         Channel channel = Mockito.mock(Channel.class);
         Attribute attribute = Mockito.mock(Attribute.class);
         Runnable mocker6 = () -> {
-            Mockito.when(IgnoreService.isServiceEnabled(any())).thenReturn(false);
+            Mockito.when(IgnoreUtils.isServiceEnabled(any())).thenReturn(false);
             Mockito.when(ContextManager.needRecordOrReplay()).thenReturn(true);
             Mockito.when(ctx.channel()).thenReturn(channel);
             Mockito.when(channel.attr(any())).thenReturn(attribute);

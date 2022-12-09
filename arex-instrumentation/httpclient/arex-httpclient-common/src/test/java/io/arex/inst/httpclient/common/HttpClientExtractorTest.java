@@ -1,6 +1,5 @@
 package io.arex.inst.httpclient.common;
 
-import io.arex.inst.runtime.serializer.Serializer;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -10,9 +9,9 @@ import static org.mockito.Mockito.when;
 
 import io.arex.agent.bootstrap.model.ArexMocker;
 import io.arex.agent.bootstrap.model.Mocker.Target;
-import io.arex.foundation.serializer.SerializeUtils;
-import io.arex.foundation.services.IgnoreService;
-import io.arex.foundation.services.MockService;
+import io.arex.inst.runtime.serializer.Serializer;
+import io.arex.inst.runtime.util.IgnoreUtils;
+import io.arex.inst.runtime.util.MockUtils;
 import java.io.IOException;
 import java.net.URI;
 import org.junit.jupiter.api.AfterAll;
@@ -42,7 +41,7 @@ public class HttpClientExtractorTest {
         when(adapter.getRequestContentType()).thenReturn("application/json");
         when(adapter.wrap(any())).thenReturn(new HttpResponseWrapper());
 
-        Mockito.mockStatic(SerializeUtils.class);
+        Mockito.mockStatic(Serializer.class);
     }
 
     @AfterAll
@@ -86,17 +85,17 @@ public class HttpClientExtractorTest {
 
     @Test
     void fetchMockResult() {
-        try (MockedStatic<MockService> mockService = mockStatic(MockService.class);
-            MockedStatic<IgnoreService> ignoreService = mockStatic(IgnoreService.class)) {
-            ignoreService.when(()-> IgnoreService.ignoreMockResult(any(), any())).thenReturn(true);
+        try (MockedStatic<MockUtils> mockService = mockStatic(MockUtils.class);
+            MockedStatic<IgnoreUtils> ignoreService = mockStatic(IgnoreUtils.class)) {
+            ignoreService.when(()-> IgnoreUtils.ignoreMockResult(any(), any())).thenReturn(true);
 
             HttpResponseWrapper responseWrapper = new HttpResponseWrapper();
-            mockService.when(()->  MockService.replayBody(any())).thenReturn(responseWrapper);
+            mockService.when(()->  MockUtils.replayBody(any())).thenReturn(responseWrapper);
 
             ArexMocker mocker = new ArexMocker();
             mocker.setTargetRequest(new Target());
             mocker.setTargetResponse(new Target());
-            mockService.when(()-> MockService.createHttpClient(any())).thenReturn(mocker);
+            mockService.when(()-> MockUtils.createHttpClient(any())).thenReturn(mocker);
 
             HttpResponseWrapper wrapper = httpClientExtractor.fetchMockResult();
             assertEquals(responseWrapper, wrapper);;

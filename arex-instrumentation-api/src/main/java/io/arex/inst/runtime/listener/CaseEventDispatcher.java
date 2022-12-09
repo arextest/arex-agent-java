@@ -6,12 +6,14 @@ public class CaseEventDispatcher {
         switch (e.action) {
             case ENTER:
                 EventProcessor.onRequest();
+                 break;
             case CREATE:
-                EventProcessor.onCreate();
+                EventProcessor.onCreate((EventSource) e.getSource());
                 break;
             case DESTROY:
                 EventProcessor.onExit();
                 break;
+            default:
         }
     }
 }

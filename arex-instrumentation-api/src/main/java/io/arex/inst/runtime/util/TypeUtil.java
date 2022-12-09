@@ -1,6 +1,8 @@
 package io.arex.inst.runtime.util;
 
 import io.arex.agent.bootstrap.util.StringUtil;
+import java.util.Map;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,8 +16,9 @@ import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
 
 public class TypeUtil {
 
-    public static final String COMMA = ",";
-    public static final String HORIZONTAL_LINE = "-";
+    public static final char COMMA = ',';
+    public static final char HORIZONTAL_LINE = '-';
+    public static final String HORIZONTAL_LINE_STR = "-";
     public static final String SEMICOLON = ";";
     public static final String DEFAULT_CLASS_NAME = "java.lang.String";
     private static final String MAP_CLASS_NAME = "HashMap";
@@ -27,7 +30,7 @@ public class TypeUtil {
     private static final ConcurrentMap<String, Type> TYPE_NAME_CACHE = new ConcurrentHashMap<>();
 
     public static Type forName(String typeName) {
-        if (StringUtils.isEmpty(typeName) || HORIZONTAL_LINE.equals(typeName)) {
+        if (StringUtil.isEmpty(typeName) || HORIZONTAL_LINE_STR.equals(typeName)) {
             return null;
         }
 
@@ -36,16 +39,16 @@ public class TypeUtil {
             return type;
         }
 
-        String[] types = StringUtils.split(typeName, HORIZONTAL_LINE);
+        String[] types = StringUtil.split(typeName, HORIZONTAL_LINE);
 
-        if (ArrayUtils.isEmpty(types)) {
+        if (types == null || types.length == 0) {
             return null;
         }
 
         try {
             Class<?> raw = classForName(types[0]);
 
-            if (types.length > 1 && StringUtils.isNotEmpty(types[1])) {
+            if (types.length > 1 && StringUtil.isNotEmpty(types[1])) {
                 // List<Map>
                 if (types[1].contains(MAP_CLASS_NAME)) {
                     Type[] args = getMapType(types);
@@ -55,7 +58,7 @@ public class TypeUtil {
                 }
 
                 // Only support Optional<List<entity>> type; types:type[0]:java.util.Optional,type[1]:java.util.ArrayList,type[2]:entityClassName
-                if (StringUtils.equals(types[0], OPTIONAL_CLASS_NAME) && types[1].contains(JAVA_UTIL_PACKAGE_NAME)
+                if (OPTIONAL_CLASS_NAME.equals(types[0]) && types[1].contains(JAVA_UTIL_PACKAGE_NAME)
                     && types[1].contains(LIST_CLASS_NAME)) {
                     Type[] args = getListType(types);
                     ParameterizedTypeImpl parameterizedType = ParameterizedTypeImpl.make(raw, args, null);
@@ -63,7 +66,7 @@ public class TypeUtil {
                     return parameterizedType;
                 }
 
-                types = StringUtils.split(types[1], COMMA);
+                types = StringUtil.split(types[1], COMMA);
                 Type[] args = new Type[types.length];
                 for (int i = 0; i < types.length; i++) {
                     args[i] = classForName(types[i]);
@@ -141,13 +144,13 @@ public class TypeUtil {
         StringBuilder builder = new StringBuilder();
         builder.append(result.getClass().getName());
 
-        if (result.size() < 1) {
+        if (result.isEmpty()) {
             return builder.toString();
         }
 
         builder.append(HORIZONTAL_LINE);
 
-        List<String> linkedList = Lists.newLinkedList();
+        List<String> linkedList = new LinkedList<>();
 
         for (Object innerObj : result) {
             if (innerObj == null) {
@@ -176,7 +179,7 @@ public class TypeUtil {
                 break;
             }
         }
-        builder.append(StringUtils.join(linkedList, ","));
+        builder.append(StringUtil.join(linkedList, ","));
         return builder.toString();
     }
 
@@ -206,7 +209,7 @@ public class TypeUtil {
             String valueClassName =
                 entry.getValue() == null ? DEFAULT_CLASS_NAME : entry.getValue().getClass().getName();
             builder.append(keyClassName).append(COMMA).append(valueClassName);
-            return builder.toString();
+            break;
         }
         return builder.toString();
     }
@@ -237,7 +240,7 @@ public class TypeUtil {
         if (sourceListMap == null) {
             return null;
         }
-        if (sourceListMap.size() < 1) {
+        if (sourceListMap.isEmpty()) {
             return sourceListMap.getClass().getName();
         }
 
@@ -248,7 +251,8 @@ public class TypeUtil {
             if (map.size() < 1) {
                 return builder.append(map.getClass().getName()).toString();
             }
-            return builder.append(mapToString(map)).toString();
+            builder.append(mapToString(map));
+            break;
         }
         return builder.toString();
     }
@@ -288,8 +292,8 @@ public class TypeUtil {
     private static Type[] getMapType(String[] types) {
         try {
             Class<?> innerMapRaw = Class.forName(types[1], false, Thread.currentThread().getContextClassLoader());
-            if (types.length > 2 && StringUtils.isNotEmpty(types[2])) {
-                types = StringUtils.split(types[2], COMMA);
+            if (types.length > 2 && StringUtil.isNotEmpty(types[2])) {
+                types = StringUtil.split(types[2], COMMA);
                 Type[] args = new Type[types.length];
                 for (int i = 0; i < types.length; i++) {
                     args[i] = Class.forName(types[i], false, Thread.currentThread().getContextClassLoader());
@@ -310,7 +314,7 @@ public class TypeUtil {
     private static Type[] getListType(String[] types) {
         try {
             Class<?> innerListRaw = classForName(types[1]);
-            if (types.length > 2 && StringUtils.isNotEmpty(types[2])) {
+            if (types.length > 2 && StringUtil.isNotEmpty(types[2])) {
                 ParameterizedTypeImpl tempType = ParameterizedTypeImpl.make(innerListRaw,
                     new Type[]{classForName(types[2])}, null);
                 return new Type[]{tempType};

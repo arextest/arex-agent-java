@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.function.Function;
 
 public class Config {
-    private static volatile Config INSTANCE = null;
+    private static Config INSTANCE = null;
 
     static void update(boolean enableDebug, String serviceName, List<DynamicClassEntity> entities,
                        Map<String, String> properties) {

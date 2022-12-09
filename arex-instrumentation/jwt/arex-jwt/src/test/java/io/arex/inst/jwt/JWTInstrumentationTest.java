@@ -20,6 +20,7 @@ class JWTInstrumentationTest {
     @AfterAll
     static void tearDown() {
         target = null;
+        Mockito.clearAllCaches();
     }
 
     @Test

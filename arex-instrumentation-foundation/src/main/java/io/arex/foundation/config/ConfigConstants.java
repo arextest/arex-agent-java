@@ -1,6 +1,6 @@
-package io.arex.foundation.internal;
+package io.arex.foundation.config;
 
-public class Constants {
+public class ConfigConstants {
 
     public static final String ENABLE_DEBUG = "arex.enable.debug";
     public static final String SERVICE_NAME = "arex.service.name";

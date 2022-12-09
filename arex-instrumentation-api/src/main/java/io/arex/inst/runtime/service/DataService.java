@@ -1,8 +1,5 @@
 package io.arex.inst.runtime.service;
 
-import io.arex.inst.runtime.model.AbstractMocker;
-import io.arex.inst.runtime.serializer.Serializer;
-
 public class DataService {
 
     public static DataService INSTANCE;
@@ -17,16 +14,16 @@ public class DataService {
         this.saver = dataSaver;
     }
 
-    public void save(AbstractMocker mocker) {
-        saver.save(Serializer.serialize(mocker), mocker.getCategory().getName(),
-                mocker.getReplayId() != null);
+    public void save(String data) {
+        saver.save(data);
     }
 
-    public Object get(AbstractMocker mocker) {
-        return saver.query(Serializer.serialize(mocker), mocker.getCategory().getName());
+    public String query(String data) {
+        return saver.query(data);
     }
 
     public static class Builder {
+
         private DataCollector collector;
 
         public Builder setDataCollector(DataCollector collector) {

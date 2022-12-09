@@ -10,7 +10,6 @@ import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Collections;
@@ -59,12 +58,9 @@ public class ServletInstrumentationV3 extends TypeInstrumentation {
     }
 
     public static class ServiceAdvice {
-        /*public static final ServletAdapter<HttpServletRequest, HttpServletResponse> ADAPTER =
-            ServletAdapterImplV3.getInstance();*/
-
         @Advice.OnMethodEnter
         public static void onEnter(@Advice.Argument(value = 0, readOnly = false) HttpServletRequest request,
-            @Advice.Argument(value = 1, readOnly = false) HttpServletResponse response) throws ServletException {
+            @Advice.Argument(value = 1, readOnly = false) HttpServletResponse response) {
             Pair<HttpServletRequest, HttpServletResponse> pair =
                 ServletAdviceHelper.onServiceEnter(ServletAdapterImplV3.getInstance(), request, response);
 

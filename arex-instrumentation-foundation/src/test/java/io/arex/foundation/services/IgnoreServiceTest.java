@@ -1,7 +1,8 @@
 package io.arex.foundation.services;
 
-import io.arex.foundation.context.ArexContext;
-import io.arex.foundation.context.ContextManager;
+import io.arex.inst.runtime.context.ArexContext;
+import io.arex.inst.runtime.context.ContextManager;
+import io.arex.inst.runtime.util.IgnoreUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,7 +36,7 @@ class IgnoreServiceTest {
     @MethodSource("ignoreMockResultCase")
     void ignoreMockResult(Runnable mocker, String serviceKey, Predicate<Boolean> predicate) {
         mocker.run();
-        boolean result = IgnoreService.ignoreMockResult(serviceKey, "operation");
+        boolean result = IgnoreUtils.ignoreMockResult(serviceKey, "operation");
         assertTrue(predicate.test(result));
     }
 

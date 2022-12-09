@@ -1,6 +1,5 @@
 package io.arex.inst.database.hibernate;
 
-import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.context.RepeatedCollectManager;
 import io.arex.agent.bootstrap.model.MockResult;

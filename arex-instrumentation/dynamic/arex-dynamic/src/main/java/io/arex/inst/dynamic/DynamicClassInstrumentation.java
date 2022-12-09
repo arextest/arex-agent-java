@@ -1,5 +1,6 @@
 package io.arex.inst.dynamic;
 
+import io.arex.agent.bootstrap.util.CollectionUtil;
 import java.lang.reflect.Method;
 import java.util.Collections;
 

@@ -2,22 +2,22 @@ package io.arex.inst.httpservlet;
 
 import io.arex.agent.bootstrap.internal.Pair;
 import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.inst.httpservlet.adapter.ServletAdapter;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.context.RecordLimiter;
 import io.arex.inst.runtime.listener.CaseEvent;
 import io.arex.inst.runtime.listener.CaseEventDispatcher;
+import io.arex.inst.runtime.listener.EventSource;
+import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.util.LogUtil;
-import io.arex.inst.httpservlet.adapter.ServletAdapter;
-import io.arex.inst.runtime.model.Constants;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.context.request.NativeWebRequest;
-import org.springframework.web.context.request.async.DeferredResult;
-import org.springframework.web.method.support.InvocableHandlerMethod;
-
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.context.request.NativeWebRequest;
+import org.springframework.web.context.request.async.DeferredResult;
+import org.springframework.web.method.support.InvocableHandlerMethod;
 
 /**
  * ServletAdviceHelper
@@ -49,19 +49,20 @@ public class ServletAdviceHelper {
             ServletAdapter<TRequest, TResponse> adapter, TRequest httpServletRequest,
             TResponse httpServletResponse) {
         // Async listener will handle if attr with arex-async-flag
-        if ("true".equals(adapter.getAttribute(httpServletRequest, SERVLET_ASYNC_FLAG))) {
+        if (Boolean.TRUE.toString().equals(adapter.getAttribute(httpServletRequest, SERVLET_ASYNC_FLAG))) {
             httpServletResponse = adapter.wrapResponse(httpServletResponse);
             return Pair.of(null, httpServletResponse);
         }
 
+        CaseEventDispatcher.onEvent(CaseEvent.ofEnterEvent());
         if (shouldSkip(adapter, httpServletRequest)) {
             return null;
         }
 
         String caseId = adapter.getRequestHeader(httpServletRequest, ArexConstants.RECORD_ID);
         String excludeMockTemplate = adapter.getRequestHeader(httpServletRequest, ArexConstants.HEADER_EXCLUDE_MOCK);
-        if (ContextManager.currentContext(true, caseId) != null) {
-            CaseEventDispatcher.onEvent(new CaseEvent("", CaseEvent.Action.ENTER));
+        CaseEventDispatcher.onEvent(CaseEvent.ofCreateEvent(EventSource.of(caseId, excludeMockTemplate)));
+        if (ContextManager.needRecordOrReplay()) {
             httpServletRequest = adapter.wrapRequest(httpServletRequest);
             httpServletResponse = adapter.wrapResponse(httpServletResponse);
             return Pair.of(httpServletRequest, httpServletResponse);
@@ -85,7 +86,7 @@ public class ServletAdviceHelper {
             }
 
             // Async listener will handle async request
-            if ("true".equals(adapter.getAttribute(httpServletRequest, SERVLET_ASYNC_FLAG))) {
+            if (Boolean.TRUE.toString().equals(adapter.getAttribute(httpServletRequest, SERVLET_ASYNC_FLAG))) {
                 adapter.removeAttribute(httpServletRequest, SERVLET_ASYNC_FLAG);
                 adapter.copyBodyToResponse(httpServletResponse);
                 return;
@@ -93,7 +94,7 @@ public class ServletAdviceHelper {
 
             // Add async listener for async request
             if (adapter.isAsyncStarted(httpServletRequest)) {
-                adapter.setAttribute(httpServletRequest, SERVLET_ASYNC_FLAG, "true");
+                adapter.setAttribute(httpServletRequest, SERVLET_ASYNC_FLAG, Boolean.TRUE.toString());
                 adapter.addListener(adapter, httpServletRequest, httpServletResponse);
                 return;
             }
@@ -133,7 +134,6 @@ public class ServletAdviceHelper {
 
     private static <TRequest> boolean shouldSkip(ServletAdapter<TRequest, ?> adapter,
                                                  TRequest httpServletRequest) {
-        String caseId = adapter.getRequestHeader(httpServletRequest, Constants.RECORD_ID);
         String caseId = adapter.getRequestHeader(httpServletRequest, ArexConstants.RECORD_ID);
 
         // Replay scene

@@ -1,6 +1,6 @@
 package io.arex.inst.lettuce.v6;
 
-import io.arex.foundation.context.ContextManager;
+import io.arex.inst.runtime.context.ContextManager;
 import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.inst.redis.common.RedisExtractor;
 import io.lettuce.core.RedisFuture;
@@ -60,8 +60,13 @@ class RedisAsyncCommandsImplWrapperTest {
     @MethodSource("dispatchCase")
     void dispatch(Runnable mocker, Predicate<RedisFuture<?>> predicate) {
         mocker.run();
-        RedisFuture<?> result = target.hget("key", "field");
-        assertTrue(predicate.test(result));
+        try (MockedConstruction<RedisExtractor> mocked = Mockito.mockConstruction(RedisExtractor.class, (mock, context) -> {
+            System.out.println("mock RedisExtractor");
+            Mockito.when(mock.replay()).thenReturn(MockResult.success(null));
+        })) {
+            RedisFuture<?> result = target.hget("key", "field");
+            assertTrue(predicate.test(result));
+        }
     }
 
     static Stream<Arguments> dispatchCase() {

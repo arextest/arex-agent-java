@@ -12,11 +12,11 @@ import io.arex.inst.runtime.context.RecordLimiter;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.serializer.StringSerializable;
 import io.arex.inst.runtime.util.LogUtil;
+import java.util.List;
 import net.bytebuddy.agent.builder.ResettableClassFileTransformer;
 
 import java.io.File;
 import java.lang.instrument.Instrumentation;
-import java.util.ServiceLoader;
 
 public abstract class BaseAgentInstaller implements AgentInstaller {
 
@@ -55,7 +55,7 @@ public abstract class BaseAgentInstaller implements AgentInstaller {
 
     private void installSerializer() {
         Serializer.Builder builder = Serializer.builder(JacksonSerializer.INSTANCE);
-        ServiceLoader<StringSerializable> serializableList =
+        List<StringSerializable> serializableList =
                 SPIUtil.load(StringSerializable.class, getClassLoader());
         for (StringSerializable serializable : serializableList) {
             builder.addSerializer(serializable.name(), serializable);

@@ -37,18 +37,18 @@ public class DataCollectorService implements DataCollector {
         initServiceHost();
     }
 
-    public void save(String mockData, String category, boolean isReplay) {
+    public void save(String mockData) {
         if (HealthManager.isFastRejection()) {
             return;
         }
 
-        if (!buffer.put(new DataEntity(mockData, category, isReplay))) {
+        if (!buffer.put(new DataEntity(mockData))) {
             HealthManager.onEnqueueRejection();
         }
     }
 
-    public String query(String postData, String category) {
-        return  queryReplayData(postData, category);
+    public String query(String postData) {
+        return queryReplayData(postData);
     }
 
     public void start() {
@@ -106,27 +106,24 @@ public class DataCollectorService implements DataCollector {
     }
 
     void saveData(DataEntity entity) {
-        AsyncHttpClientUtil.executeAsync(saveApiUrl, entity.getPostData(), entity.getCategoryName())
-                .whenComplete(saveMockDataConsumer(entity));
+        AsyncHttpClientUtil.executeAsync(saveApiUrl, entity.getPostData()).whenComplete(saveMockDataConsumer(entity));
     }
 
     /**
      * Query replay data
      */
-    String queryReplayData(String postData, String category) {
-        return AsyncHttpClientUtil.executeSync(queryApiUrl, postData, category);
+    String queryReplayData(String postData) {
+        return AsyncHttpClientUtil.zstdJsonPost(queryApiUrl, postData);
     }
 
     private <T> BiConsumer<T, Throwable> saveMockDataConsumer(DataEntity entity) {
         return (response, throwable) -> {
             long usedTime = System.nanoTime() - entity.getQueueTime();
-            if (!entity.isReplay()) {
-                if (Objects.nonNull(throwable)) {
-                    usedTime = -1; // -1:reject
-                    HealthManager.onDataServiceRejection();
-                }
-                HealthManager.reportUsedTime(usedTime, false);
+            if (Objects.nonNull(throwable)) {
+                usedTime = -1; // -1:reject
+                HealthManager.onDataServiceRejection();
             }
+            HealthManager.reportUsedTime(usedTime, false);
         };
     }
 

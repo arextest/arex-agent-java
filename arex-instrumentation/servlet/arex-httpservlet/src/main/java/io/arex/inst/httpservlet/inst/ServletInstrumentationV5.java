@@ -5,7 +5,6 @@ import io.arex.inst.extension.MethodInstrumentation;
 import io.arex.inst.extension.TypeInstrumentation;
 import io.arex.inst.httpservlet.ServletAdviceHelper;
 import io.arex.inst.httpservlet.adapter.impl.ServletAdapterImplV5;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import net.bytebuddy.asm.Advice;
@@ -64,7 +63,7 @@ public class ServletInstrumentationV5 extends TypeInstrumentation {
 
         @Advice.OnMethodEnter
         public static void onEnter(@Advice.Argument(value = 0, readOnly = false) HttpServletRequest request,
-            @Advice.Argument(value = 1, readOnly = false) HttpServletResponse response) throws ServletException {
+            @Advice.Argument(value = 1, readOnly = false) HttpServletResponse response) {
             Pair<HttpServletRequest, HttpServletResponse> pair =
                 ServletAdviceHelper.onServiceEnter(ServletAdapterImplV5.getInstance(), request, response);
 

@@ -30,7 +30,7 @@ public class DynamicClassModuleInstrumentation extends ModuleInstrumentation {
         List<TypeInstrumentation> typeInstList = new ArrayList<>();
         List<DynamicClassEntity> dynamicClassList = Config.get().dynamicClassEntities();
 
-        if (dynamicClassList == null || dynamicClassList.size() == 0) {
+        if (dynamicClassList == null || dynamicClassList.isEmpty()) {
             return Collections.emptyList();
         }
 

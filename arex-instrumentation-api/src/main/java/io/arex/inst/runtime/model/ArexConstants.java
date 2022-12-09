@@ -1,4 +1,4 @@
-package io.arex.agent.bootstrap.model;
+package io.arex.inst.runtime.model;
 
 public class ArexConstants {
     private ArexConstants() {}
@@ -22,5 +22,4 @@ public class ArexConstants {
      * mock template
      */
     public static final String HEADER_EXCLUDE_MOCK = "X-AREX-Exclusion-Operations";
-    public static final String EXCLUDE_MOCK_TYPE = "java.util.HashMap-java.lang.String,java.util.HashSet";
 }

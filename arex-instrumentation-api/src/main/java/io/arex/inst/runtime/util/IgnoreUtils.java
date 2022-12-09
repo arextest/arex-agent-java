@@ -1,8 +1,7 @@
-package io.arex.foundation.services;
+package io.arex.inst.runtime.util;
 
-import io.arex.foundation.context.ArexContext;
-import io.arex.foundation.context.ContextManager;
-import io.arex.foundation.util.LogUtil;
+import io.arex.inst.runtime.context.ArexContext;
+import io.arex.inst.runtime.context.ContextManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import io.arex.agent.bootstrap.util.StringUtil;
@@ -10,8 +9,8 @@ import io.arex.agent.bootstrap.util.StringUtil;
 import java.util.*;
 
 
-public class IgnoreService {
-    private static final Logger LOGGER = LoggerFactory.getLogger(IgnoreService.class);
+public class IgnoreUtils {
+    private static final Logger LOGGER = LoggerFactory.getLogger(IgnoreUtils.class);
     private static final Set<String> ignoreServices = new HashSet<>();
     private static final Set<String> enablePackages = new HashSet<>();
 

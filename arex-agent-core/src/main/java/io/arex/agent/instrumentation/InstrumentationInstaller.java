@@ -1,15 +1,12 @@
 package io.arex.agent.instrumentation;
 
-import io.arex.foundation.serializer.JacksonSerializer;
-import io.arex.inst.runtime.serializer.Serializer;
-import io.arex.inst.runtime.serializer.StringSerializable;
 import io.arex.inst.extension.ModuleInstrumentation;
 import io.arex.inst.extension.MethodInstrumentation;
 import io.arex.inst.extension.TypeInstrumentation;
 import io.arex.agent.bootstrap.InstrumentationHolder;
 import io.arex.agent.instrumentation.bytebuddy.AdviceInjector;
 import io.arex.foundation.config.ConfigManager;
-import io.arex.foundation.util.CollectionUtil;
+import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.foundation.util.SPIUtil;
 import java.io.IOException;
 

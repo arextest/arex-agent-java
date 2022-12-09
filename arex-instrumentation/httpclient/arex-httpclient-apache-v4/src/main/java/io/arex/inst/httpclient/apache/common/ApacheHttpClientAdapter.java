@@ -1,7 +1,7 @@
 package io.arex.inst.httpclient.apache.common;
 
 import io.arex.agent.bootstrap.model.MockResult;
-import io.arex.foundation.util.StringUtil;
+import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.httpclient.common.HttpClientAdapter;
 import io.arex.inst.httpclient.common.HttpResponseWrapper;
 import io.arex.inst.httpclient.common.HttpResponseWrapper.StringTuple;

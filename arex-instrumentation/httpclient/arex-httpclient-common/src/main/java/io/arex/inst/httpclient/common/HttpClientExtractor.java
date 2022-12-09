@@ -1,7 +1,9 @@
 package io.arex.inst.httpclient.common;
 
-import io.arex.inst.runtime.model.HttpClientMocker;
+import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.inst.runtime.serializer.Serializer;
+import io.arex.inst.runtime.util.IgnoreUtils;
+import io.arex.inst.runtime.util.MockUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +30,7 @@ public class HttpClientExtractor<TRequest, TResponse> {
         try {
             String response = Serializer.serialize(wrapped);
             Mocker mocker = this.makeMocker(response);
-            MockService.recordMocker(mocker);
+            MockUtils.recordMocker(mocker);
         } catch (Throwable throwable) {
             LOGGER.warn("record error:{}", throwable.getMessage(), throwable);
         }
@@ -66,7 +68,7 @@ public class HttpClientExtractor<TRequest, TResponse> {
 
     private Mocker makeMocker(String response) {
         String httpMethod = adapter.getMethod();
-        ArexMocker mocker = MockService.createHttpClient(adapter.getUri().getPath());
+        Mocker mocker = MockUtils.createHttpClient(adapter.getUri().getPath());
         Map<String, Object> attributes = new HashMap<>();
 
         mocker.getTargetRequest().setAttributes(attributes);
@@ -81,8 +83,8 @@ public class HttpClientExtractor<TRequest, TResponse> {
     }
 
     public HttpResponseWrapper fetchMockResult() {
-        boolean ignoreResult = IgnoreService.ignoreMockResult("http", adapter.getUri().getPath());
-        HttpResponseWrapper wrapper = (HttpResponseWrapper) MockService.replayBody(makeMocker(null));
+        boolean ignoreResult = IgnoreUtils.ignoreMockResult("http", adapter.getUri().getPath());
+        HttpResponseWrapper wrapper = (HttpResponseWrapper) MockUtils.replayBody(makeMocker(null));
         wrapper.setIgnoreMockResult(ignoreResult);
         return wrapper;
     }

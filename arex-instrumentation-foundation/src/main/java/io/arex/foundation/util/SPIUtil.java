@@ -15,16 +15,21 @@ import java.util.ServiceLoader;
 public class SPIUtil {
     private final static Logger LOGGER = LoggerFactory.getLogger(SPIUtil.class);
 
+    public static <T> List<T> load(Class<T> service) {
+        ClassLoader cl = Thread.currentThread().getContextClassLoader();
+        return load(service, cl);
+    }
+
     @SuppressWarnings("ForEachIterable")
-    public static <T> List<T> load(Class<T> serviceClass) {
+    public static <T> List<T> load(Class<T> service, ClassLoader loader) {
         List<T> result = new ArrayList<>();
-        java.util.ServiceLoader<T> services = ServiceLoader.load(serviceClass);
+        java.util.ServiceLoader<T> services = ServiceLoader.load(service, loader);
         for (Iterator<T> iter = services.iterator(); iter.hasNext(); ) {
             try {
                 result.add(iter.next());
             } catch (Throwable e) {
                 LOGGER.warn("Unable to load class: {} from classloader: {}, throwable: {}",
-                    serviceClass.getName(), serviceClass.getClassLoader(), e.toString());
+                    service.getName(), service.getClassLoader(), e.toString());
             }
         }
         return result;
@@ -40,15 +45,6 @@ public class SPIUtil {
         } catch (Throwable e) {
             LOGGER.error("Arex spi load class: {} from classloader: {}, error: {}",
                 spiType.getCanonicalName(), spiType.getClassLoader() , e.toString());
-        }
-        return null;
-    }
-
-    public static <T> ServiceLoader<T> load(Class<T> spiType, ClassLoader cl) {
-        try {
-            return ServiceLoader.load(spiType, cl);
-        } catch (Throwable e) {
-            LOGGER.error("Arex spi load class: {} error", spiType.getCanonicalName(), e);
         }
         return null;
     }

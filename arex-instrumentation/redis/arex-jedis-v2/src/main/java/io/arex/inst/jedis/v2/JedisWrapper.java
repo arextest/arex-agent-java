@@ -1,7 +1,6 @@
 package io.arex.inst.jedis.v2;
 
 import io.arex.agent.bootstrap.model.MockResult;
-import io.arex.foundation.context.ContextManager;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.redis.common.RedisExtractor;

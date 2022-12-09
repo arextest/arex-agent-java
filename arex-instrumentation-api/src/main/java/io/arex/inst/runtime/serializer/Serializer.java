@@ -35,7 +35,7 @@ public class Serializer {
     }
 
     public static String serialize(Object object, String name) {
-        if (object == null) {
+        if (object == null || INSTANCE == null) {
             return null;
         }
 

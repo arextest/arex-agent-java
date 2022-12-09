@@ -1,7 +1,6 @@
 package io.arex.inst.database.hibernate;
 
 import io.arex.agent.bootstrap.model.MockResult;
-import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.context.RepeatedCollectManager;
 import io.arex.inst.runtime.util.LogUtil;
@@ -150,7 +149,7 @@ public class AbstractEntityPersisterInstrumentation extends TypeInstrumentation 
                 if (exception != null) {
                     extractor.record(exception);
                 } else {
-                    extractor.record((Object) null);
+                    extractor.record(null);
                 }
             }
         }

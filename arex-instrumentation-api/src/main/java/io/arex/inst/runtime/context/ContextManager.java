@@ -16,7 +16,7 @@ public class ContextManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(ContextManager.class);
 
     public static Map<String, ArexContext> RECORD_MAP = new ConcurrentHashMap<>();
-    private static final long RECORD_TTL_MILLIS = TimeUnit.MINUTES.toMillis(2);
+    private static final long RECORD_TTL_MILLIS = TimeUnit.MINUTES.toMillis(1);
     private static final ReentrantLock CLEANUP_LOCK = new ReentrantLock();
 
     /**
@@ -32,6 +32,7 @@ public class ContextManager {
     public static ArexContext currentContext(boolean createIfAbsent, String caseId) {
         // replay scene
         if (StringUtil.isNotEmpty(caseId)) {
+            TraceContextManager.set(caseId);
             ArexContext context = ArexContext.of(caseId, TraceContextManager.generateId());
             // Each replay init generates the latest context(maybe exist previous recorded context)
             RECORD_MAP.put(caseId, context);
@@ -44,7 +45,7 @@ public class ContextManager {
             return null;
         }
 
-        return RECORD_MAP.computeIfAbsent(traceId, key -> ArexContext.of(key));
+        return RECORD_MAP.computeIfAbsent(traceId, ArexContext::of);
     }
 
     public static boolean needRecord() {

@@ -1,6 +1,6 @@
 package io.arex.inst.redisson.v3;
 
-import io.arex.foundation.context.ContextManager;
+import io.arex.inst.runtime.context.ContextManager;
 import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.inst.redis.common.RedisExtractor;
 import org.junit.jupiter.api.AfterAll;

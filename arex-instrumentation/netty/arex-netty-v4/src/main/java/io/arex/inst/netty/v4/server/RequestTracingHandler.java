@@ -1,17 +1,18 @@
 package io.arex.inst.netty.v4.server;
 
+import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.context.RecordLimiter;
 import io.arex.inst.runtime.listener.CaseEvent;
 import io.arex.inst.runtime.listener.EventProcessor;
 import io.arex.inst.runtime.listener.CaseEventDispatcher;
-import io.arex.inst.runtime.model.AbstractMocker;
-import io.arex.inst.runtime.model.Constants;
-import io.arex.inst.runtime.model.ServiceEntranceMocker;
-import io.arex.inst.runtime.serializer.Serializer;
+import io.arex.inst.runtime.listener.EventSource;
+import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.netty.v4.common.AttributeKey;
 import io.arex.inst.netty.v4.common.NettyHelper;
+import io.arex.inst.runtime.util.IgnoreUtils;
+import io.arex.inst.runtime.util.MockUtils;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.HttpContent;
@@ -32,10 +33,9 @@ public class RequestTracingHandler extends ChannelInboundHandlerAdapter {
             }
 
             String excludeMockTemplate = request.headers().get(ArexConstants.HEADER_EXCLUDE_MOCK);
-            CaseEventDispatcher.onEvent(
-                new CaseEvent(StringUtil.defaultString(caseId), CaseEvent.Action.CREATE));
+            CaseEventDispatcher.onEvent(CaseEvent.ofCreateEvent(EventSource.of(caseId, excludeMockTemplate)));
             if (ContextManager.needRecordOrReplay()) {
-                ArexMocker mocker = MockService.createServlet(request.uri());
+                Mocker mocker = MockUtils.createServlet(request.uri());
                 Mocker.Target target = mocker.getTargetRequest();
                     target.setAttribute("HttpMethod", request.method().name());
                 target.setAttribute("Headers", NettyHelper.parseHeaders(request.headers()));
@@ -79,6 +79,6 @@ public class RequestTracingHandler extends ChannelInboundHandlerAdapter {
             return true;
         }
 
-        return IgnoreService.isServiceEnabled(request.method().toString() + " " + request.uri());
+        return IgnoreUtils.isServiceEnabled(request.method().toString() + " " + request.uri());
     }
 }

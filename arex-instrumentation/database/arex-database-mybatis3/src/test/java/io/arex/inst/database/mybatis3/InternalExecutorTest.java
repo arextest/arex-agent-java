@@ -1,13 +1,20 @@
 package io.arex.inst.database.mybatis3;
 
-import io.arex.inst.runtime.config.ConfigBuilder;
-import io.arex.inst.runtime.context.ContextManager;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mockStatic;
+
 import io.arex.agent.bootstrap.model.ArexMocker;
 import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.agent.bootstrap.model.Mocker.Target;
-import io.arex.foundation.services.MockService;
-import io.arex.foundation.util.AsyncHttpClientUtil;
 import io.arex.inst.database.common.DatabaseExtractor;
+import io.arex.inst.runtime.context.ContextManager;
+import io.arex.inst.runtime.util.MockUtils;
+import java.lang.reflect.InvocationTargetException;
+import java.sql.SQLException;
+import java.util.stream.Stream;
 import org.apache.ibatis.mapping.BoundSql;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.reflection.Reflector;
@@ -24,16 +31,6 @@ import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.lang.reflect.InvocationTargetException;
-import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.stream.Stream;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.params.provider.Arguments.arguments;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mockStatic;
 
 @ExtendWith(MockitoExtension.class)
 class InternalExecutorTest {
@@ -53,7 +50,6 @@ class InternalExecutorTest {
         boundSql = Mockito.mock(BoundSql.class);
         Mockito.when(boundSql.getSql()).thenReturn("insert into");
         Mockito.mockStatic(ContextManager.class);
-        Mockito.mockStatic(AsyncHttpClientUtil.class);
     }
 
     @AfterAll
@@ -64,14 +60,14 @@ class InternalExecutorTest {
 
     @Test
     void replay() throws SQLException {
-        try (MockedStatic<MockService> mockService = mockStatic(MockService.class)){
+        try (MockedStatic<MockUtils> mockService = mockStatic(MockUtils.class)){
             MockResult mockResult = MockResult.success(true, null);
-            mockService.when(() -> MockService.replayBody(any())).thenReturn(mockResult);
+            mockService.when(() -> MockUtils.replayBody(any())).thenReturn(mockResult);
 
             ArexMocker mocker = new ArexMocker();
             mocker.setTargetRequest(new Target());
             mocker.setTargetResponse(new Target());
-            mockService.when(() -> MockService.createDatabase(any())).thenReturn(mocker);
+            mockService.when(() -> MockUtils.createDatabase(any())).thenReturn(mocker);
 
             assertNotNull(InternalExecutor.replay(mappedStatement, new Object(), boundSql, "insert"));
         }
@@ -87,7 +83,11 @@ class InternalExecutorTest {
     @NullSource
     @MethodSource("recordCase")
     void record(Throwable throwable) {
-        target.record(mappedStatement, new Object(), boundSql, null, throwable, "insert");
+        try (MockedConstruction<DatabaseExtractor> mocked = Mockito.mockConstruction(DatabaseExtractor.class, (mock, context) -> {
+            System.out.println("mock DatabaseExtractor");
+        })) {
+            target.record(mappedStatement, new Object(), boundSql, null, throwable, "insert");
+        }
     }
 
     static Stream<Arguments> recordCase() {

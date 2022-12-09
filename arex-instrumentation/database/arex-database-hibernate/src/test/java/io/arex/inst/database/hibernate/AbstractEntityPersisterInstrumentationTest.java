@@ -1,9 +1,8 @@
 package io.arex.inst.database.hibernate;
 
 import io.arex.agent.bootstrap.model.MockResult;
-import io.arex.foundation.context.ContextManager;
-import io.arex.foundation.context.RepeatedCollectManager;
-import io.arex.foundation.util.AsyncHttpClientUtil;
+import io.arex.inst.runtime.context.ContextManager;
+import io.arex.inst.runtime.context.RepeatedCollectManager;
 import io.arex.inst.database.common.DatabaseExtractor;
 import org.hibernate.HibernateException;
 import org.junit.jupiter.api.AfterAll;
@@ -34,7 +33,6 @@ class AbstractEntityPersisterInstrumentationTest {
         target = new AbstractEntityPersisterInstrumentation();
         Mockito.mockStatic(ContextManager.class);
         Mockito.mockStatic(RepeatedCollectManager.class);
-        Mockito.mockStatic(AsyncHttpClientUtil.class);
     }
 
     @AfterAll
@@ -128,7 +126,12 @@ class AbstractEntityPersisterInstrumentationTest {
     void onUpdateOrInsertExit() {
         Mockito.when(ContextManager.needRecord()).thenReturn(true);
         Mockito.when(RepeatedCollectManager.exitAndValidate()).thenReturn(true);
-        AbstractEntityPersisterInstrumentation.UpdateOrInsertAdvice.onExit(null, null, new HibernateException(""));
-        assertDoesNotThrow(() -> AbstractEntityPersisterInstrumentation.UpdateOrInsertAdvice.onExit(null, null, null));
+
+        try (MockedConstruction<DatabaseExtractor> mocked = Mockito.mockConstruction(DatabaseExtractor.class, (mock, context) -> {
+            System.out.println("mock DatabaseExtractor");
+        })) {
+            AbstractEntityPersisterInstrumentation.UpdateOrInsertAdvice.onExit(null, null, new HibernateException(""));
+            assertDoesNotThrow(() -> AbstractEntityPersisterInstrumentation.UpdateOrInsertAdvice.onExit(null, null, null));
+        }
     }
 }

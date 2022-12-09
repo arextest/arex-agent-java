@@ -2,7 +2,7 @@ package io.arex.inst.runtime.service;
 
 public interface DataCollector {
 
-    void save(String mockData, String category, boolean isReplay);
+    void save(String mockData);
 
-    String query(String postData, String category);
+    String query(String postData);
 }

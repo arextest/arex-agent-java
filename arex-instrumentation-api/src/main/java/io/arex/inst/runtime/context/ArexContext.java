@@ -6,14 +6,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 public class ArexContext {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ArexContext.class);
+
     private final String caseId;
     private final String replayId;
     private final long createTime;

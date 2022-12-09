@@ -1,11 +1,11 @@
 package io.arex.inst.dynamic;
 
 import io.arex.agent.bootstrap.cache.TimeCache;
+import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.context.ContextManager;
-import io.arex.inst.runtime.model.DynamicClassMocker;
 import io.arex.agent.bootstrap.model.Mocker;
-import io.arex.foundation.services.MockService;
 
+import io.arex.inst.runtime.util.MockUtils;
 import java.util.UUID;
 
 public class ReplaceMethodHelper {
@@ -24,20 +24,20 @@ public class ReplaceMethodHelper {
     public static UUID uuid() {
         if (ContextManager.needReplay()) {
             Mocker mocker = createMocker();
-            return UUID.fromString(String.valueOf(MockService.replayBody(mocker)));
+            return UUID.fromString(String.valueOf(MockUtils.replayBody(mocker)));
         }
         UUID realUuid = UUID.randomUUID();
         if (ContextManager.needRecord()) {
             Mocker mocker = createMocker();
             mocker.getTargetResponse().setType(String.class.getName());
             mocker.getTargetResponse().setBody(realUuid.toString());
-            MockService.recordMocker(mocker);
+            MockUtils.recordMocker(mocker);
         }
         return realUuid;
     }
 
     private static Mocker createMocker() {
-        Mocker mocker = MockService.createDynamicClass(UUID.class.getName(), "randomUUID");
+        Mocker mocker = MockUtils.createDynamicClass(UUID.class.getName(), "randomUUID");
         mocker.getTargetRequest().setBody(StringUtil.EMPTY);
         return mocker;
     }
