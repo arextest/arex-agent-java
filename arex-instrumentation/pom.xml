@@ -31,6 +31,7 @@
         <module>httpclient/arex-httpclient-apache-v4</module>
         <module>netty/arex-netty-v4</module>
         <module>jwt/arex-jwt</module>
+        <module>dubbo/arex-dubbo</module>
     </modules>
     <dependencies>
         <dependency>

@@ -75,7 +75,7 @@ public class RequestTracingHandler extends ChannelInboundHandlerAdapter {
             return true;
         }
 
-        if (RecordLimiter.acquire(request.uri())) {
+        if (!RecordLimiter.acquire(request.uri())) {
             return true;
         }
 

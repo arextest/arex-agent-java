@@ -165,6 +165,6 @@ public class ServletAdviceHelper {
         }
 
         String uri = adapter.getRequestURI(httpServletRequest);
-        return RecordLimiter.acquire(uri);
+        return !RecordLimiter.acquire(uri);
     }
 }
