@@ -43,7 +43,6 @@ public class InternalHttpAsyncClientInstrumentation extends TypeInstrumentation 
     @Override
     public List<String> adviceClassNames() {
         return asList(
-                "io.arex.inst.httpclient.apache.async.InternalHttpAsyncClientInstrumentation$ExecuteAdvice",
                 "io.arex.inst.httpclient.apache.async.FutureCallbackWrapper",
                 "io.arex.inst.httpclient.common.ArexDataException",
                 "io.arex.inst.httpclient.common.ExceptionWrapper",
@@ -57,7 +56,7 @@ public class InternalHttpAsyncClientInstrumentation extends TypeInstrumentation 
 
     @SuppressWarnings("unused")
     public static class ExecuteAdvice {
-        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class, suppress = Throwable.class)
+        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class)
         public static boolean onEnter(@Advice.Argument(0) HttpAsyncRequestProducer producer,
                                       @Advice.Argument(value = 3, readOnly = false) FutureCallback<?> callback,
                                       @Advice.Local("wrapped") FutureCallbackWrapper<?> wrapped) {
@@ -72,10 +71,15 @@ public class InternalHttpAsyncClientInstrumentation extends TypeInstrumentation 
             return false;
         }
 
-        @Advice.OnMethodExit(suppress = Throwable.class)
+        @Advice.OnMethodExit
         public static void onExit(@Advice.Local("wrapped") FutureCallbackWrapper<?> wrapped,
                                   @Advice.Return(readOnly = false) Future<?> future) {
-            if (ContextManager.needReplay() && wrapped.replay()) {
+            if (wrapped == null) {
+                return;
+            }
+
+            if (ContextManager.needReplay()) {
+                wrapped.replay();
                 future = new BasicFuture<>(wrapped);
             }
             // recording works in FutureCallbackWrapper

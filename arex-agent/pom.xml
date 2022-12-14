@@ -167,39 +167,19 @@
                             <relocations>
                                 <relocation>
                                     <pattern>net.bytebuddy</pattern>
-                                    <shadedPattern>io.arex.agent.net.bytebuddy</shadedPattern>
+                                    <shadedPattern>shaded.net.bytebuddy</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>org.slf4j</pattern>
-                                    <shadedPattern>io.arex.agent.slf4j</shadedPattern>
+                                    <shadedPattern>shaded.org.slf4j</shadedPattern>
                                 </relocation>
                                 <relocation>
-                                    <pattern>org.slf4j.impl</pattern>
-                                    <shadedPattern>io.arex.agent.slf4j.impl</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>httpasyncclient</pattern>
-                                    <shadedPattern>io.arex.agent.httpasyncclient</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>httpclient</pattern>
-                                    <shadedPattern>io.arex.agent.httpclient</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>httpcore</pattern>
-                                    <shadedPattern>io.arex.agent.httpcore</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>httpcore-nio</pattern>
-                                    <shadedPattern>io.arex.agent.httpcore-nio</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>zstd-jni</pattern>
-                                    <shadedPattern>io.arex.agent.zstd-jni</shadedPattern>
+                                    <pattern>org.apache.http</pattern>
+                                    <shadedPattern>shaded.apache.http</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>com.google</pattern>
-                                    <shadedPattern>io.arex.agent.guava</shadedPattern>
+                                    <shadedPattern>shaded.com.google</shadedPattern>
                                 </relocation>
                             </relocations>
                             <transformers>
