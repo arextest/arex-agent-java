@@ -2,14 +2,12 @@ package io.arex.inst.database.common;
 
 import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.agent.bootstrap.model.Mocker;
-import io.arex.foundation.services.MockService;
-import io.arex.foundation.serializer.SerializeUtils;
-import io.arex.foundation.services.IgnoreService;
-import io.arex.foundation.util.ResponseExceptionMockUtil;
-import io.arex.foundation.util.TypeUtil;
-import org.apache.commons.lang3.StringUtils;
+import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.inst.runtime.serializer.Serializer;
 
-import java.sql.SQLException;
+import io.arex.inst.runtime.util.IgnoreUtils;
+import io.arex.inst.runtime.util.MockUtils;
+import io.arex.inst.runtime.util.TypeUtil;
 
 
 public class DatabaseExtractor {
@@ -21,7 +19,7 @@ public class DatabaseExtractor {
     private final String sql;
     private final String parameters;
     private final String dbName;
-    private String methodName;
+    private final String methodName;
     private String keyHolder;
 
     public String getKeyHolder() {
@@ -38,32 +36,27 @@ public class DatabaseExtractor {
 
     // hibernate
     public DatabaseExtractor(String sql, Object entity, String methodName) {
-        this(sql, SerializeUtils.serialize(entity), methodName);
+        this(sql, Serializer.serialize(entity), methodName);
     }
 
     public DatabaseExtractor(String sql, String parameters, String methodName) {
         this.dbName = "";
-        this.sql = StringUtils.replaceEach(sql, SEARCH_LIST, REPLACE_LIST);
+        this.sql = StringUtil.replaceEach(sql, SEARCH_LIST, REPLACE_LIST, false, 0);
         this.parameters = parameters;
         this.methodName = methodName;
     }
 
     public void record(Object response) {
-        MockService.recordMocker(makeMocker(response));
-    }
-
-    public void record(SQLException ex) {
-        String response = ResponseExceptionMockUtil.formatResponseException(ex);
-        record(response);
+        MockUtils.recordMocker(makeMocker(response));
     }
 
     public MockResult replay() {
         // TODO: Temporarily use DataBase
-        boolean ignoreMockResult = IgnoreService.ignoreMockResult(this.dbName, methodName);
-        Mocker replayMocker = MockService.replayMocker(makeMocker(null));
+        boolean ignoreMockResult = IgnoreUtils.ignoreMockResult(this.dbName, methodName);
+        Mocker replayMocker = MockUtils.replayMocker(makeMocker(null));
         Object replayResult = null;
-        if (MockService.checkResponseMocker(replayMocker)) {
-            replayResult = SerializeUtils.deserialize(replayMocker.getTargetResponse().getBody(),
+        if (MockUtils.checkResponseMocker(replayMocker)) {
+            replayResult = Serializer.deserialize(replayMocker.getTargetResponse().getBody(),
                 replayMocker.getTargetResponse().getType());
 
             if (replayResult != null) {
@@ -76,12 +69,12 @@ public class DatabaseExtractor {
     }
 
     private Mocker makeMocker(Object response) {
-        Mocker mocker = MockService.createDatabase(this.methodName);
+        Mocker mocker = MockUtils.createDatabase(this.methodName);
         mocker.getTargetRequest().setBody(this.sql);
         mocker.getTargetRequest().setAttribute("dbName", this.dbName);
         mocker.getTargetRequest().setAttribute("parameters", this.parameters);
         mocker.getTargetRequest().setAttribute("keyHolder", this.keyHolder);
-        mocker.getTargetResponse().setBody(SerializeUtils.serialize(response));
+        mocker.getTargetResponse().setBody(Serializer.serialize(response));
         mocker.getTargetResponse().setType(TypeUtil.getName(response));
         return mocker;
     }

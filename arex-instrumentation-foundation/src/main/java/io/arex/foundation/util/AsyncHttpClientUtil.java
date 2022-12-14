@@ -3,6 +3,7 @@ package io.arex.foundation.util;
 import io.arex.foundation.config.ConfigManager;
 import io.arex.foundation.util.async.AutoCleanedPoolingNHttpClientConnectionManager;
 import io.arex.foundation.util.async.ThreadFactoryImpl;
+import io.arex.inst.runtime.util.LogUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -57,7 +58,7 @@ public class AsyncHttpClientUtil {
         return executeAsync(urlAddress, httpEntity, requestHeaders).join();
     }
 
-    public static String zstdJSONPost(String urlAddress, String postData) {
+    public static String zstdJsonPost(String urlAddress, String postData) {
         return executeAsync(urlAddress, postData).join();
     }
 

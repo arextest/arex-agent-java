@@ -1,6 +1,6 @@
 package io.arex.inst.jwt;
 
-import io.arex.foundation.context.ContextManager;
+import io.arex.inst.runtime.context.ContextManager;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -20,6 +20,7 @@ class JWTInstrumentationTest {
     @AfterAll
     static void tearDown() {
         target = null;
+        Mockito.clearAllCaches();
     }
 
     @Test

@@ -35,7 +35,7 @@
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>arex-instrumentation-foundation</artifactId>
+            <artifactId>arex-instrumentation-api</artifactId>
             <version>0.1.0</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/com.google.auto.service/auto-service -->

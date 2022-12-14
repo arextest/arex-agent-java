@@ -39,6 +39,10 @@ public class TraceContextManager {
         return messageId;
     }
 
+    public static String generateId() {
+        return idGenerator.next();
+    }
+
     private static final class IDGenerator {
         private final String PREFIX;
         private final AtomicLong counter;

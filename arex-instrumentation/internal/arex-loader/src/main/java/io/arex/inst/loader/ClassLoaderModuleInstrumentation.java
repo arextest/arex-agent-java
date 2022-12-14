@@ -1,15 +1,11 @@
 package io.arex.inst.loader;
 
-import io.arex.foundation.api.ModuleDescription;
-import io.arex.foundation.api.ModuleInstrumentation;
-import io.arex.foundation.api.TypeInstrumentation;
 import com.google.auto.service.AutoService;
+import io.arex.inst.extension.ModuleInstrumentation;
+import io.arex.inst.extension.TypeInstrumentation;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
-import static java.util.Arrays.asList;
 
 /**
  * LoaderSpringModuleInstrumentation
@@ -26,9 +22,6 @@ public class ClassLoaderModuleInstrumentation extends ModuleInstrumentation {
 
     @Override
     public List<TypeInstrumentation> instrumentationTypes() {
-        return /*Arrays.asList(new ClassLoaderInstrumentation(), new AppClassLoaderInstrumentation(),
-                new URLClassLoaderInstrumentation(), new WebAppClassLoaderBaseInstrumentation(),
-                new ParallelWebappClassLoaderInstrumentation());*/
-        Collections.singletonList(new InjectClassInstrumentation());
+        return Collections.singletonList(new InjectClassInstrumentation());
     }
 }

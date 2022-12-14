@@ -1,5 +1,7 @@
 package io.arex.agent.bootstrap;
 
+import io.arex.agent.bootstrap.util.StringUtil;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -88,6 +90,10 @@ public class AgentClassLoader extends URLClassLoader {
 
     @Override
     protected Class<?> findClass(String name) throws ClassNotFoundException {
+        if (StringUtil.startWithFrom(name, "runtime", 13)) {
+            return null;
+        }
+
         JarEntryInfo jarEntryInfo = findJarEntry(name.replace('.', '/') + ".class");
         if (jarEntryInfo != null && jarEntryInfo.getJarEntry() != null) {
             byte[] bytes;

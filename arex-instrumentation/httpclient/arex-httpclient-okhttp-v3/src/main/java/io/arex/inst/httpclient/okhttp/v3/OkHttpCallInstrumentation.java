@@ -1,10 +1,10 @@
 package io.arex.inst.httpclient.okhttp.v3;
 
-import io.arex.foundation.api.MethodInstrumentation;
-import io.arex.foundation.api.TypeInstrumentation;
-import io.arex.foundation.context.ContextManager;
-import io.arex.foundation.context.RepeatedCollectManager;
 import io.arex.agent.bootstrap.model.MockResult;
+import io.arex.inst.runtime.context.ContextManager;
+import io.arex.inst.runtime.context.RepeatedCollectManager;
+import io.arex.inst.extension.MethodInstrumentation;
+import io.arex.inst.extension.TypeInstrumentation;
 import io.arex.inst.httpclient.common.HttpClientExtractor;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;

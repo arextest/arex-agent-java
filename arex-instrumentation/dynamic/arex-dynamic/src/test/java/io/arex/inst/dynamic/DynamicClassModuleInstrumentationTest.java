@@ -1,12 +1,14 @@
 package io.arex.inst.dynamic;
 
-import io.arex.foundation.config.ConfigManager;
-import io.arex.foundation.services.ConfigService;
+import io.arex.inst.runtime.config.ConfigBuilder;
+import io.arex.inst.runtime.model.DynamicClassEntity;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -25,9 +27,14 @@ class DynamicClassModuleInstrumentationTest {
 
     @Test
     void instrumentationTypes() {
-        ConfigService.DynamicClassConfiguration dynamicClassConfiguration = new ConfigService.DynamicClassConfiguration();
-        dynamicClassConfiguration.setFullClassName("test");
-        ConfigManager.INSTANCE.setDynamicClassList(Collections.singletonList(dynamicClassConfiguration));
+        List<DynamicClassEntity> entities = new ArrayList<>();
+        entities.add(new DynamicClassEntity("io.arex.inst.dynamic.DynamicTestClass", "testReturnPrimitiveType", "", "java.lang.System.currentTimeMillis"));
+        ConfigBuilder.create("test")
+                .enableDebug(true)
+                .dynamicClassList(entities)
+                .addProperties(new HashMap<>())
+                .build();
+
         assertNotNull(target.instrumentationTypes());
     }
 }

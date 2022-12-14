@@ -2,8 +2,8 @@ package io.arex.inst.httpclient.okhttp.v3;
 
 import com.google.common.annotations.VisibleForTesting;
 import io.arex.agent.bootstrap.ctx.TraceTransmitter;
-import io.arex.foundation.context.RepeatedCollectManager;
 import io.arex.agent.bootstrap.model.MockResult;
+import io.arex.inst.runtime.context.RepeatedCollectManager;
 import io.arex.inst.httpclient.common.ExceptionWrapper;
 import io.arex.inst.httpclient.common.HttpClientExtractor;
 import io.arex.inst.httpclient.common.HttpResponseWrapper;

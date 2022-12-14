@@ -1,14 +1,12 @@
 package io.arex.inst.redis.common;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.agent.bootstrap.model.Mocker;
-import io.arex.foundation.services.IgnoreService;
-import io.arex.foundation.services.MockService;
-import io.arex.foundation.serializer.SerializeUtils;
-import io.arex.foundation.util.ResponseExceptionMockUtil;
-import io.arex.foundation.util.TypeUtil;
 
+import io.arex.inst.runtime.serializer.Serializer;
+import io.arex.inst.runtime.util.IgnoreUtils;
+import io.arex.inst.runtime.util.MockUtils;
+import io.arex.inst.runtime.util.TypeUtil;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -28,13 +26,29 @@ public class RedisExtractor {
     }
 
     public static class RedisMultiKey {
-        @JsonProperty("key")
-        private final String key;
-        @JsonProperty("filed")
-        private final String field;
+        private String key;
+        private String field;
+
+        public RedisMultiKey() {}
 
         public RedisMultiKey(String key, String field) {
             this.key = key;
+            this.field = field;
+        }
+
+        public String getKey() {
+            return key;
+        }
+
+        public void setKey(String key) {
+            this.key = key;
+        }
+
+        public String getField() {
+            return field;
+        }
+
+        public void setField(String field) {
             this.field = field;
         }
     }
@@ -48,25 +62,20 @@ public class RedisExtractor {
     }
 
     public void record(Object response) {
-        MockService.recordMocker(makeMocker(response));
-    }
-
-    public void record(Throwable exception) {
-        String response = ResponseExceptionMockUtil.formatResponseException(exception);
-        record(response);
+        MockUtils.recordMocker(makeMocker(response));
     }
 
     public MockResult replay() {
-        boolean ignoreResult = IgnoreService.ignoreMockResult(clusterName, command);
-        Object replayBody = MockService.replayBody(makeMocker(null));
+        boolean ignoreResult = IgnoreUtils.ignoreMockResult(clusterName, command);
+        Object replayBody = MockUtils.replayBody(makeMocker(null));
         return MockResult.success(ignoreResult, replayBody);
     }
 
     private Mocker makeMocker(Object response) {
-        Mocker mocker = MockService.createRedis(this.command);
-        mocker.getTargetRequest().setBody(SerializeUtils.serialize(new RedisMultiKey(key, field)));
+        Mocker mocker = MockUtils.createRedis(this.command);
+        mocker.getTargetRequest().setBody(Serializer.serialize(new RedisMultiKey(key, field)));
         mocker.getTargetRequest().setAttribute("clusterName", this.clusterName);
-        mocker.getTargetResponse().setBody(SerializeUtils.serialize(response));
+        mocker.getTargetResponse().setBody(Serializer.serialize(response));
         mocker.getTargetResponse().setType(normalizeTypeName(response));
         return mocker;
     }

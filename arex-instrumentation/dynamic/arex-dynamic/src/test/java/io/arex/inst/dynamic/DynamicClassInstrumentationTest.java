@@ -5,14 +5,19 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
-import io.arex.foundation.api.MethodInstrumentation;
-import io.arex.foundation.context.ArexContext;
-import io.arex.foundation.context.ContextManager;
-import io.arex.foundation.model.DynamicClassEntity;
 import io.arex.agent.bootstrap.model.MockResult;
-import io.arex.foundation.util.StringUtil;
+import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.inst.extension.MethodInstrumentation;
+import io.arex.inst.runtime.context.ArexContext;
+import io.arex.inst.runtime.context.ContextManager;
+import io.arex.inst.runtime.model.DynamicClassEntity;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import net.bytebuddy.ByteBuddy;
@@ -28,6 +33,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -121,9 +127,14 @@ class DynamicClassInstrumentationTest {
     @MethodSource("onExitCase")
     void onExit(Runnable mocker, MockResult mockResult, Predicate<MockResult> predicate) {
         mocker.run();
-        DynamicClassInstrumentation.MethodAdvice.onExit(
+        try (MockedConstruction<DynamicClassExtractor> mocked = Mockito.mockConstruction(DynamicClassExtractor.class, (mock, context) -> {
+            System.out.println("mock DynamicClassExtractor");
+            Mockito.doNothing().when(mock).record();
+        })) {
+            DynamicClassInstrumentation.MethodAdvice.onExit(
                 "java.lang.System", "getenv", new Object[]{"java.lang.String"}, mockResult, null);
-        assertTrue(predicate.test(mockResult));
+            assertTrue(predicate.test(mockResult));
+        }
     }
 
     static Stream<Arguments> onExitCase() {

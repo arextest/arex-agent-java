@@ -1,15 +1,8 @@
 package io.arex.inst.httpclient.common;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 public class ExceptionWrapper {
-    @JsonIgnore
     private transient Exception originalException;
-
-    @JsonProperty("errorMessage")
     private String originalMessage;
-    @JsonProperty("cancelled")
     private boolean cancelled;
 
     public Exception getOriginalException() {

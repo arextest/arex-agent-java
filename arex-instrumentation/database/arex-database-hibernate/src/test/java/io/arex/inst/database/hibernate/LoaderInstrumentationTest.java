@@ -1,9 +1,8 @@
 package io.arex.inst.database.hibernate;
 
-import io.arex.foundation.context.ContextManager;
-import io.arex.foundation.context.RepeatedCollectManager;
+import io.arex.inst.runtime.context.ContextManager;
+import io.arex.inst.runtime.context.RepeatedCollectManager;
 import io.arex.agent.bootstrap.model.MockResult;
-import io.arex.foundation.util.AsyncHttpClientUtil;
 import io.arex.inst.database.common.DatabaseExtractor;
 import org.hibernate.HibernateException;
 import org.hibernate.loader.Loader;
@@ -37,7 +36,6 @@ class LoaderInstrumentationTest {
         target = new LoaderInstrumentation();
         Mockito.mockStatic(ContextManager.class);
         Mockito.mockStatic(RepeatedCollectManager.class);
-        Mockito.mockStatic(AsyncHttpClientUtil.class);
     }
 
     @AfterAll

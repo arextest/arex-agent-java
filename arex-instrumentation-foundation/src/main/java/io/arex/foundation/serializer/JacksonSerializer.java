@@ -1,7 +1,7 @@
 package io.arex.foundation.serializer;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import io.arex.foundation.util.StringUtil;
+import io.arex.agent.bootstrap.util.StringUtil;
 import com.fasterxml.jackson.annotation.JsonIgnoreType;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
 import com.fasterxml.jackson.databind.ser.BeanSerializerModifier;
 
+import io.arex.inst.runtime.serializer.StringSerializable;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
@@ -31,7 +32,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public final class JacksonSerializer implements SerializeUtils.StringSerializable {
+public final class JacksonSerializer implements StringSerializable {
     public static final String EXTENSION = "json";
 
     private static List<String> MYBATIS_PLUS_CLASS_LIST = Arrays.asList(
@@ -52,6 +53,11 @@ public final class JacksonSerializer implements SerializeUtils.StringSerializabl
     };
 
     public static final JacksonSerializer INSTANCE = new JacksonSerializer();
+
+    @Override
+    public String name() {
+        return "jackson";
+    }
 
     private JacksonSerializer() {
         configMapper();

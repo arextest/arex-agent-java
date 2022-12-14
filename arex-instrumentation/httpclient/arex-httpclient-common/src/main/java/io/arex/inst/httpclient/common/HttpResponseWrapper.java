@@ -1,26 +1,13 @@
 package io.arex.inst.httpclient.common;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.List;
 
-@JsonAutoDetect(
-        getterVisibility = JsonAutoDetect.Visibility.NONE,
-        setterVisibility = JsonAutoDetect.Visibility.NONE,
-        isGetterVisibility = JsonAutoDetect.Visibility.NONE
-)
 public class HttpResponseWrapper {
 
-    @JsonProperty("statusLine")
     private String statusLine;
-    @JsonProperty("content")
     private byte[] content;
-    @JsonProperty("locale")
     private StringTuple locale;
-    @JsonProperty("headers")
     private List<StringTuple> headers;
-    @JsonProperty("exceptionWrapper")
     private ExceptionWrapper exceptionWrapper;
     private transient boolean ignoreMockResult;
     public void setHeaders(List<StringTuple> headers) {
@@ -72,9 +59,7 @@ public class HttpResponseWrapper {
     }
 
     public static class StringTuple {
-        @JsonProperty("f")
         private final String f;
-        @JsonProperty("s")
         private final String s;
 
         public StringTuple() {

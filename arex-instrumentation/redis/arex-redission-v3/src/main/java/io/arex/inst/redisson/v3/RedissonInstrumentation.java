@@ -1,7 +1,7 @@
 package io.arex.inst.redisson.v3;
 
-import io.arex.foundation.api.MethodInstrumentation;
-import io.arex.foundation.api.TypeInstrumentation;
+import io.arex.inst.extension.MethodInstrumentation;
+import io.arex.inst.extension.TypeInstrumentation;
 import io.arex.inst.redisson.v3.wrapper.RedissonBucketWrapper;
 import io.arex.inst.redisson.v3.wrapper.RedissonBucketsWrapper;
 import io.arex.inst.redisson.v3.wrapper.RedissonKeysWrapper;

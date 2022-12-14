@@ -1,6 +1,8 @@
 package io.arex.inst.jedis.v4;
 
-import io.arex.foundation.context.ContextManager;
+import io.arex.agent.bootstrap.model.MockResult;
+import io.arex.inst.redis.common.RedisExtractor;
+import io.arex.inst.runtime.context.ContextManager;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -47,8 +49,13 @@ class JedisWrapperTest {
     @MethodSource("callCase")
     void call(Runnable mocker, Predicate<String> predicate) {
         mocker.run();
-        String result = target.hget("key", "field");
-        assertTrue(predicate.test(result));
+        try (MockedConstruction<RedisExtractor> mocked = Mockito.mockConstruction(RedisExtractor.class, (mock, context) -> {
+            System.out.println("mock RedisExtractor");
+            Mockito.when(mock.replay()).thenReturn(MockResult.success(null));
+        })) {
+            String result = target.hget("key", "field");
+            assertTrue(predicate.test(result));
+        }
     }
 
     static Stream<Arguments> callCase() {

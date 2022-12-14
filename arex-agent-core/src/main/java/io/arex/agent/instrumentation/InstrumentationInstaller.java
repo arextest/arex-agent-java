@@ -1,15 +1,15 @@
 package io.arex.agent.instrumentation;
 
+import io.arex.inst.extension.ModuleInstrumentation;
+import io.arex.inst.extension.MethodInstrumentation;
+import io.arex.inst.extension.TypeInstrumentation;
 import io.arex.agent.bootstrap.InstrumentationHolder;
-import io.arex.foundation.api.MethodInstrumentation;
-import io.arex.foundation.api.ModuleInstrumentation;
-import io.arex.foundation.api.TypeInstrumentation;
-import io.arex.foundation.bytebuddy.AdviceInjector;
+import io.arex.agent.instrumentation.bytebuddy.AdviceInjector;
 import io.arex.foundation.config.ConfigManager;
-import io.arex.foundation.services.ConfigService;
-import io.arex.foundation.util.CollectionUtil;
+import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.foundation.util.SPIUtil;
 import java.io.IOException;
+
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.agent.builder.ResettableClassFileTransformer;
@@ -39,7 +39,6 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
 
     @Override
     protected ResettableClassFileTransformer transform() {
-        ConfigService.INSTANCE.loadAgentConfig(agentArgs);
         if (ConfigManager.INSTANCE.invalid()) {
             LOGGER.warn("[arex] config is invalid and stop instrument");
             return null;
@@ -97,7 +96,6 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
         }
 
         List<MethodInstrumentation> methodAdvices = type.methodAdvices();
-
         if (CollectionUtil.isEmpty(methodAdvices)) {
             return (AgentBuilder) identified;
         }
@@ -112,10 +110,9 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
 
     private AgentBuilder.Identified.Extendable installMethod(AgentBuilder.Identified builder,
         MethodInstrumentation method) {
-        LOGGER.warn("[arex] installed advice class: {}", method.getAdviceClassName());
         return builder.transform(new AgentBuilder.Transformer.ForAdvice()
-            .include(InstrumentationHolder.getAgentClassLoader())
-            .advice(method.getMethodMatcher(), method.getAdviceClassName()));
+                        .include(InstrumentationHolder.getAgentClassLoader())
+                        .advice(method.getMethodMatcher(), method.getAdviceClassName()));
     }
 
 

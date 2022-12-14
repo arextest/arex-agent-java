@@ -5,6 +5,7 @@ package io.arex.foundation.util;
  * https://github.com/google/diff-match-patch
  */
 import io.arex.agent.bootstrap.internal.Pair;
+import io.arex.agent.bootstrap.util.StringUtil;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 

@@ -45,8 +45,8 @@ public class HealthManager {
     /**
      * Record rate acquire
      */
-    public static boolean acquire(String methodName, double rate) {
-        return RECORD_RATE_MANAGER.acquire(methodName, rate);
+    public static boolean acquire(String uri) {
+        return RECORD_RATE_MANAGER.acquire(uri, ConfigManager.INSTANCE.getRecordRate());
     }
 
     public static void onEnqueueRejection() {
@@ -181,8 +181,8 @@ public class HealthManager {
             Pair<Double, RateLimiter> rateLimiterPair = RATE_LIMITER_MAP.computeIfAbsent(methodName, key -> {
                 return Pair.of(rate, RateLimiter.create(rate / BASE));
             });
-            int cmp = Double.compare(Optional.ofNullable(rateLimiterPair.getFirst()).orElse(0d), rate);
 
+            int cmp = Double.compare(Optional.ofNullable(rateLimiterPair.getFirst()).orElse(0d), rate);
             if ((cmp < 0 && STATE.get() == NORMAL) || cmp == 1) {
                 rateLimiterPair = RATE_LIMITER_MAP.put(methodName, Pair.of(rate, RateLimiter.create(rate / BASE)));
             }

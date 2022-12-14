@@ -1,18 +1,26 @@
 package io.arex.inst.redis.common;
 
+import io.arex.agent.bootstrap.model.ArexMocker;
+import io.arex.agent.bootstrap.model.Mocker.Target;
+import io.arex.inst.runtime.util.IgnoreUtils;
+import io.arex.inst.runtime.util.MockUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.MockedConstruction;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.stubbing.Answer;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class RedisExtractorTest {
+
     static RedisExtractor target;
 
     @BeforeAll
@@ -28,16 +36,34 @@ class RedisExtractorTest {
 
     @Test
     void record() {
-        target.record(new Object());
-    }
+        try (MockedStatic<MockUtils> mockService = mockStatic(MockUtils.class)) {
+            ArexMocker mocker = new ArexMocker();
+            mocker.setTargetRequest(new Target());
+            mocker.setTargetResponse(new Target());
+            mockService.when(() -> MockUtils.createRedis(any())).thenReturn(mocker);
+            mockService.when(() -> MockUtils.recordMocker(any())).then((Answer<Void>) invocationOnMock -> {
+                System.out.println("mock MockService.recordMocker");
+                return null;
+            });
 
-    @Test
-    void testRecord() {
-        target.record(new NullPointerException());
+            assertDoesNotThrow(() -> target.record(new Object()));
+        }
     }
 
     @Test
     void replay() {
-        assertNotNull(target.replay());
+        try (MockedStatic<MockUtils> mockService = mockStatic(MockUtils.class);
+            MockedStatic<IgnoreUtils> ignoreService = mockStatic(IgnoreUtils.class)) {
+
+            ignoreService.when(() -> IgnoreUtils.ignoreMockResult(any(), any())).thenReturn(true);
+
+            ArexMocker mocker = new ArexMocker();
+            mocker.setTargetRequest(new Target());
+            mocker.setTargetResponse(new Target());
+            mockService.when(() -> MockUtils.createRedis(any())).thenReturn(mocker);
+            mockService.when(() -> MockUtils.replayBody(any())).thenReturn(mocker);
+
+            assertNotNull(target.replay());
+        }
     }
 }

@@ -1,7 +1,7 @@
 package io.arex.integrationtest.redis.jedis4;
 
 import io.arex.agent.ArexJavaAgent;
-import io.arex.agent.bootstrap.model.ArexConstants;
+import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.integrationtest.common.AbstractIT;
 import net.bytebuddy.agent.ByteBuddyAgent;
 import org.junit.jupiter.api.AfterAll;

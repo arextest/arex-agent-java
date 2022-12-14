@@ -1,15 +1,16 @@
 package io.arex.inst.dynamic;
 
-import io.arex.foundation.context.RepeatedCollectManager;
-import io.arex.foundation.api.MethodInstrumentation;
-import io.arex.foundation.api.TypeInstrumentation;
-import io.arex.foundation.context.ContextManager;
-import io.arex.foundation.model.DynamicClassEntity;
-import io.arex.agent.bootstrap.model.MockResult;
-import io.arex.foundation.util.CollectionUtil;
-import io.arex.foundation.util.StringUtil;
+import io.arex.agent.bootstrap.util.CollectionUtil;
 import java.lang.reflect.Method;
 import java.util.Collections;
+
+import io.arex.agent.bootstrap.model.MockResult;
+import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.inst.runtime.context.ContextManager;
+import io.arex.inst.runtime.context.RepeatedCollectManager;
+import io.arex.inst.runtime.model.DynamicClassEntity;
+import io.arex.inst.extension.MethodInstrumentation;
+import io.arex.inst.extension.TypeInstrumentation;
 import net.bytebuddy.agent.builder.AgentBuilder.Transformer;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.asm.AsmVisitorWrapper;

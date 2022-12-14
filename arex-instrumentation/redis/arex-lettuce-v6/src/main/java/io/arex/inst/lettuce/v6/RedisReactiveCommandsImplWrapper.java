@@ -1,7 +1,7 @@
 package io.arex.inst.lettuce.v6;
 
 import io.arex.agent.bootstrap.model.MockResult;
-import io.arex.foundation.context.ContextManager;
+import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.redis.common.RedisExtractor;
 import io.arex.inst.redis.common.RedisKeyUtil;
 import io.lettuce.core.GetExArgs;
@@ -597,7 +597,7 @@ public class RedisReactiveCommandsImplWrapper<K, V> extends RedisReactiveCommand
                     new RedisExtractor(this.redisUri, commandSupplier.get().getType().name(), key, field);
             MockResult mockResult = extractor.replay();
             if (mockResult.notIgnoreMockResult()) {
-                return Mono.fromCallable(() -> (T) mockResult.getResult());
+                return Mono.just((T) mockResult.getResult());
             }
         }
 
@@ -637,7 +637,7 @@ public class RedisReactiveCommandsImplWrapper<K, V> extends RedisReactiveCommand
             }
         }
 
-        return (Flux<R>) super.createDissolvingFlux(commandSupplier).doOnNext(result -> {
+        return (Flux<R>) createDissolvingFlux(commandSupplier).doOnNext(result -> {
             if (ContextManager.needRecord()) {
                 RedisExtractor extractor =
                         new RedisExtractor(this.redisUri, commandSupplier.get().getType().name(), key, field);

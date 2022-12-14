@@ -1,13 +1,13 @@
 package io.arex.inst.httpservlet.inst;
 
 import com.google.auto.service.AutoService;
-import io.arex.foundation.api.ModuleInstrumentation;
-import io.arex.foundation.api.TypeInstrumentation;
+import io.arex.inst.extension.ModuleInstrumentation;
+import io.arex.inst.extension.TypeInstrumentation;
 
 import java.util.Arrays;
 import java.util.List;
 
-import static io.arex.foundation.matcher.HasClassNameMatcher.hasClassNamed;
+import static io.arex.inst.extension.matcher.HasClassNameMatcher.hasClassNamed;
 
 /**
  * ServletModuleInstrumentationV5

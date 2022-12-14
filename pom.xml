@@ -15,9 +15,9 @@
         <module>arex-agent-core</module>
         <module>arex-instrumentation</module>
         <module>arex-instrumentation-foundation</module>
-        <module>arex-cli-parent</module>
         <module>arex-attacher</module>
         <module>arex-integration-tests</module>
+        <module>arex-instrumentation-api</module>
     </modules>
 
     <properties>
@@ -66,12 +66,7 @@
             </dependency>
             <dependency>
                 <groupId>${project.groupId}</groupId>
-                <artifactId>arex-storage-extension</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>${project.groupId}</groupId>
-                <artifactId>arex-server-extension</artifactId>
+                <artifactId>arex-instrumentation-api</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -93,11 +88,6 @@
                 <groupId>net.bytebuddy</groupId>
                 <artifactId>byte-buddy</artifactId>
                 <version>${byte-buddy.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-lang3</artifactId>
-                <version>${commons-lang3.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.junit.jupiter</groupId>

@@ -1,9 +1,11 @@
 package io.arex.foundation.serializer;
 
+import com.google.auto.service.AutoService;
 import io.arex.foundation.util.NumberTypeAdaptor;
-import io.arex.foundation.util.StringUtil;
+import io.arex.agent.bootstrap.util.StringUtil;
 import com.google.gson.Gson;
 import com.google.gson.JsonDeserializer;
+import io.arex.inst.runtime.serializer.StringSerializable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.google.gson.*;
@@ -17,9 +19,9 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
 
-public class GsonSerializer implements SerializeUtils.StringSerializable {
+@AutoService(StringSerializable.class)
+public class GsonSerializer implements StringSerializable {
     private static final Logger LOGGER = LoggerFactory.getLogger(GsonSerializer.class);
-    public static final GsonSerializer INSTANCE = new GsonSerializer();
 
     private static final JsonDeserializer<LocalDateTime> LOCAL_DATE_TIME_JSON_DESERIALIZER = (json, type, context) ->
             LocalDateTime.parse(json.getAsString(), JacksonSerializer.DateFormatParser.INSTANCE.getFormatter(JacksonSerializer.DatePatternConstants.SIMPLE_DATE_FORMAT_MILLIS));
@@ -66,6 +68,15 @@ public class GsonSerializer implements SerializeUtils.StringSerializable {
             .registerTypeAdapter(Timestamp.class, TIMESTAMP_JSON_DESERIALIZER)
             .registerTypeAdapter(Date.class, DATE_JSON_DESERIALIZER)
             .disableHtmlEscaping().create();
+
+    public GsonSerializer() {
+
+    }
+
+    @Override
+    public String name() {
+        return "gson";
+    }
 
     @Override
     public String serialize(Object object) {

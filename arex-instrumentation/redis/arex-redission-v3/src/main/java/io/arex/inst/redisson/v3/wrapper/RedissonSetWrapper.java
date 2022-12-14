@@ -1,6 +1,6 @@
 package io.arex.inst.redisson.v3.wrapper;
 
-import io.arex.foundation.util.StringUtil;
+import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.redis.common.RedisKeyUtil;
 import io.arex.inst.redisson.v3.RedissonWrapperCommon;
 import org.redisson.RedissonSet;

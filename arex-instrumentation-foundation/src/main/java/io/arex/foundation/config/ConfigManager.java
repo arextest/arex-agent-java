@@ -1,12 +1,14 @@
 package io.arex.foundation.config;
 
 import com.google.common.annotations.VisibleForTesting;
-import io.arex.foundation.model.DynamicClassEntity;
+import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.foundation.services.ConfigService;
 import io.arex.foundation.services.TimerService;
-import io.arex.foundation.util.CollectionUtil;
+import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.foundation.util.PropertyUtil;
-import io.arex.foundation.util.StringUtil;
+import io.arex.inst.runtime.config.ConfigBuilder;
+import io.arex.inst.runtime.config.ConfigListener;
+import io.arex.inst.runtime.model.DynamicClassEntity;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,29 +25,13 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
+import static io.arex.foundation.config.ConfigConstants.*;
+
+// todo: use file
 public class ConfigManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(ConfigManager.class);
     public static final ConfigManager INSTANCE = new ConfigManager();
 
-    private static final String ENABLE_DEBUG = "arex.enable.debug";
-    private static final String SERVICE_NAME = "arex.service.name";
-    private static final String STORAGE_SERVICE_HOST = "arex.storage.service.host";
-    private static final String CONFIG_PATH = "arex.config.path";
-    private static final String STORAGE_MODE = "local";
-    private static final String RECORD_RATE = "arex.rate.limit";
-    private static final String DYNAMIC_RESULT_SIZE_LIMIT = "arex.dynamic.result.size.limit";
-    private static final String TIME_MACHINE = "arex.time.machine";
-    private static final String STORAGE_SERVICE_MODE = "arex.storage.mode";
-    private static final String STORAGE_SERVICE_JDBC_URL = "arex.storage.jdbc.url";
-    private static final String STORAGE_SERVICE_USER_NAME = "arex.storage.username";
-    private static final String STORAGE_SERVICE_PASSWORD = "arex.storage.password";
-    private static final String STORAGE_SERVICE_WEB_PORT = "arex.storage.web.port";
-    private static final String SERVER_SERVICE_TCP_PORT = "arex.server.tcp.port";
-    private static final String ALLOW_DAY_WEEKS = "arex.allow.day.weeks";
-    private static final String ALLOW_TIME_FROM = "arex.allow.time.from";
-    private static final String ALLOW_TIME_TO = "arex.allow.time.to";
-
-    private static final String DISABLE_INSTRUMENTATION_MODULE = "arex.disable.instrumentation.module";
     private boolean enableDebug;
     private String agentVersion;
     private String serviceName;
@@ -71,11 +57,11 @@ public class ConfigManager {
     private List<String> disabledInstrumentationModules;
 
     private static List<ConfigListener> listeners = new ArrayList<ConfigListener>();
-    private static boolean stopped = false;
 
     private ConfigManager() {
         init();
         readConfigFromFile(configPath);
+        updateInstrumentationConfig();
     }
 
     public boolean isEnableDebug() {
@@ -183,7 +169,18 @@ public class ConfigManager {
         setAllowTimeOfDayTo(System.getProperty(ALLOW_TIME_TO, "23:59"));
         setDisabledInstrumentationModules(System.getProperty(DISABLE_INSTRUMENTATION_MODULE));
 
-        TimerService.scheduleAtFixedRate(ConfigManager::update, 300, 300, TimeUnit.SECONDS);
+        TimerService.scheduleAtFixedRate(this::update, 1800, 1800, TimeUnit.SECONDS);
+    }
+
+    private void updateInstrumentationConfig() {
+        Map<String, String> configMap = new HashMap<>();
+        configMap.put(DYNAMIC_RESULT_SIZE_LIMIT, String.valueOf(getDynamicResultSizeLimit()));
+        configMap.put(TIME_MACHINE, String.valueOf(startTimeMachine()));
+
+        ConfigBuilder.create(getServiceName())
+                .enableDebug(isEnableDebug())
+                .addProperties(configMap)
+                .build();
     }
 
     @VisibleForTesting
@@ -228,11 +225,7 @@ public class ConfigManager {
         return configMap;
     }
 
-    private static void start() {
-
-    }
-
-    private static void update() {
+    private void update() {
         ConfigService.INSTANCE.loadAgentConfig(null);
     }
 
@@ -389,6 +382,8 @@ public class ConfigManager {
         setAllowTimeOfDayFrom(config.getAllowTimeOfDayFrom());
         setAllowTimeOfDayTo(config.getAllowTimeOfDayTo());
         setDynamicClassList(serviceConfig.getDynamicClassConfigurationList());
+
+        updateInstrumentationConfig();
     }
 
     public boolean invalid() {

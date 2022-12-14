@@ -1,7 +1,7 @@
 package io.arex.inst.httpclient.okhttp.v3;
 
-import io.arex.foundation.context.ContextManager;
 import io.arex.agent.bootstrap.model.MockResult;
+import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.httpclient.common.HttpClientExtractor;
 import okhttp3.Call;
 import okhttp3.Callback;

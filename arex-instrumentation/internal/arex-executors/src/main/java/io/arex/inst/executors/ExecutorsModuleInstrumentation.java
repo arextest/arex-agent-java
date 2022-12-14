@@ -1,9 +1,8 @@
 package io.arex.inst.executors;
 
-import io.arex.foundation.api.ModuleDescription;
-import io.arex.foundation.api.ModuleInstrumentation;
-import io.arex.foundation.api.TypeInstrumentation;
 import com.google.auto.service.AutoService;
+import io.arex.inst.extension.ModuleInstrumentation;
+import io.arex.inst.extension.TypeInstrumentation;
 
 import java.util.List;
 

@@ -1,14 +1,13 @@
 package io.arex.inst.httpservlet;
 
-import io.arex.agent.bootstrap.model.ArexMocker;
-import io.arex.foundation.context.ContextManager;
-import io.arex.agent.bootstrap.model.ArexConstants;
-import io.arex.foundation.services.MockService;
-import io.arex.foundation.serializer.SerializeUtils;
+import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.inst.httpservlet.adapter.ServletAdapter;
-
+import io.arex.inst.runtime.context.ContextManager;
+import io.arex.inst.runtime.model.ArexConstants;
+import io.arex.inst.runtime.serializer.Serializer;
+import io.arex.inst.runtime.util.MockUtils;
+import io.arex.inst.runtime.util.TypeUtil;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
@@ -67,11 +66,11 @@ public class ServletExtractor<HttpServletRequest, HttpServletResponse> {
     }
 
     private void doExecute() {
-        ArexMocker mocker = MockService.createServlet(getPattern());
+        Mocker mocker = MockUtils.createServlet(getPattern());
 
         Map<String, Object> requestAttributes = new HashMap<>();
         requestAttributes.put("HttpMethod", adapter.getMethod(httpServletRequest));
-        requestAttributes.put("ServletPath", adapter.getServletPath(httpServletRequest));
+        requestAttributes.put("RequestPath", adapter.getServletPath(httpServletRequest));
         requestAttributes.put("Headers", getRequestHeaders());
 
         Map<String, Object> responseAttributes = Collections.singletonMap("Headers", getResponseHeaders());
@@ -79,11 +78,14 @@ public class ServletExtractor<HttpServletRequest, HttpServletResponse> {
         mocker.getTargetRequest().setAttributes(requestAttributes);
         mocker.getTargetRequest().setBody(getRequest());
         mocker.getTargetResponse().setAttributes(responseAttributes);
-        mocker.getTargetResponse().setBody(getResponse());
+
+        Object response = getResponse();
+        mocker.getTargetResponse().setBody(Serializer.serialize(response));
+        mocker.getTargetResponse().setType(TypeUtil.getName(response));
         if (ContextManager.needReplay()) {
-            MockService.replayBody(mocker);
+            MockUtils.replayMocker(mocker);
         } else if (ContextManager.needRecord()) {
-            MockService.recordMocker(mocker);
+            MockUtils.recordMocker(mocker);
         }
     }
 
@@ -114,15 +116,15 @@ public class ServletExtractor<HttpServletRequest, HttpServletResponse> {
         return Base64.getEncoder().encodeToString(adapter.getRequestBytes(httpServletRequest));
     }
 
-    private String getResponse() {
+    private Object getResponse() {
         Object response = adapter.getAttribute(httpServletRequest, ServletAdviceHelper.SERVLET_RESPONSE);
         // response body to json
         if (response != null) {
             adapter.removeAttribute(httpServletRequest, ServletAdviceHelper.SERVLET_RESPONSE);
-            return SerializeUtils.serialize(response);
+            return response;
         }
         // view to html
-        return new String(adapter.getResponseBytes(httpServletResponse), StandardCharsets.UTF_8);
+        return adapter.getResponseBytes(httpServletResponse);
     }
 
     private String getPattern() {

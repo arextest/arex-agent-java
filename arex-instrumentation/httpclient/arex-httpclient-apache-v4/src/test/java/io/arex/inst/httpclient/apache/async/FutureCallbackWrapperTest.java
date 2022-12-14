@@ -1,11 +1,11 @@
 package io.arex.inst.httpclient.apache.async;
 
-import io.arex.foundation.context.ContextManager;
 import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.inst.httpclient.apache.common.ApacheHttpClientAdapter;
 import io.arex.inst.httpclient.common.ExceptionWrapper;
 import io.arex.inst.httpclient.common.HttpClientExtractor;
 import io.arex.inst.httpclient.common.HttpResponseWrapper;
+import io.arex.inst.runtime.context.ContextManager;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.concurrent.FutureCallback;

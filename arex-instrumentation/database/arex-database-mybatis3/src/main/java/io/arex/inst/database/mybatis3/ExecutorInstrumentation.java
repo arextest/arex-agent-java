@@ -1,11 +1,11 @@
 package io.arex.inst.database.mybatis3;
 
-import io.arex.foundation.api.MethodInstrumentation;
-import io.arex.foundation.api.TypeInstrumentation;
-import io.arex.foundation.context.ContextManager;
-import io.arex.foundation.context.RepeatedCollectManager;
 import io.arex.agent.bootstrap.model.MockResult;
+import io.arex.inst.runtime.context.ContextManager;
+import io.arex.inst.runtime.context.RepeatedCollectManager;
 import io.arex.inst.database.common.DatabaseExtractor;
+import io.arex.inst.extension.MethodInstrumentation;
+import io.arex.inst.extension.TypeInstrumentation;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
@@ -15,7 +15,7 @@ import org.apache.ibatis.mapping.MappedStatement;
 import java.sql.SQLException;
 import java.util.List;
 
-import static io.arex.foundation.matcher.HasInterfaceMatcher.hasInterface;
+import static io.arex.inst.extension.matcher.HasInterfaceMatcher.hasInterface;
 import static java.util.Arrays.asList;
 import static net.bytebuddy.matcher.ElementMatchers.*;
 

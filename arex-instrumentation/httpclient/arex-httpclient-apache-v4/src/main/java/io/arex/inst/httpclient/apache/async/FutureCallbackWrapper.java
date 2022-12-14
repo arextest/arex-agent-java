@@ -1,8 +1,8 @@
 package io.arex.inst.httpclient.apache.async;
 
 import io.arex.agent.bootstrap.ctx.TraceTransmitter;
-import io.arex.foundation.context.RepeatedCollectManager;
 import io.arex.agent.bootstrap.model.MockResult;
+import io.arex.inst.runtime.context.RepeatedCollectManager;
 import io.arex.inst.httpclient.apache.common.ApacheHttpClientAdapter;
 import io.arex.inst.httpclient.common.ArexDataException;
 import io.arex.inst.httpclient.common.ExceptionWrapper;
