@@ -1,5 +1,6 @@
 package io.arex.inst.runtime.util;
 
+import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
 import org.slf4j.Logger;
@@ -66,5 +67,9 @@ public class IgnoreUtils {
             return true;
         }
         return false;
+    }
+
+    public static boolean ignoreOperation(String targetName) {
+        return Config.get().excludeServiceOperations() != null && Config.get().excludeServiceOperations().contains(targetName);
     }
 }

@@ -9,6 +9,7 @@ public class ConfigBuilder {
     private boolean enableDebug = false;
     private final String serviceName;
     private List<DynamicClassEntity> entities;
+    private Set<String> excludeServiceOperations;
 
     public static ConfigBuilder create(String serviceName) {
         return new ConfigBuilder(serviceName);
@@ -26,6 +27,11 @@ public class ConfigBuilder {
 
     public ConfigBuilder dynamicClassList(List<DynamicClassEntity> entities) {
         this.entities = entities;
+        return this;
+    }
+
+    public ConfigBuilder excludeServiceOperations(Set<String> excludeServiceOperations) {
+        this.excludeServiceOperations = excludeServiceOperations;
         return this;
     }
 
@@ -52,6 +58,7 @@ public class ConfigBuilder {
     }
 
     public void build() {
-        Config.update(enableDebug, serviceName, entities, Collections.unmodifiableMap(new HashMap<>(properties)));
+        Config.update(enableDebug, serviceName, entities, Collections.unmodifiableMap(new HashMap<>(properties)),
+                excludeServiceOperations);
     }
 }

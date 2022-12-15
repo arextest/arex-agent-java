@@ -8,8 +8,8 @@ import io.arex.inst.runtime.serializer.Serializer;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -135,7 +135,7 @@ public class ConfigService {
         private String allowTimeOfDayFrom;
         private String allowTimeOfDayTo;
         private boolean timeMock;
-        private Map<String, Set<String>> excludeOperationMap;
+        private Set<String> excludeServiceOperationSet;
 
         public String getAppId() {
             return appId;
@@ -185,12 +185,12 @@ public class ConfigService {
             this.timeMock = timeMock;
         }
 
-        public Map<String, Set<String>> getExcludeOperationMap() {
-            return excludeOperationMap;
+        public Set<String> getExcludeServiceOperationSet() {
+            return excludeServiceOperationSet;
         }
 
-        public void setExcludeOperationMap(Map<String, Set<String>> excludeOperationMap) {
-            this.excludeOperationMap = excludeOperationMap;
+        public void setExcludeServiceOperationSet(Set<String> excludeServiceOperationSet) {
+            this.excludeServiceOperationSet = excludeServiceOperationSet;
         }
     }
 

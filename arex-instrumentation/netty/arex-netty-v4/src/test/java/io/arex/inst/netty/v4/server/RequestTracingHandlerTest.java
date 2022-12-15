@@ -80,7 +80,11 @@ class RequestTracingHandlerTest {
         Runnable mocker4 = () -> {
             Mockito.when(headers.get(ArexConstants.REPLAY_WARM_UP)).thenReturn("false");
         };
+        Runnable mocker4_1 = () -> {
+            Mockito.when(IgnoreUtils.ignoreOperation(any())).thenReturn(true);
+        };
         Runnable mocker5 = () -> {
+            Mockito.when(IgnoreUtils.ignoreOperation(any())).thenReturn(false);
             Mockito.when(RecordLimiter.acquire(any())).thenReturn(true);
             Mockito.when(IgnoreUtils.isServiceEnabled(any())).thenReturn(true);
         };
@@ -107,6 +111,7 @@ class RequestTracingHandlerTest {
                 arguments(mocker2, request),
                 arguments(mocker3, request),
                 arguments(mocker4, request),
+                arguments(mocker4_1, request),
                 arguments(mocker5, request),
                 arguments(mocker6, request),
                 arguments(mocker7, content)

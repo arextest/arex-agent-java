@@ -8,6 +8,7 @@ import io.arex.inst.runtime.listener.CaseEventDispatcher;
 import io.arex.inst.runtime.listener.EventSource;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.serializer.Serializer;
+import io.arex.inst.runtime.util.IgnoreUtils;
 import io.arex.inst.runtime.util.MockUtils;
 import org.apache.dubbo.rpc.Invocation;
 import org.apache.dubbo.rpc.Invoker;
@@ -38,6 +39,9 @@ public class DubboProviderExtractor {
         }
         // Skip if request header with arex-replay-warm-up=true
         if (adapter.replayWarmUp()) {
+            return true;
+        }
+        if (IgnoreUtils.ignoreOperation(adapter.getOperationName())) {
             return true;
         }
         // Record rate limit

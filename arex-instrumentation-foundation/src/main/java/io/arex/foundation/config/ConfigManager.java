@@ -55,6 +55,7 @@ public class ConfigManager {
     private LocalTime allowTimeOfDayFrom;
     private LocalTime allowTimeOfDayTo;
     private List<String> disabledInstrumentationModules;
+    private Set<String> excludeServiceOperations;
 
     private static List<ConfigListener> listeners = new ArrayList<ConfigListener>();
 
@@ -168,6 +169,7 @@ public class ConfigManager {
         setAllowTimeOfDayFrom(System.getProperty(ALLOW_TIME_FROM, "00:01"));
         setAllowTimeOfDayTo(System.getProperty(ALLOW_TIME_TO, "23:59"));
         setDisabledInstrumentationModules(System.getProperty(DISABLE_INSTRUMENTATION_MODULE));
+        setExcludeServiceOperations(System.getProperty(EXCLUDE_SERVICE_OPERATION));
 
         TimerService.scheduleAtFixedRate(this::update, 1800, 1800, TimeUnit.SECONDS);
     }
@@ -180,6 +182,8 @@ public class ConfigManager {
         ConfigBuilder.create(getServiceName())
                 .enableDebug(isEnableDebug())
                 .addProperties(configMap)
+                .dynamicClassList(getDynamicClassList())
+                .excludeServiceOperations(getExcludeServiceOperations())
                 .build();
     }
 
@@ -204,6 +208,7 @@ public class ConfigManager {
         setTimeMachine(configMap.get(TIME_MACHINE));
         setStorageServiceMode(configMap.get(STORAGE_SERVICE_MODE));
         setDisabledInstrumentationModules(configMap.get(DISABLE_INSTRUMENTATION_MODULE));
+        setExcludeServiceOperations(configMap.get(EXCLUDE_SERVICE_OPERATION));
     }
 
     private static Map<String, String> parseConfigFile(String configPath) {
@@ -382,6 +387,7 @@ public class ConfigManager {
         setAllowTimeOfDayFrom(config.getAllowTimeOfDayFrom());
         setAllowTimeOfDayTo(config.getAllowTimeOfDayTo());
         setDynamicClassList(serviceConfig.getDynamicClassConfigurationList());
+        setExcludeServiceOperations(config.getExcludeServiceOperationSet());
 
         updateInstrumentationConfig();
     }
@@ -415,10 +421,34 @@ public class ConfigManager {
             if (this.disabledInstrumentationModules == null) {
                 this.disabledInstrumentationModules = Collections.emptyList();
             }
+            return;
         }
 
         this.disabledInstrumentationModules = new ArrayList<>(
             Arrays.asList(StringUtil.split(disabledInstrumentationModules, ',')));
+    }
+
+    public void setExcludeServiceOperations(String excludeServiceOperations) {
+        if (StringUtil.isEmpty(excludeServiceOperations)) {
+            if (this.excludeServiceOperations == null) {
+                this.excludeServiceOperations = Collections.emptySet();
+            }
+            return;
+        }
+
+        this.excludeServiceOperations = new HashSet<>(
+                Arrays.asList(StringUtil.split(excludeServiceOperations, ',')));
+    }
+
+    public void setExcludeServiceOperations(Set<String> excludeServiceOperationSet) {
+        if (CollectionUtil.isEmpty(excludeServiceOperationSet)) {
+            return;
+        }
+        this.excludeServiceOperations = excludeServiceOperationSet;
+    }
+
+    public Set<String> getExcludeServiceOperations() {
+        return excludeServiceOperations;
     }
 
     @Override

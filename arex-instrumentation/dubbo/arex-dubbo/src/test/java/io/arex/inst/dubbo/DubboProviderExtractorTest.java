@@ -4,6 +4,7 @@ import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.context.RecordLimiter;
 import io.arex.inst.runtime.listener.CaseEventDispatcher;
+import io.arex.inst.runtime.util.IgnoreUtils;
 import org.apache.dubbo.rpc.RpcContext;
 import org.apache.dubbo.rpc.RpcContextAttachment;
 import org.junit.jupiter.api.AfterAll;
@@ -33,6 +34,7 @@ class DubboProviderExtractorTest {
         Mockito.mockStatic(ContextManager.class);
         Mockito.mockStatic(RpcContext.class);
         Mockito.mockStatic(RecordLimiter.class);
+        Mockito.mockStatic(IgnoreUtils.class);
     }
 
     @AfterAll
@@ -62,13 +64,18 @@ class DubboProviderExtractorTest {
         };
         Runnable mocker4 = () -> {
             Mockito.when(adapter.replayWarmUp()).thenReturn(false);
+            Mockito.when(IgnoreUtils.ignoreOperation(any())).thenReturn(true);
+        };
+        Runnable mocker5 = () -> {
+            Mockito.when(IgnoreUtils.ignoreOperation(any())).thenReturn(false);
         };
 
         return Stream.of(
                 arguments(mocker1),
                 arguments(mocker2),
                 arguments(mocker3),
-                arguments(mocker4)
+                arguments(mocker4),
+                arguments(mocker5)
         );
     }
 

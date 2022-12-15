@@ -21,4 +21,5 @@ public class ConfigConstants {
     public static final String ALLOW_TIME_TO = "arex.allow.time.to";
 
     public static final String DISABLE_INSTRUMENTATION_MODULE = "arex.disable.instrumentation.module";
+    public static final String EXCLUDE_SERVICE_OPERATION = "arex.exclude.service.operation";
 }
