@@ -9,7 +9,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.util.LogUtil;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -88,7 +87,7 @@ public class ResponseExceptionMockUtil {
             exceptionInfo = exceptionInfo.substring(1, exceptionInfo.length() - 1);
         }
 
-        String[] exceptionArray = StringUtils.splitByWholeSeparator(exceptionInfo, EXCEPTION_SEPARATOR);
+        String[] exceptionArray = StringUtil.splitByWholeSeparator(exceptionInfo, EXCEPTION_SEPARATOR);
         Map<String, String> map = new HashMap<>(exceptionArray.length / 2);
         // exception class-message appeared in pairs
         int index;

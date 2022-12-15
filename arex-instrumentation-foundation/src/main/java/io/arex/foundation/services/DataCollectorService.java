@@ -6,6 +6,7 @@ import io.arex.foundation.internal.DataEntity;
 import io.arex.foundation.internal.MockEntityBuffer;
 import io.arex.foundation.util.AsyncHttpClientUtil;
 import io.arex.foundation.util.async.ThreadFactoryImpl;
+import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.service.DataCollector;
 import io.arex.inst.runtime.service.DataService;
 import org.slf4j.Logger;
@@ -83,6 +84,7 @@ public class DataCollectorService implements DataCollector {
                     if (!initialized.get()) {
                         break;
                     }
+
                     doSleep(1000);
                     continue;
                 }
@@ -106,6 +108,9 @@ public class DataCollectorService implements DataCollector {
     }
 
     void saveData(DataEntity entity) {
+        if (ConfigManager.INSTANCE.isEnableDebug()) {
+            LOGGER.info("[arex] save mocker: {}", entity.getPostData());
+        }
         AsyncHttpClientUtil.executeAsync(saveApiUrl, entity.getPostData()).whenComplete(saveMockDataConsumer(entity));
     }
 
