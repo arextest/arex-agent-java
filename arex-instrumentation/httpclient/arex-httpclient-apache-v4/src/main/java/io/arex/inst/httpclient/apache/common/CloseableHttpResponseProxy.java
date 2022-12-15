@@ -11,6 +11,6 @@ public class CloseableHttpResponseProxy extends BasicHttpResponse implements Clo
 
     @Override
     public void close() {
-
+        // Do nothing
     }
 }

@@ -6,7 +6,6 @@ import io.arex.foundation.internal.DataEntity;
 import io.arex.foundation.internal.MockEntityBuffer;
 import io.arex.foundation.util.AsyncHttpClientUtil;
 import io.arex.foundation.util.async.ThreadFactoryImpl;
-import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.service.DataCollector;
 import io.arex.inst.runtime.service.DataService;
 import org.slf4j.Logger;

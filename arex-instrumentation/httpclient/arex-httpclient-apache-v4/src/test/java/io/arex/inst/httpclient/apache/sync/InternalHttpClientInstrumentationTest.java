@@ -53,11 +53,6 @@ class InternalHttpClientInstrumentationTest {
     }
 
     @Test
-    void adviceClassNames() {
-        assertNotNull(target.adviceClassNames());
-    }
-
-    @Test
     void onEnter() {
         try (MockedConstruction<HttpClientExtractor> mocked = Mockito.mockConstruction(HttpClientExtractor.class, (mock, context) -> {
             Mockito.when(mock.replay()).thenReturn(MockResult.success("mock"));

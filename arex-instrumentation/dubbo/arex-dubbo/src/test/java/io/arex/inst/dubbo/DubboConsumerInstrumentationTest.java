@@ -53,6 +53,11 @@ class DubboConsumerInstrumentationTest {
     }
 
     @Test
+    void adviceClassNames() {
+        assertNotNull(target.adviceClassNames());
+    }
+
+    @Test
     void onEnter() {
         try (MockedConstruction<DubboConsumerExtractor> mocked = Mockito.mockConstruction(DubboConsumerExtractor.class, (mock, context) -> {
             Mockito.when(mock.replay()).thenReturn(MockResult.success(false, null));
