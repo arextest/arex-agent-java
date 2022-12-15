@@ -16,7 +16,6 @@ public class SyncClientModuleInstrumentation extends ModuleInstrumentation {
 
     @Override
     public List<TypeInstrumentation> instrumentationTypes() {
-        return asList(new InternalHttpClientInstrumentation(),
-                new DefaultHttpResponseFactoryInstrumentation());
+        return asList(new InternalHttpClientInstrumentation());
     }
 }

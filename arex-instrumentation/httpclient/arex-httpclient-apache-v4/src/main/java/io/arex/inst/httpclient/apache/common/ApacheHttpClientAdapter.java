@@ -9,6 +9,7 @@ import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
+import org.apache.http.StatusLine;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.BasicHttpEntity;
@@ -117,8 +118,8 @@ public class ApacheHttpClientAdapter implements HttpClientAdapter<HttpRequest, M
 
     @Override
     public MockResult unwrap(HttpResponseWrapper wrapped) {
-        HttpResponse response = DefaultHttpResponseFactory.INSTANCE.newHttpResponse(
-                ApacheHttpClientHelper.parseStatusLine(wrapped.getStatusLine()), null);
+        StatusLine statusLine = ApacheHttpClientHelper.parseStatusLine(wrapped.getStatusLine());
+        HttpResponse response = new CloseableHttpResponseProxy(statusLine);
         response.setLocale(new Locale(wrapped.getLocale().name(), wrapped.getLocale().value()));
         appendHeaders(response, wrapped.getHeaders());
         BasicHttpEntity entity = ApacheHttpClientHelper.createHttpEntity(response);

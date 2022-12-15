@@ -37,9 +37,7 @@ public class OkHttpCallbackWrapper implements Callback {
     public void onFailure(@NotNull Call call, @NotNull IOException e) {
         // call from record
         try (TraceTransmitter tm = traceTransmitter.transmit()) {
-            if (RepeatedCollectManager.exitAndValidate()) {
-                extractor.record(e);
-            }
+            extractor.record(e);
             delegate.onFailure(call, e);
         }
     }
@@ -48,9 +46,7 @@ public class OkHttpCallbackWrapper implements Callback {
     public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
         // call from record
         try (TraceTransmitter tm = traceTransmitter.transmit()) {
-            if (RepeatedCollectManager.exitAndValidate()) {
-                extractor.record(MockResult.success(response));
-            }
+            extractor.record(MockResult.success(response));
             delegate.onResponse(call, response);
         }
     }

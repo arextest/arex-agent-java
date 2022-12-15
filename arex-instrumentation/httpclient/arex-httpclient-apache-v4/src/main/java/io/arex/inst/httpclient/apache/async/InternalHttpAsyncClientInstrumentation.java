@@ -5,6 +5,10 @@ import io.arex.inst.runtime.context.RepeatedCollectManager;
 import io.arex.inst.extension.MethodInstrumentation;
 import io.arex.inst.extension.TypeInstrumentation;
 import net.bytebuddy.asm.Advice;
+import net.bytebuddy.asm.Advice.Argument;
+import net.bytebuddy.asm.Advice.Local;
+import net.bytebuddy.asm.Advice.OnMethodEnter;
+import net.bytebuddy.asm.Advice.OnNonDefaultValue;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
 import org.apache.http.concurrent.BasicFuture;
@@ -44,10 +48,11 @@ public class InternalHttpAsyncClientInstrumentation extends TypeInstrumentation 
     public List<String> adviceClassNames() {
         return asList(
                 "io.arex.inst.httpclient.apache.async.FutureCallbackWrapper",
-                "io.arex.inst.httpclient.common.ArexDataException",
-                "io.arex.inst.httpclient.common.ExceptionWrapper",
                 "io.arex.inst.httpclient.apache.common.ApacheHttpClientAdapter",
                 "io.arex.inst.httpclient.apache.common.ApacheHttpClientHelper",
+                "io.arex.inst.httpclient.apache.common.CloseableHttpResponseProxy",
+                "io.arex.inst.httpclient.common.ArexDataException",
+                "io.arex.inst.httpclient.common.ExceptionWrapper",
                 "io.arex.inst.httpclient.common.HttpClientExtractor",
                 "io.arex.inst.httpclient.common.HttpClientAdapter",
                 "io.arex.inst.httpclient.common.HttpResponseWrapper",
@@ -56,12 +61,11 @@ public class InternalHttpAsyncClientInstrumentation extends TypeInstrumentation 
 
     @SuppressWarnings("unused")
     public static class ExecuteAdvice {
-        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class)
-        public static boolean onEnter(@Advice.Argument(0) HttpAsyncRequestProducer producer,
-                                      @Advice.Argument(value = 3, readOnly = false) FutureCallback<?> callback,
-                                      @Advice.Local("wrapped") FutureCallbackWrapper<?> wrapped) {
-            if (ContextManager.needRecordOrReplay()) {
-                RepeatedCollectManager.enter();
+        @OnMethodEnter(skipOn = OnNonDefaultValue.class)
+        public static boolean onEnter(@Argument(0) HttpAsyncRequestProducer producer,
+                                      @Argument(value = 3, readOnly = false) FutureCallback<?> callback,
+                                      @Local("wrapped") FutureCallbackWrapper<?> wrapped) {
+            if (ContextManager.needRecordOrReplay() && RepeatedCollectManager.validate()) {
                 wrapped = FutureCallbackWrapper.get(producer, callback);
                 if (wrapped != null) {
                     callback = wrapped;

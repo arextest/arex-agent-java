@@ -15,6 +15,13 @@ public class RepeatedCollectManager {
         }
     }
 
+    /**
+     * Only used in advice asynchronous callback code
+     */
+    public static boolean validate() {
+        return Context.get() == null;
+    }
+
     public static boolean exitAndValidate() {
         CallDepth callDepth = Context.get();
         if (callDepth == null) {
