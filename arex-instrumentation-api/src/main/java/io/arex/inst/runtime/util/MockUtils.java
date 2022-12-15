@@ -51,6 +51,14 @@ public final class MockUtils {
         return create(MockCategoryType.SERVLET, pattern);
     }
 
+    public static ArexMocker createDubboConsumer(String operationName) {
+        return create(MockCategoryType.DUBBO_CONSUMER, operationName);
+    }
+
+    public static ArexMocker createDubboProvider(String operationName) {
+        return create(MockCategoryType.DUBBO_PROVIDER, operationName);
+    }
+
     public static ArexMocker create(MockCategoryType categoryType, String operationName) {
         ArexMocker mocker = new ArexMocker();
         long createTime = System.currentTimeMillis();
@@ -77,7 +85,6 @@ public final class MockUtils {
     public static Mocker replayMocker(Mocker requestMocker) {
         String postJson = Serializer.serialize(requestMocker);
         String data = DataService.INSTANCE.query(postJson);
-
         if (StringUtil.isEmpty(data) || "{}".equals(data)) {
             LOGGER.warn("[arex] response body is null. request: {}", postJson);
             return null;

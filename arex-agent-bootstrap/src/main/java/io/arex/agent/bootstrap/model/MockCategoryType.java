@@ -16,6 +16,8 @@ public class MockCategoryType implements Serializable {
     public static final MockCategoryType REDIS = createSkipComparison("Redis");
     public static final MockCategoryType MESSAGE_PRODUCER = createDependency("QMessageProducer");
     public static final MockCategoryType MESSAGE_CONSUMER = createEntryPoint("QMessageConsumer");
+    public static final MockCategoryType DUBBO_CONSUMER = createDependency("DubboConsumer");
+    public static final MockCategoryType DUBBO_PROVIDER = createEntryPoint("DubboProvider");
 
     private String name;
     private boolean entryPoint;

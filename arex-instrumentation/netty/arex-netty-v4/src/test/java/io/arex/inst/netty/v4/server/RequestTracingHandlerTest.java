@@ -79,10 +79,9 @@ class RequestTracingHandlerTest {
         };
         Runnable mocker4 = () -> {
             Mockito.when(headers.get(ArexConstants.REPLAY_WARM_UP)).thenReturn("false");
-            Mockito.when(RecordLimiter.acquire(any())).thenReturn(true);
         };
         Runnable mocker5 = () -> {
-            Mockito.when(RecordLimiter.acquire(any())).thenReturn(false);
+            Mockito.when(RecordLimiter.acquire(any())).thenReturn(true);
             Mockito.when(IgnoreUtils.isServiceEnabled(any())).thenReturn(true);
         };
         Channel channel = Mockito.mock(Channel.class);

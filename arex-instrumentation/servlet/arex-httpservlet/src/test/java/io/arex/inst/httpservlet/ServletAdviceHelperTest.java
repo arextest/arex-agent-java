@@ -93,10 +93,9 @@ class ServletAdviceHelperTest {
         Runnable mocker7 = () -> {
             Mockito.when(adapter.getContentType(any())).thenReturn("mock");
             Mockito.when(adapter.getRequestURI(any())).thenReturn("uri");
-            Mockito.when(RecordLimiter.acquire(any())).thenReturn(true);
         };
         Runnable mocker8 = () -> {
-            Mockito.when(RecordLimiter.acquire(any())).thenReturn(false);
+            Mockito.when(RecordLimiter.acquire(any())).thenReturn(true);
             Mockito.when(ContextManager.needRecordOrReplay()).thenReturn(true);
         };
 
