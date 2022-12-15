@@ -1,13 +1,12 @@
 package io.arex.inst.httpservlet;
 
 import io.arex.agent.bootstrap.internal.Pair;
-import io.arex.agent.bootstrap.model.MockResult;
-import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.context.RecordLimiter;
 import io.arex.inst.runtime.listener.CaseEventDispatcher;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.httpservlet.adapter.ServletAdapter;
+import io.arex.inst.runtime.util.IgnoreUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,7 +29,6 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 
 @ExtendWith(MockitoExtension.class)
@@ -47,6 +45,7 @@ class ServletAdviceHelperTest {
         Mockito.mockStatic(RecordLimiter.class);
         Mockito.mockStatic(CaseEventDispatcher.class);
         invocableHandlerMethod = Mockito.mock(InvocableHandlerMethod.class);
+        Mockito.mockStatic(IgnoreUtils.class);
     }
 
     @AfterAll
@@ -94,7 +93,11 @@ class ServletAdviceHelperTest {
             Mockito.when(adapter.getContentType(any())).thenReturn("mock");
             Mockito.when(adapter.getRequestURI(any())).thenReturn("uri");
         };
+        Runnable mocker7_1 = () -> {
+            Mockito.when(IgnoreUtils.ignoreOperation(any())).thenReturn(true);
+        };
         Runnable mocker8 = () -> {
+            Mockito.when(IgnoreUtils.ignoreOperation(any())).thenReturn(false);
             Mockito.when(RecordLimiter.acquire(any())).thenReturn(true);
             Mockito.when(ContextManager.needRecordOrReplay()).thenReturn(true);
         };
@@ -109,6 +112,7 @@ class ServletAdviceHelperTest {
                 arguments(mocker5, predicate1),
                 arguments(mocker6, predicate1),
                 arguments(mocker7, predicate1),
+                arguments(mocker7_1, predicate1),
                 arguments(mocker8, predicate2)
         );
     }

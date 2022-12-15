@@ -7,8 +7,11 @@ import org.junit.jupiter.api.Test;
 import java.io.File;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ConfigManagerTest {
    static ConfigManager configManager = null;
@@ -42,5 +45,26 @@ class ConfigManagerTest {
 
         assertEquals("test-your-service-config-path", configManager.getServiceName());
         assertEquals("test-storage-service.host-config-path", configManager.getStorageServiceHost());
+    }
+
+    @Test
+    void setDisabledInstrumentationModules() {
+        configManager.setDisabledInstrumentationModules(null);
+        assertTrue(configManager.getDisabledInstrumentationModules().isEmpty());
+        configManager.setDisabledInstrumentationModules("mock");
+        assertTrue(!configManager.getDisabledInstrumentationModules().isEmpty());
+    }
+
+    @Test
+    void setExcludeServiceOperations() {
+        configManager.setExcludeServiceOperations("");
+        assertTrue(configManager.getExcludeServiceOperations().isEmpty());
+        configManager.setExcludeServiceOperations("mock");
+        assertTrue(!configManager.getExcludeServiceOperations().isEmpty());
+        Set<String> excludeOperations = new HashSet<>();
+        configManager.setExcludeServiceOperations(excludeOperations);
+        excludeOperations.add("mock");
+        configManager.setExcludeServiceOperations(excludeOperations);
+        assertTrue(!configManager.getExcludeServiceOperations().isEmpty());
     }
 }

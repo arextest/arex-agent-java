@@ -4,14 +4,15 @@ import io.arex.inst.runtime.model.DynamicClassEntity;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 
 public class Config {
     private static Config INSTANCE = null;
 
     static void update(boolean enableDebug, String serviceName, List<DynamicClassEntity> entities,
-                       Map<String, String> properties) {
-        INSTANCE = new Config(enableDebug, serviceName, entities, properties);
+                       Map<String, String> properties, Set<String> excludeServiceOperations) {
+        INSTANCE = new Config(enableDebug, serviceName, entities, properties, excludeServiceOperations);
     }
 
     public static Config get() {
@@ -22,12 +23,15 @@ public class Config {
     private final String serviceName;
     private final List<DynamicClassEntity> entities;
     private Map<String, String> properties;
+    private Set<String> excludeServiceOperations;
 
-    Config(boolean enableDebug, String serviceName, List<DynamicClassEntity> entities, Map<String, String> properties) {
+    Config(boolean enableDebug, String serviceName, List<DynamicClassEntity> entities, Map<String, String> properties,
+           Set<String> excludeServiceOperations) {
         this.enableDebug = enableDebug;
         this.serviceName = serviceName;
         this.entities = entities;
         this.properties = properties;
+        this.excludeServiceOperations = excludeServiceOperations;
     }
 
     public boolean isEnableDebug() {
@@ -36,6 +40,10 @@ public class Config {
 
     public List<DynamicClassEntity> dynamicClassEntities() {
         return this.entities;
+    }
+
+    public Set<String> excludeServiceOperations() {
+        return this.excludeServiceOperations;
     }
 
     public String getServiceName() {

@@ -9,6 +9,7 @@ import io.arex.inst.runtime.listener.CaseEvent;
 import io.arex.inst.runtime.listener.CaseEventDispatcher;
 import io.arex.inst.runtime.listener.EventSource;
 import io.arex.inst.runtime.model.ArexConstants;
+import io.arex.inst.runtime.util.IgnoreUtils;
 import io.arex.inst.runtime.util.LogUtil;
 import java.util.HashSet;
 import java.util.Set;
@@ -165,6 +166,11 @@ public class ServletAdviceHelper {
         }
 
         String uri = adapter.getRequestURI(httpServletRequest);
+
+        if (IgnoreUtils.ignoreOperation(uri)) {
+            return true;
+        }
+
         return !RecordLimiter.acquire(uri);
     }
 }
