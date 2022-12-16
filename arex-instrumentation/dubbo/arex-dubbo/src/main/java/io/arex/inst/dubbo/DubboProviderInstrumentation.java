@@ -12,6 +12,7 @@ import org.apache.dubbo.rpc.Result;
 
 import java.util.List;
 
+import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 import static net.bytebuddy.matcher.ElementMatchers.takesArgument;
@@ -34,6 +35,11 @@ public class DubboProviderInstrumentation extends TypeInstrumentation {
         String adviceClassName = this.getClass().getName() + "$InvokeAdvice";
 
         return singletonList(new MethodInstrumentation(matcher, adviceClassName));
+    }
+
+    @Override
+    public List<String> adviceClassNames() {
+        return asList("io.arex.inst.dubbo.DubboAdapter", "io.arex.inst.dubbo.DubboProviderExtractor");
     }
 
     public static class InvokeAdvice {

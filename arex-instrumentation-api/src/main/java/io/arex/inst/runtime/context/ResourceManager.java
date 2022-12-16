@@ -13,7 +13,6 @@ import java.util.jar.Manifest;
 
 public class ResourceManager {
     private static final Set<ClassLoader> cache = new HashSet<>();
-    private static final String BYTEBUDDY_PREFIX = StringUtil.removeShadePrefix("net.bytebuddy.");
 
     public static void registerResources(ClassLoader loader) {
         if (!checkLoader(loader)) {
@@ -28,11 +27,6 @@ public class ResourceManager {
             return false;
         }
         cache.add(loader);
-
-        String name = loader.getClass().getName();
-        if (name.startsWith("sun.reflect.DelegatingClassLoader") || name.startsWith(BYTEBUDDY_PREFIX)) {
-            return false;
-        }
         return true;
     }
 

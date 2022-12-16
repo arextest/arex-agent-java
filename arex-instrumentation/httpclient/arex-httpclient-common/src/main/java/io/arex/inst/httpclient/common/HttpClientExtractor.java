@@ -83,9 +83,11 @@ public class HttpClientExtractor<TRequest, TResponse> {
     }
 
     public HttpResponseWrapper fetchMockResult() {
-        boolean ignoreResult = IgnoreUtils.ignoreMockResult("http", adapter.getUri().getPath());
         HttpResponseWrapper wrapper = (HttpResponseWrapper) MockUtils.replayBody(makeMocker(null));
-        wrapper.setIgnoreMockResult(ignoreResult);
+        if (wrapper != null) {
+            boolean ignoreResult = IgnoreUtils.ignoreMockResult("http", adapter.getUri().getPath());
+            wrapper.setIgnoreMockResult(ignoreResult);
+        }
         return wrapper;
     }
 

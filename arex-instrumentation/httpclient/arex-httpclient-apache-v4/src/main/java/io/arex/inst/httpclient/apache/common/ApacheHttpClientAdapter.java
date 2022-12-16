@@ -9,12 +9,12 @@ import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
+import org.apache.http.StatusLine;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.HttpEntityWrapper;
-import org.apache.http.impl.DefaultHttpResponseFactory;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -117,8 +117,8 @@ public class ApacheHttpClientAdapter implements HttpClientAdapter<HttpRequest, M
 
     @Override
     public MockResult unwrap(HttpResponseWrapper wrapped) {
-        HttpResponse response = DefaultHttpResponseFactory.INSTANCE.newHttpResponse(
-                ApacheHttpClientHelper.parseStatusLine(wrapped.getStatusLine()), null);
+        StatusLine statusLine = ApacheHttpClientHelper.parseStatusLine(wrapped.getStatusLine());
+        HttpResponse response = new CloseableHttpResponseProxy(statusLine);
         response.setLocale(new Locale(wrapped.getLocale().name(), wrapped.getLocale().value()));
         appendHeaders(response, wrapped.getHeaders());
         BasicHttpEntity entity = ApacheHttpClientHelper.createHttpEntity(response);

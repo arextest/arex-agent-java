@@ -103,8 +103,7 @@ public class OkHttpCallInstrumentation extends TypeInstrumentation {
         public static boolean onEnter(
                 @Advice.This Call call,
                 @Advice.Argument(value = 0, readOnly = false) Callback callback) {
-            if (ContextManager.needRecordOrReplay()) {
-                RepeatedCollectManager.enter();
+            if (ContextManager.needRecordOrReplay() && RepeatedCollectManager.validate()) {
                 callback = new OkHttpCallbackWrapper(call, callback);
             }
             return ContextManager.needReplay();

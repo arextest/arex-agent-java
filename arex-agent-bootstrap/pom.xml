@@ -36,7 +36,7 @@
                             <relocations>
                                 <relocation>
                                     <pattern>net.bytebuddy</pattern>
-                                    <shadedPattern>io.arex.agent.net.bytebuddy</shadedPattern>
+                                    <shadedPattern>shaded.net.bytebuddy</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>

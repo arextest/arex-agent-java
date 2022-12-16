@@ -2,7 +2,6 @@ package io.arex.inst.httpclient.apache.async;
 
 import io.arex.agent.bootstrap.ctx.TraceTransmitter;
 import io.arex.agent.bootstrap.model.MockResult;
-import io.arex.inst.runtime.context.RepeatedCollectManager;
 import io.arex.inst.httpclient.apache.common.ApacheHttpClientAdapter;
 import io.arex.inst.httpclient.common.ArexDataException;
 import io.arex.inst.httpclient.common.ExceptionWrapper;
@@ -89,7 +88,7 @@ public class FutureCallbackWrapper<T> implements FutureCallback<T> {
 
     private void recordResponse(HttpResponse response) {
         try {
-            if (extractor != null && RepeatedCollectManager.exitAndValidate()) {
+            if (extractor != null) {
                 extractor.record(MockResult.success(response));
             }
         } catch (Exception ex) {
@@ -99,7 +98,7 @@ public class FutureCallbackWrapper<T> implements FutureCallback<T> {
 
     private void recordException(Exception exception) {
         try {
-            if (extractor != null && RepeatedCollectManager.exitAndValidate()) {
+            if (extractor != null) {
                 extractor.record(exception);
             }
         } catch (Exception ex) {

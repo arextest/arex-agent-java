@@ -126,9 +126,9 @@ public class StringUtil {
         return map;
     }
 
-    // net.bytebuddy auto modified by shade: io.arex.agent.net.bytebuddy
+    // net.bytebuddy auto modified by shade: shaded.net.bytebuddy
     public static String removeShadePrefix(String str) {
-        return str.length() > 14 ? str.substring(14) : str;
+        return str.length() > 7 ? str.substring(7) : str;
     }
 
     public static String substring(String str, int start) {

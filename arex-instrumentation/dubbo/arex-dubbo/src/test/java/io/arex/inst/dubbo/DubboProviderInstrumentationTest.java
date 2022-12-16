@@ -38,6 +38,11 @@ class DubboProviderInstrumentationTest {
     }
 
     @Test
+    void adviceClassNames() {
+        assertNotNull(target.adviceClassNames());
+    }
+
+    @Test
     void onEnter() throws SQLException {
         DubboProviderInstrumentation.InvokeAdvice.onEnter(null, null);
     }

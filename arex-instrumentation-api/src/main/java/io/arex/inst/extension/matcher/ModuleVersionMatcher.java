@@ -2,6 +2,7 @@ package io.arex.inst.extension.matcher;
 
 import io.arex.agent.bootstrap.cache.LoadedModuleCache;
 import io.arex.agent.bootstrap.internal.Pair;
+import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.context.ResourceManager;
 import io.arex.inst.extension.ModuleDescription;
 import net.bytebuddy.matcher.ElementMatcher;
@@ -10,6 +11,9 @@ import java.util.Map;
 import java.util.WeakHashMap;
 
 public class ModuleVersionMatcher extends ElementMatcher.Junction.AbstractBase<ClassLoader> {
+
+    private static final String BYTEBUDDY_PREFIX = StringUtil.removeShadePrefix("net.bytebuddy.");
+
     public static ElementMatcher.Junction<ClassLoader> versionMatch(ModuleDescription description) {
         return new IgnoreClassloaderMatcher(new ModuleVersionMatcher(description));
     }
@@ -23,7 +27,14 @@ public class ModuleVersionMatcher extends ElementMatcher.Junction.AbstractBase<C
 
     @Override
     public boolean matches(ClassLoader cl) {
-        if (cl == null || cl.getClass().getName().startsWith("sun.reflect.DelegatingClassLoader")) {
+        if (cl == null) {
+            return false;
+        }
+
+        String name = cl.getClass().getName();
+        if (name.startsWith("sun.reflect.DelegatingClassLoader") ||
+            name.startsWith("jdk.internal.reflect.DelegatingClassLoader") ||
+            name.startsWith(BYTEBUDDY_PREFIX)) {
             return false;
         }
         return description == null || cache.computeIfAbsent(cl, this::versionMatches);
@@ -39,6 +50,7 @@ public class ModuleVersionMatcher extends ElementMatcher.Junction.AbstractBase<C
     }
 
     static class IgnoreClassloaderMatcher extends ElementMatcher.Junction.AbstractBase<ClassLoader> {
+
         private ElementMatcher<ClassLoader> matcher;
 
         public IgnoreClassloaderMatcher(ElementMatcher<ClassLoader> matcher) {
