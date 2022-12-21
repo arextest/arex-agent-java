@@ -22,6 +22,7 @@ public class RedisKeyUtil {
         return generate(map.keySet());
     }
 
+    @SafeVarargs
     public static <K> String generate(K... keys) {
         switch (keys.length) {
             case 0:
@@ -33,6 +34,7 @@ public class RedisKeyUtil {
         }
     }
 
+    @SafeVarargs
     private static <K> String generateMultiple(K... keys) {
         StringBuilder builder = new StringBuilder(keys.length * 5);
         builder.append(toString(keys[0]));
@@ -40,6 +42,7 @@ public class RedisKeyUtil {
         return builder.toString();
     }
 
+    @SafeVarargs
     private static <K> void generateMultiple(StringBuilder builder, K... keys) {
         for (int i = 1; i < keys.length; i++) {
             builder.append(';').append(toString(keys[i]));

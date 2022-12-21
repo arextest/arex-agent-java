@@ -25,6 +25,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static java.util.Arrays.asList;
 import static net.bytebuddy.matcher.ElementMatchers.*;
 
 /**
@@ -99,10 +100,16 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
             } else {
                 parameterMatcher = parameterMatcher.and(takesNoArguments());
             }
-            matcher = matcher.or(parameterMatcher.and(returns(TypeDescription.VOID)));
+            matcher = matcher.or(parameterMatcher.and(not(returns(TypeDescription.VOID))));
         }
 
         return Collections.singletonList(new MethodInstrumentation(matcher, MethodAdvice.class.getName()));
+    }
+
+    @Override
+    public List<String> adviceClassNames() {
+        return asList("io.arex.inst.dynamic.DynamicClassExtractor",
+            "io.arex.inst.dynamic.ReplaceMethodHelper");
     }
 
     public final static class MethodAdvice {
@@ -113,28 +120,41 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
                                       @Advice.AllArguments Object[] args,
                                       @Advice.Local("mockResult") MockResult mockResult) {
             RepeatedCollectManager.enter();
+            // record
+            if (ContextManager.needRecord()) {
+                return false;
+            }
+
+            // replay
             DynamicClassExtractor extractor = new DynamicClassExtractor(className, methodName, args);
             mockResult = extractor.replay();
             return mockResult != null && mockResult.notIgnoreMockResult();
         }
 
-        @Advice.OnMethodExit
+        @Advice.OnMethodExit(onThrowable = Throwable.class)
         public static void onExit(@Advice.Origin("#t") String className, @Advice.Origin("#m") String methodName,
                                   @Advice.AllArguments Object[] args,
                                   @Advice.Local("mockResult") MockResult mockResult,
+                                  @Advice.Thrown(readOnly = false) Throwable throwable,
                                   @Advice.Return(readOnly = false, typing = Assigner.Typing.DYNAMIC) Object result) {
             if (!RepeatedCollectManager.exitAndValidate()) {
                 return;
             }
 
-            DynamicClassExtractor extractor;
+            // replay
             if (mockResult != null && mockResult.notIgnoreMockResult()) {
-                result = mockResult.getResult();
+                if (mockResult.getThrowable() != null) {
+                    throwable = mockResult.getThrowable();
+                } else {
+                    result = mockResult.getResult();
+                }
                 return;
             }
 
+            // record
             if (ContextManager.needRecord()) {
-                extractor = new DynamicClassExtractor(className, methodName, args, result);
+                Object recordResult = throwable != null ? throwable : result;
+                DynamicClassExtractor extractor = new DynamicClassExtractor(className, methodName, args, recordResult);
                 extractor.record();
             }
         }

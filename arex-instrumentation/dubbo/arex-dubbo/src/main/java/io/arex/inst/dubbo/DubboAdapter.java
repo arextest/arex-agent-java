@@ -101,23 +101,20 @@ public class DubboAdapter {
                 try {
                     if (response != null) {
                         if (response.getValue() == null) {
-                            // TODO record exception
-                            // value = Serializer.serialize(response.getException());
+                             value = response.getException();
                         } else {
                             value = normalizeResponse(response.getValue(), ProtocolUtils.isGeneric(getGeneric()));
                         }
                     } else if (throwable != null) {
-                        // TODO record throwable
-                        // value = Serializer.serialize(throwable);
+                         value = throwable;
                     }
                 } catch (Throwable e) {
                     LOGGER.warn(LogUtil.buildTitle("DubboResponseConsumer"), e);
                 } finally {
                     if (value != null) {
                         mocker.getTargetResponse().setBody(Serializer.serialize(value));
-                        if (mocker.getTargetResponse().getType() == null) {
-                            mocker.getTargetResponse().setType(TypeUtil.getName(value));
-                        }
+                        // maybe throwable
+                        mocker.getTargetResponse().setType(TypeUtil.getName(value));
                     }
                     if (ContextManager.needReplay()) {
                         MockUtils.replayMocker(mocker);

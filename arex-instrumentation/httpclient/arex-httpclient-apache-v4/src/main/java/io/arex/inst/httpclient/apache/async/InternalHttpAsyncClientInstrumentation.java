@@ -1,17 +1,13 @@
 package io.arex.inst.httpclient.apache.async;
 
+import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.context.RepeatedCollectManager;
 import io.arex.inst.extension.MethodInstrumentation;
 import io.arex.inst.extension.TypeInstrumentation;
 import net.bytebuddy.asm.Advice;
-import net.bytebuddy.asm.Advice.Argument;
-import net.bytebuddy.asm.Advice.Local;
-import net.bytebuddy.asm.Advice.OnMethodEnter;
-import net.bytebuddy.asm.Advice.OnNonDefaultValue;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
-import org.apache.http.concurrent.BasicFuture;
 import org.apache.http.concurrent.FutureCallback;
 import org.apache.http.nio.protocol.HttpAsyncRequestProducer;
 
@@ -51,8 +47,6 @@ public class InternalHttpAsyncClientInstrumentation extends TypeInstrumentation 
                 "io.arex.inst.httpclient.apache.common.ApacheHttpClientAdapter",
                 "io.arex.inst.httpclient.apache.common.ApacheHttpClientHelper",
                 "io.arex.inst.httpclient.apache.common.CloseableHttpResponseProxy",
-                "io.arex.inst.httpclient.common.ArexDataException",
-                "io.arex.inst.httpclient.common.ExceptionWrapper",
                 "io.arex.inst.httpclient.common.HttpClientExtractor",
                 "io.arex.inst.httpclient.common.HttpClientAdapter",
                 "io.arex.inst.httpclient.common.HttpResponseWrapper",
@@ -61,32 +55,33 @@ public class InternalHttpAsyncClientInstrumentation extends TypeInstrumentation 
 
     @SuppressWarnings("unused")
     public static class ExecuteAdvice {
-        @OnMethodEnter(skipOn = OnNonDefaultValue.class)
-        public static boolean onEnter(@Argument(0) HttpAsyncRequestProducer producer,
-                                      @Argument(value = 3, readOnly = false) FutureCallback<?> callback,
-                                      @Local("wrapped") FutureCallbackWrapper<?> wrapped) {
+        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class)
+        public static boolean onEnter(@Advice.Argument(0) HttpAsyncRequestProducer producer,
+            @Advice.Argument(value = 3, readOnly = false) FutureCallback<?> callback,
+            @Advice.Local("mockResult") MockResult mockResult) {
             if (ContextManager.needRecordOrReplay() && RepeatedCollectManager.validate()) {
-                wrapped = FutureCallbackWrapper.get(producer, callback);
-                if (wrapped != null) {
-                    callback = wrapped;
-                    return ContextManager.needReplay();
+                // recording works in callback wrapper
+                FutureCallbackWrapper<?> callbackWrapper = FutureCallbackWrapper.get(producer, callback);
+                if (callbackWrapper != null) {
+                    callback = callbackWrapper;
+                    if (ContextManager.needReplay()) {
+                        mockResult = ((FutureCallbackWrapper<?>)callback).replay();
+                        return mockResult != null && mockResult.notIgnoreMockResult();
+                    }
                 }
             }
             return false;
         }
 
         @Advice.OnMethodExit
-        public static void onExit(@Advice.Local("wrapped") FutureCallbackWrapper<?> wrapped,
-                                  @Advice.Return(readOnly = false) Future<?> future) {
-            if (wrapped == null) {
-                return;
+        public static void onExit(@Advice.Argument(value = 3, readOnly = false) FutureCallback<?> callback,
+            @Advice.Return(readOnly = false) Future<?> future,
+            @Advice.Local("mockResult") MockResult mockResult) {
+            if (callback instanceof FutureCallbackWrapper &&
+                mockResult != null && mockResult.notIgnoreMockResult()) {
+                FutureCallbackWrapper<?> callbackWrapper = (FutureCallbackWrapper<?>) callback;
+                future = callbackWrapper.replay(mockResult);
             }
-
-            if (ContextManager.needReplay()) {
-                wrapped.replay();
-                future = new BasicFuture<>(wrapped);
-            }
-            // recording works in FutureCallbackWrapper
         }
     }
 }

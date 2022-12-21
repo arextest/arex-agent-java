@@ -104,14 +104,14 @@ public class RedissonKeysWrapper extends RedissonKeys {
     @Override
     public RFuture<Void> renameAsync(String currentName, String newName) {
         return RedissonWrapperCommon.delegateCall(redisUri, RedisCommands.RENAME.getName(),
-            RedisKeyUtil.generate("currentName", currentName, "newName", newName),
+            RedisKeyUtil.generate(currentName, newName),
             () -> super.renameAsync(currentName, newName));
     }
 
     @Override
     public RFuture<Boolean> renamenxAsync(String oldName, String newName) {
         return RedissonWrapperCommon.delegateCall(redisUri, RedisCommands.RENAMENX.getName(),
-            RedisKeyUtil.generate("oldName", oldName, "newName", newName), () -> super.renamenxAsync(oldName, newName));
+            RedisKeyUtil.generate(oldName, newName), () -> super.renamenxAsync(oldName, newName));
     }
 
     @Override

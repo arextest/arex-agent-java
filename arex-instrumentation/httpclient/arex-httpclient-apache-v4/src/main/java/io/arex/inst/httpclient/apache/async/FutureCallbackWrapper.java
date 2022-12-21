@@ -3,12 +3,11 @@ package io.arex.inst.httpclient.apache.async;
 import io.arex.agent.bootstrap.ctx.TraceTransmitter;
 import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.inst.httpclient.apache.common.ApacheHttpClientAdapter;
-import io.arex.inst.httpclient.common.ArexDataException;
-import io.arex.inst.httpclient.common.ExceptionWrapper;
 import io.arex.inst.httpclient.common.HttpClientExtractor;
-import io.arex.inst.httpclient.common.HttpResponseWrapper;
+import java.util.concurrent.Future;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
+import org.apache.http.concurrent.BasicFuture;
 import org.apache.http.concurrent.FutureCallback;
 import org.apache.http.nio.protocol.HttpAsyncRequestProducer;
 import org.slf4j.Logger;
@@ -19,9 +18,9 @@ public class FutureCallbackWrapper<T> implements FutureCallback<T> {
     private final FutureCallback<T> delegate;
     private final TraceTransmitter traceTransmitter;
 
-    private final HttpClientExtractor<HttpRequest, MockResult> extractor;
+    private final HttpClientExtractor<HttpRequest, HttpResponse> extractor;
 
-    public FutureCallbackWrapper(HttpClientExtractor<HttpRequest, MockResult> extractor, FutureCallback<T> delegate) {
+    public FutureCallbackWrapper(HttpClientExtractor<HttpRequest, HttpResponse> extractor, FutureCallback<T> delegate) {
         this.traceTransmitter = TraceTransmitter.create();
         this.delegate = delegate;
         this.extractor = extractor;
@@ -32,7 +31,7 @@ public class FutureCallbackWrapper<T> implements FutureCallback<T> {
         try (TraceTransmitter tm = traceTransmitter.transmit()) {
             if (t instanceof HttpResponse) {
                 HttpResponse response = (HttpResponse) t;
-                recordResponse(response);
+                extractor.record(response);
             }
             delegate.completed(t);
         }
@@ -41,69 +40,28 @@ public class FutureCallbackWrapper<T> implements FutureCallback<T> {
     @Override
     public void failed(Exception e) {
         try (TraceTransmitter tm = traceTransmitter.transmit()) {
-            recordException(e);
+            extractor.record(e);
             delegate.failed(e);
         }
     }
 
     @Override
     public void cancelled() {
-        try (TraceTransmitter tm = traceTransmitter.transmit()) {
-            recordException(null);
-            delegate.cancelled();
-        }
+        delegate.cancelled();
     }
 
-    public boolean replay() {
-        try {
-            return mockResult(extractor.fetchMockResult());
-        } catch (Exception ex) {
-            delegate.failed(new ArexDataException("mock data failed.", ex));
-        }
-        return true;
+    public MockResult replay() {
+        return extractor.replay();
     }
 
-    private boolean mockResult(HttpResponseWrapper wrapped) {
-        if (wrapped == null) {
-            delegate.failed(new ArexDataException("mock data failed."));
-            return true;
+    public Future<T> replay(MockResult mockResult) {
+        BasicFuture<T> basicFuture = new BasicFuture<>(this.delegate);
+        if (mockResult.getThrowable() != null) {
+            basicFuture.failed((Exception) mockResult.getThrowable());
+        } else{
+            basicFuture.completed((T) mockResult.getResult());
         }
-        boolean notIgnoreMockResult = !wrapped.isIgnoreMockResult();
-        if (notIgnoreMockResult) {
-            ExceptionWrapper exception = wrapped.getException();
-            if (exception != null) {
-                if (exception.isCancelled()) {
-                    delegate.cancelled();
-                } else {
-                    delegate.failed(exception.getOriginalException());
-                }
-                return true;
-            }
-            // noinspection unchecked
-            MockResult mockResult = extractor.replay(wrapped);
-            delegate.completed((T) mockResult.getResult());
-        }
-        return notIgnoreMockResult;
-    }
-
-    private void recordResponse(HttpResponse response) {
-        try {
-            if (extractor != null) {
-                extractor.record(MockResult.success(response));
-            }
-        } catch (Exception ex) {
-            LOGGER.warn("consume response content failed:{}", ex.getMessage(), ex);
-        }
-    }
-
-    private void recordException(Exception exception) {
-        try {
-            if (extractor != null) {
-                extractor.record(exception);
-            }
-        } catch (Exception ex) {
-            LOGGER.warn("consume response content failed:{}", ex.getMessage(), ex);
-        }
+        return basicFuture;
     }
 
     public static <T> FutureCallbackWrapper<T> get(HttpAsyncRequestProducer requestProducer, FutureCallback<T> delegate) {
@@ -111,7 +69,7 @@ public class FutureCallbackWrapper<T> implements FutureCallback<T> {
             return ((FutureCallbackWrapper<T>) delegate);
         }
         ApacheHttpClientAdapter adapter;
-        HttpClientExtractor<HttpRequest, MockResult> extractor;
+        HttpClientExtractor<HttpRequest, HttpResponse> extractor;
 
         try {
             adapter = new ApacheHttpClientAdapter(requestProducer.generateRequest());

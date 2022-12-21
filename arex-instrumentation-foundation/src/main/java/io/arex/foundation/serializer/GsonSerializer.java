@@ -58,6 +58,18 @@ public class GsonSerializer implements StringSerializable {
     private static final JsonDeserializer<Date> DATE_JSON_DESERIALIZER = (json, type, context) ->
             new Date(Long.parseLong(json.getAsString()));
 
+    private static final ExclusionStrategy EXCLUION_STRATEGY = new ExclusionStrategy() {
+        @Override
+        public boolean shouldSkipField(FieldAttributes f) {
+            return "stackTrace".equals(f.getName()) || "suppressedExceptions".equals(f.getName());
+        }
+
+        @Override
+        public boolean shouldSkipClass(Class<?> clazz) {
+            return false;
+        }
+    };
+
     private static final Gson SERIALIZER = new GsonBuilder().registerTypeAdapterFactory(NumberTypeAdaptor.FACTORY)
             .registerTypeAdapter(LocalDateTime.class, LOCAL_DATE_TIME_JSON_DESERIALIZER)
             .registerTypeAdapter(LocalDate.class, LOCAL_DATE_JSON_DESERIALIZER)
@@ -67,6 +79,7 @@ public class GsonSerializer implements StringSerializable {
             .registerTypeAdapter(XMLGregorianCalendar.class, XML_GREGORIAN_CALENDAR_JSON_DESERIALIZER)
             .registerTypeAdapter(Timestamp.class, TIMESTAMP_JSON_DESERIALIZER)
             .registerTypeAdapter(Date.class, DATE_JSON_DESERIALIZER)
+            .setExclusionStrategies(EXCLUION_STRATEGY)
             .disableHtmlEscaping().create();
 
     public GsonSerializer() {

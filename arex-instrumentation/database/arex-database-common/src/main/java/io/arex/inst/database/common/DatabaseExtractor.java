@@ -73,7 +73,7 @@ public class DatabaseExtractor {
         mocker.getTargetRequest().setBody(this.sql);
         mocker.getTargetRequest().setAttribute("dbName", this.dbName);
         mocker.getTargetRequest().setAttribute("parameters", this.parameters);
-        mocker.getTargetRequest().setAttribute("keyHolder", this.keyHolder);
+        mocker.getTargetResponse().setAttribute("keyHolder", this.keyHolder);
         mocker.getTargetResponse().setBody(Serializer.serialize(response));
         mocker.getTargetResponse().setType(TypeUtil.getName(response));
         return mocker;

@@ -1,9 +1,11 @@
 package io.arex.inst.httpclient.common;
 
+import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.util.IgnoreUtils;
 import io.arex.inst.runtime.util.MockUtils;
+import io.arex.inst.runtime.util.TypeUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,19 +25,6 @@ public class HttpClientExtractor<TRequest, TResponse> {
         this.adapter = adapter;
     }
 
-    public void record(HttpResponseWrapper wrapped) {
-        if (wrapped == null) {
-            return;
-        }
-        try {
-            String response = Serializer.serialize(wrapped);
-            Mocker mocker = this.makeMocker(response);
-            MockUtils.recordMocker(mocker);
-        } catch (Throwable throwable) {
-            LOGGER.warn("record error:{}", throwable.getMessage(), throwable);
-        }
-    }
-
     public void record(TResponse response) {
         HttpResponseWrapper wrapped = null;
         try {
@@ -43,30 +32,38 @@ public class HttpClientExtractor<TRequest, TResponse> {
         } catch (Throwable throwable) {
             LOGGER.warn("wrap record error:{}", throwable.getMessage(), throwable);
         }
-        this.record(wrapped);
+
+        if (wrapped == null) {
+            return;
+        }
+
+        Mocker mocker = makeMocker();
+        mocker.getTargetResponse().setType(HttpResponseWrapper.class.getName());
+        mocker.getTargetResponse().setBody(Serializer.serialize(wrapped));
+        MockUtils.recordMocker(mocker);
     }
 
     public void record(Exception exception) {
-        HttpResponseWrapper wrapped = HttpResponseWrapper.of(new ExceptionWrapper(exception));
-        this.record(wrapped);
+        Mocker mocker = makeMocker();
+        mocker.getTargetResponse().setType(TypeUtil.getName(exception));
+        mocker.getTargetResponse().setBody(Serializer.serialize(exception));
+        MockUtils.recordMocker(mocker);
     }
 
-    public TResponse replay() {
-        return this.replay(fetchMockResult());
-    }
-
-    public TResponse replay(HttpResponseWrapper wrapped) {
-        if (wrapped == null) {
-            throw new ArexDataException("The wrapped == null");
+    public MockResult replay() {
+        boolean ignoreResult = IgnoreUtils.ignoreMockResult("http", adapter.getUri().getPath());
+        Object object = MockUtils.replayBody(makeMocker());
+        if (object instanceof Throwable) {
+            return MockResult.success(ignoreResult, object);
         }
-        ExceptionWrapper exception = wrapped.getException();
-        if (exception != null) {
-            throw new ArexDataException(exception.getOriginalException());
+        if (object instanceof HttpResponseWrapper) {
+            TResponse response = this.adapter.unwrap((HttpResponseWrapper) object);
+            return MockResult.success(ignoreResult, response);
         }
-        return this.adapter.unwrap(wrapped);
+        return null;
     }
 
-    private Mocker makeMocker(String response) {
+    private Mocker makeMocker() {
         String httpMethod = adapter.getMethod();
         Mocker mocker = MockUtils.createHttpClient(adapter.getUri().getPath());
         Map<String, Object> attributes = new HashMap<>();
@@ -77,18 +74,7 @@ public class HttpClientExtractor<TRequest, TResponse> {
         attributes.put("ContentType", adapter.getRequestContentType());
 
         mocker.getTargetRequest().setBody(this.encodeRequest(httpMethod));
-        mocker.getTargetResponse().setType(HttpResponseWrapper.class.getName());
-        mocker.getTargetResponse().setBody(response);
         return mocker;
-    }
-
-    public HttpResponseWrapper fetchMockResult() {
-        HttpResponseWrapper wrapper = (HttpResponseWrapper) MockUtils.replayBody(makeMocker(null));
-        if (wrapper != null) {
-            boolean ignoreResult = IgnoreUtils.ignoreMockResult("http", adapter.getUri().getPath());
-            wrapper.setIgnoreMockResult(ignoreResult);
-        }
-        return wrapper;
     }
 
     private String encodeRequest(String httpMethod) {

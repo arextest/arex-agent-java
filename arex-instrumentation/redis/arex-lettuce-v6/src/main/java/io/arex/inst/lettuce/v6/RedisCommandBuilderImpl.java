@@ -75,6 +75,8 @@ import static io.lettuce.core.protocol.CommandType.PEXPIRE;
 import static io.lettuce.core.protocol.CommandType.PEXPIREAT;
 import static io.lettuce.core.protocol.CommandType.PSETEX;
 import static io.lettuce.core.protocol.CommandType.PTTL;
+import static io.lettuce.core.protocol.CommandType.RENAME;
+import static io.lettuce.core.protocol.CommandType.RENAMENX;
 import static io.lettuce.core.protocol.CommandType.RPOP;
 import static io.lettuce.core.protocol.CommandType.RPOPLPUSH;
 import static io.lettuce.core.protocol.CommandType.SCARD;
@@ -510,6 +512,23 @@ public class RedisCommandBuilderImpl<K, V> extends BaseRedisCommandBuilder<K, V>
 
         CommandArgs<K, V> args = new CommandArgs<>(codec).addKey(key);
         return createCommand(PTTL, new IntegerOutput<>(codec), args);
+    }
+
+
+    Command<K, V, String> rename(K key, K newKey) {
+        notNullKey(key);
+        LettuceAssert.notNull(newKey, "NewKey " + MUST_NOT_BE_NULL);
+
+        CommandArgs<K, V> args = new CommandArgs<>(codec).addKey(key).addKey(newKey);
+        return createCommand(RENAME, new StatusOutput<>(codec), args);
+    }
+
+    Command<K, V, Boolean> renamenx(K key, K newKey) {
+        notNullKey(key);
+        LettuceAssert.notNull(newKey, "NewKey " + MUST_NOT_BE_NULL);
+
+        CommandArgs<K, V> args = new CommandArgs<>(codec).addKey(key).addKey(newKey);
+        return createCommand(RENAMENX, new BooleanOutput<>(codec), args);
     }
 
     Command<K, V, V> rpop(K key) {

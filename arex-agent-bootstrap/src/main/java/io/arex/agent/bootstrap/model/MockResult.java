@@ -19,15 +19,18 @@ public class MockResult {
         return !isIgnoreMockResult();
     }
 
+    public Throwable getThrowable() {
+        return throwable;
+    }
+
     public Object getResult() {
         return result;
     }
 
-    public static MockResult error(boolean ignoreMockResult, Throwable throwable) {
-        return new MockResult(ignoreMockResult, null, throwable);
-    }
-
     public static MockResult success(boolean ignoreMockResult, Object mockResult) {
+        if (mockResult instanceof Throwable) {
+            return new MockResult(ignoreMockResult, null, (Throwable) mockResult);
+        }
         return new MockResult(ignoreMockResult, mockResult, null);
     }
 

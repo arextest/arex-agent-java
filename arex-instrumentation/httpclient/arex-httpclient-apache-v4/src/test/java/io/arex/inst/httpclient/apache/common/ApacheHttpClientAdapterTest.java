@@ -1,6 +1,5 @@
 package io.arex.inst.httpclient.apache.common;
 
-import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.inst.httpclient.common.HttpResponseWrapper;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
@@ -88,14 +87,13 @@ class ApacheHttpClientAdapterTest {
 
     @ParameterizedTest
     @MethodSource("wrapCase")
-    void wrap(MockResult mockResult, Predicate<HttpResponseWrapper> predicate) {
-        HttpResponseWrapper wrapper = target.wrap(mockResult);
+    void wrap(HttpResponse httpResponse, Predicate<HttpResponseWrapper> predicate) {
+        HttpResponseWrapper wrapper = target.wrap(httpResponse);
         assertTrue(predicate.test(wrapper));
     }
 
     static Stream<Arguments> wrapCase() {
         HttpResponse response1 = Mockito.mock(HttpResponse.class);
-        MockResult mockResult1 = MockResult.success(response1);
 
         Consumer<HttpResponse> mocker = httpResponse -> {
             Header Header = Mockito.mock(Header.class);
@@ -111,21 +109,19 @@ class ApacheHttpClientAdapterTest {
         HttpResponse response2 = Mockito.mock(HttpResponse.class);
         Mockito.when(response2.getEntity()).thenReturn(entity);
         mocker.accept(response2);
-        MockResult mockResult2 = MockResult.success(response2);
 
 
         HttpResponse response3 = Mockito.mock(HttpResponse.class);
         HttpEntityWrapper entityWrapper = new HttpEntityWrapper(entity);
         Mockito.when(response3.getEntity()).thenReturn(entityWrapper);
         mocker.accept(response3);
-        MockResult mockResult3 = MockResult.success(response3);
 
         Predicate<HttpResponseWrapper> predicate1 = Objects::isNull;
         Predicate<HttpResponseWrapper> predicate2 = Objects::nonNull;
         return Stream.of(
-                arguments(mockResult1, predicate1),
-                arguments(mockResult2, predicate2),
-                arguments(mockResult3, predicate2)
+                arguments(response1, predicate1),
+                arguments(response2, predicate2),
+                arguments(response3, predicate2)
         );
     }
 
@@ -134,7 +130,7 @@ class ApacheHttpClientAdapterTest {
         HttpResponseWrapper.StringTuple header = new HttpResponseWrapper.StringTuple("key", "val");
         HttpResponseWrapper wrapper = new HttpResponseWrapper("HTTP/1.1 200", "mock".getBytes(),
                 new HttpResponseWrapper.StringTuple("key", "val"),
-                Collections.singletonList(header), null);
+                Collections.singletonList(header));
         assertNotNull(target.unwrap(wrapper));
     }
 

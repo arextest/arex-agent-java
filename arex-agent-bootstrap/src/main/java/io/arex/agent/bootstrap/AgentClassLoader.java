@@ -17,8 +17,26 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 /**
- * simple class loader
- * todo: add plugin jar support
+ * AgentClassLoader
+ *
+ * <p>
+ * arex-agent（AppClassLoader）
+ * <p>
+ * arex-agent-bootstrap (BootstrapClassLoader)
+ * <p>
+ * arex-agent-core (AgentClassLoader)
+ * <p>
+ * arex-instrumentation (UserClassLoader)
+ * <p>
+ * ----XXX Instrumentation & Module & Advice (AgentClassLoader)
+ * <p>
+ * arex-instrumentation-api
+ * <p>
+ * ----extension (AgentClassLoader)
+ * <p>
+ * ----runtime （AppClassLoader）
+ * <p>
+ * arex-instrumentation-foundation (AgentClassLoader)， backend
  */
 public class AgentClassLoader extends URLClassLoader {
 
@@ -46,7 +64,7 @@ public class AgentClassLoader extends URLClassLoader {
     }
 
     private List<JarInfo> getExtensionJarFiles(File jarFile) {
-        String extensionDir = jarFile.getParent() + "\\extensions\\";
+        String extensionDir = jarFile.getParent() + "/extensions/";
         List<JarInfo> extensionJarFiles = new ArrayList<>();
         File[] extensionFiles = new File(extensionDir).listFiles(this::isJar);
 

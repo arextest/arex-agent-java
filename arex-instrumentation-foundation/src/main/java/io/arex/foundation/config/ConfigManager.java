@@ -119,14 +119,6 @@ public class ConfigManager {
         System.setProperty(RECORD_RATE, recordRate);
     }
 
-    public void setDynamicResultSizeLimit(String dynamicResultSizeLimit) {
-        if (StringUtil.isEmpty(dynamicResultSizeLimit)) {
-            return;
-        }
-        this.dynamicResultSizeLimit = Integer.parseInt(dynamicResultSizeLimit);
-        System.setProperty(DYNAMIC_RESULT_SIZE_LIMIT, dynamicResultSizeLimit);
-    }
-
     public void setTimeMachine(String timeMachine) {
         if (StringUtil.isEmpty(timeMachine)) {
             return;
@@ -320,8 +312,12 @@ public class ConfigManager {
         return dynamicResultSizeLimit;
     }
 
-    public void setDynamicResultSizeLimit(int dynamicResultSizeLimit) {
-        this.dynamicResultSizeLimit = dynamicResultSizeLimit;
+    public void setDynamicResultSizeLimit(String dynamicResultSizeLimit) {
+        if (StringUtil.isEmpty(dynamicResultSizeLimit)) {
+            return;
+        }
+        this.dynamicResultSizeLimit = Integer.parseInt(dynamicResultSizeLimit);
+        System.setProperty(DYNAMIC_RESULT_SIZE_LIMIT, dynamicResultSizeLimit);
     }
 
     public boolean startTimeMachine() {

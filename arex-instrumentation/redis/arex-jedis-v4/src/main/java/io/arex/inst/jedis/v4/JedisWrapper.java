@@ -272,8 +272,18 @@ public class JedisWrapper extends Jedis {
     }
 
     @Override
+    public long hdel(byte[] key, byte[]... fields) {
+        return call("hdel", Base64.getEncoder().encodeToString(key), RedisKeyUtil.generate(fields), () -> super.hdel(key, fields), 0L);
+    }
+
+    @Override
     public long hlen(String key) {
         return call("hlen", key, () -> super.hlen(key), 0L);
+    }
+
+    @Override
+    public long hlen(byte[] key) {
+        return call("hlen", Base64.getEncoder().encodeToString(key), () -> super.hlen(key), 0L);
     }
 
     @Override
@@ -587,11 +597,13 @@ public class JedisWrapper extends Jedis {
     }
 
     private <U> U call(String command, String key, String field, Callable<U> callable, U defaultValue) {
-        RedisExtractor extractor;
         if (ContextManager.needReplay()) {
-            extractor = new RedisExtractor(this.url, command, key, field);
+            RedisExtractor extractor = new RedisExtractor(this.url, command, key, field);
             MockResult mockResult = extractor.replay();
             if (mockResult.notIgnoreMockResult()) {
+                if (mockResult.getThrowable() instanceof RuntimeException) {
+                    throw (RuntimeException) mockResult.getThrowable();
+                }
                 return mockResult.getResult() == null ? defaultValue : (U) mockResult.getResult();
             }
         }
@@ -601,14 +613,19 @@ public class JedisWrapper extends Jedis {
             result = callable.call();
         } catch (Exception e) {
             if (ContextManager.needRecord()) {
-                extractor = new RedisExtractor(this.url, command, key, field);
+                RedisExtractor extractor = new RedisExtractor(this.url, command, key, field);
                 extractor.record(e);
             }
+
+            if (e instanceof RuntimeException) {
+                throw (RuntimeException) e;
+            }
+
             return defaultValue;
         }
 
         if (ContextManager.needRecord()) {
-            extractor = new RedisExtractor(this.url, command, key, field);
+            RedisExtractor extractor = new RedisExtractor(this.url, command, key, field);
             extractor.record(result);
         }
         return result;

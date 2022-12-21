@@ -12,10 +12,9 @@ import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
 import org.apache.http.HttpRequest;
-import org.apache.http.client.ClientProtocolException;
+import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.CloseableHttpResponse;
 
-import java.io.IOException;
 import java.util.List;
 
 import static java.util.Collections.singletonList;
@@ -36,7 +35,7 @@ public class InternalHttpClientInstrumentation extends TypeInstrumentation {
                         .and(takesArgument(0, named("org.apache.http.HttpHost")))
                         .and(takesArgument(1, named("org.apache.http.HttpRequest")))
                         .and(takesArgument(2, named("org.apache.http.protocol.HttpContext"))),
-                ExecuteAdvice.class.getName()));
+            this.getClass().getName() + "$ExecuteAdvice"));
     }
 
     public static class ExecuteAdvice {
@@ -44,11 +43,11 @@ public class InternalHttpClientInstrumentation extends TypeInstrumentation {
         @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class)
         public static boolean onEnter(
                 @Advice.Argument(1) HttpRequest request,
-                @Advice.Local("extractor") HttpClientExtractor<HttpRequest, MockResult> extractor,
+                @Advice.Local("extractor") HttpClientExtractor<HttpRequest, HttpResponse> extractor,
                 @Advice.Local("mockResult") MockResult mockResult) {
             if (ContextManager.needRecordOrReplay()) {
                 RepeatedCollectManager.enter();
-                HttpClientAdapter<HttpRequest, MockResult> adapter = new ApacheHttpClientAdapter(request);
+                HttpClientAdapter<HttpRequest, HttpResponse> adapter = new ApacheHttpClientAdapter(request);
                 extractor = new HttpClientExtractor<>(adapter);
                 if (ContextManager.needReplay()) {
                     mockResult = extractor.replay();
@@ -58,25 +57,30 @@ public class InternalHttpClientInstrumentation extends TypeInstrumentation {
             return mockResult != null && mockResult.notIgnoreMockResult();
         }
 
-        @Advice.OnMethodExit(onThrowable = ClientProtocolException.class)
+        @Advice.OnMethodExit(onThrowable = Exception.class)
         public static void onExit(
-                @Advice.Local("extractor") HttpClientExtractor<HttpRequest, MockResult> extractor,
                 @Advice.Thrown(readOnly = false) Exception throwable,
                 @Advice.Return(readOnly = false) CloseableHttpResponse response,
-                @Advice.Local("mockResult") MockResult mockResult) throws IOException {
+                @Advice.Local("extractor") HttpClientExtractor<HttpRequest, HttpResponse> extractor,
+                @Advice.Local("mockResult") MockResult mockResult) {
             if (extractor == null) {
                 return;
             }
 
             if (mockResult != null && mockResult.notIgnoreMockResult() && response == null) {
-                response = (CloseableHttpResponse) mockResult.getResult();
+                if (mockResult.getThrowable() != null) {
+                    throwable = (Exception) mockResult.getThrowable();
+                } else {
+                    response = (CloseableHttpResponse) mockResult.getResult();
+                }
                 return;
             }
+
             if (ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate()) {
                 if (throwable != null) {
                     extractor.record(throwable);
                 } else {
-                    extractor.record(MockResult.success(response));
+                    extractor.record(response);
                 }
             }
         }

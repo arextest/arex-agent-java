@@ -63,38 +63,39 @@ class AbstractEntityPersisterInstrumentationTest {
         try (MockedConstruction<DatabaseExtractor> mocked = Mockito.mockConstruction(DatabaseExtractor.class, (mock, context) -> {
             Mockito.when(mock.replay()).thenReturn(MockResult.success(false, null));
         })) {
-            assertTrue(AbstractEntityPersisterInstrumentation.InsertAdvice.onEnter(null, null, null, null, null));
+            assertTrue(AbstractEntityPersisterInstrumentation.InsertAdvice.onEnter(null, null, null, null));
         }
     }
 
     @ParameterizedTest
     @MethodSource("onInsertExitCase")
-    void onInsertExit(Runnable mocker, HibernateException replayException, HibernateException exception, Predicate<HibernateException> predicate) {
+    void onInsertExit(Runnable mocker, Throwable throwable, MockResult mockResult, Predicate<MockResult> predicate) {
         mocker.run();
         DatabaseExtractor extractor = Mockito.mock(DatabaseExtractor.class);
-        Serializable serializable = Mockito.mock(Serializable.class);
-        AbstractEntityPersisterInstrumentation.InsertAdvice.onExit(null, replayException, exception, MockResult.success(serializable), extractor);
-        assertTrue(predicate.test(replayException));
+        AbstractEntityPersisterInstrumentation.InsertAdvice.onExit(null, throwable, mockResult, extractor);
+        assertTrue(predicate.test(mockResult));
     }
 
     static Stream<Arguments> onInsertExitCase() {
-        Runnable emptyMocker = () -> {};
+        Runnable emptyMocker = () -> {
+            Mockito.when(RepeatedCollectManager.exitAndValidate()).thenReturn(false);
+        };
         Runnable exitAndValidate = () -> {
             Mockito.when(RepeatedCollectManager.exitAndValidate()).thenReturn(true);
-            Mockito.when(ContextManager.needReplay()).thenReturn(true);
         };
         Runnable needRecord = () -> {
-            Mockito.when(ContextManager.needReplay()).thenReturn(false);
             Mockito.when(ContextManager.needRecord()).thenReturn(true);
         };
-        Predicate<HibernateException> predicate1 = Objects::isNull;
-        Predicate<HibernateException> predicate2 = Objects::nonNull;
+
+        Serializable serializable = Mockito.mock(Serializable.class);
+        Predicate<MockResult> predicate1 = Objects::isNull;
+        Predicate<MockResult> predicate2 = Objects::nonNull;
         return Stream.of(
                 arguments(emptyMocker, null, null, predicate1),
-                arguments(exitAndValidate, new HibernateException(""), null, predicate2),
-                arguments(emptyMocker, null, null, predicate1),
-                arguments(needRecord, null, new HibernateException(""), predicate1),
-                arguments(emptyMocker, null, null, predicate1)
+                arguments(exitAndValidate, null, MockResult.success(serializable), predicate2),
+                arguments(exitAndValidate, null, MockResult.success(new HibernateException("")), predicate2),
+                arguments(needRecord, new HibernateException(""), null, predicate1),
+                arguments(needRecord, null, null, predicate1)
         );
     }
 

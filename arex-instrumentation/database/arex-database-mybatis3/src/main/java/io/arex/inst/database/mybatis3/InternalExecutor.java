@@ -8,7 +8,6 @@ import org.apache.ibatis.mapping.BoundSql;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.reflection.Reflector;
 
-import java.sql.SQLException;
 import java.util.Map;
 
 public class InternalExecutor {
@@ -16,7 +15,7 @@ public class InternalExecutor {
     private static final char KEYHOLDER_SEPARATOR = ';';
     private static final char KEYHOLDER_TYPE_SEPARATOR = ',';
 
-    public static MockResult replay(MappedStatement ms, Object o, BoundSql boundSql, String methodName) throws SQLException{
+    public static MockResult replay(MappedStatement ms, Object o, BoundSql boundSql, String methodName) {
         DatabaseExtractor extractor = createExtractor(ms, boundSql, o, methodName);
         MockResult replayResult = extractor.replay();
         if (containKeyHolder(ms, extractor, o)) {
@@ -25,7 +24,7 @@ public class InternalExecutor {
         return replayResult;
     }
 
-    public static MockResult replay(DatabaseExtractor extractor, MappedStatement ms, Object o) throws SQLException{
+    public static MockResult replay(DatabaseExtractor extractor, MappedStatement ms, Object o) {
         MockResult replayResult = extractor.replay();
         if (containKeyHolder(ms, extractor, o)) {
             restoreKeyHolder(ms, extractor, o);
@@ -39,7 +38,7 @@ public class InternalExecutor {
             saveKeyHolder(ms, extractor, o);
         }
 
-        if (throwable instanceof SQLException) {
+        if (throwable != null) {
             extractor.record(throwable);
         } else {
             extractor.record(result);
@@ -52,7 +51,7 @@ public class InternalExecutor {
             saveKeyHolder(ms, extractor, o);
         }
 
-        if (throwable instanceof SQLException) {
+        if (throwable != null) {
             extractor.record(throwable);
         } else {
             extractor.record(result);

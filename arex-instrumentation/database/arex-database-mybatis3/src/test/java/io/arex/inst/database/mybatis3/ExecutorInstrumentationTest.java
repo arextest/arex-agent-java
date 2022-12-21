@@ -61,9 +61,7 @@ class ExecutorInstrumentationTest {
     @Test
     void onEnter() throws SQLException {
         Mockito.when(ContextManager.needReplay()).thenReturn(true);
-        assertFalse(ExecutorInstrumentation.QueryAdvice.onMethodEnter(null, null, null, MockResult.success("mock")));
-        assertFalse(ExecutorInstrumentation.Query1Advice.onMethodEnter(MockResult.success("mock"), null, null));
-        Mockito.when(ContextManager.needRecordOrReplay()).thenReturn(true);
+        assertFalse(ExecutorInstrumentation.QueryAdvice.onMethodEnter(null, null, null, MockResult.success("mock")));Mockito.when(ContextManager.needRecordOrReplay()).thenReturn(true);
         assertFalse(ExecutorInstrumentation.UpdateAdvice.onMethodEnter(null, null, null, null));
     }
 
@@ -72,7 +70,6 @@ class ExecutorInstrumentationTest {
     void onExit(Runnable mocker, MockResult mockResult, Predicate<MockResult> predicate) {
         mocker.run();
         ExecutorInstrumentation.QueryAdvice.onExit(null, null, null, null, null, mockResult);
-        ExecutorInstrumentation.Query1Advice.onExit(null, null, null, null, mockResult);
         assertTrue(predicate.test(mockResult));
     }
 
@@ -88,6 +85,7 @@ class ExecutorInstrumentationTest {
         Predicate<MockResult> predicate1 = Objects::isNull;
         Predicate<MockResult> predicate2 = Objects::nonNull;
         return Stream.of(
+                arguments(emptyMocker, MockResult.success(new SQLException("mock exception")), predicate2),
                 arguments(emptyMocker, MockResult.success(Collections.singletonList("mock")), predicate2),
                 arguments(exitAndValidate, null, predicate1),
                 arguments(needRecord, null, predicate1)
@@ -98,7 +96,7 @@ class ExecutorInstrumentationTest {
     @MethodSource("onUpdateExitCase")
     void onUpdateExit(Runnable mocker, DatabaseExtractor extractor, MockResult mockResult, Predicate<MockResult> predicate) {
         mocker.run();
-        ExecutorInstrumentation.UpdateAdvice.onExit(null, null, null, extractor, null, mockResult);
+        ExecutorInstrumentation.UpdateAdvice.onExit(null, null, null, null, extractor, mockResult);
         assertTrue(predicate.test(mockResult));
     }
 
@@ -117,6 +115,7 @@ class ExecutorInstrumentationTest {
         Predicate<MockResult> predicate2 = Objects::nonNull;
         return Stream.of(
                 arguments(needReplay, null, null, predicate1),
+                arguments(exitAndValidate, extractor, MockResult.success(new SQLException("mock exception")), predicate2),
                 arguments(exitAndValidate, extractor, MockResult.success(1), predicate2),
                 arguments(needRecord, extractor, null, predicate1)
         );

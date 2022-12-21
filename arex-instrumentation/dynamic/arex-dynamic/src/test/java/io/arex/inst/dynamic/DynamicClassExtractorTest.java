@@ -123,17 +123,11 @@ class DynamicClassExtractorTest {
     }
 
     static Stream<Arguments> replayCase() {
-        Runnable emptyMocker = () -> {
-            Mockito.when(ContextManager.needReplay()).thenReturn(false);
-        };
         Runnable needReplay = () -> {
-            Mockito.when(ContextManager.needReplay()).thenReturn(true);
             Mockito.when(ContextManager.currentContext()).thenReturn(ArexContext.of(""));
         };
-        Predicate<MockResult> predicate1 = Objects::isNull;
         Predicate<MockResult> predicate2 = Objects::nonNull;
         return Stream.of(
-                arguments(emptyMocker, null, predicate1),
                 arguments(needReplay, new Object[]{"mock"}, predicate2)
         );
     }

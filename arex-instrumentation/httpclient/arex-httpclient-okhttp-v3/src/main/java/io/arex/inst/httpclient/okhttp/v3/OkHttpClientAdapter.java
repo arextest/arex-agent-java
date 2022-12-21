@@ -1,7 +1,6 @@
 package io.arex.inst.httpclient.okhttp.v3;
 
 
-import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.httpclient.common.HttpClientAdapter;
 import io.arex.inst.httpclient.common.HttpResponseWrapper;
@@ -26,7 +25,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class OkHttpClientAdapter implements HttpClientAdapter<Request, MockResult> {
+public class OkHttpClientAdapter implements HttpClientAdapter<Request, Response> {
     private static final Logger LOGGER = LoggerFactory.getLogger(OkHttpClientAdapter.class);
     private final Request httpRequest;
 
@@ -60,8 +59,7 @@ public class OkHttpClientAdapter implements HttpClientAdapter<Request, MockResul
     }
 
     @Override
-    public HttpResponseWrapper wrap(MockResult mockResult) {
-        Response response = (Response) mockResult.getResult();
+    public HttpResponseWrapper wrap(Response response) {
         HttpResponseWrapper wrapper = new HttpResponseWrapper();
         StatusLine statusLine = new StatusLine(response.protocol(), response.code(), response.message());
         wrapper.setStatusLine(statusLine.toString());
@@ -91,7 +89,7 @@ public class OkHttpClientAdapter implements HttpClientAdapter<Request, MockResul
     }
 
     @Override
-    public MockResult unwrap(HttpResponseWrapper wrapped) {
+    public Response unwrap(HttpResponseWrapper wrapped) {
         Response.Builder responseBuilder = new Builder();
         Headers.Builder headersBuilder = new Headers.Builder();
         List<StringTuple> headers = wrapped.getHeaders();
@@ -120,7 +118,7 @@ public class OkHttpClientAdapter implements HttpClientAdapter<Request, MockResul
         } catch (IOException e) {
             LOGGER.warn("decode response StatusLine error:{}", e.getMessage(), e);
         }
-        return MockResult.success(wrapped.isIgnoreMockResult(), responseBuilder.build());
+        return responseBuilder.build();
     }
 
     @Override

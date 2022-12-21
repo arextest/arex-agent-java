@@ -44,27 +44,23 @@ public class OkHttpCallInstrumentation extends TypeInstrumentation {
     @Override
     public List<String> adviceClassNames() {
         return asList(
-                "io.arex.inst.httpclient.okhttp.v3.OkHttpCallInstrumentation$ExecuteAdvice",
                 "io.arex.inst.httpclient.okhttp.v3.OkHttpClientAdapter",
+                "io.arex.inst.httpclient.okhttp.v3.OkHttpCallbackWrapper",
+                "io.arex.inst.httpclient.common.HttpClientExtractor",
                 "io.arex.inst.httpclient.common.HttpClientAdapter",
                 "io.arex.inst.httpclient.common.HttpResponseWrapper",
-                "io.arex.inst.httpclient.common.HttpResponseWrapper$StringTuple",
-                "io.arex.inst.httpclient.common.ArexDataException",
-                "io.arex.inst.httpclient.common.ExceptionWrapper",
-                "io.arex.inst.httpclient.okhttp.v3.OkHttpCallbackWrapper",
-                "io.arex.inst.httpclient.common.HttpClientExtractor");
+                "io.arex.inst.httpclient.common.HttpResponseWrapper$StringTuple");
     }
 
     public static final class ExecuteAdvice {
         @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class)
         public static boolean onEnter(
                 @Advice.This Call call,
-                @Advice.Local("wrapped") HttpClientExtractor<Request, MockResult> extractor,
+                @Advice.Local("wrapped") HttpClientExtractor<Request, Response> extractor,
                 @Advice.Local("mockResult") MockResult mockResult) {
-            OkHttpClientAdapter adapter;
             if (ContextManager.needRecordOrReplay()) {
                 RepeatedCollectManager.enter();
-                adapter = new OkHttpClientAdapter(call.request().newBuilder().build());
+                OkHttpClientAdapter adapter = new OkHttpClientAdapter(call.request().newBuilder().build());
                 extractor = new HttpClientExtractor<>(adapter);
                 if (ContextManager.needReplay()) {
                     mockResult = extractor.replay();
@@ -75,7 +71,7 @@ public class OkHttpCallInstrumentation extends TypeInstrumentation {
 
         @Advice.OnMethodExit(onThrowable = IOException.class)
         public static void onExit(
-                @Advice.Local("wrapped") HttpClientExtractor<Request, MockResult> extractor,
+                @Advice.Local("wrapped") HttpClientExtractor<Request, Response> extractor,
                 @Advice.Thrown(readOnly = false) Exception throwable,
                 @Advice.Return(readOnly = false) Response response,
                 @Advice.Local("mockResult") MockResult mockResult) throws IOException {
@@ -84,15 +80,18 @@ public class OkHttpCallInstrumentation extends TypeInstrumentation {
             }
 
             if (mockResult != null && mockResult.notIgnoreMockResult() && response == null) {
-                // noinspection resource
-                response = (Response) mockResult.getResult();
-                return;
+                if (mockResult.getThrowable() != null) {
+                    throwable = (Exception) mockResult.getThrowable();
+                } else {
+                    // noinspection resource
+                    response = (Response) mockResult.getResult();
+                }
             }
             if (ContextManager.needRecord()) {
                 if (throwable != null) {
                     extractor.record(throwable);
                 } else {
-                    extractor.record(MockResult.success(response));
+                    extractor.record(response);
                 }
             }
         }
@@ -100,26 +99,28 @@ public class OkHttpCallInstrumentation extends TypeInstrumentation {
 
     public static final class EnqueueAdvice {
         @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class)
-        public static boolean onEnter(
-                @Advice.This Call call,
-                @Advice.Argument(value = 0, readOnly = false) Callback callback) {
+        public static boolean onEnter(@Advice.This Call call,
+            @Advice.Argument(value = 0, readOnly = false) Callback callback,
+            @Advice.Local("mockResult") MockResult mockResult) {
             if (ContextManager.needRecordOrReplay() && RepeatedCollectManager.validate()) {
+                // recording works in callback wrapper
                 callback = new OkHttpCallbackWrapper(call, callback);
+                if (ContextManager.needReplay()) {
+                    mockResult = ((OkHttpCallbackWrapper) callback).replay();
+                    return mockResult != null && mockResult.notIgnoreMockResult();
+                }
             }
-            return ContextManager.needReplay();
+            return false;
         }
 
         @Advice.OnMethodExit
-        public static void onExit(@Advice.Argument(value = 0) Callback callback) {
-            OkHttpCallbackWrapper okHttpCallbackWrapper;
-            if (!(callback instanceof OkHttpCallbackWrapper)) {
-                return;
-            }
-            okHttpCallbackWrapper = (OkHttpCallbackWrapper) callback;
-            if (ContextManager.needReplay()) {
-                okHttpCallbackWrapper.replay();
+        public static void onExit(@Advice.Argument(value = 0) Callback callback,
+            @Advice.Local("mockResult") MockResult mockResult) {
+            if (callback instanceof OkHttpCallbackWrapper &&
+                mockResult != null && mockResult.notIgnoreMockResult()) {
+                OkHttpCallbackWrapper callbackWrapper = (OkHttpCallbackWrapper) callback;
+                callbackWrapper.replay(mockResult);
             }
         }
-
     }
 }

@@ -76,7 +76,7 @@ class RedisReactiveCommandsImplWrapperTest {
         mocker.run();
         try (MockedConstruction<RedisExtractor> mocked = Mockito.mockConstruction(RedisExtractor.class, (mock, context) -> {
             System.out.println("mock RedisExtractor");
-            Mockito.when(mock.replay()).thenReturn(MockResult.success(new Object()));
+            Mockito.when(mock.replay()).thenReturn(MockResult.success("mock"));
         })) {
             Mono<?> result = target.createMono(() -> cmd,  "key", "field");
             assertTrue(predicate.test(result));
@@ -109,7 +109,7 @@ class RedisReactiveCommandsImplWrapperTest {
     void createDissolvingFlux(Runnable mocker, Predicate<Mono<?>> predicate) {
         try (MockedConstruction<RedisExtractor> mocked = Mockito.mockConstruction(RedisExtractor.class, (mock, context) -> {
             System.out.println("mock RedisExtractor");
-            Mockito.when(mock.replay()).thenReturn(MockResult.success(new Object()));
+            Mockito.when(mock.replay()).thenReturn(MockResult.success("mock"));
         })) {
             Flux<?> result = target.createDissolvingFlux(() -> cmd,  "key", "field");
             Predicate<Flux<?>> predicate1 = Objects::nonNull;
