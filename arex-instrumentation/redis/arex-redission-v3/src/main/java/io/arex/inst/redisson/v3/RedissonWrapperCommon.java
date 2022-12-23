@@ -24,7 +24,10 @@ public class RedissonWrapperCommon {
             RedisExtractor extractor = new RedisExtractor(redisUri, cmd, key, field);
             MockResult mockResult = extractor.replay();
             if (mockResult.notIgnoreMockResult()) {
-                return new CompletableFutureWrapper<R>((R) mockResult.getResult());
+                if (mockResult.getThrowable() != null) {
+                    return new CompletableFutureWrapper<>(mockResult.getThrowable());
+                }
+                return new CompletableFutureWrapper<>((R) mockResult.getResult());
             }
         }
 

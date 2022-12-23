@@ -62,6 +62,10 @@ class JedisWrapperTest {
         })) {
             String result = target.hget("key", "field");
             assertTrue(predicate.test(result));
+        } catch (Exception e) {
+            assertThrows(NullPointerException.class, () -> {
+                throw e;
+            });
         }
     }
 

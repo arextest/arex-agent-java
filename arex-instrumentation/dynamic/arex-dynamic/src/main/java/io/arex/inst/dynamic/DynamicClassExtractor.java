@@ -59,9 +59,6 @@ public class DynamicClassExtractor {
     }
 
     public MockResult replay() {
-        if (!ContextManager.needReplay()) {
-            return null;
-        }
         String key = buildCacheKey();
         ArexContext context = ContextManager.currentContext();
         Object replayResult = context.getCachedReplayResultMap().get(key);
@@ -97,7 +94,7 @@ public class DynamicClassExtractor {
             }
         }
 
-        if (result == null) {
+        if (result == null || result instanceof Throwable) {
             return true;
         }
 

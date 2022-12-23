@@ -8,8 +8,6 @@ public class HttpResponseWrapper {
     private byte[] content;
     private StringTuple locale;
     private List<StringTuple> headers;
-    private ExceptionWrapper exceptionWrapper;
-    private transient boolean ignoreMockResult;
     public void setHeaders(List<StringTuple> headers) {
         this.headers = headers;
     }
@@ -34,24 +32,14 @@ public class HttpResponseWrapper {
         return content;
     }
 
-    public ExceptionWrapper getException() {
-        return exceptionWrapper;
-    }
-
-    public void setException(ExceptionWrapper exception) {
-        this.exceptionWrapper = exception;
-    }
-
     public HttpResponseWrapper() {
     }
 
-    public HttpResponseWrapper(String statusLine, byte[] content, StringTuple locale, List<StringTuple> headers,
-                               ExceptionWrapper exception) {
+    public HttpResponseWrapper(String statusLine, byte[] content, StringTuple locale, List<StringTuple> headers) {
         this.statusLine = statusLine;
         this.content = content;
         this.locale = locale;
         this.headers = headers;
-        this.exceptionWrapper = exception;
     }
 
     public StringTuple getLocale() {
@@ -92,19 +80,5 @@ public class HttpResponseWrapper {
         public String getS() {
             return s;
         }
-    }
-
-    public static HttpResponseWrapper of(ExceptionWrapper exception) {
-        HttpResponseWrapper wrapper = new HttpResponseWrapper();
-        wrapper.exceptionWrapper = exception;
-        return wrapper;
-    }
-
-    public boolean isIgnoreMockResult() {
-        return ignoreMockResult;
-    }
-
-    public void setIgnoreMockResult(boolean ignoreMockResult) {
-        this.ignoreMockResult = ignoreMockResult;
     }
 }

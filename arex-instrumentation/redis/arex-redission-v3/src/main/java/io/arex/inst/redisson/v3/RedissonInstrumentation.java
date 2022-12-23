@@ -58,22 +58,15 @@ public class RedissonInstrumentation extends TypeInstrumentation {
     @Override
     public List<String> adviceClassNames() {
         return asList(
-                "io.arex.inst.redisson.v3.RedissonInstrumentation$GetBucketAdvice",
-                "io.arex.inst.redisson.v3.RedissonInstrumentation$GetBucketWithCodecAdvice",
-                "io.arex.inst.redisson.v3.RedissonInstrumentation$GetBucketsAdvice",
-                "io.arex.inst.redisson.v3.RedissonInstrumentation$GetBucketsWithCodecAdvice",
-                "io.arex.inst.redisson.v3.RedissonInstrumentation$GetKeysAdvice",
-                "io.arex.inst.redisson.v3.RedissonInstrumentation$GetListAdvice",
-                "io.arex.inst.redisson.v3.RedissonInstrumentation$GetListWithCodecAdvice",
-                "io.arex.inst.redisson.v3.RedissonInstrumentation$GetSetAdvice",
-                "io.arex.inst.redisson.v3.RedissonInstrumentation$GetSetWithCodecAdvice",
-                "io.arex.inst.redisson.v3.RedissonInstrumentation$GetMapAdvice",
-                "io.arex.inst.redisson.v3.RedissonInstrumentation$GetMapWithOptionsAdvice",
-                "io.arex.inst.redisson.v3.RedissonInstrumentation$GetMapWithCodecAdvice",
-                "io.arex.inst.redisson.v3.RedissonInstrumentation$GetMapWithCodecOptionsAdvice",
-                "io.arex.inst.redisson.v3.RedissonWrapperCommon",
-                "io.arex.inst.redis.common.RedisExtractor$RedisCluster",
-                "io.arex.inst.redis.common.RedisKeyUtil");
+            "io.arex.inst.redisson.v3.wrapper.RedissonBucketsWrapper",
+            "io.arex.inst.redisson.v3.wrapper.RedissonBucketWrapper",
+            "io.arex.inst.redisson.v3.wrapper.RedissonKeysWrapper",
+            "io.arex.inst.redisson.v3.wrapper.RedissonListWrapper",
+            "io.arex.inst.redisson.v3.wrapper.RedissonMapWrapper",
+            "io.arex.inst.redisson.v3.wrapper.RedissonSetWrapper",
+            "io.arex.inst.redisson.v3.RedissonWrapperCommon",
+            "io.arex.inst.redis.common.RedisExtractor$RedisCluster",
+            "io.arex.inst.redis.common.RedisKeyUtil");
     }
 
     public static class GetBucketAdvice {

@@ -14,7 +14,6 @@ import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.QueryParameters;
 import org.hibernate.loader.Loader;
 
-import java.sql.SQLException;
 import java.util.List;
 
 import static java.util.Arrays.asList;
@@ -43,7 +42,6 @@ public class LoaderInstrumentation extends TypeInstrumentation {
     @Override
     public List<String> adviceClassNames() {
         return asList(
-                "io.arex.inst.database.hibernate.LoaderInstrumentation$QueryAdvice",
                 "io.arex.inst.database.common.DatabaseExtractor",
                 "io.arex.inst.database.common.DatabaseHelper");
     }
@@ -54,7 +52,7 @@ public class LoaderInstrumentation extends TypeInstrumentation {
         public static boolean onEnter(@Advice.This Loader loader,
                                       @Advice.Argument(1) QueryParameters queryParameters,
                                       @Advice.Local("mockResult") MockResult mockResult,
-                                      @Advice.Local("extractor") DatabaseExtractor extractor) throws SQLException, HibernateException {
+                                      @Advice.Local("extractor") DatabaseExtractor extractor) {
             RepeatedCollectManager.enter();
             if (ContextManager.needRecordOrReplay()) {
                 extractor = new DatabaseExtractor(loader.getSQLString(),
@@ -69,7 +67,7 @@ public class LoaderInstrumentation extends TypeInstrumentation {
         @Advice.OnMethodExit(onThrowable = Throwable.class)
         public static void onExit(@Advice.This Loader loader,
                                   @Advice.Argument(1) QueryParameters queryParameters,
-                                  @Advice.Thrown HibernateException exception,
+                                  @Advice.Thrown(readOnly = false) Throwable throwable,
                                   @Advice.Return(readOnly = false) List<?> list,
                                   @Advice.Local("mockResult") MockResult mockResult,
                                   @Advice.Local("extractor") DatabaseExtractor extractor) throws HibernateException {
@@ -79,12 +77,16 @@ public class LoaderInstrumentation extends TypeInstrumentation {
 
             if (extractor != null) {
                 if (mockResult != null && mockResult.notIgnoreMockResult() && list == null) {
-                    list = (List<?>) mockResult.getResult();
+                    if (mockResult.getThrowable() != null) {
+                        throwable = mockResult.getThrowable();
+                    } else {
+                        list = (List<?>) mockResult.getResult();
+                    }
                     return;
                 }
                 if (ContextManager.needRecord()) {
-                    if (exception != null) {
-                        extractor.record(exception);
+                    if (throwable != null) {
+                        extractor.record(throwable);
                     } else {
                         extractor.record(list);
                     }

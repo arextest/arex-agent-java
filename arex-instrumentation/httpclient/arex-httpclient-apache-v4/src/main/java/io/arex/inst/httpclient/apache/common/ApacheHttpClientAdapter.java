@@ -1,6 +1,5 @@
 package io.arex.inst.httpclient.apache.common;
 
-import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.httpclient.common.HttpClientAdapter;
 import io.arex.inst.httpclient.common.HttpResponseWrapper;
@@ -27,7 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-public class ApacheHttpClientAdapter implements HttpClientAdapter<HttpRequest, MockResult> {
+public class ApacheHttpClientAdapter implements HttpClientAdapter<HttpRequest, HttpResponse> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ApacheHttpClientAdapter.class);
     private final HttpRequestBase httpRequest;
 
@@ -77,8 +76,7 @@ public class ApacheHttpClientAdapter implements HttpClientAdapter<HttpRequest, M
 
 
     @Override
-    public HttpResponseWrapper wrap(MockResult mockResult) {
-        HttpResponse response = (HttpResponse) mockResult.getResult();
+    public HttpResponseWrapper wrap(HttpResponse response) {
         HttpEntity httpEntity = response.getEntity();
         if (!check(httpEntity)) {
             return null;
@@ -112,11 +110,11 @@ public class ApacheHttpClientAdapter implements HttpClientAdapter<HttpRequest, M
 
         return new HttpResponseWrapper(response.getStatusLine().toString(), content,
                 new HttpResponseWrapper.StringTuple(locale.getLanguage(), locale.getCountry()),
-                headers, null);
+                headers);
     }
 
     @Override
-    public MockResult unwrap(HttpResponseWrapper wrapped) {
+    public HttpResponse unwrap(HttpResponseWrapper wrapped) {
         StatusLine statusLine = ApacheHttpClientHelper.parseStatusLine(wrapped.getStatusLine());
         HttpResponse response = new CloseableHttpResponseProxy(statusLine);
         response.setLocale(new Locale(wrapped.getLocale().name(), wrapped.getLocale().value()));
@@ -126,7 +124,7 @@ public class ApacheHttpClientAdapter implements HttpClientAdapter<HttpRequest, M
         entity.setContentLength(wrapped.getContent().length);
         response.setEntity(entity);
 
-        return MockResult.success(wrapped.isIgnoreMockResult(), response);
+        return response;
     }
 
     private static void appendHeaders(HttpResponse response, List<StringTuple> headers) {

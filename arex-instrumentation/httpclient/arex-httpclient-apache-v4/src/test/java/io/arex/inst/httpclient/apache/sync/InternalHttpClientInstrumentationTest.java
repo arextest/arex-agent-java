@@ -5,6 +5,7 @@ import io.arex.inst.runtime.context.RepeatedCollectManager;
 import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.inst.httpclient.common.HttpClientExtractor;
 import org.apache.http.HttpRequest;
+import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -65,19 +66,19 @@ class InternalHttpClientInstrumentationTest {
 
     @ParameterizedTest
     @MethodSource("onExitCase")
-    void onExit(HttpClientExtractor<HttpRequest, MockResult> extractor, Exception throwable,
+    void onExit(HttpClientExtractor<HttpRequest, HttpResponse> extractor, Exception throwable,
                 CloseableHttpResponse response, Predicate<CloseableHttpResponse> predicate) throws IOException {
-        InternalHttpClientInstrumentation.ExecuteAdvice.onExit(extractor, throwable, response, MockResult.success(response));
+        InternalHttpClientInstrumentation.ExecuteAdvice.onExit(throwable, response, extractor, MockResult.success(response));
         assertTrue(predicate.test(response));
     }
 
     static Stream<Arguments> onExitCase() {
-        HttpClientExtractor<HttpRequest, MockResult> extractor1 = null;
+        HttpClientExtractor<HttpRequest, HttpResponse> extractor1 = null;
         Exception throwable1 = null;
         Exception throwable2 = new NullPointerException();
 
         Mockito.when(RepeatedCollectManager.exitAndValidate()).thenReturn(true);
-        HttpClientExtractor<HttpRequest, MockResult> extractor2 = Mockito.mock(HttpClientExtractor.class);
+        HttpClientExtractor<HttpRequest, HttpResponse> extractor2 = Mockito.mock(HttpClientExtractor.class);
 
         Mockito.when(ContextManager.needRecord()).thenReturn(true);
         CloseableHttpResponse response1 = null;

@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 /**
  * RedisReactiveCommandsImplWrapper
@@ -428,6 +427,18 @@ public class RedisReactiveCommandsImplWrapper<K, V> extends RedisReactiveCommand
     }
 
     @Override
+    public Mono<String> rename(K key, K newKey) {
+        Command<K, V, String> cmd = commandBuilder.rename(key, newKey);
+        return createMono(() -> cmd, RedisKeyUtil.generate(key, newKey));
+    }
+
+    @Override
+    public Mono<Boolean> renamenx(K key, K newKey) {
+        Command<K, V, Boolean> cmd = commandBuilder.renamenx(key, newKey);
+        return createMono(() -> cmd, RedisKeyUtil.generate(key, newKey));
+    }
+
+    @Override
     public Mono<V> rpop(K key) {
         Command<K, V, V> cmd = commandBuilder.rpop(key);
         return createMono(() -> cmd, String.valueOf(key));
@@ -597,6 +608,9 @@ public class RedisReactiveCommandsImplWrapper<K, V> extends RedisReactiveCommand
                     new RedisExtractor(this.redisUri, commandSupplier.get().getType().name(), key, field);
             MockResult mockResult = extractor.replay();
             if (mockResult.notIgnoreMockResult()) {
+                if (mockResult.getThrowable() != null) {
+                    return Mono.error(mockResult.getThrowable());
+                }
                 return Mono.just((T) mockResult.getResult());
             }
         }
@@ -616,7 +630,6 @@ public class RedisReactiveCommandsImplWrapper<K, V> extends RedisReactiveCommand
         });
     }
 
-    @SuppressWarnings("unchecked")
     public <T, R> Flux<R> createDissolvingFlux(Supplier<RedisCommand<K, V, T>> commandSupplier, String key) {
         return createDissolvingFlux(commandSupplier, key, null);
     }
@@ -630,10 +643,13 @@ public class RedisReactiveCommandsImplWrapper<K, V> extends RedisReactiveCommand
 
         if (ContextManager.needReplay()) {
             RedisExtractor extractor =
-                    new RedisExtractor(this.redisUri, commandSupplier.get().getType().name(), key, field);
+                new RedisExtractor(this.redisUri, commandSupplier.get().getType().name(), key, field);
             MockResult mockResult = extractor.replay();
             if (mockResult.notIgnoreMockResult()) {
-                return Flux.fromStream(() -> Stream.of((R) mockResult.getResult()));
+                if (mockResult.getThrowable() != null) {
+                    return Flux.error(mockResult.getThrowable());
+                }
+                return Flux.just((R) mockResult.getResult());
             }
         }
 

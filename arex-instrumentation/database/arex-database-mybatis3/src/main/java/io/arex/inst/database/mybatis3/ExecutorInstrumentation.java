@@ -12,7 +12,6 @@ import net.bytebuddy.matcher.ElementMatcher;
 import org.apache.ibatis.mapping.BoundSql;
 import org.apache.ibatis.mapping.MappedStatement;
 
-import java.sql.SQLException;
 import java.util.List;
 
 import static io.arex.inst.extension.matcher.HasInterfaceMatcher.hasInterface;
@@ -21,6 +20,7 @@ import static net.bytebuddy.matcher.ElementMatchers.*;
 
 public class ExecutorInstrumentation extends TypeInstrumentation {
     private static final String METHOD_NAME_QUERY = "query";
+    private static final String METHOD_NAME_UPDATE = "update";
 
     @Override
     protected ElementMatcher<TypeDescription> typeMatcher() {
@@ -38,13 +38,7 @@ public class ExecutorInstrumentation extends TypeInstrumentation {
                                 .and(takesArgument(5, named("org.apache.ibatis.mapping.BoundSql"))),
                         this.getClass().getName() + "$QueryAdvice"),
                 new MethodInstrumentation(
-                        named(METHOD_NAME_QUERY).and(isPublic())
-                                .and(takesArguments(4))
-                                .and(takesArgument(0, named("org.apache.ibatis.mapping.MappedStatement")))
-                                .and(takesArgument(1, Object.class)),
-                        this.getClass().getName() + "$Query1Advice"),
-                new MethodInstrumentation(
-                        named("update").and(isPublic())
+                        named(METHOD_NAME_UPDATE).and(isPublic())
                                 .and(takesArguments(2))
                                 .and(takesArgument(0, named("org.apache.ibatis.mapping.MappedStatement")))
                                 .and(takesArgument(1, Object.class)),
@@ -64,7 +58,7 @@ public class ExecutorInstrumentation extends TypeInstrumentation {
         public static boolean onMethodEnter(@Advice.Argument(0) MappedStatement var1,
                                             @Advice.Argument(1) Object var2,
                                             @Advice.Argument(5) BoundSql boundSql,
-                                            @Advice.Local("mockResult") MockResult mockResult) throws SQLException {
+                                            @Advice.Local("mockResult") MockResult mockResult) {
             RepeatedCollectManager.enter();
             if (ContextManager.needReplay()) {
                 mockResult = InternalExecutor.replay(var1, var2, boundSql, METHOD_NAME_QUERY);
@@ -76,53 +70,24 @@ public class ExecutorInstrumentation extends TypeInstrumentation {
         public static void onExit(@Advice.Argument(0) MappedStatement var1,
                                   @Advice.Argument(1) Object var2,
                                   @Advice.Argument(5) BoundSql boundSql,
-                                  @Advice.Thrown Throwable throwable,
+                                  @Advice.Thrown(readOnly = false) Throwable throwable,
                                   @Advice.Return(readOnly = false) List<?> result,
                                   @Advice.Local("mockResult") MockResult mockResult) {
             if (mockResult != null && mockResult.notIgnoreMockResult()) {
-                result = (List<?>)mockResult.getResult();
+                if (mockResult.getThrowable() != null) {
+                    throwable = mockResult.getThrowable();
+                } else {
+                    result = (List<?>) mockResult.getResult();
+                }
                 return;
             }
 
             if (!RepeatedCollectManager.exitAndValidate()) {
                 return;
             }
+
             if (ContextManager.needRecord()) {
                 InternalExecutor.record(var1, var2, boundSql, result, throwable, METHOD_NAME_QUERY);
-            }
-        }
-    }
-
-    @SuppressWarnings("unused")
-    public static class Query1Advice {
-
-        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class)
-        public static boolean onMethodEnter(@Advice.Local("mockResult") MockResult mockResult,
-                                            @Advice.Argument(0) MappedStatement var1,
-                                            @Advice.Argument(1) Object var2) throws SQLException{
-            RepeatedCollectManager.enter();
-            if (ContextManager.needReplay()) {
-                mockResult = InternalExecutor.replay(var1, var2, null, METHOD_NAME_QUERY);
-            }
-            return mockResult != null && mockResult.notIgnoreMockResult();
-        }
-
-        @Advice.OnMethodExit(onThrowable = Throwable.class)
-        public static void onExit(@Advice.Argument(0) MappedStatement var1,
-                                  @Advice.Argument(1) Object var2,
-                                  @Advice.Thrown Throwable throwable,
-                                  @Advice.Return(readOnly = false) List<?> result,
-                                  @Advice.Local("mockResult") MockResult mockResult) {
-            if (mockResult != null && mockResult.notIgnoreMockResult()) {
-                result = (List<?>)mockResult.getResult();
-                return;
-            }
-            if (!RepeatedCollectManager.exitAndValidate()) {
-                return;
-            }
-
-            if (ContextManager.needRecord()) {
-                InternalExecutor.record(var1, var2, null, result, throwable, METHOD_NAME_QUERY);
             }
         }
     }
@@ -134,14 +99,14 @@ public class ExecutorInstrumentation extends TypeInstrumentation {
         public static boolean onMethodEnter(@Advice.Argument(0) MappedStatement var1,
                                             @Advice.Argument(1) Object var2,
                                             @Advice.Local("extractor") DatabaseExtractor extractor,
-                                            @Advice.Local("mockResult") MockResult mockResult) throws SQLException{
+                                            @Advice.Local("mockResult") MockResult mockResult) {
             RepeatedCollectManager.enter();
             if (ContextManager.needRecordOrReplay()) {
                 /**
                  * Generate executor in advance, because the insert operation will modify sql and parameters,
                  * resulting in inconsistent record and replay
                  */
-                extractor = InternalExecutor.createExtractor(var1, null, var2, "update");
+                extractor = InternalExecutor.createExtractor(var1, null, var2, METHOD_NAME_UPDATE);
                 if (ContextManager.needReplay()) {
                     mockResult = InternalExecutor.replay(extractor, var1, var2);
                 }
@@ -152,16 +117,20 @@ public class ExecutorInstrumentation extends TypeInstrumentation {
         @Advice.OnMethodExit(onThrowable = Throwable.class)
         public static void onExit(@Advice.Argument(0) MappedStatement var1,
                                   @Advice.Argument(1) Object var2,
-                                  @Advice.Thrown Throwable throwable,
-                                  @Advice.Local("extractor") DatabaseExtractor extractor,
+                                  @Advice.Thrown(readOnly = false) Throwable throwable,
                                   @Advice.Return(readOnly = false) Integer result,
+                                  @Advice.Local("extractor") DatabaseExtractor extractor,
                                   @Advice.Local("mockResult") MockResult mockResult) {
             if (extractor == null || !RepeatedCollectManager.exitAndValidate()) {
                 return;
             }
 
             if (mockResult != null && mockResult.notIgnoreMockResult()) {
-                result = (Integer)mockResult.getResult();
+                if (mockResult.getThrowable() != null) {
+                    throwable = mockResult.getThrowable();
+                } else {
+                    result = (Integer) mockResult.getResult();
+                }
                 return;
             }
 

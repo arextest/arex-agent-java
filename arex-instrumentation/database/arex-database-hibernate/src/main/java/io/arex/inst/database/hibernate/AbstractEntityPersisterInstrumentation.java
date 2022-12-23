@@ -3,18 +3,15 @@ package io.arex.inst.database.hibernate;
 import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.context.RepeatedCollectManager;
-import io.arex.inst.runtime.util.LogUtil;
 import io.arex.inst.database.common.DatabaseExtractor;
 import io.arex.inst.extension.MethodInstrumentation;
 import io.arex.inst.extension.TypeInstrumentation;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
-import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 
 import java.io.Serializable;
-import java.sql.SQLException;
 import java.util.List;
 
 import static java.util.Arrays.asList;
@@ -59,8 +56,7 @@ public class AbstractEntityPersisterInstrumentation extends TypeInstrumentation 
 
     @Override
     public List<String> adviceClassNames() {
-        return asList("io.arex.inst.database.hibernate.AbstractEntityPersisterInstrumentation$InsertAdvice",
-                "io.arex.inst.database.hibernate.AbstractEntityPersisterInstrumentation$UpdateOrInsertAdvice");
+        return asList("io.arex.inst.database.common.DatabaseExtractor");
     }
 
     @SuppressWarnings("unused")
@@ -69,46 +65,41 @@ public class AbstractEntityPersisterInstrumentation extends TypeInstrumentation 
         @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class)
         public static boolean onEnter(@Advice.Argument(2) String sql,
                                       @Advice.Argument(3) Object object,
-                                      @Advice.Local("replayException") HibernateException replayException,
                                       @Advice.Local("mockResult") MockResult mockResult,
                                       @Advice.Local("extractor") DatabaseExtractor extractor) {
             RepeatedCollectManager.enter();
             if (ContextManager.needRecordOrReplay()) {
-                extractor = new DatabaseExtractor(sql, object, METHOD_NAME_UPDATE);
+                extractor = new DatabaseExtractor(sql, object, "insert");
                 if (ContextManager.needReplay()) {
-                    try {
-                        mockResult = extractor.replay();
-                    } catch (Exception ex) {
-                        LogUtil.warn("execute replay failed.", ex);
-                    }
+                    mockResult = extractor.replay();
                 }
             }
             return mockResult != null && mockResult.notIgnoreMockResult();
         }
 
-        @Advice.OnMethodExit(onThrowable = SQLException.class)
+        @Advice.OnMethodExit(onThrowable = Throwable.class)
         public static void onExit(
                 @Advice.Return(readOnly = false) Serializable serializable,
-                @Advice.Local("replayException") HibernateException replayException,
-                @Advice.Thrown(readOnly = false) HibernateException exception,
+                @Advice.Thrown(readOnly = false) Throwable throwable,
                 @Advice.Local("mockResult") MockResult mockResult,
-                @Advice.Local("extractor") DatabaseExtractor extractor) throws HibernateException {
+                @Advice.Local("extractor") DatabaseExtractor extractor) {
             if (!RepeatedCollectManager.exitAndValidate()) {
                 return;
             }
 
             if (extractor != null) {
-                if (ContextManager.needReplay()) {
-                    if (replayException != null) {
-                        exception = replayException;
-                    } else if (mockResult != null && mockResult.notIgnoreMockResult() && serializable == null) {
+                if (mockResult != null && mockResult.notIgnoreMockResult() && serializable == null) {
+                    if (mockResult.getThrowable() != null) {
+                        throwable = mockResult.getThrowable();
+                    } else {
                         serializable = (Serializable) mockResult.getResult();
                     }
                     return;
                 }
+
                 if (ContextManager.needRecord()) {
-                    if (exception != null) {
-                        extractor.record(exception);
+                    if (throwable != null) {
+                        extractor.record(throwable);
                     } else {
                         extractor.record(serializable);
                     }
@@ -123,33 +114,29 @@ public class AbstractEntityPersisterInstrumentation extends TypeInstrumentation 
         public static int onEnter(
                 @Advice.Argument(7) Object object,
                 @Advice.Argument(8) String sql,
-                @Advice.Argument(9) SharedSessionContractImplementor session) throws HibernateException {
+                @Advice.Argument(9) SharedSessionContractImplementor session) {
             RepeatedCollectManager.enter();
             if (ContextManager.needReplay()) {
                 DatabaseExtractor extractor = new DatabaseExtractor(sql, object, METHOD_NAME_UPDATE);
-                try {
-                    MockResult mockResult = extractor.replay();
-                    if (mockResult != null && mockResult.notIgnoreMockResult()) {
-                        return 0;
-                    }
-                } catch (Exception ex) {
-                    throw new HibernateException(ex);
+                MockResult mockResult = extractor.replay();
+                if (mockResult != null && mockResult.notIgnoreMockResult()) {
+                    return 0;
                 }
             }
             return 1;
         }
 
-        @Advice.OnMethodExit(onThrowable = HibernateException.class)
+        @Advice.OnMethodExit(onThrowable = Throwable.class)
         public static void onExit(
                 @Advice.Argument(7) Object object,
                 @Advice.Argument(8) String sql,
-                @Advice.Thrown HibernateException exception) throws HibernateException {
+                @Advice.Thrown Throwable throwable)  {
             if (ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate()) {
                 DatabaseExtractor extractor = new DatabaseExtractor(sql, object, METHOD_NAME_UPDATE);
-                if (exception != null) {
-                    extractor.record(exception);
+                if (throwable != null) {
+                    extractor.record(throwable);
                 } else {
-                    extractor.record(null);
+                    extractor.record(0);
                 }
             }
         }

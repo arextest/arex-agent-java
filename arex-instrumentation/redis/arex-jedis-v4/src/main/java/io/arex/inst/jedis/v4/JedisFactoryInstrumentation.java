@@ -34,7 +34,6 @@ public class JedisFactoryInstrumentation extends TypeInstrumentation {
     @Override
     public List<String> adviceClassNames() {
         return asList(
-                "io.arex.inst.jedis.v4.JedisFactoryInstrumentation$MakeObjectAdvice",
                 "io.arex.inst.jedis.v4.JedisWrapper",
                 "io.arex.inst.redis.common.RedisExtractor",
                 "io.arex.inst.redis.common.RedisExtractor$RedisCluster",

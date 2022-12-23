@@ -42,8 +42,7 @@ public class AbstractProducedQueryInstrumentation extends TypeInstrumentation {
 
     @Override
     public List<String> adviceClassNames() {
-        return singletonList(
-                "io.arex.inst.database.hibernate.AbstractProducedQueryInstrumentation$UniqueElementAdvice");
+        return singletonList("io.arex.inst.database.common.DatabaseExtractor");
     }
 
     private static class UniqueElementAdvice {

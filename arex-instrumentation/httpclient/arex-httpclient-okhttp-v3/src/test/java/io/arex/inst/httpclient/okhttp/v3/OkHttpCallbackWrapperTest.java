@@ -1,10 +1,13 @@
 package io.arex.inst.httpclient.okhttp.v3;
 
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+
 import io.arex.agent.bootstrap.model.MockResult;
-import io.arex.inst.httpclient.common.ExceptionWrapper;
 import io.arex.inst.httpclient.common.HttpClientExtractor;
-import io.arex.inst.httpclient.common.HttpResponseWrapper;
+import java.io.IOException;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.MediaType;
@@ -16,15 +19,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-
-import java.io.IOException;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class OkHttpCallbackWrapperTest {
@@ -39,7 +35,7 @@ public class OkHttpCallbackWrapperTest {
 
 
     @Test
-    public void onFailureTest() {
+    void onFailureTest() {
         IOException ioException = new IOException("Not found");
         okHttpCallbackWrapper.onFailure(call, ioException);
         verify(delegate).onFailure(call, ioException);
@@ -47,7 +43,7 @@ public class OkHttpCallbackWrapperTest {
 
 
     @Test
-    public void onResponseTest() throws IOException {
+    void onResponseTest() throws IOException {
         Response response = createResponse();
         okHttpCallbackWrapper.onResponse(call, response);
         verify(delegate).onResponse(call, response);
@@ -70,35 +66,18 @@ public class OkHttpCallbackWrapperTest {
     }
 
     @Test
-    public void replayFetchMockResultSuccessTest() throws IOException {
-        HttpResponseWrapper httpResponseWrapper = new HttpResponseWrapper();
-        when(httpClientExtractor.fetchMockResult()).thenReturn(httpResponseWrapper);
-        when(httpClientExtractor.replay(any(HttpResponseWrapper.class))).thenReturn(MockResult.success(createResponse()));
-        okHttpCallbackWrapper.replay();
+    void testReplay() {
+        Mockito.when(httpClientExtractor.replay()).thenReturn(MockResult.success("mock"));
+        MockResult result = okHttpCallbackWrapper.replay();
+        assertNotNull(result);
+    }
+
+    @Test
+    void testReplayWithMockResult() throws IOException {
+        okHttpCallbackWrapper.replay(MockResult.success(createResponse()));
         verify(delegate).onResponse(any(), any());
-        verify(delegate, never()).onFailure(any(), any());
-    }
 
-    @Test
-    public void replayFetchMockResultNullTest() throws IOException {
-        okHttpCallbackWrapper.replay();
+        okHttpCallbackWrapper.replay(MockResult.success(new IOException("mock IOException")));
         verify(delegate).onFailure(any(), any());
-        verify(delegate, never()).onResponse(any(), any());
-    }
-
-    @Test
-    public void replayFetchMockResultExceptionTest() throws IOException {
-        HttpResponseWrapper httpResponseWrapper = new HttpResponseWrapper();
-        ExceptionWrapper exceptionWrapper = new ExceptionWrapper(new Exception("Connection timeout"));
-        httpResponseWrapper.setException(exceptionWrapper);
-        when(httpClientExtractor.fetchMockResult()).thenReturn(httpResponseWrapper);
-        okHttpCallbackWrapper.replay();
-        verify(delegate).onFailure(any(), any());
-        verify(delegate, never()).onResponse(any(), any());
-        exceptionWrapper = new ExceptionWrapper(null);
-        httpResponseWrapper.setException(exceptionWrapper);
-        okHttpCallbackWrapper.replay();
-        verify(delegate, times(2)).onFailure(any(), any());
-        verify(delegate, never()).onResponse(any(), any());
     }
 }

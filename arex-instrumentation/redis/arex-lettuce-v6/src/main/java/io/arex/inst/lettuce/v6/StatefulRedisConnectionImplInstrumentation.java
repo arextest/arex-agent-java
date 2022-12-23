@@ -45,8 +45,12 @@ public class StatefulRedisConnectionImplInstrumentation extends TypeInstrumentat
     @Override
     public List<String> adviceClassNames() {
         return asList(
-                "io.arex.inst.lettuce.v6.StatefulRedisConnectionImplInstrumentation$NewRedisAsyncCommandsImplAdvice",
-                "io.arex.inst.lettuce.v6.StatefulRedisConnectionImplInstrumentation$NewRedisReactiveCommandsImplAdvice");
+            "io.arex.inst.lettuce.v6.RedisAsyncCommandsImplWrapper",
+            "io.arex.inst.lettuce.v6.LettuceHelper",
+            "io.arex.inst.lettuce.v6.RedisCommandBuilderImpl",
+            "io.arex.inst.lettuce.v6.RedisReactiveCommandsImplWrapper",
+            "io.arex.inst.redis.common.RedisExtractor$RedisCluster",
+            "io.arex.inst.redis.common.RedisKeyUtil");
     }
 
     public static class NewRedisAsyncCommandsImplAdvice {

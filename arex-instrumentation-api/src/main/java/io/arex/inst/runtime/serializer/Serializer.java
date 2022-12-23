@@ -31,19 +31,22 @@ public class Serializer {
      * @return result string
      */
     public static String serialize(Object object) {
+        if (object instanceof Throwable) {
+            return serialize(object, "gson");
+        }
         return serialize(object, null);
     }
 
-    public static String serialize(Object object, String name) {
+    public static String serialize(Object object, String serializer) {
         if (object == null || INSTANCE == null) {
             return null;
         }
 
         try {
             String typeName = TypeUtil.getName(object);
-            StringBuilder jsonBuilder = new StringBuilder();
             if (typeName.contains(NESTED_LIST)) {
-                List<List> ans = (List<List>) object;
+                StringBuilder jsonBuilder = new StringBuilder();
+                List<List<?>> ans = (List<List<?>>) object;
                 for (int i = 0; i < ans.size(); i++) {
                     jsonBuilder.append(serialize(ans.get(i)));
                     if (i == ans.size() - 1) {
@@ -53,7 +56,7 @@ public class Serializer {
                 }
                 return jsonBuilder.toString();
             }
-            return INSTANCE.getSerializer(name).serialize(object);
+            return INSTANCE.getSerializer(serializer).serialize(object);
         } catch (Exception ex) {
             LOGGER.warn("serialize", ex);
             return null;
@@ -87,13 +90,13 @@ public class Serializer {
      * @param type Class type, example: {@code List<com.xxx.XXXType>}
      * @return T
      */
-    public static <T> T deserialize(String value, Type type, String name) {
+    public static <T> T deserialize(String value, Type type, String serializer) {
         if (StringUtil.isEmpty(value) || type == null) {
             return null;
         }
 
         try {
-            return INSTANCE.getSerializer(name).deserialize(value, type);
+            return INSTANCE.getSerializer(serializer).deserialize(value, type);
         } catch (Exception ex) {
             LOGGER.warn("deserialize-type", ex);
             return null;
@@ -116,8 +119,13 @@ public class Serializer {
             return null;
         }
 
+        String serializer = null;
+        if (typeName.endsWith("Exception")) {
+            serializer = "gson";
+        }
+
         if (!typeName.contains(NESTED_LIST)) {
-            return deserialize(value, TypeUtil.forName(typeName));
+            return deserialize(value, TypeUtil.forName(typeName), serializer);
         }
 
         try {
@@ -143,7 +151,7 @@ public class Serializer {
                 if (innerElementClasses != null && innerElementClasses.length > elementIndex) {
                     // The intercepted value and TypeName are deserialized in one-to-one correspondence
                     String innerListTypeName = String.format("java.util.ArrayList-%s", innerElementClasses[elementIndex]);
-                    list.add(deserialize(innerJson, TypeUtil.forName(innerListTypeName)));
+                    list.add(deserialize(innerJson, TypeUtil.forName(innerListTypeName), serializer));
                     elementIndex++;
                 }
             }

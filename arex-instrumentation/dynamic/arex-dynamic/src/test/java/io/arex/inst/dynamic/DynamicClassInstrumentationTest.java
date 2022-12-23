@@ -91,7 +91,7 @@ class DynamicClassInstrumentationTest {
                 .append("matched Class: ").append(matchedClazz.getName()).append("\n")
                 .append("matched ").append(matchedMethods.size()).append(" methods: ")
                 .append(StringUtil.join(matchedMethods, ", ")).append("\n")
-                .append("matched ").append(nonMatchedMethods.size()).append(" methods: ")
+                .append("nonMatched ").append(nonMatchedMethods.size()).append(" methods: ")
                 .append(StringUtil.join(nonMatchedMethods, ", ")).append("\n");
         System.out.println(builder);
 
@@ -109,18 +109,35 @@ class DynamicClassInstrumentationTest {
         DynamicClassEntity testReturnVoidWithParameterEntity = new DynamicClassEntity("io.arex.inst.dynamic.DynamicTestClass", "testReturnVoidWithParameter", "java.lang.String", "java.lang.System.currentTimeMillis");
         Predicate<List<MethodInstrumentation>> emptyOperationAndVoidPredicate = methodAdvices -> {
             ElementMatcher<? super MethodDescription> matcher = methodAdvices.get(0).getMethodMatcher();
-            return methodAdvices.size() == 1 && matchedMethodCount(matcher, DynamicTestClass.class) == 3;
+            return methodAdvices.size() == 1 && matchedMethodCount(matcher, DynamicTestClass.class) == 0;
+        };
+
+        DynamicClassEntity testReturnNonPrimitiveTypeWithParameterEntity = new DynamicClassEntity("io.arex.inst.dynamic.DynamicTestClass", "testReturnNonPrimitiveTypeWithParameter", "java.lang.String", null);
+        DynamicClassEntity testReturnPrimitiveTypeWithParameter = new DynamicClassEntity("io.arex.inst.dynamic.DynamicTestClass", "testReturnPrimitiveTypeWithParameter", "int", null);
+        Predicate<List<MethodInstrumentation>> operationWithParameterPredicate = methodAdvices -> {
+            ElementMatcher<? super MethodDescription> matcher = methodAdvices.get(0).getMethodMatcher();
+            return methodAdvices.size() == 1 && matchedMethodCount(matcher, DynamicTestClass.class) == 2;
         };
 
         return Stream.of(
                 arguments("should_match_2_methods_when_empty_operation", Collections.singletonList(emptyOperation), NOT_EMPTY_PREDICATE.and(emptyOperationPredicate)),
-                arguments("should_match_4_method_when_with_return_void", Arrays.asList(emptyOperation, testReturnVoidEntity, testReturnVoidWithParameterEntity), NOT_EMPTY_PREDICATE.and(emptyOperationAndVoidPredicate))
+                arguments("should_match_0_method_when_with_return_void", Arrays.asList(testReturnVoidEntity, testReturnVoidWithParameterEntity), NOT_EMPTY_PREDICATE.and(emptyOperationAndVoidPredicate)),
+                arguments("should_match_2_method_when_with_parameter", Arrays.asList(testReturnNonPrimitiveTypeWithParameterEntity, testReturnPrimitiveTypeWithParameter), NOT_EMPTY_PREDICATE.and(operationWithParameterPredicate))
         );
     }
 
     @Test
     void onEnter() {
+        Mockito.when(ContextManager.needRecord()).thenReturn(true);
         assertFalse(DynamicClassInstrumentation.MethodAdvice.onEnter(null, null, null, null));
+
+        Mockito.when(ContextManager.needRecord()).thenReturn(false);
+        try (MockedConstruction<DynamicClassExtractor> mocked = Mockito.mockConstruction(DynamicClassExtractor.class, (mock, context) -> {
+            System.out.println("mock DynamicClassExtractor");
+            Mockito.when(mock.replay()).thenReturn(MockResult.success(false, null));
+        })) {
+            assertTrue(DynamicClassInstrumentation.MethodAdvice.onEnter(null, null, null, null));
+        }
     }
 
     @ParameterizedTest
@@ -132,7 +149,7 @@ class DynamicClassInstrumentationTest {
             Mockito.doNothing().when(mock).record();
         })) {
             DynamicClassInstrumentation.MethodAdvice.onExit(
-                "java.lang.System", "getenv", new Object[]{"java.lang.String"}, mockResult, null);
+                "java.lang.System", "getenv", new Object[]{"java.lang.String"}, mockResult, null, null);
             assertTrue(predicate.test(mockResult));
         }
     }

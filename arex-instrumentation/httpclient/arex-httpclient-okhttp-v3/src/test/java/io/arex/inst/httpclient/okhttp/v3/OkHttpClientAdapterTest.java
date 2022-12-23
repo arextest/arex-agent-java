@@ -28,14 +28,14 @@ public class OkHttpClientAdapterTest {
     private OkHttpClientAdapter okHttpClientAdapter;
 
     @Test
-    public void getMethodTest() {
+    void getMethodTest() {
         when(request.method()).thenReturn("POST");
         String actResult = okHttpClientAdapter.getMethod();
         Assertions.assertEquals("POST", actResult);
     }
 
     @Test
-    public void getRequestContentTypeTest() {
+    void getRequestContentTypeTest() {
         when(request.body()).thenReturn(null, RequestBody.create("okok", MediaType.parse("application/text")));
         String actResult = okHttpClientAdapter.getRequestContentType();
         Assertions.assertNull(actResult);
@@ -44,7 +44,7 @@ public class OkHttpClientAdapterTest {
     }
 
     @Test
-    public void getRequestHeaderTest() {
+    void getRequestHeaderTest() {
         when(request.header(anyString())).thenReturn(null, "Hi");
         String actResult = okHttpClientAdapter.getRequestHeader("arex");
         Assertions.assertNull(actResult);
@@ -53,16 +53,16 @@ public class OkHttpClientAdapterTest {
     }
 
     @Test
-    public void getUriTest() {
+    void getUriTest() {
         when(request.url()).thenReturn(HttpUrl.get("http://localhost"));
         URI actResult = okHttpClientAdapter.getUri();
         Assertions.assertNotNull(actResult);
     }
 
     @Test
-    public void wrapTest() {
+    void wrapTest() {
         Response response = createResponse();
-        HttpResponseWrapper actResult = okHttpClientAdapter.wrap(MockResult.success(response));
+        HttpResponseWrapper actResult = okHttpClientAdapter.wrap(response);
         Assertions.assertNotNull(actResult);
         Assertions.assertNotNull(actResult.getContent());
         Assertions.assertEquals(13, actResult.getContent().length);
@@ -71,8 +71,7 @@ public class OkHttpClientAdapterTest {
     }
 
     private void unwrapTest(HttpResponseWrapper wrapper) {
-        MockResult mockResult = okHttpClientAdapter.unwrap(wrapper);
-        Response actResult = (Response) mockResult.getResult();
+        Response actResult = okHttpClientAdapter.unwrap(wrapper);
         Assertions.assertNotNull(actResult);
         Assertions.assertEquals(200, actResult.code());
         Assertions.assertNotNull(actResult.body());

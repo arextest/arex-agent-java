@@ -37,7 +37,6 @@ public class RedisClientInstrumentation extends TypeInstrumentation {
     @Override
     public List<String> adviceClassNames() {
         return asList(
-                "io.arex.inst.lettuce.v6.RedisClientInstrumentation$NewStatefulRedisConnectionAdvice",
                 "io.arex.inst.lettuce.v6.RedisAsyncCommandsImplWrapper",
                 "io.arex.inst.lettuce.v6.LettuceHelper",
                 "io.arex.inst.lettuce.v6.RedisCommandBuilderImpl",

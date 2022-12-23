@@ -421,6 +421,18 @@ public class RedisAsyncCommandsImplWrapper<K, V> extends RedisAsyncCommandsImpl<
     }
 
     @Override
+    public RedisFuture<String> rename(K key, K newKey) {
+        Command<K, V, String> cmd = commandBuilder.rename(key, newKey);
+        return dispatch(cmd, RedisKeyUtil.generate(key, newKey));
+    }
+
+    @Override
+    public RedisFuture<Boolean> renamenx(K key, K newKey) {
+        Command<K, V, Boolean> cmd = commandBuilder.renamenx(key, newKey);
+        return dispatch(cmd, RedisKeyUtil.generate(key, newKey));
+    }
+
+    @Override
     public RedisFuture<V> rpop(K key) {
         Command<K, V, V> cmd = commandBuilder.rpop(key);
         return dispatch(cmd, String.valueOf(key));
@@ -589,7 +601,11 @@ public class RedisAsyncCommandsImplWrapper<K, V> extends RedisAsyncCommandsImpl<
             RedisExtractor extractor = new RedisExtractor(this.redisUri, cmd.getType().name(), key, field);
             MockResult mockResult = extractor.replay();
             if (mockResult.notIgnoreMockResult()) {
-                asyncCommand.complete((T) mockResult.getResult());
+                if (mockResult.getThrowable() != null) {
+                    asyncCommand.completeExceptionally(mockResult.getThrowable());
+                } else {
+                    asyncCommand.complete((T) mockResult.getResult());
+                }
                 return asyncCommand;
             }
         }
