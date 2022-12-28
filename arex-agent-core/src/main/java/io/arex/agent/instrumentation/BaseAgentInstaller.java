@@ -2,6 +2,8 @@ package io.arex.agent.instrumentation;
 
 import io.arex.agent.bootstrap.AgentInstaller;
 import io.arex.agent.bootstrap.TraceContextManager;
+import io.arex.agent.bootstrap.util.CollectionUtil;
+import io.arex.foundation.config.ConfigManager;
 import io.arex.foundation.healthy.HealthManager;
 import io.arex.foundation.serializer.JacksonSerializer;
 import io.arex.foundation.services.ConfigService;
@@ -11,6 +13,8 @@ import io.arex.foundation.util.SPIUtil;
 import io.arex.inst.runtime.context.RecordLimiter;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.serializer.StringSerializable;
+import io.arex.inst.runtime.service.DataCollector;
+import io.arex.inst.runtime.service.DataService;
 import io.arex.inst.runtime.util.LogUtil;
 import java.util.List;
 import net.bytebuddy.agent.builder.ResettableClassFileTransformer;
@@ -50,7 +54,7 @@ public abstract class BaseAgentInstaller implements AgentInstaller {
         installSerializer();
         RecordLimiter.init(HealthManager::acquire);
         ConfigService.INSTANCE.loadAgentConfig(agentArgs);
-        DataCollectorService.INSTANCE.start();
+        initDataCollector();
     }
 
     private void installSerializer() {
@@ -61,6 +65,19 @@ public abstract class BaseAgentInstaller implements AgentInstaller {
             builder.addSerializer(serializable.name(), serializable);
         }
         builder.build();
+    }
+
+    private void initDataCollector() {
+        DataCollector collector = DataCollectorService.INSTANCE;
+        if (ConfigManager.INSTANCE.isLocalStorage()) {
+            List<DataCollector> extendCollectorList =
+                    SPIUtil.load(DataCollector.class, getClassLoader());
+            if (CollectionUtil.isNotEmpty(extendCollectorList)) {
+                collector = extendCollectorList.get(0);
+            }
+        }
+        collector.start();
+        DataService.builder().setDataCollector(collector).build();
     }
 
     protected abstract ResettableClassFileTransformer transform();
