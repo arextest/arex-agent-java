@@ -39,6 +39,7 @@ AREX utilizes the advanced Java technique, Instrument API, and is capable of ins
 - Spring Boot 1.4+-2.x+, Servlet API 3+、5+
 - Custom type
 - Netty server 4.1+
+- Dubbo 3.x
 
 ## Installation
 
@@ -90,38 +91,7 @@ java -javaagent:/path/to/arex-agent-<version>.jar
 
 ***Also, You can Run with CLI in local mode:***
 
-Simply click the script in the `arex-agent-java/bin` directory to start the command line tool, or run it by following `java` command:
-
-```other
-java -cp "/path/to/arex-cli-parent/arex-cli/target/arex-cli.jar" io.arex.cli.ArexCli
-```
-
-
-The supported commands are as follows:
-
-
-- **record**- record data or set record rate
-
-  `[option: -r/--rate]` set record rate, default value 1, record once every 60 seconds
-
-  `[option: -c/--close]` shut down record
-
-
-- **replay**- replay recorded data and view differences
-
-  `[option: -n/--num]` replay numbers, default the latest 10
-
-
-- **watch**- view replay result and differences
-
-  `[option: -r/--replayId]` replay id, multiple are separated by spaces
-
-
-- **debug**- local debugging of specific cases
-
-  `[option: -r/--recordId]` record id, required Option
-
-In local mode, AREX uses [H2](https://www.h2database.com) as a local storage to save the recorded data for testing purpose,  Storage Service are no longer required, But you can't use the AREX-UI in this mode either.
+Please refer to : [AREX standalone mode](https://github.com/arextest/arex-standalone).
 
 
 

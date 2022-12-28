@@ -5,7 +5,6 @@ import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.foundation.services.ConfigService;
 import io.arex.foundation.services.TimerService;
 import io.arex.agent.bootstrap.util.CollectionUtil;
-import io.arex.foundation.util.PropertyUtil;
 import io.arex.inst.runtime.config.ConfigBuilder;
 import io.arex.inst.runtime.config.ConfigListener;
 import io.arex.inst.runtime.model.DynamicClassEntity;
@@ -149,11 +148,6 @@ public class ConfigManager {
         setRecordRate(System.getProperty(RECORD_RATE, "1"));
 
         storageServiceMode = System.getProperty(STORAGE_SERVICE_MODE);
-        storageServiceJdbcUrl = System.getProperty(STORAGE_SERVICE_JDBC_URL, PropertyUtil.getProperty(STORAGE_SERVICE_JDBC_URL));
-        storageServiceUsername = System.getProperty(STORAGE_SERVICE_USER_NAME, PropertyUtil.getProperty(STORAGE_SERVICE_USER_NAME));
-        storageServicePassword = System.getProperty(STORAGE_SERVICE_PASSWORD, PropertyUtil.getProperty(STORAGE_SERVICE_PASSWORD));
-        storageServiceWebPort = System.getProperty(STORAGE_SERVICE_WEB_PORT, PropertyUtil.getProperty(STORAGE_SERVICE_WEB_PORT));
-        serverServiceTcpPort = System.getProperty(SERVER_SERVICE_TCP_PORT, PropertyUtil.getProperty(SERVER_SERVICE_TCP_PORT));
 
         setDynamicResultSizeLimit(System.getProperty(DYNAMIC_RESULT_SIZE_LIMIT, "1000"));
         setTimeMachine(System.getProperty(TIME_MACHINE));
@@ -276,26 +270,6 @@ public class ConfigManager {
             String mode = agentMap.get(STORAGE_SERVICE_MODE);
             if (StringUtil.isNotEmpty(mode)) {
                 storageServiceMode = mode;
-            }
-            String url = agentMap.get(STORAGE_SERVICE_JDBC_URL);
-            if (StringUtil.isNotEmpty(url)) {
-                storageServiceJdbcUrl = url;
-            }
-            String userName = agentMap.get(STORAGE_SERVICE_USER_NAME);
-            if (StringUtil.isNotEmpty(userName)) {
-                storageServiceUsername = userName;
-            }
-            String password = agentMap.get(STORAGE_SERVICE_PASSWORD);
-            if (StringUtil.isNotEmpty(password)) {
-                storageServicePassword = password;
-            }
-            String webPort = agentMap.get(STORAGE_SERVICE_WEB_PORT);
-            if (StringUtil.isNotEmpty(webPort)) {
-                storageServiceWebPort = webPort;
-            }
-            String tcpPort = agentMap.get(SERVER_SERVICE_TCP_PORT);
-            if (StringUtil.isNotEmpty(tcpPort)) {
-                serverServiceTcpPort = tcpPort;
             }
         }
     }

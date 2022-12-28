@@ -7,7 +7,6 @@ import io.arex.foundation.internal.MockEntityBuffer;
 import io.arex.foundation.util.AsyncHttpClientUtil;
 import io.arex.foundation.util.async.ThreadFactoryImpl;
 import io.arex.inst.runtime.service.DataCollector;
-import io.arex.inst.runtime.service.DataService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +36,7 @@ public class DataCollectorService implements DataCollector {
         initServiceHost();
     }
 
+    @Override
     public void save(String mockData) {
         if (HealthManager.isFastRejection()) {
             return;
@@ -47,10 +47,12 @@ public class DataCollectorService implements DataCollector {
         }
     }
 
+    @Override
     public String query(String postData) {
         return queryReplayData(postData);
     }
 
+    @Override
     public void start() {
         if (initialized.compareAndSet(false, true)) {
             init();
@@ -69,10 +71,6 @@ public class DataCollectorService implements DataCollector {
         if (executeFuture == null) {
             executeFuture = executor.submit(this::loop);
         }
-
-        DataService.builder()
-                .setDataCollector(this)
-                .build();
     }
 
     private void loop() {

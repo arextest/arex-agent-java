@@ -11,11 +11,6 @@ public class ConfigConstants {
     public static final String DYNAMIC_RESULT_SIZE_LIMIT = "arex.dynamic.result.size.limit";
     public static final String TIME_MACHINE = "arex.time.machine";
     public static final String STORAGE_SERVICE_MODE = "arex.storage.mode";
-    public static final String STORAGE_SERVICE_JDBC_URL = "arex.storage.jdbc.url";
-    public static final String STORAGE_SERVICE_USER_NAME = "arex.storage.username";
-    public static final String STORAGE_SERVICE_PASSWORD = "arex.storage.password";
-    public static final String STORAGE_SERVICE_WEB_PORT = "arex.storage.web.port";
-    public static final String SERVER_SERVICE_TCP_PORT = "arex.server.tcp.port";
     public static final String ALLOW_DAY_WEEKS = "arex.allow.day.weeks";
     public static final String ALLOW_TIME_FROM = "arex.allow.time.from";
     public static final String ALLOW_TIME_TO = "arex.allow.time.to";
