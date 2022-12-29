@@ -36,7 +36,7 @@ public class EventProcessor {
             if (ContextManager.needReplay() && Config.get().getBoolean("arex.time.machine", false)) {
                 Mocker mocker = MockUtils.createDynamicClass(CLOCK_CLASS, CLOCK_METHOD);
                 String result = String.valueOf(MockUtils.replayBody(mocker));
-                long millis = parseInt(result);
+                long millis = parseLong(result);
                 if (millis > 0) {
                     TimeCache.put(millis);
                 }
@@ -63,14 +63,14 @@ public class EventProcessor {
         ContextManager.overdueCleanUp();
     }
 
-    private static int parseInt(String value) {
+    private static long parseLong(String value) {
         if (StringUtil.isEmpty(value) || "null".equals(value)) {
             return 0;
         }
 
-        int result;
+        long result;
         try {
-            result = Integer.parseInt(value);
+            result = Long.parseLong(value);
         } catch (NumberFormatException e) {
             result = 0;
         }
