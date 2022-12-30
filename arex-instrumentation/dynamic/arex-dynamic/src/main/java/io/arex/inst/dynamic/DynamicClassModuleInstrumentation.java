@@ -1,6 +1,7 @@
 package io.arex.inst.dynamic;
 
 import com.google.auto.service.AutoService;
+import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.inst.extension.ModuleInstrumentation;
 import io.arex.inst.extension.TypeInstrumentation;
 import io.arex.inst.runtime.config.Config;
@@ -30,7 +31,7 @@ public class DynamicClassModuleInstrumentation extends ModuleInstrumentation {
         List<TypeInstrumentation> typeInstList = new ArrayList<>();
         List<DynamicClassEntity> dynamicClassList = Config.get().dynamicClassEntities();
 
-        if (dynamicClassList == null || dynamicClassList.isEmpty()) {
+        if (CollectionUtil.isEmpty(dynamicClassList)) {
             return Collections.emptyList();
         }
 

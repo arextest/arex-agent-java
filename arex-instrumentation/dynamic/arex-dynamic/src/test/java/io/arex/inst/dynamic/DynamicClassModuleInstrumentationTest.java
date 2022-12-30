@@ -10,7 +10,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DynamicClassModuleInstrumentationTest {
     static DynamicClassModuleInstrumentation target = null;
@@ -27,14 +28,21 @@ class DynamicClassModuleInstrumentationTest {
 
     @Test
     void instrumentationTypes() {
-        List<DynamicClassEntity> entities = new ArrayList<>();
-        entities.add(new DynamicClassEntity("io.arex.inst.dynamic.DynamicTestClass", "testReturnPrimitiveType", "", "java.lang.System.currentTimeMillis"));
         ConfigBuilder.create("test")
                 .enableDebug(true)
-                .dynamicClassList(entities)
+                .dynamicClassList(null)
                 .addProperties(new HashMap<>())
                 .build();
 
-        assertNotNull(target.instrumentationTypes());
+        assertTrue(target.instrumentationTypes().isEmpty());
+
+        List<DynamicClassEntity> entities = new ArrayList<>();
+        entities.add(new DynamicClassEntity("io.arex.inst.dynamic.DynamicTestClass", "testReturnPrimitiveType", "", "java.lang.System.currentTimeMillis"));
+        ConfigBuilder.create("test")
+            .enableDebug(true)
+            .dynamicClassList(entities)
+            .addProperties(new HashMap<>())
+            .build();
+        assertEquals(1, target.instrumentationTypes().size());
     }
 }

@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit;
 public class TimeCache {
     private static final ConcurrentHashMap<String, Pair<Long, Long>> CACHE = new ConcurrentHashMap<>(30);
 
-    public static Long get() {
+    public static long get() {
         String traceId = TraceContextManager.get();
         if (traceId == null) {
             return 0L;
