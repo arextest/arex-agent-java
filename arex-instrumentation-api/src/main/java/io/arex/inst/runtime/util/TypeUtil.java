@@ -49,6 +49,17 @@ public class TypeUtil {
             Class<?> raw = classForName(types[0]);
 
             if (types.length > 1 && StringUtil.isNotEmpty(types[1])) {
+
+                if (raw == null) {
+                    return null;
+                }
+
+                if (raw.getTypeParameters().length == 0) {
+                    ParameterizedTypeImpl parameterizedType = ParameterizedTypeImpl.make(raw, new Type[0], null);
+                    TYPE_NAME_CACHE.put(typeName, parameterizedType);
+                    return parameterizedType;
+                }
+
                 // List<Map>
                 if (types[1].contains(MAP_CLASS_NAME)) {
                     Type[] args = getMapType(types);
