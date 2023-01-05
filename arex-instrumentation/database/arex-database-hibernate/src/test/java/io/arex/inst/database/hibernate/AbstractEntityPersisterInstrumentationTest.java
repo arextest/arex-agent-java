@@ -4,6 +4,8 @@ import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.context.RepeatedCollectManager;
 import io.arex.inst.database.common.DatabaseExtractor;
+import io.arex.inst.runtime.service.DataService;
+import java.util.concurrent.atomic.AtomicReference;
 import org.hibernate.HibernateException;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -12,6 +14,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.MockedConstruction;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -20,13 +23,17 @@ import java.io.Serializable;
 import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+import org.mockito.stubbing.Answer;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isA;
 
 @ExtendWith(MockitoExtension.class)
 class AbstractEntityPersisterInstrumentationTest {
     static AbstractEntityPersisterInstrumentation target = null;
+    static DataService dataService = DataService.INSTANCE;
 
     @BeforeAll
     static void setUp() {
@@ -106,7 +113,7 @@ class AbstractEntityPersisterInstrumentationTest {
             Mockito.when(mock.replay()).thenReturn(mockResult);
         })) {
             mocker.run();
-            int result = AbstractEntityPersisterInstrumentation.UpdateOrInsertAdvice.onEnter(null, null, null);
+            int result = AbstractEntityPersisterInstrumentation.UpdateOrInsertAdvice.onEnter(null, null, null, MockResult.success("mock"));
             assertTrue(predicate.test(result));
         }
     }
@@ -123,16 +130,96 @@ class AbstractEntityPersisterInstrumentationTest {
         );
     }
 
-    @Test
-    void onUpdateOrInsertExit() {
-        Mockito.when(ContextManager.needRecord()).thenReturn(true);
+    @ParameterizedTest
+    @MethodSource("onUpdateOrInsertExitCase")
+    void onUpdateOrInsertExit(Runnable recordType, Object mockResult) {
+        AtomicReference<DatabaseExtractor> mo = new AtomicReference<>();
         Mockito.when(RepeatedCollectManager.exitAndValidate()).thenReturn(true);
-
+        Mockito.when(ContextManager.needRecord()).thenReturn(true);
         try (MockedConstruction<DatabaseExtractor> mocked = Mockito.mockConstruction(DatabaseExtractor.class, (mock, context) -> {
-            System.out.println("mock DatabaseExtractor");
-        })) {
-            AbstractEntityPersisterInstrumentation.UpdateOrInsertAdvice.onExit(null, null, new HibernateException(""));
-            assertDoesNotThrow(() -> AbstractEntityPersisterInstrumentation.UpdateOrInsertAdvice.onExit(null, null, null));
+            mo.set(mock);
+        })){
+            recordType.run();
+            Mockito.verify(mo.get(), Mockito.times(1)).record(isA(mockResult.getClass()));
         }
+    }
+
+    static Stream<Arguments> onUpdateOrInsertExitCase() {
+        Runnable recordThrowable = () -> AbstractEntityPersisterInstrumentation.UpdateOrInsertAdvice.onExit(null, null, new NullPointerException(), MockResult.success(2));
+        Runnable recordNormalResponse = () -> AbstractEntityPersisterInstrumentation.UpdateOrInsertAdvice.onExit(null, null, null, MockResult.success(2));
+        return Stream.of(
+                arguments(recordThrowable, new NullPointerException()),
+                arguments(recordNormalResponse, 0)
+        );
+    }
+
+    @Test
+    void updateOrInsertExitReplayThrowable() {
+        MockResult mock = Mockito.mock(MockResult.class);
+        Mockito.when(ContextManager.needReplay()).thenReturn(true);
+        Mockito.when(RepeatedCollectManager.exitAndValidate()).thenReturn(true);
+        Throwable throwable = new Throwable();
+        Mockito.doReturn(true).when(mock).notIgnoreMockResult();
+        Mockito.doReturn(throwable).when(mock).getThrowable();
+        AbstractEntityPersisterInstrumentation.UpdateOrInsertAdvice.onExit(null, null, throwable, mock);
+        Mockito.verify(mock, Mockito.times(2)).getThrowable();
+    }
+
+    @ParameterizedTest
+    @MethodSource("onDeleteEnterCase")
+    void onDeleteEnter(Runnable judgeReplay, MockResult mockResult, Predicate<Integer> predicate) {
+        judgeReplay.run();
+        try (MockedConstruction<DatabaseExtractor> mocked = Mockito.mockConstruction(DatabaseExtractor.class, (mock, context) -> {
+            Mockito.when(mock.replay()).thenReturn(mockResult);
+        })){
+            assertTrue(predicate.test(AbstractEntityPersisterInstrumentation.DeleteAdvice.onEnter(null, null, null)));
+        }
+    }
+
+    static Stream<Arguments> onDeleteEnterCase() {
+        Runnable needReplay = () -> Mockito.when(ContextManager.needReplay()).thenReturn(true);
+        Runnable notNeedReplay = () -> Mockito.when(ContextManager.needReplay()).thenReturn(false);
+        Predicate<Integer> predicate1 = result -> result == 0;
+        Predicate<Integer> predicate2 = result -> result == 1;
+        return Stream.of(
+                arguments(needReplay, MockResult.success(0), predicate1),
+                arguments(needReplay, MockResult.success(true, 0), predicate2),
+                arguments(notNeedReplay, MockResult.success(0), predicate2)
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("onDeleteExitCase")
+    void onDeleteExit(Runnable recordType, Object mockResult) {
+        AtomicReference<DatabaseExtractor> mo = new AtomicReference<>();
+        Mockito.when(RepeatedCollectManager.exitAndValidate()).thenReturn(true);
+        Mockito.when(ContextManager.needRecord()).thenReturn(true);
+        try (MockedConstruction<DatabaseExtractor> mocked = Mockito.mockConstruction(DatabaseExtractor.class, (mock, context) -> {
+            mo.set(mock);
+        })){
+            recordType.run();
+            Mockito.verify(mo.get(), Mockito.times(1)).record(isA(mockResult.getClass()));
+        }
+    }
+
+    static Stream<Arguments> onDeleteExitCase() {
+        Runnable recordThrowable = () -> AbstractEntityPersisterInstrumentation.DeleteAdvice.onExit(null, null, new NullPointerException(), MockResult.success(2));
+        Runnable recordNormalResponse = () -> AbstractEntityPersisterInstrumentation.DeleteAdvice.onExit(null, null, null, MockResult.success(2));
+        return Stream.of(
+                arguments(recordThrowable, new NullPointerException()),
+                arguments(recordNormalResponse, 0)
+        );
+    }
+
+    @Test
+    void deleteExitReplayThrowable() {
+        MockResult mock = Mockito.mock(MockResult.class);
+        Mockito.when(ContextManager.needReplay()).thenReturn(true);
+        Mockito.when(RepeatedCollectManager.exitAndValidate()).thenReturn(true);
+        Throwable throwable = new Throwable();
+        Mockito.doReturn(true).when(mock).notIgnoreMockResult();
+        Mockito.doReturn(throwable).when(mock).getThrowable();
+        AbstractEntityPersisterInstrumentation.DeleteAdvice.onExit(null, null, throwable, mock);
+        Mockito.verify(mock, Mockito.times(2)).getThrowable();
     }
 }

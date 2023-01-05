@@ -21,6 +21,7 @@ import static net.bytebuddy.matcher.ElementMatchers.takesArgument;
 public class AbstractEntityPersisterInstrumentation extends TypeInstrumentation {
 
     private static final String METHOD_NAME_UPDATE = "update";
+    private static final String METHOD_NAME_DELETE = "delete";
 
     @Override
     public ElementMatcher<TypeDescription> typeMatcher() {
@@ -30,7 +31,8 @@ public class AbstractEntityPersisterInstrumentation extends TypeInstrumentation 
     @Override
     public List<MethodInstrumentation> methodAdvices() {
         return asList(buildInsertInstrumentation(),
-                buildUpdateOrInsertInstrumentation());
+                buildUpdateOrInsertInstrumentation(),
+                buildDeleteInstrumentation());
     }
 
     private MethodInstrumentation buildInsertInstrumentation() {
@@ -52,6 +54,14 @@ public class AbstractEntityPersisterInstrumentation extends TypeInstrumentation 
                         .and(takesArgument(7, Object.class))
                         .and(takesArgument(8, String.class)),
                 this.getClass().getName() + "$UpdateOrInsertAdvice");
+    }
+
+    private MethodInstrumentation buildDeleteInstrumentation() {
+        return new MethodInstrumentation(
+                isMethod().and(named("delete"))
+                        .and(takesArguments(7))
+                        .and(takesArgument(2, int.class)),
+                this.getClass().getName() + "$DeleteAdvice");
     }
 
     @Override
@@ -114,11 +124,12 @@ public class AbstractEntityPersisterInstrumentation extends TypeInstrumentation 
         public static int onEnter(
                 @Advice.Argument(7) Object object,
                 @Advice.Argument(8) String sql,
-                @Advice.Argument(9) SharedSessionContractImplementor session) {
+                @Advice.Argument(9) SharedSessionContractImplementor session,
+                @Advice.Local("mockResult") MockResult mockResult) {
             RepeatedCollectManager.enter();
             if (ContextManager.needReplay()) {
                 DatabaseExtractor extractor = new DatabaseExtractor(sql, object, METHOD_NAME_UPDATE);
-                MockResult mockResult = extractor.replay();
+                mockResult = extractor.replay();
                 if (mockResult != null && mockResult.notIgnoreMockResult()) {
                     return 0;
                 }
@@ -130,9 +141,64 @@ public class AbstractEntityPersisterInstrumentation extends TypeInstrumentation 
         public static void onExit(
                 @Advice.Argument(7) Object object,
                 @Advice.Argument(8) String sql,
-                @Advice.Thrown Throwable throwable)  {
-            if (ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate()) {
+                @Advice.Thrown(readOnly = false) Throwable throwable,
+                @Advice.Local("mockResult") MockResult mockResult)  {
+            if (!RepeatedCollectManager.exitAndValidate()) {
+                return;
+            }
+
+            if (ContextManager.needReplay() && mockResult != null && mockResult.notIgnoreMockResult() && mockResult.getThrowable() != null) {
+                throwable = mockResult.getThrowable();
+                return;
+            }
+
+            if (ContextManager.needRecord()) {
                 DatabaseExtractor extractor = new DatabaseExtractor(sql, object, METHOD_NAME_UPDATE);
+                if (throwable != null) {
+                    extractor.record(throwable);
+                } else {
+                    extractor.record(0);
+                }
+            }
+        }
+
+    }
+
+    @SuppressWarnings("unused")
+    public static class DeleteAdvice {
+        @Advice.OnMethodEnter(skipOn = Advice.OnDefaultValue.class)
+        public static int onEnter(
+                @Advice.Argument(3) Object object,
+                @Advice.Argument(4) String sql,
+                @Advice.Local("mockResult") MockResult mockResult) {
+            RepeatedCollectManager.enter();
+            if (ContextManager.needReplay()) {
+                DatabaseExtractor extractor = new DatabaseExtractor(sql, object, METHOD_NAME_DELETE);
+                mockResult = extractor.replay();
+                if (mockResult != null && mockResult.notIgnoreMockResult()) {
+                    return 0;
+                }
+            }
+            return 1;
+        }
+
+        @Advice.OnMethodExit(onThrowable = Throwable.class)
+        public static void onExit(
+                @Advice.Argument(3) Object object,
+                @Advice.Argument(4) String sql,
+                @Advice.Thrown(readOnly = false) Throwable throwable,
+                @Advice.Local("mockResult") MockResult mockResult) {
+            if (!RepeatedCollectManager.exitAndValidate()) {
+                return;
+            }
+
+            if (ContextManager.needReplay() && mockResult != null && mockResult.notIgnoreMockResult() && mockResult.getThrowable() != null) {
+                throwable = mockResult.getThrowable();
+                return;
+            }
+
+            if (ContextManager.needRecord()) {
+                DatabaseExtractor extractor = new DatabaseExtractor(sql, object, METHOD_NAME_DELETE);
                 if (throwable != null) {
                     extractor.record(throwable);
                 } else {
