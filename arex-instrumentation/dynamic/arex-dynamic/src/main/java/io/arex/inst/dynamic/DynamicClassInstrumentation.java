@@ -97,8 +97,6 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
                 for (int i = 0; i < dynamicClassEntity.getParameters().size(); i++) {
                     parameterMatcher = parameterMatcher.and(takesArgument(i, named(dynamicClassEntity.getParameters().get(i))));
                 }
-            } else {
-                parameterMatcher = parameterMatcher.and(takesNoArguments());
             }
             matcher = matcher.or(parameterMatcher.and(not(returns(TypeDescription.VOID))));
         }
@@ -119,16 +117,20 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
                                       @Advice.Origin("#m") String methodName,
                                       @Advice.AllArguments Object[] args,
                                       @Advice.Local("mockResult") MockResult mockResult) {
-            RepeatedCollectManager.enter();
             // record
             if (ContextManager.needRecord()) {
+                RepeatedCollectManager.enter();
                 return false;
             }
 
             // replay
-            DynamicClassExtractor extractor = new DynamicClassExtractor(className, methodName, args);
-            mockResult = extractor.replay();
-            return mockResult != null && mockResult.notIgnoreMockResult();
+            if (ContextManager.needReplay()) {
+                DynamicClassExtractor extractor = new DynamicClassExtractor(className, methodName, args);
+                mockResult = extractor.replay();
+                return mockResult != null && mockResult.notIgnoreMockResult();
+            }
+
+            return false;
         }
 
         @Advice.OnMethodExit(onThrowable = Throwable.class)
@@ -137,10 +139,6 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
                                   @Advice.Local("mockResult") MockResult mockResult,
                                   @Advice.Thrown(readOnly = false) Throwable throwable,
                                   @Advice.Return(readOnly = false, typing = Assigner.Typing.DYNAMIC) Object result) {
-            if (!RepeatedCollectManager.exitAndValidate()) {
-                return;
-            }
-
             // replay
             if (mockResult != null && mockResult.notIgnoreMockResult()) {
                 if (mockResult.getThrowable() != null) {
@@ -152,7 +150,7 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
             }
 
             // record
-            if (ContextManager.needRecord()) {
+            if (ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate()) {
                 Object recordResult = throwable != null ? throwable : result;
                 DynamicClassExtractor extractor = new DynamicClassExtractor(className, methodName, args, recordResult);
                 extractor.record();

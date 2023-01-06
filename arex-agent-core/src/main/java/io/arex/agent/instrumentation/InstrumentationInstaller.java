@@ -92,7 +92,6 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
         AgentBuilder.Transformer transformer = type.transformer();
         if (transformer != null) {
             identified = identified.transform(transformer);
-            LOGGER.info("[arex] installed transformer: {}", type.getClass().getName());
         }
 
         List<MethodInstrumentation> methodAdvices = type.methodAdvices();
