@@ -153,10 +153,11 @@ public class ServletAdviceHelper {
             return true;
         }
 
+        String requestURI = adapter.getRequestURI(httpServletRequest);
+
         // Filter invalid servlet path suffix
         if (HTTP_METHOD_GET.equals(adapter.getMethod(httpServletRequest))) {
-            String servletPath = adapter.getServletPath(httpServletRequest);
-            return StringUtil.isEmpty(servletPath) || FILTERED_GET_URL_SUFFIX.stream().anyMatch(servletPath::contains);
+            return StringUtil.isEmpty(requestURI) || FILTERED_GET_URL_SUFFIX.stream().anyMatch(requestURI::contains);
         }
 
         // Filter invalid content-type
@@ -165,12 +166,10 @@ public class ServletAdviceHelper {
             return true;
         }
 
-        String uri = adapter.getRequestURI(httpServletRequest);
-
-        if (IgnoreUtils.ignoreOperation(uri)) {
+        if (IgnoreUtils.ignoreOperation(requestURI)) {
             return true;
         }
 
-        return !RecordLimiter.acquire(uri);
+        return !RecordLimiter.acquire(requestURI);
     }
 }

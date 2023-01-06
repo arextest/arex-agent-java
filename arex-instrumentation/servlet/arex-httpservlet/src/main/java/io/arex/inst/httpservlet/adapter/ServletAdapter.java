@@ -44,7 +44,7 @@ public interface ServletAdapter<HttpServletRequest, HttpServletResponse> {
 
     String getContentType(HttpServletRequest httpServletRequest);
 
-    String getServletPath(HttpServletRequest httpServletRequest);
+    String getFullUrl(HttpServletRequest httpServletRequest);
 
     String getRequestURI(HttpServletRequest httpServletRequest);
 
@@ -53,8 +53,6 @@ public interface ServletAdapter<HttpServletRequest, HttpServletResponse> {
     Enumeration<String> getRequestHeaderNames(HttpServletRequest httpServletRequest);
 
     Collection<String> getResponseHeaderNames(HttpServletResponse httpServletResponse);
-
-    String getQueryString(HttpServletRequest httpServletRequest);
 
     byte[] getRequestBytes(HttpServletRequest httpServletRequest);
 

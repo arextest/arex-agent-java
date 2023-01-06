@@ -1,6 +1,7 @@
 package io.arex.inst.httpservlet;
 
 import io.arex.agent.bootstrap.model.Mocker;
+import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.httpservlet.adapter.ServletAdapter;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.model.ArexConstants;
@@ -70,7 +71,7 @@ public class ServletExtractor<HttpServletRequest, HttpServletResponse> {
 
         Map<String, Object> requestAttributes = new HashMap<>();
         requestAttributes.put("HttpMethod", adapter.getMethod(httpServletRequest));
-        requestAttributes.put("RequestPath", adapter.getServletPath(httpServletRequest));
+        requestAttributes.put("RequestPath", adapter.getFullUrl(httpServletRequest));
         requestAttributes.put("Headers", getRequestHeaders());
 
         Map<String, Object> responseAttributes = Collections.singletonMap("Headers", getResponseHeaders());
@@ -110,7 +111,7 @@ public class ServletExtractor<HttpServletRequest, HttpServletResponse> {
 
     private String getRequest() {
         if ("GET".equals(adapter.getMethod(httpServletRequest))) {
-            return adapter.getQueryString(httpServletRequest);
+            return StringUtil.EMPTY;
         }
         // Compatible with custom message converters that include compression
         return Base64.getEncoder().encodeToString(adapter.getRequestBytes(httpServletRequest));
