@@ -83,7 +83,7 @@ class ServletAdviceHelperTest {
         Runnable mocker5 = () -> {
             Mockito.when(adapter.getRequestHeader(any(), eq(ArexConstants.REPLAY_WARM_UP))).thenReturn("false");
             Mockito.when(adapter.getMethod(any())).thenReturn("GET");
-            Mockito.when(adapter.getServletPath(any())).thenReturn(".png");
+            Mockito.when(adapter.getFullUrl(any())).thenReturn(".png");
         };
         Runnable mocker6 = () -> {
             Mockito.when(adapter.getMethod(any())).thenReturn("POST");

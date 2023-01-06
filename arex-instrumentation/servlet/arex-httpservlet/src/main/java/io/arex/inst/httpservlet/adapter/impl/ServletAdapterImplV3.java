@@ -98,8 +98,15 @@ public class ServletAdapterImplV3 implements ServletAdapter<HttpServletRequest, 
     }
 
     @Override
-    public String getServletPath(HttpServletRequest httpServletRequest) {
-        return httpServletRequest.getServletPath();
+    public String getFullUrl(HttpServletRequest httpServletRequest) {
+        StringBuilder fullUrl = new StringBuilder(httpServletRequest.getRequestURI());
+        String queryString = httpServletRequest.getQueryString();
+
+        if (queryString == null) {
+            return fullUrl.toString();
+        } else {
+            return fullUrl.append('?').append(queryString).toString();
+        }
     }
 
     @Override
@@ -125,11 +132,6 @@ public class ServletAdapterImplV3 implements ServletAdapter<HttpServletRequest, 
     @Override
     public Collection<String> getResponseHeaderNames(HttpServletResponse httpServletResponse) {
         return httpServletResponse.getHeaderNames();
-    }
-
-    @Override
-    public String getQueryString(HttpServletRequest httpServletRequest) {
-        return httpServletRequest.getQueryString();
     }
 
     @Override
