@@ -1,6 +1,7 @@
 package io.arex.foundation.serializer;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.arex.agent.bootstrap.util.StringUtil;
 import com.fasterxml.jackson.annotation.JsonIgnoreType;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -10,7 +11,10 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
 import com.fasterxml.jackson.databind.ser.BeanSerializerModifier;
 
+import io.arex.foundation.util.JdkUtils;
 import io.arex.inst.runtime.serializer.StringSerializable;
+import java.sql.Time;
+import java.time.Instant;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
@@ -136,6 +140,8 @@ public final class JacksonSerializer implements StringSerializable {
         module.addSerializer(GregorianCalendar.class, new GregorianCalendarSerialize());
         module.addSerializer(Timestamp.class, new TimestampSerialize());
         module.addSerializer(XMLGregorianCalendar.class, new XMLGregorianCalendarSerialize());
+        module.addSerializer(Date.class, new DateSerialize());
+        module.addSerializer(Instant.class, new InstantSerialize());
     }
 
     private void customTimeFormatDeserializer(SimpleModule module) {
@@ -150,6 +156,10 @@ public final class JacksonSerializer implements StringSerializable {
         module.addDeserializer(GregorianCalendar.class, new GregorianCalendarDeserialize());
         module.addDeserializer(Timestamp.class, new TimestampDeserialize());
         module.addDeserializer(XMLGregorianCalendar.class, new XMLGregorianCalendarDeserialize());
+        module.addDeserializer(Date.class, new DateDeserialize());
+        module.addDeserializer(java.sql.Date.class, new SqlDateDeserialize());
+        module.addDeserializer(Time.class, new SqlTimeDeserialize());
+        module.addDeserializer(Instant.class, new InstantDeserialize());
     }
 
     /**
@@ -174,7 +184,43 @@ public final class JacksonSerializer implements StringSerializable {
 
     // region Custom Serializer/Deserialize
 
+    static class DateSerialize extends com.fasterxml.jackson.databind.JsonSerializer<Date> {
 
+        @Override
+        public void serialize(Date value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+            gen.writeString(DateFormatUtils.format(value, DatePatternConstants.SIMPLE_DATE_FORMAT_MILLIS));
+        }
+    }
+
+
+    static class DateDeserialize extends com.fasterxml.jackson.databind.JsonDeserializer<Date> {
+
+        @Override
+        public Date deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+            JsonNode node = p.getCodec().readTree(p);
+            return DateFormatParser.INSTANCE.parseDate(node.asText());
+        }
+    }
+
+    static class SqlDateDeserialize extends com.fasterxml.jackson.databind.JsonDeserializer<java.sql.Date> {
+
+        @Override
+        public java.sql.Date deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+            JsonNode node = p.getCodec().readTree(p);
+            Date date = DateFormatParser.INSTANCE.parseDate(node.asText());
+            return new java.sql.Date(date.getTime());
+        }
+    }
+
+    static class SqlTimeDeserialize extends com.fasterxml.jackson.databind.JsonDeserializer<Time> {
+
+        @Override
+        public Time deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+            JsonNode node = p.getCodec().readTree(p);
+            Date date = DateFormatParser.INSTANCE.parseDate(node.asText());
+            return new Time(date.getTime());
+        }
+    }
 
     static class LocalDateTimeSerialize extends com.fasterxml.jackson.databind.JsonSerializer<LocalDateTime> {
 
@@ -336,7 +382,24 @@ public final class JacksonSerializer implements StringSerializable {
         }
     }
 
+    static class InstantSerialize extends JsonSerializer<Instant> {
 
+        @Override
+        public void serialize(Instant value, JsonGenerator gen, SerializerProvider serializers)
+            throws IOException {
+            gen.writeString(value.toString());
+        }
+    }
+
+    static class InstantDeserialize extends JsonDeserializer<Instant> {
+
+        @Override
+        public Instant deserialize(JsonParser p, DeserializationContext ctxt)
+            throws IOException, JsonProcessingException {
+            JsonNode node = p.getCodec().readTree(p);
+            return Instant.parse(node.asText());
+        }
+    }
 
     // endregion
 
@@ -352,6 +415,7 @@ public final class JacksonSerializer implements StringSerializable {
          */
         public static final String SIMPLE_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
         public static final String SIMPLE_DATE_FORMAT_MILLIS = "yyyy-MM-dd HH:mm:ss.SSS";
+        public static final String SIMPLE_DATE_FORMAT_NANOSECOND = "yyyy-MM-dd HH:mm:ss.SSSSSSSSS";
         /**
          *  2020-06-09T09:00:00.000+08:00
          */
@@ -365,6 +429,18 @@ public final class JacksonSerializer implements StringSerializable {
          */
         public static final String SHORT_TIME_FORMAT = "HH:mm:ss";
         public static final String SHORT_TIME_FORMAT_MILLISECOND = "HH:mm:ss.SSS";
+        public static final String SHORT_TIME_FORMAT_NANOSECOND = "HH:mm:ss.SSSSSSSSS";
+
+        public static String localDateTimeFormat = SIMPLE_DATE_FORMAT_MILLIS;
+
+        public static String localTimeFormat = SHORT_TIME_FORMAT_MILLISECOND;
+
+        static {
+            if (JdkUtils.isJdk11()) {
+                localDateTimeFormat = SIMPLE_DATE_FORMAT_NANOSECOND;
+                localTimeFormat = SHORT_TIME_FORMAT_NANOSECOND;
+            }
+        }
     }
 
 

@@ -24,7 +24,7 @@ public class TimeMachineModuleInstrumentation extends ModuleInstrumentation {
         List<TypeInstrumentation> typeInstList = new ArrayList<>();
 
         if (Config.get().getBoolean("arex.time.machine", false)) {
-            typeInstList.add(new TimeMachineInstrumentation());
+//            typeInstList.add(new TimeMachineInstrumentation());
             typeInstList.add(new DateTimeInstrumentation("java.time.Instant"));
             typeInstList.add(new DateTimeInstrumentation("java.time.LocalDate"));
             typeInstList.add(new DateTimeInstrumentation("java.time.LocalTime"));
