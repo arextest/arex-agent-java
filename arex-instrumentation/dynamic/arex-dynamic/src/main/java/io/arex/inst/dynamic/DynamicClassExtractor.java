@@ -20,6 +20,7 @@ public class DynamicClassExtractor {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DynamicClassExtractor.class);
     private static final int RESULT_SIZE_MAX = Integer.parseInt(System.getProperty("arex.dynamic.result.size.limit", "1000"));
+    private static final String SERIALIZER = "gson";
 
     private final String clazzName;
     private final String operation;
@@ -37,8 +38,8 @@ public class DynamicClassExtractor {
     public DynamicClassExtractor(String clazzName, String operation, Object[] args, Object result) {
         this.clazzName = clazzName;
         this.operation = operation;
-        this.operationKey = Serializer.serialize(args, "gson");
-        this.operationResult = Serializer.serialize(result, "gson");
+        this.operationKey = Serializer.serialize(args, SERIALIZER);
+        this.operationResult = Serializer.serialize(result, SERIALIZER);
         this.resultClazz = TypeUtil.getName(result);
         this.result = result;
     }
@@ -66,7 +67,7 @@ public class DynamicClassExtractor {
             Mocker replayMocker = MockUtils.replayMocker(makeMocker());
             if (MockUtils.checkResponseMocker(replayMocker)) {
                 replayResult = Serializer.deserialize(replayMocker.getTargetResponse().getBody(),
-                    replayMocker.getTargetResponse().getType());
+                    TypeUtil.forName(replayMocker.getTargetResponse().getType()), SERIALIZER);
             }
             // no key no cache, no parameter methods may return different values
             if (key != null && replayResult != null) {
