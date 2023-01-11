@@ -1,5 +1,6 @@
 package io.arex.inst.httpservlet.adapter.impl;
 
+import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.httpservlet.adapter.ServletAdapter;
 import io.arex.inst.httpservlet.listener.ServletAsyncListenerV5;
 import io.arex.inst.httpservlet.wrapper.CachedBodyRequestWrapperV5;
@@ -102,7 +103,7 @@ public class ServletAdapterImplV5 implements ServletAdapter<HttpServletRequest, 
         StringBuilder fullUrl = new StringBuilder(httpServletRequest.getRequestURI());
         String queryString = httpServletRequest.getQueryString();
 
-        if (queryString == null) {
+        if (StringUtil.isEmpty(queryString)) {
             return fullUrl.toString();
         } else {
             return fullUrl.append('?').append(queryString).toString();
