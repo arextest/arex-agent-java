@@ -38,9 +38,11 @@ public class AgentInitializer {
             // java8
             parent = AgentInitializer.class.getClassLoader();
         } else {
-            // java9
-            Method method = ClassLoader.class.getDeclaredMethod("getPlatformClassLoader");
-            parent = (ClassLoader) method.invoke(null);
+//            // java9
+//            Method method = ClassLoader.class.getDeclaredMethod("getPlatformClassLoader");
+//            parent = (ClassLoader) method.invoke(null);
+
+            parent = AgentInitializer.class.getClassLoader();
         }
 
         return parent;
