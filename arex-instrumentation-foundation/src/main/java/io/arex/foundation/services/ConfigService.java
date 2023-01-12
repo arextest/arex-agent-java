@@ -111,6 +111,7 @@ public class ConfigService {
         private ServiceCollectConfig serviceCollectConfiguration;
         private int status;
         private List<DynamicClassConfiguration> dynamicClassConfigurationList;
+        private String targetAddress;
         public ServiceCollectConfig getServiceCollectConfiguration() {
             return serviceCollectConfiguration;
         }
@@ -125,6 +126,14 @@ public class ConfigService {
 
         public void setDynamicClassConfigurationList(List<DynamicClassConfiguration> dynamicClassConfigurationList) {
             this.dynamicClassConfigurationList = dynamicClassConfigurationList;
+        }
+
+        public String getTargetAddress() {
+            return targetAddress;
+        }
+
+        public void setTargetAddress(String targetAddress) {
+            this.targetAddress = targetAddress;
         }
     }
 

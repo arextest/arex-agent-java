@@ -5,6 +5,7 @@ import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.foundation.services.ConfigService;
 import io.arex.foundation.services.TimerService;
 import io.arex.agent.bootstrap.util.CollectionUtil;
+import io.arex.foundation.util.NetUtils;
 import io.arex.inst.runtime.config.ConfigBuilder;
 import io.arex.inst.runtime.config.ConfigListener;
 import io.arex.inst.runtime.model.DynamicClassEntity;
@@ -55,6 +56,7 @@ public class ConfigManager {
     private LocalTime allowTimeOfDayTo;
     private List<String> disabledInstrumentationModules;
     private Set<String> excludeServiceOperations;
+    private String targetAddress;
 
     private static List<ConfigListener> listeners = new ArrayList<ConfigListener>();
 
@@ -157,7 +159,7 @@ public class ConfigManager {
         setDisabledInstrumentationModules(System.getProperty(DISABLE_INSTRUMENTATION_MODULE));
         setExcludeServiceOperations(System.getProperty(EXCLUDE_SERVICE_OPERATION));
 
-        TimerService.scheduleAtFixedRate(this::update, 1800, 1800, TimeUnit.SECONDS);
+        TimerService.scheduleAtFixedRate(this::update, 300, 300, TimeUnit.SECONDS);
     }
 
     private void updateInstrumentationConfig() {
@@ -358,12 +360,25 @@ public class ConfigManager {
         setAllowTimeOfDayTo(config.getAllowTimeOfDayTo());
         setDynamicClassList(serviceConfig.getDynamicClassConfigurationList());
         setExcludeServiceOperations(config.getExcludeServiceOperationSet());
+        setTargetAddress(serviceConfig.getTargetAddress());
 
         updateInstrumentationConfig();
     }
 
     public boolean invalid() {
-        return !isLocalStorage() && (recordRate <= 0 || allowDayOfWeeks == null || nextWorkTime() > 0L);
+        if (isLocalStorage()) {
+            return false;
+        }
+        if (allowDayOfWeeks == null) {
+            return true;
+        }
+        if (nextWorkTime() > 0L) {
+            return true;
+        }
+        if (!checkTargetAddress()) {
+            return true;
+        }
+        return false;
     }
 
     private long nextWorkTime() {
@@ -419,6 +434,18 @@ public class ConfigManager {
 
     public Set<String> getExcludeServiceOperations() {
         return excludeServiceOperations;
+    }
+
+    public void setTargetAddress(String targetAddress) {
+        this.targetAddress = targetAddress;
+    }
+
+    private boolean checkTargetAddress() {
+        String localHost = NetUtils.getIpAddress();
+        if (StringUtil.isEmpty(targetAddress) || StringUtil.isEmpty(localHost)) {
+            return true;
+        }
+        return targetAddress.equals(localHost);
     }
 
     @Override
