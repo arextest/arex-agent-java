@@ -104,11 +104,6 @@ public class TypeUtil {
             return mapToString((Map<?, ?>) result);
         }
 
-        // for dynamic class serialization
-        if (result instanceof Object[]) {
-            return objectArrayToString((Object[]) result);
-        }
-
         // Optional GSON
         if (result instanceof Optional) {
             return optionalToString((Optional<?>) result);
@@ -198,14 +193,6 @@ public class TypeUtil {
         StringBuilder builder = new StringBuilder();
         builder.append(Optional.class.getName());
         result.ifPresent(o -> builder.append(HORIZONTAL_LINE).append(getName(o)));
-        return builder.toString();
-    }
-
-    private static String objectArrayToString(Object[] result) {
-        StringBuilder builder = new StringBuilder();
-        for (Object o : result) {
-            builder.append(TypeUtil.getName(o)).append(";");
-        }
         return builder.toString();
     }
 

@@ -3,6 +3,8 @@ package io.arex.inst.database.common;
 import io.arex.inst.runtime.serializer.Serializer;
 import org.hibernate.engine.spi.QueryParameters;
 import org.hibernate.engine.spi.TypedValue;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -22,6 +24,17 @@ import static org.mockito.ArgumentMatchers.any;
 
 @ExtendWith(MockitoExtension.class)
 class DatabaseHelperTest {
+
+    @BeforeAll
+    static void setUp() {
+        Mockito.mockStatic(Serializer.class);
+    }
+
+    @AfterAll
+    static void tearDown() {
+        Mockito.clearAllCaches();
+    }
+
     @ParameterizedTest
     @MethodSource("parseParameterCase")
     void parseParameter(QueryParameters queryParameters, Predicate<String> predicate) {
@@ -37,7 +50,6 @@ class DatabaseHelperTest {
         parameters.put("key", Mockito.mock(TypedValue.class));
         Mockito.when(queryParameters2.getNamedParameters()).thenReturn(parameters);
 
-        Mockito.mockStatic(Serializer.class);
         Mockito.when(Serializer.serialize(any())).thenReturn("mock Serializer.serialize");
 
         Predicate<String> predicate1 = Objects::isNull;
