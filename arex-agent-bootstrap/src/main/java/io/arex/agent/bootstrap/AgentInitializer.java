@@ -3,7 +3,6 @@ package io.arex.agent.bootstrap;
 import java.io.File;
 import java.lang.instrument.Instrumentation;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
 
 public class AgentInitializer {
 
@@ -22,7 +21,7 @@ public class AgentInitializer {
         installer.install();
     }
 
-    private static AgentClassLoader createAgentClassLoader(File agentFile) throws Exception {
+    private static AgentClassLoader createAgentClassLoader(File agentFile) {
         return new AgentClassLoader(agentFile, getParentClassLoader(), null);
     }
 
@@ -32,19 +31,7 @@ public class AgentInitializer {
         return (AgentInstaller) constructor.newInstance(inst, file, agentArgs);
     }
 
-    private static ClassLoader getParentClassLoader() throws Exception {
-        ClassLoader parent;
-        if (System.getProperty("java.version").startsWith("1.")) {
-            // java8
-            parent = AgentInitializer.class.getClassLoader();
-        } else {
-//            // java9
-//            Method method = ClassLoader.class.getDeclaredMethod("getPlatformClassLoader");
-//            parent = (ClassLoader) method.invoke(null);
-
-            parent = AgentInitializer.class.getClassLoader();
-        }
-
-        return parent;
+    private static ClassLoader getParentClassLoader() {
+        return AgentInitializer.class.getClassLoader();
     }
 }
