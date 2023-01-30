@@ -21,6 +21,6 @@ class TimeMachineModuleInstrumentationTest {
     void instrumentationTypes() {
         ConfigBuilder.create("test").addProperty("arex.time.machine", "true").build();
         TimeMachineModuleInstrumentation inst = new TimeMachineModuleInstrumentation();
-        assertEquals(9, inst.instrumentationTypes().size());
+        assertEquals(8, inst.instrumentationTypes().size());
     }
 }

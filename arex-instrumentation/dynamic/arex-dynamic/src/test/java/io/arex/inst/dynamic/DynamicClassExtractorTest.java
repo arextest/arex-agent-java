@@ -54,7 +54,8 @@ class DynamicClassExtractorTest {
     void record(Runnable mocker, Object[] args, Object result, Predicate<Object> predicate) {
         mocker.run();
 
-        try (MockedStatic<MockUtils> mockService = mockStatic(MockUtils.class);) {
+        try (MockedStatic<MockUtils> mockService = mockStatic(MockUtils.class);
+            MockedStatic<Serializer> serializer = mockStatic(Serializer.class)) {
 
             ArexMocker arexMocker = new ArexMocker();
             arexMocker.setTargetRequest(new Target());
@@ -64,6 +65,8 @@ class DynamicClassExtractorTest {
                 System.out.println("mock MockService.recordMocker");
                 return null;
             });
+
+            serializer.when(() -> Serializer.serialize(any(), anyString())).thenReturn("mock Serializer.serialize");
 
             DynamicClassExtractor extractor = new DynamicClassExtractor("clazzName", "operation", args, result);
             extractor.record();

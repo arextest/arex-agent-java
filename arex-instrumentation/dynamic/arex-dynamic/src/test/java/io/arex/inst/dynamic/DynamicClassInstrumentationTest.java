@@ -10,6 +10,7 @@ import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.extension.MethodInstrumentation;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
+import io.arex.inst.runtime.context.RepeatedCollectManager;
 import io.arex.inst.runtime.model.DynamicClassEntity;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -51,6 +52,7 @@ class DynamicClassInstrumentationTest {
     static void setUp() {
         target = new DynamicClassInstrumentation(dynamicClassList);
         Mockito.mockStatic(ContextManager.class);
+        Mockito.mockStatic(RepeatedCollectManager.class);
     }
 
     @AfterAll
@@ -128,10 +130,15 @@ class DynamicClassInstrumentationTest {
 
     @Test
     void onEnter() {
+        Mockito.when(ContextManager.needRecord()).thenReturn(false);
+        Mockito.when(ContextManager.needReplay()).thenReturn(false);
+        assertFalse(DynamicClassInstrumentation.MethodAdvice.onEnter(null, null, null, null));
+
         Mockito.when(ContextManager.needRecord()).thenReturn(true);
         assertFalse(DynamicClassInstrumentation.MethodAdvice.onEnter(null, null, null, null));
 
         Mockito.when(ContextManager.needRecord()).thenReturn(false);
+        Mockito.when(ContextManager.needReplay()).thenReturn(true);
         try (MockedConstruction<DynamicClassExtractor> mocked = Mockito.mockConstruction(DynamicClassExtractor.class, (mock, context) -> {
             System.out.println("mock DynamicClassExtractor");
             Mockito.when(mock.replay()).thenReturn(MockResult.success(false, null));
@@ -160,12 +167,14 @@ class DynamicClassInstrumentationTest {
         };
         Runnable mockerNeedRecord = () -> {
             Mockito.when(ContextManager.needRecord()).thenReturn(true);
+            Mockito.when(RepeatedCollectManager.exitAndValidate()).thenReturn(true);
         };
         Predicate<MockResult> predicate1 = Objects::isNull;
         Predicate<MockResult> predicate2 = Objects::nonNull;
         return Stream.of(
                 arguments(mockerNeedReplay, null, predicate1),
                 arguments(mockerNeedRecord, MockResult.success("mock"), predicate2),
+                arguments(mockerNeedRecord, MockResult.success(new RuntimeException()), predicate2),
                 arguments(mockerNeedRecord, null, predicate1)
         );
     }

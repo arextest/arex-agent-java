@@ -375,10 +375,7 @@ public class ConfigManager {
         if (nextWorkTime() > 0L) {
             return true;
         }
-        if (!checkTargetAddress()) {
-            return true;
-        }
-        return false;
+        return !checkTargetAddress();
     }
 
     private long nextWorkTime() {

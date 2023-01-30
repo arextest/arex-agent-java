@@ -140,6 +140,7 @@ public final class JacksonSerializer implements StringSerializable {
         module.addSerializer(GregorianCalendar.class, new GregorianCalendarSerialize());
         module.addSerializer(Timestamp.class, new TimestampSerialize());
         module.addSerializer(XMLGregorianCalendar.class, new XMLGregorianCalendarSerialize());
+        // java.sql.Date/Time serialize same as java.util.Date
         module.addSerializer(Date.class, new DateSerialize());
         module.addSerializer(Instant.class, new InstantSerialize());
     }
@@ -208,6 +209,9 @@ public final class JacksonSerializer implements StringSerializable {
         public java.sql.Date deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
             JsonNode node = p.getCodec().readTree(p);
             Date date = DateFormatParser.INSTANCE.parseDate(node.asText());
+            if (date == null) {
+                return new java.sql.Date(System.currentTimeMillis());
+            }
             return new java.sql.Date(date.getTime());
         }
     }
@@ -218,6 +222,9 @@ public final class JacksonSerializer implements StringSerializable {
         public Time deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
             JsonNode node = p.getCodec().readTree(p);
             Date date = DateFormatParser.INSTANCE.parseDate(node.asText());
+            if (date == null) {
+                date = new Date();
+            }
             return new Time(date.getTime());
         }
     }
@@ -395,7 +402,7 @@ public final class JacksonSerializer implements StringSerializable {
 
         @Override
         public Instant deserialize(JsonParser p, DeserializationContext ctxt)
-            throws IOException, JsonProcessingException {
+            throws IOException {
             JsonNode node = p.getCodec().readTree(p);
             return Instant.parse(node.asText());
         }
