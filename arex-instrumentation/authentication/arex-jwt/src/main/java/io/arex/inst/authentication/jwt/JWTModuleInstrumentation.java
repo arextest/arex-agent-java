@@ -1,4 +1,4 @@
-package io.arex.inst.jwt;
+package io.arex.inst.authentication.jwt;
 
 import com.google.auto.service.AutoService;
 import io.arex.inst.extension.ModuleInstrumentation;

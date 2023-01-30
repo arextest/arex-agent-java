@@ -1,4 +1,4 @@
-package io.arex.inst.jwt;
+package io.arex.inst.authentication.jwt;
 
 import org.junit.jupiter.api.Test;
 
