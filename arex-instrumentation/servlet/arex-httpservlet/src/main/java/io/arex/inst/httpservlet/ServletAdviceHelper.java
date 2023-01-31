@@ -81,7 +81,8 @@ public class ServletAdviceHelper {
                 return;
             }
 
-            if (200 != adapter.getStatus(httpServletResponse)) {
+            int statusCode = adapter.getStatus(httpServletResponse);
+            if (200 != statusCode && 302 != statusCode) {
                 adapter.copyBodyToResponse(httpServletResponse);
                 return;
             }
