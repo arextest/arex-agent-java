@@ -16,6 +16,7 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.context.request.async.DeferredResult;
 import org.springframework.web.method.support.InvocableHandlerMethod;
@@ -122,7 +123,8 @@ public class ServletAdviceHelper {
         }
 
         // Set response only when return response body
-        if (!invocableHandlerMethod.getReturnType().hasMethodAnnotation(ResponseBody.class)) {
+        if (!invocableHandlerMethod.getReturnType().hasMethodAnnotation(ResponseBody.class) &&
+            !invocableHandlerMethod.getBeanType().isAnnotationPresent(RestController.class)) {
             return;
         }
 

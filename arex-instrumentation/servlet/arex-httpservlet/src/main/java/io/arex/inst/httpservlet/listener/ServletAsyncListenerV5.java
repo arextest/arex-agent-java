@@ -28,15 +28,13 @@ public class ServletAsyncListenerV5 implements AsyncListener {
     @Override
     public void onComplete(AsyncEvent event) throws IOException {
         if (asyncCompleted.compareAndSet(false, true)) {
-            new ServletExtractor<>(adapter, (HttpServletRequest) event.getSuppliedRequest(),
-                (HttpServletResponse) event.getSuppliedResponse()).execute();
+            onError(event);
         }
     }
 
     @Override
     public void onTimeout(AsyncEvent event) throws IOException {
-        new ServletExtractor<>(adapter, (HttpServletRequest) event.getSuppliedRequest(),
-            (HttpServletResponse) event.getSuppliedResponse()).execute();
+        onError(event);
     }
 
     @Override

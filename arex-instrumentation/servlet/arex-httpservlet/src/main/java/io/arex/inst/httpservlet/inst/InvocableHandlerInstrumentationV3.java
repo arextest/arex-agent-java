@@ -13,6 +13,7 @@ import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.context.request.async.DeferredResult;
 import org.springframework.web.method.support.InvocableHandlerMethod;
@@ -52,11 +53,7 @@ public class InvocableHandlerInstrumentationV3 extends TypeInstrumentation {
         @Advice.OnMethodExit
         public static void onExit(@Advice.Argument(0) NativeWebRequest nativeWebRequest,
             @Advice.This InvocableHandlerMethod invocableHandlerMethod, @Advice.Return Object response) {
-            if (response == null) {
-                return;
-            }
-
-            if (!ContextManager.needRecordOrReplay()) {
+            if (response == null || !ContextManager.needRecordOrReplay()) {
                 return;
             }
 
@@ -67,7 +64,8 @@ public class InvocableHandlerInstrumentationV3 extends TypeInstrumentation {
             }
 
             // Set response only when return response body
-            if (!invocableHandlerMethod.getReturnType().hasMethodAnnotation(ResponseBody.class)) {
+            if (!invocableHandlerMethod.getReturnType().hasMethodAnnotation(ResponseBody.class) &&
+                !invocableHandlerMethod.getBeanType().isAnnotationPresent(RestController.class)) {
                 return;
             }
 

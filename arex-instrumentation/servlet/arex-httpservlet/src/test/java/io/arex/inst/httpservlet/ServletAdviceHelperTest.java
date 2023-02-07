@@ -17,6 +17,8 @@ import org.mockito.MockedConstruction;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.MethodParameter;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.method.support.InvocableHandlerMethod;
 
 import javax.servlet.http.HttpServletRequest;
@@ -157,40 +159,53 @@ class ServletAdviceHelperTest {
         );
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = "[{index}] {0}")
     @MethodSource("onInvokeForRequestExitCase")
-    void onInvokeForRequestExit(Runnable mocker, InvocableHandlerMethod invocableHandlerMethod, Object response, Predicate<Object> predicate) {
+    void onInvokeForRequestExit(String log, Runnable mocker, InvocableHandlerMethod invocableHandlerMethod, Object response, Predicate<Object> predicate) {
         mocker.run();
         ServletAdviceHelper.onInvokeForRequestExit(adapter, null, invocableHandlerMethod, response);
         assertTrue(predicate.test(response));
     }
 
     static Stream<Arguments> onInvokeForRequestExitCase() {
+        MethodParameter parameter = Mockito.mock(MethodParameter.class);
+
         Runnable emptyMocker = () -> {};
         Runnable mocker1 = () -> {
             Mockito.when(ContextManager.needRecordOrReplay()).thenReturn(true);
         };
         Runnable mocker2 = () -> {
-            MethodParameter parameter = Mockito.mock(MethodParameter.class);
             Mockito.when(invocableHandlerMethod.getReturnType()).thenReturn(parameter);
+            Class mockBeanType = ServletAdviceHelperTest.class;
+            Mockito.when(invocableHandlerMethod.getBeanType()).thenReturn(mockBeanType);
         };
         Runnable mocker3 = () -> {
-            MethodParameter parameter = Mockito.mock(MethodParameter.class);
-            Mockito.when(parameter.hasMethodAnnotation(any())).thenReturn(true);
-            Mockito.when(invocableHandlerMethod.getReturnType()).thenReturn(parameter);
+            Mockito.when(parameter.hasMethodAnnotation(ResponseBody.class)).thenReturn(true);
         };
         Runnable mocker4 = () -> {
+            Mockito.when(parameter.hasMethodAnnotation(ResponseBody.class)).thenReturn(false);
+            Class mockBeanType = TestRestController.class;
+            Mockito.when(invocableHandlerMethod.getBeanType()).thenReturn(mockBeanType);
+        };
+        Runnable mocker5 = () -> {
             Mockito.when(adapter.getNativeRequest(any())).thenReturn(request);
         };
+
         Predicate<Object> predicate1 = Objects::isNull;
         Predicate<Object> predicate2 = Objects::nonNull;
         return Stream.of(
-                arguments(emptyMocker, null, null, predicate1),
-                arguments(emptyMocker, null, CompletableFuture.completedFuture("mock"), predicate2),
-                arguments(mocker1, null, CompletableFuture.completedFuture("mock"), predicate2),
-                arguments(mocker2, invocableHandlerMethod, "mock", predicate2),
-                arguments(mocker3, invocableHandlerMethod, "mock", predicate2),
-                arguments(mocker4, invocableHandlerMethod, "mock", predicate2)
+                arguments("response is null", emptyMocker, null, null, predicate1),
+                arguments("record or replay is false", emptyMocker, null, CompletableFuture.completedFuture("mock"), predicate2),
+                arguments("response is CompletableFuture" , mocker1, null, CompletableFuture.completedFuture("mock"), predicate2),
+                arguments("returnType or beanType not match", mocker2, invocableHandlerMethod, "mock", predicate2),
+                arguments("returnType has ResponseBody", mocker3, invocableHandlerMethod, "mock", predicate2),
+                arguments("beanType has RestController", mocker4, invocableHandlerMethod, "mock", predicate2),
+                arguments("native request not null", mocker5, invocableHandlerMethod, "mock", predicate2)
         );
+    }
+
+    @RestController
+    public static class TestRestController {
+
     }
 }
