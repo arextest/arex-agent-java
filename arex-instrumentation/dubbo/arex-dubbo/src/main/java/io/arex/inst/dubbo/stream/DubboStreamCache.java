@@ -1,11 +1,8 @@
-package io.arex.agent.bootstrap.cache;
-
-import io.arex.agent.bootstrap.model.StreamModel;
+package io.arex.inst.dubbo.stream;
 
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 
 public class DubboStreamCache {
     /**
@@ -14,7 +11,6 @@ public class DubboStreamCache {
      * val: request(maybe multi messages)
      */
     private static final Map<String, StreamModel> STREAM_MAP = new ConcurrentHashMap<>();
-    private static final long CLEAN_TIME = TimeUnit.MINUTES.toNanos(2);
 
     public static void put(String streamId, String traceId, byte[] data) {
         List<StreamModel.DataModel> dataList = getDataList(streamId);
@@ -37,16 +33,6 @@ public class DubboStreamCache {
     public static String getTraceId(String streamId) {
         StreamModel streamModel = get(streamId);
         return streamModel != null ? streamModel.getTraceId() : null;
-    }
-
-    public static void clear() {
-        long nowTime = System.nanoTime();
-        for (Map.Entry<String, StreamModel> entry : STREAM_MAP.entrySet()) {
-            if (nowTime - entry.getValue().getRecordTime() > CLEAN_TIME) {
-                entry.getValue().getDataModel().clear();
-                remove(entry.getKey());
-            }
-        }
     }
 
     public static void remove(String streamId) {

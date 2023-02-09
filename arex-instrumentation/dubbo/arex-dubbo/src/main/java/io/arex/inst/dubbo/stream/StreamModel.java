@@ -1,4 +1,4 @@
-package io.arex.agent.bootstrap.model;
+package io.arex.inst.dubbo.stream;
 
 import java.util.ArrayList;
 import java.util.List;

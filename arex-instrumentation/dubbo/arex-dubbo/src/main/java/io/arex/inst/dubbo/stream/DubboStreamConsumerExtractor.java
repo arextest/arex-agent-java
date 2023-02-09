@@ -1,10 +1,8 @@
 package io.arex.inst.dubbo.stream;
 
 import io.arex.agent.bootstrap.TraceContextManager;
-import io.arex.agent.bootstrap.cache.DubboStreamCache;
 import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.agent.bootstrap.model.Mocker;
-import io.arex.agent.bootstrap.model.StreamModel;
 import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.serializer.Serializer;

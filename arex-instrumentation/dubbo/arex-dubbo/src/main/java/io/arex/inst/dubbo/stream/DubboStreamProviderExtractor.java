@@ -1,7 +1,6 @@
 package io.arex.inst.dubbo.stream;
 
 import io.arex.agent.bootstrap.model.Mocker;
-import io.arex.agent.bootstrap.model.StreamModel;
 import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.model.ArexConstants;

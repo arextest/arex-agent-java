@@ -1,11 +1,9 @@
 package io.arex.inst.dubbo.stream;
 
 import io.arex.agent.bootstrap.TraceContextManager;
-import io.arex.agent.bootstrap.cache.DubboStreamCache;
 import io.arex.agent.bootstrap.model.ArexMocker;
 import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.agent.bootstrap.model.Mocker;
-import io.arex.agent.bootstrap.model.StreamModel;
 import io.arex.inst.runtime.util.MockUtils;
 import org.apache.dubbo.remoting.api.Connection;
 import org.apache.dubbo.rpc.CancellationContext;

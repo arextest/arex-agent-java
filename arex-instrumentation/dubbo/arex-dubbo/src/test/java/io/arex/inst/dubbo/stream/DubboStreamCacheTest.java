@@ -1,15 +1,15 @@
-package io.arex.agent.bootstrap.cache;
+package io.arex.inst.dubbo.stream;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 class DubboStreamCacheTest {
     @Test
     void put() {
         DubboStreamCache.put("mock-stream-id", "mock-trace-id", null);
         DubboStreamCache.put("mock-stream-id", "mock-trace-id", null);
-        DubboStreamCache.clear();
         assertNotNull(DubboStreamCache.get("mock-stream-id"));
     }
 
