@@ -1,6 +1,7 @@
 package io.arex.inst.runtime.listener;
 
 import io.arex.agent.bootstrap.TraceContextManager;
+import io.arex.agent.bootstrap.cache.DubboStreamCache;
 import io.arex.agent.bootstrap.cache.TimeCache;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.StringUtil;
@@ -61,6 +62,7 @@ public class EventProcessor {
         TimeCache.remove();
         TraceContextManager.remove();
         ContextManager.overdueCleanUp();
+        DubboStreamCache.clear();
     }
 
     private static long parseLong(String value) {

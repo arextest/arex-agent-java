@@ -18,6 +18,7 @@ public class MockCategoryType implements Serializable {
     public static final MockCategoryType MESSAGE_CONSUMER = createEntryPoint("QMessageConsumer");
     public static final MockCategoryType DUBBO_CONSUMER = createDependency("DubboConsumer");
     public static final MockCategoryType DUBBO_PROVIDER = createEntryPoint("DubboProvider");
+    public static final MockCategoryType DUBBO_STREAM_PROVIDER = createDependency("DubboStreamProvider");
 
     private String name;
     private boolean entryPoint;

@@ -15,6 +15,7 @@ import org.apache.dubbo.rpc.Result;
 
 import java.util.List;
 
+import static io.arex.inst.runtime.model.ArexConstants.DUBBO_STREAM_PROTOCOL;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static net.bytebuddy.matcher.ElementMatchers.named;
@@ -52,6 +53,10 @@ public class DubboConsumerInstrumentation extends TypeInstrumentation {
                                       @Advice.Argument(0) Invocation invocation,
                                       @Advice.Local("extractor") DubboConsumerExtractor extractor,
                                       @Advice.Local("mockResult") MockResult mockResult) {
+            if (invocation.getProtocolServiceKey() != null && invocation.getProtocolServiceKey().contains(DUBBO_STREAM_PROTOCOL)) {
+                // client-stream record and replay in the DubboStreamConsumerInstrumentation
+                return false;
+            }
             if (ContextManager.needRecordOrReplay()) {
                 RepeatedCollectManager.enter();
                 extractor = new DubboConsumerExtractor(DubboAdapter.of(invoker, invocation));

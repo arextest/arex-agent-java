@@ -1,5 +1,6 @@
 package io.arex.foundation.services;
 
+import io.arex.agent.bootstrap.model.MockStrategyEnum;
 import io.arex.foundation.config.ConfigManager;
 import io.arex.foundation.healthy.HealthManager;
 import io.arex.foundation.internal.DataEntity;
@@ -48,8 +49,8 @@ public class DataCollectorService implements DataCollector {
     }
 
     @Override
-    public String query(String postData) {
-        return queryReplayData(postData);
+    public String query(String postData, MockStrategyEnum mockStrategy) {
+        return queryReplayData(postData, mockStrategy);
     }
 
     @Override
@@ -114,8 +115,8 @@ public class DataCollectorService implements DataCollector {
     /**
      * Query replay data
      */
-    String queryReplayData(String postData) {
-        return AsyncHttpClientUtil.zstdJsonPost(queryApiUrl, postData);
+    String queryReplayData(String postData, MockStrategyEnum mockStrategy) {
+        return AsyncHttpClientUtil.zstdJsonPost(queryApiUrl, postData, mockStrategy);
     }
 
     private <T> BiConsumer<T, Throwable> saveMockDataConsumer(DataEntity entity) {

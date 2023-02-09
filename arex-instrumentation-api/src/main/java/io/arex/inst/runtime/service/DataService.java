@@ -1,5 +1,7 @@
 package io.arex.inst.runtime.service;
 
+import io.arex.agent.bootstrap.model.MockStrategyEnum;
+
 public class DataService {
 
     public static DataService INSTANCE;
@@ -18,8 +20,8 @@ public class DataService {
         saver.save(data);
     }
 
-    public String query(String data) {
-        return saver.query(data);
+    public String query(String data, MockStrategyEnum mockStrategy) {
+        return saver.query(data, mockStrategy);
     }
 
     public static class Builder {

@@ -22,6 +22,9 @@ import java.lang.reflect.Type;
 import java.util.Map;
 import java.util.Set;
 
+import static io.arex.inst.runtime.model.ArexConstants.DUBBO_STREAM_NAME;
+import static io.arex.inst.runtime.model.ArexConstants.DUBBO_STREAM_PROTOCOL;
+
 public class DubboAdapter {
     private static final Logger LOGGER = LoggerFactory.getLogger(DubboAdapter.class);
     private static final Set<String> FILTER_KEY_SET = Sets.newHashSet("schema", "class");
@@ -101,12 +104,12 @@ public class DubboAdapter {
                 try {
                     if (response != null) {
                         if (response.getValue() == null) {
-                             value = response.getException();
+                            value = response.getException();
                         } else {
                             value = normalizeResponse(response.getValue(), ProtocolUtils.isGeneric(getGeneric()));
                         }
                     } else if (throwable != null) {
-                         value = throwable;
+                        value = throwable;
                     }
                 } catch (Throwable e) {
                     LOGGER.warn(LogUtil.buildTitle("DubboResponseConsumer"), e);
@@ -147,5 +150,13 @@ public class DubboAdapter {
         }
 
         return responseMap;
+    }
+
+    public String getProtocol() {
+        if (invocation.getProtocolServiceKey() != null && invocation.getProtocolServiceKey().contains(DUBBO_STREAM_PROTOCOL)) {
+            // in dubbo server-stream mode, AREX context init in the DubboStreamProviderInstrumentation (before this)
+            return DUBBO_STREAM_NAME;
+        }
+        return "";
     }
 }

@@ -1,6 +1,8 @@
 package io.arex.inst.dubbo;
 
 import com.google.auto.service.AutoService;
+import io.arex.inst.dubbo.stream.DubboStreamConsumerInstrumentation;
+import io.arex.inst.dubbo.stream.DubboStreamProviderInstrumentation;
 import io.arex.inst.extension.ModuleInstrumentation;
 import io.arex.inst.extension.TypeInstrumentation;
 
@@ -20,6 +22,10 @@ public class DubboModuleInstrumentation extends ModuleInstrumentation {
 
     @Override
     public List<TypeInstrumentation> instrumentationTypes() {
-        return asList(new DubboConsumerInstrumentation(), new DubboProviderInstrumentation());
+        return asList(
+                new DubboConsumerInstrumentation(),
+                new DubboProviderInstrumentation(),
+                new DubboStreamConsumerInstrumentation(),
+                new DubboStreamProviderInstrumentation());
     }
 }

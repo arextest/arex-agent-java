@@ -23,8 +23,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atLeastOnce;
@@ -81,7 +80,7 @@ class DubboAdapterTest {
     @Test
     void getRequest() {
         Mockito.when(invocation.getArguments()).thenReturn(new Object[]{"mock"});
-        adapter.getRequest();
+        assertNull(adapter.getRequest());
     }
 
     @Test
@@ -89,9 +88,9 @@ class DubboAdapterTest {
         Type type1 = Mockito.mock(Type.class);
         Type type2 = Mockito.mock(Type.class);
         Mockito.when(invocation.getReturnTypes()).thenReturn(new Type[]{type1, type2});
-        adapter.getReturnType();
+        assertNull(adapter.getReturnType());
         Mockito.when(invocation.getReturnTypes()).thenReturn(new Type[]{type1});
-        adapter.getReturnType();
+        assertNull(adapter.getReturnType());
     }
 
     @Test
@@ -105,7 +104,7 @@ class DubboAdapterTest {
         Mockito.when(invocation.getAttachment("generic")).thenReturn(null);
         URL url = Mockito.mock(URL.class);
         Mockito.when(invoker.getUrl()).thenReturn(url);
-        adapter.getGeneric();
+        assertNull(adapter.getGeneric());
     }
 
     @Test
@@ -141,7 +140,7 @@ class DubboAdapterTest {
         mocker.run();
         ArexMocker arexMocker = new ArexMocker();
         arexMocker.setTargetResponse(new Mocker.Target());
-        adapter.execute(result, arexMocker);
+        assertNotNull(adapter.execute(result, arexMocker));
     }
 
     static Stream<Arguments> executeCase() {
@@ -181,5 +180,13 @@ class DubboAdapterTest {
                 arguments(mocker3, result3),
                 arguments(emptyMocker, result4)
         );
+    }
+
+    @Test
+    void getProtocol() {
+        Mockito.when(invocation.getProtocolServiceKey()).thenReturn(":tri");
+        assertEquals("streaming", adapter.getProtocol());
+        Mockito.when(invocation.getProtocolServiceKey()).thenReturn("mock");
+        assertEquals("", adapter.getProtocol());
     }
 }
