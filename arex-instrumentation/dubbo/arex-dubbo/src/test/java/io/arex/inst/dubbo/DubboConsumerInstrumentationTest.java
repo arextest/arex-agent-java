@@ -3,6 +3,7 @@ package io.arex.inst.dubbo;
 import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.context.RepeatedCollectManager;
+import org.apache.dubbo.rpc.Invocation;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -18,8 +19,7 @@ import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 @ExtendWith(MockitoExtension.class)
@@ -62,7 +62,11 @@ class DubboConsumerInstrumentationTest {
         try (MockedConstruction<DubboConsumerExtractor> mocked = Mockito.mockConstruction(DubboConsumerExtractor.class, (mock, context) -> {
             Mockito.when(mock.replay()).thenReturn(MockResult.success(false, null));
         })) {
-            assertTrue(DubboConsumerInstrumentation.InvokeAdvice.onEnter(null, null, null, null));
+            Invocation invocation = Mockito.mock(Invocation.class);
+            Mockito.when(invocation.getProtocolServiceKey()).thenReturn(":tri");
+            assertFalse(DubboConsumerInstrumentation.InvokeAdvice.onEnter(null, invocation, null, null));
+            Mockito.when(invocation.getProtocolServiceKey()).thenReturn("mock");
+            assertTrue(DubboConsumerInstrumentation.InvokeAdvice.onEnter(null, invocation, null, null));
         }
     }
 

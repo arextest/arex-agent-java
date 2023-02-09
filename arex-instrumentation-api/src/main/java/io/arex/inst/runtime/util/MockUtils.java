@@ -2,6 +2,7 @@ package io.arex.inst.runtime.util;
 
 import io.arex.agent.bootstrap.model.ArexMocker;
 import io.arex.agent.bootstrap.model.MockCategoryType;
+import io.arex.agent.bootstrap.model.MockStrategyEnum;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.model.Mocker.Target;
 import io.arex.agent.bootstrap.util.StringUtil;
@@ -59,6 +60,10 @@ public final class MockUtils {
         return create(MockCategoryType.DUBBO_PROVIDER, operationName);
     }
 
+    public static ArexMocker createDubboStreamProvider(String operationName) {
+        return create(MockCategoryType.DUBBO_STREAM_PROVIDER, operationName);
+    }
+
     public static ArexMocker create(MockCategoryType categoryType, String operationName) {
         ArexMocker mocker = new ArexMocker();
         long createTime = System.currentTimeMillis();
@@ -83,8 +88,12 @@ public final class MockUtils {
     }
 
     public static Mocker replayMocker(Mocker requestMocker) {
+        return replayMocker(requestMocker, MockStrategyEnum.FIND_LAST);
+    }
+
+    public static Mocker replayMocker(Mocker requestMocker, MockStrategyEnum mockStrategy) {
         String postJson = Serializer.serialize(requestMocker);
-        String data = DataService.INSTANCE.query(postJson);
+        String data = DataService.INSTANCE.query(postJson, mockStrategy);
         if (StringUtil.isEmpty(data) || "{}".equals(data)) {
             LOGGER.warn("[arex] response body is null. request: {}", postJson);
             return null;
@@ -94,14 +103,18 @@ public final class MockUtils {
     }
 
     public static Object replayBody(Mocker requestMocker) {
-        Mocker responseMocker = replayMocker(requestMocker);
+        return replayBody(requestMocker, MockStrategyEnum.FIND_LAST);
+    }
+
+    public static Object replayBody(Mocker requestMocker, MockStrategyEnum mockStrategy) {
+        Mocker responseMocker = replayMocker(requestMocker, mockStrategy);
 
         if (!checkResponseMocker(responseMocker)) {
             return null;
         }
 
         return Serializer.deserialize(responseMocker.getTargetResponse().getBody(),
-            responseMocker.getTargetResponse().getType());
+                responseMocker.getTargetResponse().getType());
     }
 
     public static boolean checkResponseMocker(Mocker responseMocker) {

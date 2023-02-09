@@ -11,8 +11,8 @@ public class Config {
     private static Config INSTANCE = null;
 
     static void update(boolean enableDebug, String serviceName, List<DynamicClassEntity> entities,
-                       Map<String, String> properties, Set<String> excludeServiceOperations) {
-        INSTANCE = new Config(enableDebug, serviceName, entities, properties, excludeServiceOperations);
+                       Map<String, String> properties, Set<String> excludeServiceOperations, int dubboStreamReplayThreshold) {
+        INSTANCE = new Config(enableDebug, serviceName, entities, properties, excludeServiceOperations, dubboStreamReplayThreshold);
     }
 
     public static Config get() {
@@ -24,14 +24,15 @@ public class Config {
     private final List<DynamicClassEntity> entities;
     private Map<String, String> properties;
     private Set<String> excludeServiceOperations;
-
+    private final int dubboStreamReplayThreshold;
     Config(boolean enableDebug, String serviceName, List<DynamicClassEntity> entities, Map<String, String> properties,
-           Set<String> excludeServiceOperations) {
+           Set<String> excludeServiceOperations, int dubboStreamReplayThreshold) {
         this.enableDebug = enableDebug;
         this.serviceName = serviceName;
         this.entities = entities;
         this.properties = properties;
         this.excludeServiceOperations = excludeServiceOperations;
+        this.dubboStreamReplayThreshold = dubboStreamReplayThreshold;
     }
 
     public boolean isEnableDebug() {
@@ -93,5 +94,9 @@ public class Config {
 
     private String getRawProperty(String name, String defaultValue) {
         return this.properties.getOrDefault(name, defaultValue);
+    }
+
+    public int getDubboStreamReplayThreshold() {
+        return dubboStreamReplayThreshold;
     }
 }

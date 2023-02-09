@@ -57,7 +57,7 @@ public class ConfigManager {
     private List<String> disabledInstrumentationModules;
     private Set<String> excludeServiceOperations;
     private String targetAddress;
-
+    private int dubboStreamReplayThreshold;
     private static List<ConfigListener> listeners = new ArrayList<ConfigListener>();
 
     private ConfigManager() {
@@ -158,6 +158,7 @@ public class ConfigManager {
         setAllowTimeOfDayTo(System.getProperty(ALLOW_TIME_TO, "23:59"));
         setDisabledInstrumentationModules(System.getProperty(DISABLE_INSTRUMENTATION_MODULE));
         setExcludeServiceOperations(System.getProperty(EXCLUDE_SERVICE_OPERATION));
+        setDubboStreamReplayThreshold(System.getProperty(DUBBO_STREAM_REPLAY_THRESHOLD, "100"));
 
         TimerService.scheduleAtFixedRate(this::update, 300, 300, TimeUnit.SECONDS);
     }
@@ -172,6 +173,7 @@ public class ConfigManager {
                 .addProperties(configMap)
                 .dynamicClassList(getDynamicClassList())
                 .excludeServiceOperations(getExcludeServiceOperations())
+                .dubboStreamReplayThreshold(getDubboStreamReplayThreshold())
                 .build();
     }
 
@@ -333,7 +335,7 @@ public class ConfigManager {
 
     public void setAllowTimeOfDayFrom(String allowTimeOfDayFrom) {
         if (StringUtil.isEmpty(allowTimeOfDayFrom)) {
-            return ;
+            return;
         }
         this.allowTimeOfDayFrom = LocalTime.parse(allowTimeOfDayFrom, DateTimeFormatter.ofPattern("HH:mm"));
         System.setProperty(ALLOW_TIME_FROM, allowTimeOfDayFrom);
@@ -345,7 +347,7 @@ public class ConfigManager {
 
     public void setAllowTimeOfDayTo(String allowTimeOfDayTo) {
         if (StringUtil.isEmpty(allowTimeOfDayTo)) {
-            return ;
+            return;
         }
         this.allowTimeOfDayTo = LocalTime.parse(allowTimeOfDayTo, DateTimeFormatter.ofPattern("HH:mm"));
         System.setProperty(ALLOW_TIME_TO, allowTimeOfDayTo);
@@ -443,6 +445,14 @@ public class ConfigManager {
             return true;
         }
         return targetAddress.equals(localHost);
+    }
+
+    public void setDubboStreamReplayThreshold(String dubboStreamReplayThreshold) {
+        this.dubboStreamReplayThreshold = Integer.parseInt(dubboStreamReplayThreshold);
+    }
+
+    public int getDubboStreamReplayThreshold() {
+        return dubboStreamReplayThreshold;
     }
 
     @Override

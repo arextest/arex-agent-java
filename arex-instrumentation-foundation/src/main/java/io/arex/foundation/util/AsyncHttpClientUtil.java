@@ -1,5 +1,6 @@
 package io.arex.foundation.util;
 
+import io.arex.agent.bootstrap.model.MockStrategyEnum;
 import io.arex.foundation.config.ConfigManager;
 import io.arex.foundation.util.async.AutoCleanedPoolingNHttpClientConnectionManager;
 import io.arex.foundation.util.async.ThreadFactoryImpl;
@@ -58,13 +59,18 @@ public class AsyncHttpClientUtil {
         return executeAsync(urlAddress, httpEntity, requestHeaders).join();
     }
 
-    public static String zstdJsonPost(String urlAddress, String postData) {
-        return executeAsync(urlAddress, postData).join();
+    public static String zstdJsonPost(String urlAddress, String postData, MockStrategyEnum mockStrategy) {
+        return executeAsync(urlAddress, postData, mockStrategy).join();
     }
 
     public static CompletableFuture<String> executeAsync(String urlAddress, String postData) {
+        return executeAsync(urlAddress, postData, MockStrategyEnum.FIND_LAST);
+    }
+
+    public static CompletableFuture<String> executeAsync(String urlAddress, String postData, MockStrategyEnum mockStrategy) {
         Map<String, String> requestHeaders = new HashMap<>();
         requestHeaders.put(HttpHeaders.CONTENT_TYPE, ClientConfig.STORAGE_CONTENT_TYPE);
+        requestHeaders.put(ClientConfig.MOCK_STRATEGY, mockStrategy.getCode());
 
         HttpEntity httpEntity = new ByteArrayEntity(CompressUtil.zstdCompress(postData, StandardCharsets.UTF_8));
         return executeAsync(urlAddress, httpEntity, requestHeaders);
@@ -156,6 +162,8 @@ public class AsyncHttpClientUtil {
         private static final int DEFAULT_SOCKET_TIMEOUT = 5000;
 
         private static final String STORAGE_CONTENT_TYPE = "application/zstd-json;charset=UTF-8";
+
+        private static final String MOCK_STRATEGY = "X-AREX-Mock-Strategy-Code";
     }
 
     private static class ResponseCallback implements FutureCallback<HttpResponse> {

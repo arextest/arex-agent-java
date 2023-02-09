@@ -1,4 +1,5 @@
 package io.arex.inst.dubbo;
+
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.context.ContextManager;
@@ -15,9 +16,14 @@ import org.apache.dubbo.rpc.Invoker;
 import org.apache.dubbo.rpc.Result;
 import org.apache.dubbo.rpc.RpcContext;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 public class DubboProviderExtractor {
+    private static List<String> EXCLUDE_DUBBO_METHOD_LIST = Arrays.asList(
+            "org.apache.dubbo.metadata.MetadataService.getMetadataInfo");
     public static void onServiceEnter(Invoker<?> invoker, Invocation invocation) {
         CaseEventDispatcher.onEvent(CaseEvent.ofEnterEvent());
         DubboAdapter adapter = DubboAdapter.of(invoker, invocation);
@@ -29,6 +35,10 @@ public class DubboProviderExtractor {
         CaseEventDispatcher.onEvent(CaseEvent.ofCreateEvent(EventSource.of(caseId, excludeMockTemplate)));
     }
     private static boolean shouldSkip(DubboAdapter adapter) {
+        // exclude dubbo framework method
+        if (EXCLUDE_DUBBO_METHOD_LIST.contains(adapter.getServiceOperation())) {
+            return true;
+        }
         // Replay scene
         if (StringUtil.isNotEmpty(adapter.getCaseId())) {
             return false;
@@ -44,6 +54,7 @@ public class DubboProviderExtractor {
         if (IgnoreUtils.ignoreOperation(adapter.getOperationName())) {
             return true;
         }
+        // record switch todo
         // Record rate limit
         return !RecordLimiter.acquire(adapter.getServiceOperation());
     }
@@ -51,21 +62,15 @@ public class DubboProviderExtractor {
         if (!ContextManager.needRecordOrReplay()) {
             return;
         }
-
-        DubboAdapter adapter = DubboAdapter.of(invoker, invocation);
-        String operation = adapter.getOperationName();
-        // not record operation: close
-        if ("close".equals(operation)) {
-            return;
-        }
         setResponseHeader();
-
+        DubboAdapter adapter = DubboAdapter.of(invoker, invocation);
         adapter.execute(result, makeMocker(adapter));
     }
     private static Mocker makeMocker(DubboAdapter adapter) {
         Mocker mocker = MockUtils.createDubboProvider(adapter.getServiceOperation());
-        String requestHeader = Serializer.serialize(RpcContext.getClientAttachment().getObjectAttachments());
-        mocker.getTargetRequest().setAttributes(Collections.singletonMap("Headers", requestHeader));
+        Map<String, Object> headerMap = RpcContext.getClientAttachment().getObjectAttachments();
+        headerMap.put("protocol", adapter.getProtocol());
+        mocker.getTargetRequest().setAttributes(Collections.singletonMap("Headers", Serializer.serialize(headerMap)));
         mocker.getTargetRequest().setBody(adapter.getRequest());
         String responseHeader = Serializer.serialize(RpcContext.getServerAttachment().getObjectAttachments());
         mocker.getTargetResponse().setAttributes(Collections.singletonMap("Headers", responseHeader));

@@ -12,6 +12,7 @@ import org.apache.dubbo.rpc.Result;
 
 import java.util.List;
 
+import static io.arex.inst.runtime.model.ArexConstants.DUBBO_STREAM_PROTOCOL;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static net.bytebuddy.matcher.ElementMatchers.named;
@@ -46,6 +47,10 @@ public class DubboProviderInstrumentation extends TypeInstrumentation {
         @Advice.OnMethodEnter
         public static void onEnter(@Advice.This Invoker<?> invoker,
                                    @Advice.Argument(0) Invocation invocation) {
+            if (invocation.getProtocolServiceKey() != null && invocation.getProtocolServiceKey().contains(DUBBO_STREAM_PROTOCOL)) {
+                // in dubbo server-stream mode, AREX context init in the DubboStreamProviderInstrumentation (before this)
+                return;
+            }
             DubboProviderExtractor.onServiceEnter(invoker, invocation);
         }
 
