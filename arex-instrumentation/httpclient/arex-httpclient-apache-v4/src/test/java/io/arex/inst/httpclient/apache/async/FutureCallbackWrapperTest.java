@@ -1,6 +1,7 @@
 package io.arex.inst.httpclient.apache.async;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -112,4 +113,9 @@ class FutureCallbackWrapperTest {
         );
     }
 
+    @Test
+    void wrap() {
+        FutureCallback<?> delegateCallback = Mockito.mock(FutureCallback.class);
+        assertInstanceOf(FutureCallbackWrapper.class, FutureCallbackWrapper.wrap(delegateCallback));
+    }
 }

@@ -18,7 +18,12 @@ public class FutureCallbackWrapper<T> implements FutureCallback<T> {
     private final FutureCallback<T> delegate;
     private final TraceTransmitter traceTransmitter;
 
+    // Maybe null, Just to pass the trace
     private final HttpClientExtractor<HttpRequest, HttpResponse> extractor;
+
+    public FutureCallbackWrapper(FutureCallback<T> delegate) {
+        this(null, delegate);
+    }
 
     public FutureCallbackWrapper(HttpClientExtractor<HttpRequest, HttpResponse> extractor, FutureCallback<T> delegate) {
         this.traceTransmitter = TraceTransmitter.create();
@@ -29,7 +34,7 @@ public class FutureCallbackWrapper<T> implements FutureCallback<T> {
     @Override
     public void completed(T t) {
         try (TraceTransmitter tm = traceTransmitter.transmit()) {
-            if (t instanceof HttpResponse) {
+            if (extractor != null && t instanceof HttpResponse) {
                 HttpResponse response = (HttpResponse) t;
                 extractor.record(response);
             }
@@ -40,14 +45,18 @@ public class FutureCallbackWrapper<T> implements FutureCallback<T> {
     @Override
     public void failed(Exception e) {
         try (TraceTransmitter tm = traceTransmitter.transmit()) {
-            extractor.record(e);
+            if (extractor != null) {
+                extractor.record(e);
+            }
             delegate.failed(e);
         }
     }
 
     @Override
     public void cancelled() {
-        delegate.cancelled();
+        try (TraceTransmitter tm = traceTransmitter.transmit()) {
+            delegate.cancelled();
+        }
     }
 
     public MockResult replay() {
@@ -82,5 +91,9 @@ public class FutureCallbackWrapper<T> implements FutureCallback<T> {
             return null;
         }
         return new FutureCallbackWrapper<>(extractor, delegate);
+    }
+
+    public static <T> FutureCallback<T> wrap(FutureCallback<T> delegate) {
+        return new FutureCallbackWrapper<>(delegate);
     }
 }

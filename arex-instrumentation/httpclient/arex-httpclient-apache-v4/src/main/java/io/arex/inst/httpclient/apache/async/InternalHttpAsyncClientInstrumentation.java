@@ -69,6 +69,8 @@ public class InternalHttpAsyncClientInstrumentation extends TypeInstrumentation 
                         return mockResult != null && mockResult.notIgnoreMockResult();
                     }
                 }
+            } else {
+                callback = FutureCallbackWrapper.wrap(callback);
             }
             return false;
         }
