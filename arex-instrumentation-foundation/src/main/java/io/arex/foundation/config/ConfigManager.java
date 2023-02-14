@@ -53,6 +53,7 @@ public class ConfigManager {
     private Set<String> excludeServiceOperations;
     private String targetAddress;
     private int dubboStreamReplayThreshold;
+    private boolean disableReplay;
     private static List<ConfigListener> listeners = new ArrayList<ConfigListener>();
 
     private ConfigManager() {
@@ -150,6 +151,7 @@ public class ConfigManager {
         setDisabledInstrumentationModules(System.getProperty(DISABLE_INSTRUMENTATION_MODULE));
         setExcludeServiceOperations(System.getProperty(EXCLUDE_SERVICE_OPERATION));
         setDubboStreamReplayThreshold(System.getProperty(DUBBO_STREAM_REPLAY_THRESHOLD, "100"));
+        setDisableReplay(System.getProperty(DISABLE_REPLAY));
 
         TimerService.scheduleAtFixedRate(this::update, 120, 120, TimeUnit.SECONDS);
     }
@@ -158,6 +160,7 @@ public class ConfigManager {
         Map<String, String> configMap = new HashMap<>();
         configMap.put(DYNAMIC_RESULT_SIZE_LIMIT, String.valueOf(getDynamicResultSizeLimit()));
         configMap.put(TIME_MACHINE, String.valueOf(startTimeMachine()));
+        configMap.put(DISABLE_REPLAY, String.valueOf(disableReplay()));
 
         ConfigBuilder.create(getServiceName())
                 .enableDebug(isEnableDebug())
@@ -191,6 +194,7 @@ public class ConfigManager {
         setStorageServiceMode(configMap.get(STORAGE_SERVICE_MODE));
         setDisabledInstrumentationModules(configMap.get(DISABLE_INSTRUMENTATION_MODULE));
         setExcludeServiceOperations(configMap.get(EXCLUDE_SERVICE_OPERATION));
+        setDisableReplay(configMap.get(DISABLE_REPLAY));
     }
 
     private static Map<String, String> parseConfigFile(String configPath) {
@@ -409,6 +413,19 @@ public class ConfigManager {
 
     public int getDubboStreamReplayThreshold() {
         return dubboStreamReplayThreshold;
+    }
+
+    public void setDisableReplay(String disableReplay) {
+        if (StringUtil.isEmpty(disableReplay)) {
+            return;
+        }
+
+        this.disableReplay = Boolean.parseBoolean(disableReplay);
+        System.setProperty(DISABLE_REPLAY, disableReplay);
+    }
+
+    public boolean disableReplay() {
+        return disableReplay;
     }
 
     @Override

@@ -2,6 +2,7 @@ package io.arex.inst.dubbo;
 
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.context.RecordLimiter;
 import io.arex.inst.runtime.listener.CaseEvent;
@@ -41,7 +42,7 @@ public class DubboProviderExtractor {
         }
         // Replay scene
         if (StringUtil.isNotEmpty(adapter.getCaseId())) {
-            return false;
+            return Config.get().getBoolean("arex.disable.replay", false);
         }
         // Do not skip if header with arex-force-record=true
         if (adapter.forceRecord()) {

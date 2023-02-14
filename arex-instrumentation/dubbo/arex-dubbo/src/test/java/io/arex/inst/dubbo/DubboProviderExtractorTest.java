@@ -1,5 +1,6 @@
 package io.arex.inst.dubbo;
 
+import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.context.RecordLimiter;
@@ -36,6 +37,8 @@ class DubboProviderExtractorTest {
         Mockito.mockStatic(RpcContext.class);
         Mockito.mockStatic(RecordLimiter.class);
         Mockito.mockStatic(IgnoreUtils.class);
+        Mockito.mockStatic(Config.class);
+        Mockito.when(Config.get()).thenReturn(Mockito.mock(Config.class));
     }
 
     @AfterAll
@@ -46,14 +49,18 @@ class DubboProviderExtractorTest {
 
     @ParameterizedTest
     @MethodSource("onServiceEnterCase")
-    void onServiceEnter(Runnable mocker) {
+    void onServiceEnter(Runnable mocker, Runnable asserts) {
         mocker.run();
         DubboProviderExtractor.onServiceEnter(null, null);
-        verify(adapter, atLeastOnce()).getExcludeMockTemplate();
+        asserts.run();
     }
 
     static Stream<Arguments> onServiceEnterCase() {
+        Runnable mocker0 = () -> {
+            Mockito.when(adapter.getServiceOperation()).thenReturn("org.apache.dubbo.metadata.MetadataService.getMetadataInfo");
+        };
         Runnable mocker1 = () -> {
+            Mockito.when(adapter.getServiceOperation()).thenReturn("mock");
             Mockito.when(adapter.getCaseId()).thenReturn("mock");
         };
         Runnable mocker2 = () -> {
@@ -71,12 +78,15 @@ class DubboProviderExtractorTest {
         Runnable mocker5 = () -> {
             Mockito.when(IgnoreUtils.ignoreOperation(any())).thenReturn(false);
         };
+        Runnable asserts1 = () -> verify(adapter, times(0)).getExcludeMockTemplate();
+        Runnable asserts2 = () -> verify(adapter, atLeastOnce()).getExcludeMockTemplate();
         return Stream.of(
-                arguments(mocker1),
-                arguments(mocker2),
-                arguments(mocker3),
-                arguments(mocker4),
-                arguments(mocker5)
+                arguments(mocker0, asserts1),
+                arguments(mocker1, asserts2),
+                arguments(mocker2, asserts2),
+                arguments(mocker3, asserts2),
+                arguments(mocker4, asserts2),
+                arguments(mocker5, asserts2)
         );
     }
 

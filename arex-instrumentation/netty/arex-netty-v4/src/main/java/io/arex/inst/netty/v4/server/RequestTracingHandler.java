@@ -2,6 +2,7 @@ package io.arex.inst.netty.v4.server;
 
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.context.RecordLimiter;
 import io.arex.inst.runtime.listener.CaseEvent;
@@ -61,7 +62,7 @@ public class RequestTracingHandler extends ChannelInboundHandlerAdapter {
     private boolean shouldSkip(HttpRequest request, String caseId) {
         // Replay scene
         if (StringUtil.isNotEmpty(caseId)) {
-            return false;
+            return Config.get().getBoolean("arex.disable.replay", false);
         }
 
         String forceRecord = request.headers().get(ArexConstants.FORCE_RECORD);
