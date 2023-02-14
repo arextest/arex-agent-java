@@ -54,7 +54,6 @@ public class DubboProviderExtractor {
         if (IgnoreUtils.ignoreOperation(adapter.getOperationName())) {
             return true;
         }
-        // record switch todo
         // Record rate limit
         return !RecordLimiter.acquire(adapter.getServiceOperation());
     }

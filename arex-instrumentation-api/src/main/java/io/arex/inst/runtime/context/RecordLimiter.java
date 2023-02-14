@@ -18,6 +18,6 @@ public class RecordLimiter {
     }
 
     public static boolean acquire(String path) {
-        return Config.get().isEnableDebug() || INSTANCE.recordLimiter.apply(path);
+        return Config.get().isEnableDebug() || (Config.get().getRecordRate() > 0 && INSTANCE.recordLimiter.apply(path));
     }
 }

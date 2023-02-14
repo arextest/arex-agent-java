@@ -11,8 +11,10 @@ public class Config {
     private static Config INSTANCE = null;
 
     static void update(boolean enableDebug, String serviceName, List<DynamicClassEntity> entities,
-                       Map<String, String> properties, Set<String> excludeServiceOperations, int dubboStreamReplayThreshold) {
-        INSTANCE = new Config(enableDebug, serviceName, entities, properties, excludeServiceOperations, dubboStreamReplayThreshold);
+                       Map<String, String> properties, Set<String> excludeServiceOperations,
+                       int dubboStreamReplayThreshold, int recordRate) {
+        INSTANCE = new Config(enableDebug, serviceName, entities, properties, excludeServiceOperations,
+                dubboStreamReplayThreshold, recordRate);
     }
 
     public static Config get() {
@@ -25,14 +27,16 @@ public class Config {
     private Map<String, String> properties;
     private Set<String> excludeServiceOperations;
     private final int dubboStreamReplayThreshold;
+    private int recordRate;
     Config(boolean enableDebug, String serviceName, List<DynamicClassEntity> entities, Map<String, String> properties,
-           Set<String> excludeServiceOperations, int dubboStreamReplayThreshold) {
+           Set<String> excludeServiceOperations, int dubboStreamReplayThreshold, int recordRate) {
         this.enableDebug = enableDebug;
         this.serviceName = serviceName;
         this.entities = entities;
         this.properties = properties;
         this.excludeServiceOperations = excludeServiceOperations;
         this.dubboStreamReplayThreshold = dubboStreamReplayThreshold;
+        this.recordRate = recordRate;
     }
 
     public boolean isEnableDebug() {
@@ -98,5 +102,9 @@ public class Config {
 
     public int getDubboStreamReplayThreshold() {
         return dubboStreamReplayThreshold;
+    }
+
+    public int getRecordRate() {
+        return recordRate;
     }
 }
