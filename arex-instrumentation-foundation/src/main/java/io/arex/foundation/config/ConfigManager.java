@@ -39,11 +39,6 @@ public class ConfigManager {
     private String configPath;
 
     private String storageServiceMode;
-    private String storageServiceJdbcUrl;
-    private String storageServiceUsername;
-    private String storageServicePassword;
-    private String storageServiceWebPort;
-    private String serverServiceTcpPort;
     private int recordRate;
     private int dynamicResultSizeLimit;
     private List<DynamicClassEntity> dynamicClassList;
@@ -112,11 +107,7 @@ public class ConfigManager {
         if (StringUtil.isEmpty(recordRate)) {
             return;
         }
-        int rate = Integer.parseInt(recordRate);
-        if (rate <= 0) {
-            return;
-        }
-        this.recordRate = rate;
+        this.recordRate = Integer.parseInt(recordRate);
         System.setProperty(RECORD_RATE, recordRate);
     }
 
@@ -160,7 +151,7 @@ public class ConfigManager {
         setExcludeServiceOperations(System.getProperty(EXCLUDE_SERVICE_OPERATION));
         setDubboStreamReplayThreshold(System.getProperty(DUBBO_STREAM_REPLAY_THRESHOLD, "100"));
 
-        TimerService.scheduleAtFixedRate(this::update, 300, 300, TimeUnit.SECONDS);
+        TimerService.scheduleAtFixedRate(this::update, 120, 120, TimeUnit.SECONDS);
     }
 
     private void updateInstrumentationConfig() {
@@ -174,6 +165,7 @@ public class ConfigManager {
                 .dynamicClassList(getDynamicClassList())
                 .excludeServiceOperations(getExcludeServiceOperations())
                 .dubboStreamReplayThreshold(getDubboStreamReplayThreshold())
+                .recordRate(getRecordRate())
                 .build();
     }
 
@@ -224,48 +216,12 @@ public class ConfigManager {
         ConfigService.INSTANCE.loadAgentConfig(null);
     }
 
-    public String getStorageServiceMode() {
-        return storageServiceMode;
-    }
-
-    public String getStorageServiceJdbcUrl() {
-        return storageServiceJdbcUrl;
-    }
-
-    public String getStorageServiceUsername() {
-        return storageServiceUsername;
-    }
-
-    public String getStorageServicePassword() {
-        return storageServicePassword;
-    }
-
     public boolean isLocalStorage(){
         return STORAGE_MODE.equalsIgnoreCase(storageServiceMode);
     }
 
     public void setStorageServiceMode(String storageServiceMode) {
         this.storageServiceMode = storageServiceMode;
-    }
-
-    public void setStorageServiceJdbcUrl(String storageServiceJdbcUrl) {
-        this.storageServiceJdbcUrl = storageServiceJdbcUrl;
-    }
-
-    public void setStorageServiceUsername(String storageServiceUsername) {
-        this.storageServiceUsername = storageServiceUsername;
-    }
-
-    public void setStorageServicePassword(String storageServicePassword) {
-        this.storageServicePassword = storageServicePassword;
-    }
-
-    public String getStorageServiceWebPort() {
-        return storageServiceWebPort;
-    }
-
-    public String getServerServiceTcpPort() {
-        return serverServiceTcpPort;
     }
 
     public void parseAgentConfig(String args) {
@@ -464,11 +420,6 @@ public class ConfigManager {
                 ", storageServiceHost='" + storageServiceHost + '\'' +
                 ", configPath='" + configPath + '\'' +
                 ", storageServiceMode='" + storageServiceMode + '\'' +
-                ", storageServiceJdbcUrl='" + storageServiceJdbcUrl + '\'' +
-                ", storageServiceUsername='" + storageServiceUsername + '\'' +
-                ", storageServicePassword='" + storageServicePassword + '\'' +
-                ", storageServiceWebPort='" + storageServiceWebPort + '\'' +
-                ", serverServiceTcpPort='" + serverServiceTcpPort + '\'' +
                 ", recordRate='" + recordRate + '\'' +
                 ", startTimeMachine='" + startTimeMachine + '\'' +
                 ", allowDayOfWeeks='" + allowDayOfWeeks + '\'' +

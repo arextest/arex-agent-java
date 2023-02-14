@@ -11,6 +11,7 @@ public class ConfigBuilder {
     private List<DynamicClassEntity> entities;
     private Set<String> excludeServiceOperations;
     private int dubboStreamReplayThreshold;
+    private int recordRate;
 
     public static ConfigBuilder create(String serviceName) {
         return new ConfigBuilder(serviceName);
@@ -63,8 +64,13 @@ public class ConfigBuilder {
         return this;
     }
 
+    public ConfigBuilder recordRate(int recordRate) {
+        this.recordRate = recordRate;
+        return this;
+    }
+
     public void build() {
         Config.update(enableDebug, serviceName, entities, Collections.unmodifiableMap(new HashMap<>(properties)),
-                excludeServiceOperations, dubboStreamReplayThreshold);
+                excludeServiceOperations, dubboStreamReplayThreshold, recordRate);
     }
 }
