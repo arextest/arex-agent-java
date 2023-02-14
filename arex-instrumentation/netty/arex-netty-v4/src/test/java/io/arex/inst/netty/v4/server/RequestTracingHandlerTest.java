@@ -2,6 +2,7 @@ package io.arex.inst.netty.v4.server;
 
 import io.arex.agent.bootstrap.model.ArexMocker;
 import io.arex.agent.bootstrap.model.Mocker.Target;
+import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.context.RecordLimiter;
 import io.arex.inst.runtime.model.ArexConstants;
@@ -45,6 +46,8 @@ class RequestTracingHandlerTest {
         Mockito.mockStatic(IgnoreUtils.class);
         Mockito.mockStatic(NettyHelper.class);
         Mockito.mockStatic(RecordLimiter.class);
+        Mockito.mockStatic(Config.class);
+        Mockito.when(Config.get()).thenReturn(Mockito.mock(Config.class));
     }
 
     @AfterAll

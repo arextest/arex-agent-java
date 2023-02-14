@@ -36,11 +36,12 @@ class ConfigManagerTest {
     void initFromSystemPropertyTest() {
         System.setProperty("arex.service.name", "test-your-service");
         System.setProperty("arex.storage.service.host", "test-storage-service.host ");
-
+        System.setProperty("arex.disable.replay", "true");
         configManager.init();
 
         assertEquals("test-your-service", configManager.getServiceName());
         assertEquals("test-storage-service.host", configManager.getStorageServiceHost());
+        assertTrue(configManager.disableReplay());
     }
 
     @Test
