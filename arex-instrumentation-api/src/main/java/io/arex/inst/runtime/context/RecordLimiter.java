@@ -1,7 +1,5 @@
 package io.arex.inst.runtime.context;
 
-import io.arex.inst.runtime.config.Config;
-
 import java.util.function.Function;
 
 public class RecordLimiter {
@@ -18,6 +16,6 @@ public class RecordLimiter {
     }
 
     public static boolean acquire(String path) {
-        return Config.get().isEnableDebug() || (Config.get().getRecordRate() > 0 && INSTANCE.recordLimiter.apply(path));
+        return INSTANCE.recordLimiter.apply(path);
     }
 }

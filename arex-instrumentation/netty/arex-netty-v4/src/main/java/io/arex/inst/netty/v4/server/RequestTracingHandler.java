@@ -4,7 +4,6 @@ import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.ContextManager;
-import io.arex.inst.runtime.context.RecordLimiter;
 import io.arex.inst.runtime.listener.CaseEvent;
 import io.arex.inst.runtime.listener.EventProcessor;
 import io.arex.inst.runtime.listener.CaseEventDispatcher;
@@ -80,7 +79,7 @@ public class RequestTracingHandler extends ChannelInboundHandlerAdapter {
             return true;
         }
 
-        if (!RecordLimiter.acquire(request.uri())) {
+        if (Config.get().invalidRecord(request.uri())) {
             return true;
         }
 

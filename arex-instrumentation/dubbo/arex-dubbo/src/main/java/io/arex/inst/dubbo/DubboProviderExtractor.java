@@ -4,7 +4,6 @@ import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.ContextManager;
-import io.arex.inst.runtime.context.RecordLimiter;
 import io.arex.inst.runtime.listener.CaseEvent;
 import io.arex.inst.runtime.listener.CaseEventDispatcher;
 import io.arex.inst.runtime.listener.EventSource;
@@ -55,8 +54,7 @@ public class DubboProviderExtractor {
         if (IgnoreUtils.ignoreOperation(adapter.getOperationName())) {
             return true;
         }
-        // Record rate limit
-        return !RecordLimiter.acquire(adapter.getServiceOperation());
+        return Config.get().invalidRecord(adapter.getServiceOperation());
     }
     public static void onServiceExit(Invoker<?> invoker, Invocation invocation, Result result) {
         if (!ContextManager.needRecordOrReplay()) {

@@ -19,4 +19,5 @@ public class ConfigConstants {
     public static final String EXCLUDE_SERVICE_OPERATION = "arex.exclude.service.operation";
     public static final String DUBBO_STREAM_REPLAY_THRESHOLD = "arex.dubbo.replay.threshold";
     public static final String DISABLE_REPLAY = "arex.disable.replay";
+    public static final String DURING_WORK = "arex.during.work";
 }
