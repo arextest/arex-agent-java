@@ -1,5 +1,6 @@
 package io.arex.inst.runtime.config;
 
+import io.arex.inst.runtime.context.RecordLimiter;
 import io.arex.inst.runtime.model.DynamicClassEntity;
 
 import java.util.List;
@@ -106,5 +107,25 @@ public class Config {
 
     public int getRecordRate() {
         return recordRate;
+    }
+
+    /**
+     * Conditions for determining invalid recording configuration(debug mode don't judge):
+     * 1. rate <= 0 <br/>
+     * 2. not in working time <br/>
+     * 3. exceed rate limit <br/>
+     * @return true: invalid OR false: valid
+     */
+    public boolean invalidRecord(String path) {
+        if (isEnableDebug()) {
+            return false;
+        }
+        if (getRecordRate() <= 0) {
+            return true;
+        }
+        if (!getBoolean("arex.during.work", false)) {
+            return true;
+        }
+        return !RecordLimiter.acquire(path);
     }
 }

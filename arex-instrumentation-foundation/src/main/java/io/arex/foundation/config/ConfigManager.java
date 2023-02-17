@@ -161,6 +161,7 @@ public class ConfigManager {
         configMap.put(DYNAMIC_RESULT_SIZE_LIMIT, String.valueOf(getDynamicResultSizeLimit()));
         configMap.put(TIME_MACHINE, String.valueOf(startTimeMachine()));
         configMap.put(DISABLE_REPLAY, String.valueOf(disableReplay()));
+        configMap.put(DURING_WORK, Boolean.toString(nextWorkTime() <= 0));
 
         ConfigBuilder.create(getServiceName())
                 .enableDebug(isEnableDebug())
@@ -268,7 +269,7 @@ public class ConfigManager {
 
     public void setAllowDayOfWeeks(int allowDayOfWeeks) {
         if (allowDayOfWeeks <= 0) {
-            this.allowDayOfWeeks = null;
+            this.allowDayOfWeeks = EnumSet.noneOf(DayOfWeek.class);
             return;
         }
         // binary 1111111
@@ -330,12 +331,6 @@ public class ConfigManager {
     public boolean invalid() {
         if (isLocalStorage()) {
             return false;
-        }
-        if (allowDayOfWeeks == null) {
-            return true;
-        }
-        if (nextWorkTime() > 0L) {
-            return true;
         }
         return !checkTargetAddress();
     }

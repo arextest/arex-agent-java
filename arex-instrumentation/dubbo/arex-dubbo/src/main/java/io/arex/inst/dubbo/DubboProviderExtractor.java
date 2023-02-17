@@ -55,8 +55,7 @@ public class DubboProviderExtractor {
         if (IgnoreUtils.ignoreOperation(adapter.getOperationName())) {
             return true;
         }
-        // Record rate limit
-        return !RecordLimiter.acquire(adapter.getServiceOperation());
+        return Config.get().invalidRecord(adapter.getServiceOperation());
     }
     public static void onServiceExit(Invoker<?> invoker, Invocation invocation, Result result) {
         if (!ContextManager.needRecordOrReplay()) {

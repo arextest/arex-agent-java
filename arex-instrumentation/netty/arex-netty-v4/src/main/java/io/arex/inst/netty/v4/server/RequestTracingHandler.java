@@ -80,7 +80,7 @@ public class RequestTracingHandler extends ChannelInboundHandlerAdapter {
             return true;
         }
 
-        if (!RecordLimiter.acquire(request.uri())) {
+        if (Config.get().invalidRecord(request.uri())) {
             return true;
         }
 

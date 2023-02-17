@@ -174,6 +174,6 @@ public class ServletAdviceHelper {
             return true;
         }
 
-        return !RecordLimiter.acquire(requestURI);
+        return Config.get().invalidRecord(requestURI);
     }
 }
