@@ -56,6 +56,8 @@ public class WebClientInstrumentation extends TypeInstrumentation {
     }
 
     public static final class ExchangeAdvice {
+        private ExchangeAdvice() {}
+
         @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class)
         public static boolean onEnter(@Advice.Argument(0) ClientRequest clientRequest,
                                       @Advice.FieldValue("strategies") ExchangeStrategies strategies,

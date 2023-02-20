@@ -76,7 +76,7 @@ class WebClientWrapperTest {
         DataBuffer dataBuffer = Mockito.mock(DataBuffer.class);
         ByteBuffer byteBuffer = Mockito.mock(ByteBuffer.class);
         Runnable mocker1 = () -> {
-            ClientResponseBuilderTest builder = new ClientResponseBuilderTest(strategies);
+            ClientResponseBuilder builder = new ClientResponseBuilder(strategies);
             Mockito.when(byteBuffer.hasArray()).thenReturn(true);
             Mockito.when(dataBuffer.asByteBuffer()).thenReturn(byteBuffer);
             Function<Flux<DataBuffer>, Flux<DataBuffer>> transformer = dataBufferFlux -> Flux.just(dataBuffer);

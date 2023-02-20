@@ -23,7 +23,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public class ClientResponseBuilderTest implements ClientResponse.Builder {
+public class ClientResponseBuilder implements ClientResponse.Builder {
     private static final HttpRequest EMPTY_REQUEST = new HttpRequest() {
 
         private final URI empty = URI.create("");
@@ -63,7 +63,7 @@ public class ClientResponseBuilderTest implements ClientResponse.Builder {
     private HttpRequest request;
 
 
-    ClientResponseBuilderTest(ExchangeStrategies strategies) {
+    ClientResponseBuilder(ExchangeStrategies strategies) {
         this.strategies = strategies;
         this.headers = new HttpHeaders();
         this.cookies = new LinkedMultiValueMap<>();
@@ -72,12 +72,12 @@ public class ClientResponseBuilderTest implements ClientResponse.Builder {
 
 
     @Override
-    public ClientResponseBuilderTest statusCode(HttpStatus statusCode) {
+    public ClientResponseBuilder statusCode(HttpStatus statusCode) {
         return rawStatusCode(statusCode.value());
     }
 
     @Override
-    public ClientResponseBuilderTest rawStatusCode(int statusCode) {
+    public ClientResponseBuilder rawStatusCode(int statusCode) {
         Assert.isTrue(statusCode >= 100 && statusCode < 600, "StatusCode must be between 1xx and 5xx");
         this.statusCode = statusCode;
         return this;
@@ -106,7 +106,7 @@ public class ClientResponseBuilderTest implements ClientResponse.Builder {
     }
 
     @Override
-    public ClientResponseBuilderTest cookie(String name, String... values) {
+    public ClientResponseBuilder cookie(String name, String... values) {
         for (String value : values) {
             getCookies().add(name, ResponseCookie.from(name, value).build());
         }
@@ -167,7 +167,7 @@ public class ClientResponseBuilderTest implements ClientResponse.Builder {
     @Override
     public ClientResponse build() {
 
-        ClientHttpResponse httpResponse = new ClientResponseBuilderTest.BuiltClientHttpResponse(
+        ClientHttpResponse httpResponse = new ClientResponseBuilder.BuiltClientHttpResponse(
                 this.statusCode, this.headers, this.cookies, this.body, this.originalResponse);
 
         return new WebClientDefaultResponse(httpResponse, this.strategies,

@@ -1,6 +1,8 @@
 package io.arex.agent.bootstrap.util;
 
 public class ArrayUtils {
+    private ArrayUtils() {}
+
     public static byte[] addAll(final byte[] array1, final byte... array2) {
         if (array1 == null) {
             return clone(array2);
@@ -13,9 +15,9 @@ public class ArrayUtils {
         return joinedArray;
     }
 
-    public static byte[] clone(final byte[] array) {
+    private static byte[] clone(final byte[] array) {
         if (array == null) {
-            return null;
+            return new byte[0];
         }
         return array.clone();
     }

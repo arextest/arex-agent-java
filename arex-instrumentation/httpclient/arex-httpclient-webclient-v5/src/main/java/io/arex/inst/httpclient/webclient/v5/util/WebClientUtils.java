@@ -11,6 +11,8 @@ import java.util.List;
 public class WebClientUtils {
     private static final String VALUE_NONE = "\n\t\t\n\t\t\n\uE000\uE001\uE002\n\t\t\t\t\n";
 
+    private WebClientUtils() {}
+
     /**
      * Map the given response to a single value {@code ResponseEntity<T>}.
      */

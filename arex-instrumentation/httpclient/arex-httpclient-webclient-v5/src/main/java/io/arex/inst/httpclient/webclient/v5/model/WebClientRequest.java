@@ -60,10 +60,14 @@ public class WebClientRequest extends AbstractClientHttpRequest {
     }
 
     @Override
-    protected void applyHeaders() {}
+    protected void applyHeaders() {
+        // default implementation ignored
+    }
 
     @Override
-    protected void applyCookies() {}
+    protected void applyCookies() {
+        // default implementation ignored
+    }
 
     @Override
     public Mono<Void> writeWith(Publisher<? extends DataBuffer> body) {

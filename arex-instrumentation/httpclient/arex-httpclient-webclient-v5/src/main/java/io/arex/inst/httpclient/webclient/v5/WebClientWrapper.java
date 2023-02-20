@@ -6,6 +6,7 @@ import io.arex.agent.bootstrap.util.ArrayUtils;
 import io.arex.inst.httpclient.common.HttpClientExtractor;
 import io.arex.inst.httpclient.webclient.v5.model.WebClientRequest;
 import io.arex.inst.httpclient.webclient.v5.model.WebClientResponse;
+import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.web.reactive.function.client.ClientRequest;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.ExchangeStrategies;
@@ -52,45 +53,43 @@ public class WebClientWrapper {
         }).map(response -> {
             try (TraceTransmitter tm = traceTransmitter.transmit()) {
                 List<byte[]> bytes = new ArrayList<>();
-                ClientResponse clientResponse = response.mutate().body(body -> {
-                    return Flux.defer(() -> Flux.from(body)
-                            .map(dataBuffer -> {
-                                if (dataBuffer != null) {
-                                    ByteBuffer byteBuffer = dataBuffer.asByteBuffer();
-                                    /*
-                                     * If the response message is too large, it will be truncated and returned multiple times.
-                                     * Here, aggregation is required
-                                     */
-                                    if (byteBuffer.hasArray()) {
-                                        bytes.add(byteBuffer.array());
-                                    } else {
-                                        bytes.add(dataBuffer.toString(StandardCharsets.UTF_8).getBytes());
-                                    }
-                                }
-                                return dataBuffer;
-                            }).doOnComplete(() -> {
-                                byte[] bodyArray = new byte[]{};
-                                for (byte[] byteArray : bytes) {
-                                    bodyArray = ArrayUtils.addAll(bodyArray, byteArray);
-                                }
-                                try (TraceTransmitter tm1 = traceTransmitter1.transmit()) {
-                                    extractor.record(WebClientResponse.of(response, bodyArray));
-                                }
-                            })
-                    );
-                }).build();
-                return clientResponse;
+                return response.mutate().body(body -> Flux.defer(() -> Flux.from(body)
+                        .map(dataBuffer -> {
+                            /*
+                             * If the response message is too large, it will be truncated and returned multiple times.
+                             * Here, aggregation is required
+                             */
+                            collect(dataBuffer, bytes);
+                            return dataBuffer;
+                        }).doOnComplete(() -> {
+                            byte[] bodyArray = new byte[]{};
+                            for (byte[] byteArray : bytes) {
+                                bodyArray = ArrayUtils.addAll(bodyArray, byteArray);
+                            }
+                            try (TraceTransmitter tm1 = traceTransmitter1.transmit()) {
+                                extractor.record(WebClientResponse.of(response, bodyArray));
+                            }
+                        })
+                )).build();
             }
         });
     }
 
+    private void collect(DataBuffer dataBuffer, List<byte[]> bytes) {
+        if (dataBuffer != null) {
+            ByteBuffer byteBuffer = dataBuffer.asByteBuffer();
+            if (byteBuffer.hasArray()) {
+                bytes.add(byteBuffer.array());
+            } else {
+                bytes.add(dataBuffer.toString(StandardCharsets.UTF_8).getBytes());
+            }
+        }
+    }
+
     private void convertRequest() {
         WebClientRequest request = WebClientRequest.of(httpRequest);
-        Mono<Void> requestMono = httpRequest.writeTo(request, strategies);
-        if (requestMono != null) {
-            requestMono.subscribe();
-            adapter.setHttpRequest(request);
-        }
+        httpRequest.writeTo(request, strategies).subscribe();
+        adapter.setHttpRequest(request);
     }
 
     public MockResult replay() {
