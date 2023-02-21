@@ -43,10 +43,10 @@ public class HttpClientExtractor<TRequest, TResponse> {
         MockUtils.recordMocker(mocker);
     }
 
-    public void record(Exception exception) {
+    public void record(Throwable throwable) {
         Mocker mocker = makeMocker();
-        mocker.getTargetResponse().setType(TypeUtil.getName(exception));
-        mocker.getTargetResponse().setBody(Serializer.serialize(exception));
+        mocker.getTargetResponse().setType(TypeUtil.getName(throwable));
+        mocker.getTargetResponse().setBody(Serializer.serialize(throwable));
         MockUtils.recordMocker(mocker);
     }
 
