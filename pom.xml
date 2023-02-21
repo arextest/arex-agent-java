@@ -38,7 +38,8 @@
         <mockito-junit-jupiter.version>4.7.0</mockito-junit-jupiter.version>
         <sonar.exclusions>
             **/src/test/**,
-            **/target/**
+            **/target/**,
+            **/model/**
         </sonar.exclusions>
     </properties>
 
