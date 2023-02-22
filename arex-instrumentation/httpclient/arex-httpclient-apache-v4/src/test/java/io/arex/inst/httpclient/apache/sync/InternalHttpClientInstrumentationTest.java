@@ -49,6 +49,11 @@ class InternalHttpClientInstrumentationTest {
     }
 
     @Test
+    void adviceClassNames() {
+        assertNotNull(target.adviceClassNames());
+    }
+
+    @Test
     void methodAdvices() {
         assertNotNull(target.methodAdvices());
     }

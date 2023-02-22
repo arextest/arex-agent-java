@@ -17,6 +17,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 
 import java.util.List;
 
+import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static net.bytebuddy.matcher.ElementMatchers.*;
 
@@ -36,6 +37,15 @@ public class InternalHttpClientInstrumentation extends TypeInstrumentation {
                         .and(takesArgument(1, named("org.apache.http.HttpRequest")))
                         .and(takesArgument(2, named("org.apache.http.protocol.HttpContext"))),
             this.getClass().getName() + "$ExecuteAdvice"));
+    }
+
+    @Override
+    public List<String> adviceClassNames() {
+        return asList(
+                "io.arex.inst.httpclient.common.HttpClientExtractor",
+                "io.arex.inst.httpclient.apache.common.ApacheHttpClientAdapter",
+                "io.arex.inst.httpclient.apache.common.ApacheHttpClientHelper",
+                "io.arex.inst.httpclient.common.HttpClientAdapter");
     }
 
     public static class ExecuteAdvice {
