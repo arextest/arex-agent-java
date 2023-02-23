@@ -11,7 +11,9 @@ import org.junit.jupiter.params.provider.MethodSource;
 import java.io.File;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -107,6 +109,9 @@ class ConfigManagerTest {
         ConfigService.ResponseBody serviceConfig = new ConfigService.ResponseBody();
         ConfigService.ServiceCollectConfig serviceCollect = new ConfigService.ServiceCollectConfig();
         serviceConfig.setServiceCollectConfiguration(serviceCollect);
+        Map<String, String> extendField = new HashMap<>();
+        extendField.put("key", "val");
+        serviceConfig.setExtendField(extendField);
         configManager.parseServiceConfig(serviceConfig);
         assertNull(serviceConfig.getDynamicClassConfigurationList());
     }

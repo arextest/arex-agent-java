@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -112,6 +113,7 @@ public class ConfigService {
         private int status;
         private List<DynamicClassConfiguration> dynamicClassConfigurationList;
         private String targetAddress;
+        private Map<String, String> extendField;
         public ServiceCollectConfig getServiceCollectConfiguration() {
             return serviceCollectConfiguration;
         }
@@ -134,6 +136,14 @@ public class ConfigService {
 
         public void setTargetAddress(String targetAddress) {
             this.targetAddress = targetAddress;
+        }
+
+        public Map<String, String> getExtendField() {
+            return extendField;
+        }
+
+        public void setExtendField(Map<String, String> extendField) {
+            this.extendField = extendField;
         }
     }
 
