@@ -55,6 +55,7 @@ public class ConfigManager {
     private int dubboStreamReplayThreshold;
     private boolean disableReplay;
     private static List<ConfigListener> listeners = new ArrayList<ConfigListener>();
+    private Map<String, String> extendField;
 
     private ConfigManager() {
         init();
@@ -162,6 +163,10 @@ public class ConfigManager {
         configMap.put(TIME_MACHINE, String.valueOf(startTimeMachine()));
         configMap.put(DISABLE_REPLAY, String.valueOf(disableReplay()));
         configMap.put(DURING_WORK, Boolean.toString(nextWorkTime() <= 0));
+        Map<String, String> extendField = getExtendField();
+        if (extendField != null && !extendField.isEmpty()) {
+            configMap.putAll(extendField);
+        }
 
         ConfigBuilder.create(getServiceName())
                 .enableDebug(isEnableDebug())
@@ -324,6 +329,7 @@ public class ConfigManager {
         setDynamicClassList(serviceConfig.getDynamicClassConfigurationList());
         setExcludeServiceOperations(config.getExcludeServiceOperationSet());
         setTargetAddress(serviceConfig.getTargetAddress());
+        setExtendField(serviceConfig.getExtendField());
 
         updateInstrumentationConfig();
     }
@@ -421,6 +427,14 @@ public class ConfigManager {
 
     public boolean disableReplay() {
         return disableReplay;
+    }
+
+    public Map<String, String> getExtendField() {
+        return extendField;
+    }
+
+    public void setExtendField(Map<String, String> extendField) {
+        this.extendField = extendField;
     }
 
     @Override
