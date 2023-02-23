@@ -30,17 +30,17 @@ class JWTInstrumentationTest {
 
     @Test
     void methodAdvices() {
-        target.methodAdvices();
+        assertNotNull(target.methodAdvices());
     }
 
     @Test
     void onEnter() {
-        JWTInstrumentation.MethodAdvice.onEnter();
+        assertFalse(JWTInstrumentation.MethodAdvice.onEnter());
     }
 
     @Test
     void onExit() {
         Mockito.when(ContextManager.needReplay()).thenReturn(true);
-        JWTInstrumentation.MethodAdvice.onExit("jwt", null);
+        assertDoesNotThrow(() -> JWTInstrumentation.MethodAdvice.onExit("jwt", null));
     }
 }
