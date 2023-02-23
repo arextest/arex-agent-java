@@ -1,4 +1,4 @@
-package io.arex.inst.jwt;
+package io.arex.inst.authentication.jwt;
 
 import io.arex.inst.runtime.context.ContextManager;
 import org.junit.jupiter.api.AfterAll;
@@ -30,17 +30,17 @@ class JWTInstrumentationTest {
 
     @Test
     void methodAdvices() {
-        target.methodAdvices();
+        assertNotNull(target.methodAdvices());
     }
 
     @Test
     void onEnter() {
-        JWTInstrumentation.MethodAdvice.onEnter();
+        assertFalse(JWTInstrumentation.MethodAdvice.onEnter());
     }
 
     @Test
     void onExit() {
         Mockito.when(ContextManager.needReplay()).thenReturn(true);
-        JWTInstrumentation.MethodAdvice.onExit("jwt", null);
+        assertDoesNotThrow(() -> JWTInstrumentation.MethodAdvice.onExit("jwt", null));
     }
 }

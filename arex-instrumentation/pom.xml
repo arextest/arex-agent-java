@@ -31,8 +31,9 @@
         <module>httpclient/arex-httpclient-apache-v4</module>
         <module>httpclient/arex-httpclient-webclient-v5</module>
         <module>netty/arex-netty-v4</module>
-        <module>jwt/arex-jwt</module>
         <module>dubbo/arex-dubbo</module>
+        <module>authentication/arex-jwt</module>
+        <module>authentication/arex-spring-security</module>
     </modules>
     <dependencies>
         <dependency>

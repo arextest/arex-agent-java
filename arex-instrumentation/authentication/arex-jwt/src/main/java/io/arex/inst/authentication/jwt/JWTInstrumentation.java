@@ -1,4 +1,4 @@
-package io.arex.inst.jwt;
+package io.arex.inst.authentication.jwt;
 
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.extension.MethodInstrumentation;
