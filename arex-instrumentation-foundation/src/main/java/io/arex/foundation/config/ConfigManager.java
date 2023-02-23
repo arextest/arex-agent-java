@@ -163,9 +163,9 @@ public class ConfigManager {
         configMap.put(TIME_MACHINE, String.valueOf(startTimeMachine()));
         configMap.put(DISABLE_REPLAY, String.valueOf(disableReplay()));
         configMap.put(DURING_WORK, Boolean.toString(nextWorkTime() <= 0));
-        Map<String, String> extendField = getExtendField();
-        if (extendField != null && !extendField.isEmpty()) {
-            configMap.putAll(extendField);
+        Map<String, String> extendFieldMap = getExtendField();
+        if (extendFieldMap != null && !extendFieldMap.isEmpty()) {
+            configMap.putAll(extendFieldMap);
         }
 
         ConfigBuilder.create(getServiceName())
