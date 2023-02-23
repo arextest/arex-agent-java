@@ -1,7 +1,5 @@
 package io.arex.foundation.serializer;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import io.arex.agent.bootstrap.util.StringUtil;
 import com.fasterxml.jackson.annotation.JsonIgnoreType;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -117,7 +115,6 @@ public final class JacksonSerializer implements StringSerializable {
     }
 
     private void configMapper() {
-        MAPPER.setSerializationInclusion(JsonInclude.Include.NON_NULL);
         MAPPER.configure(JsonGenerator.Feature.IGNORE_UNKNOWN, true);
         //MAPPER.configure(JsonReadFeature.ALLOW_UNQUOTED_FIELD_NAMES.mappedFeature(), true);
         MAPPER.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);

@@ -11,6 +11,7 @@ import io.arex.inst.runtime.context.RepeatedCollectManager;
 import io.arex.inst.runtime.model.DynamicClassEntity;
 import io.arex.inst.extension.MethodInstrumentation;
 import io.arex.inst.extension.TypeInstrumentation;
+import java.util.concurrent.Future;
 import net.bytebuddy.agent.builder.AgentBuilder.Transformer;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.asm.AsmVisitorWrapper;
@@ -107,7 +108,10 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
     @Override
     public List<String> adviceClassNames() {
         return asList("io.arex.inst.dynamic.DynamicClassExtractor",
-            "io.arex.inst.dynamic.ReplaceMethodHelper");
+                      "io.arex.inst.dynamic.ReplaceMethodHelper",
+                      "io.arex.inst.dynamic.listener.ResponseFutureCallback",
+                      "io.arex.inst.dynamic.listener.ResponseConsumer",
+                      "io.arex.inst.dynamic.listener.DirectExecutor");
     }
 
     public final static class MethodAdvice {
@@ -115,8 +119,13 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
         @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class)
         public static boolean onEnter(@Advice.Origin("#t") String className,
                                       @Advice.Origin("#m") String methodName,
+                                      @Advice.Origin("#r") String returnType,
                                       @Advice.AllArguments Object[] args,
-                                      @Advice.Local("mockResult") MockResult mockResult) {
+                                      @Advice.Local("mockResult") MockResult mockResult,
+                                      @Advice.Local("recordOriginalExtractor") DynamicClassExtractor recordOriginalExtractor) {
+            if (ContextManager.needRecordOrReplay()) {
+                recordOriginalExtractor = new DynamicClassExtractor(className, methodName, args, returnType);
+            }
             // record
             if (ContextManager.needRecord()) {
                 RepeatedCollectManager.enter();
@@ -125,8 +134,7 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
 
             // replay
             if (ContextManager.needReplay()) {
-                DynamicClassExtractor extractor = new DynamicClassExtractor(className, methodName, args);
-                mockResult = extractor.replay();
+                mockResult = recordOriginalExtractor.replay();
                 return mockResult != null && mockResult.notIgnoreMockResult();
             }
 
@@ -137,6 +145,7 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
         public static void onExit(@Advice.Origin("#t") String className, @Advice.Origin("#m") String methodName,
                                   @Advice.AllArguments Object[] args,
                                   @Advice.Local("mockResult") MockResult mockResult,
+                                  @Advice.Local("recordOriginalExtractor") DynamicClassExtractor recordOriginalExtractor,
                                   @Advice.Thrown(readOnly = false) Throwable throwable,
                                   @Advice.Return(readOnly = false, typing = Assigner.Typing.DYNAMIC) Object result) {
             // replay
@@ -152,8 +161,12 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
             // record
             if (ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate()) {
                 Object recordResult = throwable != null ? throwable : result;
-                DynamicClassExtractor extractor = new DynamicClassExtractor(className, methodName, args, recordResult);
-                extractor.record();
+                // future record in call back
+                if (result instanceof Future) {
+                    recordOriginalExtractor.setFutureResponse((Future) result);
+                    return;
+                }
+                recordOriginalExtractor.setResponse(recordResult);
             }
         }
     }
