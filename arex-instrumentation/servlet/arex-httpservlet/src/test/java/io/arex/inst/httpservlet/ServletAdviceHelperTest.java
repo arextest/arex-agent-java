@@ -1,6 +1,7 @@
 package io.arex.inst.httpservlet;
 
 import io.arex.agent.bootstrap.internal.Pair;
+import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.context.RecordLimiter;
 import io.arex.inst.runtime.listener.CaseEventDispatcher;
@@ -48,6 +49,8 @@ class ServletAdviceHelperTest {
         Mockito.mockStatic(CaseEventDispatcher.class);
         invocableHandlerMethod = Mockito.mock(InvocableHandlerMethod.class);
         Mockito.mockStatic(IgnoreUtils.class);
+        Mockito.mockStatic(Config.class);
+        Mockito.when(Config.get()).thenReturn(Mockito.mock(Config.class));
     }
 
     @AfterAll

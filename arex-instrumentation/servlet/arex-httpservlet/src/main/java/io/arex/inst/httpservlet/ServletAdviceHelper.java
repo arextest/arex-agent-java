@@ -3,8 +3,8 @@ package io.arex.inst.httpservlet;
 import io.arex.agent.bootstrap.internal.Pair;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.httpservlet.adapter.ServletAdapter;
+import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.ContextManager;
-import io.arex.inst.runtime.context.RecordLimiter;
 import io.arex.inst.runtime.listener.CaseEvent;
 import io.arex.inst.runtime.listener.CaseEventDispatcher;
 import io.arex.inst.runtime.listener.EventSource;
@@ -142,7 +142,7 @@ public class ServletAdviceHelper {
 
         // Replay scene
         if (StringUtil.isNotEmpty(caseId)) {
-            return false;
+            return Config.get().getBoolean("arex.disable.replay", false);
         }
 
         String forceRecord = adapter.getRequestHeader(httpServletRequest, ArexConstants.FORCE_RECORD);
@@ -173,6 +173,6 @@ public class ServletAdviceHelper {
             return true;
         }
 
-        return !RecordLimiter.acquire(requestURI);
+        return Config.get().invalidRecord(requestURI);
     }
 }

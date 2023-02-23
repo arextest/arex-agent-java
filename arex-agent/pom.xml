@@ -122,6 +122,11 @@
             <artifactId>arex-spring-security</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>arex-httpclient-webclient-v5</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <!--Agent instrumentation end-->
 
         <dependency>

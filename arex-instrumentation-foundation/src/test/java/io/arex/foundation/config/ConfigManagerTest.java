@@ -11,7 +11,9 @@ import org.junit.jupiter.params.provider.MethodSource;
 import java.io.File;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -36,11 +38,12 @@ class ConfigManagerTest {
     void initFromSystemPropertyTest() {
         System.setProperty("arex.service.name", "test-your-service");
         System.setProperty("arex.storage.service.host", "test-storage-service.host ");
-
+        System.setProperty("arex.disable.replay", "true");
         configManager.init();
 
         assertEquals("test-your-service", configManager.getServiceName());
         assertEquals("test-storage-service.host", configManager.getStorageServiceHost());
+        assertTrue(configManager.disableReplay());
     }
 
     @Test
@@ -87,30 +90,17 @@ class ConfigManagerTest {
         };
         Runnable mocker2 = () -> {
             configManager.setStorageServiceMode("");
-            configManager.setAllowDayOfWeeks(0);
         };
         Runnable mocker3 = () -> {
-            configManager.setAllowDayOfWeeks(127);
-            configManager.setAllowTimeOfDayFrom("00:00");
-            configManager.setAllowTimeOfDayTo("00:00");
-        };
-        Runnable mocker4 = () -> {
-            configManager.setAllowTimeOfDayFrom("00:01");
-            configManager.setAllowTimeOfDayTo("23:59");
             configManager.setTargetAddress("mock");
-        };
-        Runnable mocker5 = () -> {
-            configManager.setTargetAddress(null);
         };
 
         Predicate<Boolean> predicate1 = result -> !result;
         Predicate<Boolean> predicate2 = result -> result;
         return Stream.of(
                 arguments(mocker1, predicate1),
-                arguments(mocker2, predicate2),
-                arguments(mocker3, predicate2),
-                arguments(mocker4, predicate2),
-                arguments(mocker5, predicate1)
+                arguments(mocker2, predicate1),
+                arguments(mocker3, predicate2)
         );
     }
 
@@ -119,6 +109,9 @@ class ConfigManagerTest {
         ConfigService.ResponseBody serviceConfig = new ConfigService.ResponseBody();
         ConfigService.ServiceCollectConfig serviceCollect = new ConfigService.ServiceCollectConfig();
         serviceConfig.setServiceCollectConfiguration(serviceCollect);
+        Map<String, String> extendField = new HashMap<>();
+        extendField.put("key", "val");
+        serviceConfig.setExtendField(extendField);
         configManager.parseServiceConfig(serviceConfig);
         assertNull(serviceConfig.getDynamicClassConfigurationList());
     }

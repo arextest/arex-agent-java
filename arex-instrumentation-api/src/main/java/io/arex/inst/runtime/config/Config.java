@@ -1,5 +1,6 @@
 package io.arex.inst.runtime.config;
 
+import io.arex.inst.runtime.context.RecordLimiter;
 import io.arex.inst.runtime.model.DynamicClassEntity;
 
 import java.util.List;
@@ -11,8 +12,10 @@ public class Config {
     private static Config INSTANCE = null;
 
     static void update(boolean enableDebug, String serviceName, List<DynamicClassEntity> entities,
-                       Map<String, String> properties, Set<String> excludeServiceOperations, int dubboStreamReplayThreshold) {
-        INSTANCE = new Config(enableDebug, serviceName, entities, properties, excludeServiceOperations, dubboStreamReplayThreshold);
+                       Map<String, String> properties, Set<String> excludeServiceOperations,
+                       int dubboStreamReplayThreshold, int recordRate) {
+        INSTANCE = new Config(enableDebug, serviceName, entities, properties, excludeServiceOperations,
+                dubboStreamReplayThreshold, recordRate);
     }
 
     public static Config get() {
@@ -25,14 +28,16 @@ public class Config {
     private Map<String, String> properties;
     private Set<String> excludeServiceOperations;
     private final int dubboStreamReplayThreshold;
+    private int recordRate;
     Config(boolean enableDebug, String serviceName, List<DynamicClassEntity> entities, Map<String, String> properties,
-           Set<String> excludeServiceOperations, int dubboStreamReplayThreshold) {
+           Set<String> excludeServiceOperations, int dubboStreamReplayThreshold, int recordRate) {
         this.enableDebug = enableDebug;
         this.serviceName = serviceName;
         this.entities = entities;
         this.properties = properties;
         this.excludeServiceOperations = excludeServiceOperations;
         this.dubboStreamReplayThreshold = dubboStreamReplayThreshold;
+        this.recordRate = recordRate;
     }
 
     public boolean isEnableDebug() {
@@ -98,5 +103,29 @@ public class Config {
 
     public int getDubboStreamReplayThreshold() {
         return dubboStreamReplayThreshold;
+    }
+
+    public int getRecordRate() {
+        return recordRate;
+    }
+
+    /**
+     * Conditions for determining invalid recording configuration(debug mode don't judge):
+     * 1. rate <= 0 <br/>
+     * 2. not in working time <br/>
+     * 3. exceed rate limit <br/>
+     * @return true: invalid OR false: valid
+     */
+    public boolean invalidRecord(String path) {
+        if (isEnableDebug()) {
+            return false;
+        }
+        if (getRecordRate() <= 0) {
+            return true;
+        }
+        if (!getBoolean("arex.during.work", false)) {
+            return true;
+        }
+        return !RecordLimiter.acquire(path);
     }
 }

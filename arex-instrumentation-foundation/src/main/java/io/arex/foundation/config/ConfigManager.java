@@ -39,11 +39,6 @@ public class ConfigManager {
     private String configPath;
 
     private String storageServiceMode;
-    private String storageServiceJdbcUrl;
-    private String storageServiceUsername;
-    private String storageServicePassword;
-    private String storageServiceWebPort;
-    private String serverServiceTcpPort;
     private int recordRate;
     private int dynamicResultSizeLimit;
     private List<DynamicClassEntity> dynamicClassList;
@@ -58,7 +53,9 @@ public class ConfigManager {
     private Set<String> excludeServiceOperations;
     private String targetAddress;
     private int dubboStreamReplayThreshold;
+    private boolean disableReplay;
     private static List<ConfigListener> listeners = new ArrayList<ConfigListener>();
+    private Map<String, String> extendField;
 
     private ConfigManager() {
         init();
@@ -112,11 +109,7 @@ public class ConfigManager {
         if (StringUtil.isEmpty(recordRate)) {
             return;
         }
-        int rate = Integer.parseInt(recordRate);
-        if (rate <= 0) {
-            return;
-        }
-        this.recordRate = rate;
+        this.recordRate = Integer.parseInt(recordRate);
         System.setProperty(RECORD_RATE, recordRate);
     }
 
@@ -159,14 +152,21 @@ public class ConfigManager {
         setDisabledInstrumentationModules(System.getProperty(DISABLE_INSTRUMENTATION_MODULE));
         setExcludeServiceOperations(System.getProperty(EXCLUDE_SERVICE_OPERATION));
         setDubboStreamReplayThreshold(System.getProperty(DUBBO_STREAM_REPLAY_THRESHOLD, "100"));
+        setDisableReplay(System.getProperty(DISABLE_REPLAY));
 
-        TimerService.scheduleAtFixedRate(this::update, 300, 300, TimeUnit.SECONDS);
+        TimerService.scheduleAtFixedRate(this::update, 120, 120, TimeUnit.SECONDS);
     }
 
     private void updateInstrumentationConfig() {
         Map<String, String> configMap = new HashMap<>();
         configMap.put(DYNAMIC_RESULT_SIZE_LIMIT, String.valueOf(getDynamicResultSizeLimit()));
         configMap.put(TIME_MACHINE, String.valueOf(startTimeMachine()));
+        configMap.put(DISABLE_REPLAY, String.valueOf(disableReplay()));
+        configMap.put(DURING_WORK, Boolean.toString(nextWorkTime() <= 0));
+        Map<String, String> extendFieldMap = getExtendField();
+        if (extendFieldMap != null && !extendFieldMap.isEmpty()) {
+            configMap.putAll(extendFieldMap);
+        }
 
         ConfigBuilder.create(getServiceName())
                 .enableDebug(isEnableDebug())
@@ -174,6 +174,7 @@ public class ConfigManager {
                 .dynamicClassList(getDynamicClassList())
                 .excludeServiceOperations(getExcludeServiceOperations())
                 .dubboStreamReplayThreshold(getDubboStreamReplayThreshold())
+                .recordRate(getRecordRate())
                 .build();
     }
 
@@ -199,6 +200,7 @@ public class ConfigManager {
         setStorageServiceMode(configMap.get(STORAGE_SERVICE_MODE));
         setDisabledInstrumentationModules(configMap.get(DISABLE_INSTRUMENTATION_MODULE));
         setExcludeServiceOperations(configMap.get(EXCLUDE_SERVICE_OPERATION));
+        setDisableReplay(configMap.get(DISABLE_REPLAY));
     }
 
     private static Map<String, String> parseConfigFile(String configPath) {
@@ -224,48 +226,12 @@ public class ConfigManager {
         ConfigService.INSTANCE.loadAgentConfig(null);
     }
 
-    public String getStorageServiceMode() {
-        return storageServiceMode;
-    }
-
-    public String getStorageServiceJdbcUrl() {
-        return storageServiceJdbcUrl;
-    }
-
-    public String getStorageServiceUsername() {
-        return storageServiceUsername;
-    }
-
-    public String getStorageServicePassword() {
-        return storageServicePassword;
-    }
-
     public boolean isLocalStorage(){
         return STORAGE_MODE.equalsIgnoreCase(storageServiceMode);
     }
 
     public void setStorageServiceMode(String storageServiceMode) {
         this.storageServiceMode = storageServiceMode;
-    }
-
-    public void setStorageServiceJdbcUrl(String storageServiceJdbcUrl) {
-        this.storageServiceJdbcUrl = storageServiceJdbcUrl;
-    }
-
-    public void setStorageServiceUsername(String storageServiceUsername) {
-        this.storageServiceUsername = storageServiceUsername;
-    }
-
-    public void setStorageServicePassword(String storageServicePassword) {
-        this.storageServicePassword = storageServicePassword;
-    }
-
-    public String getStorageServiceWebPort() {
-        return storageServiceWebPort;
-    }
-
-    public String getServerServiceTcpPort() {
-        return serverServiceTcpPort;
     }
 
     public void parseAgentConfig(String args) {
@@ -308,7 +274,7 @@ public class ConfigManager {
 
     public void setAllowDayOfWeeks(int allowDayOfWeeks) {
         if (allowDayOfWeeks <= 0) {
-            this.allowDayOfWeeks = null;
+            this.allowDayOfWeeks = EnumSet.noneOf(DayOfWeek.class);
             return;
         }
         // binary 1111111
@@ -363,6 +329,7 @@ public class ConfigManager {
         setDynamicClassList(serviceConfig.getDynamicClassConfigurationList());
         setExcludeServiceOperations(config.getExcludeServiceOperationSet());
         setTargetAddress(serviceConfig.getTargetAddress());
+        setExtendField(serviceConfig.getExtendField());
 
         updateInstrumentationConfig();
     }
@@ -370,12 +337,6 @@ public class ConfigManager {
     public boolean invalid() {
         if (isLocalStorage()) {
             return false;
-        }
-        if (allowDayOfWeeks == null) {
-            return true;
-        }
-        if (nextWorkTime() > 0L) {
-            return true;
         }
         return !checkTargetAddress();
     }
@@ -455,6 +416,27 @@ public class ConfigManager {
         return dubboStreamReplayThreshold;
     }
 
+    public void setDisableReplay(String disableReplay) {
+        if (StringUtil.isEmpty(disableReplay)) {
+            return;
+        }
+
+        this.disableReplay = Boolean.parseBoolean(disableReplay);
+        System.setProperty(DISABLE_REPLAY, disableReplay);
+    }
+
+    public boolean disableReplay() {
+        return disableReplay;
+    }
+
+    public Map<String, String> getExtendField() {
+        return extendField;
+    }
+
+    public void setExtendField(Map<String, String> extendField) {
+        this.extendField = extendField;
+    }
+
     @Override
     public String toString() {
         return "ConfigManager{" +
@@ -464,11 +446,6 @@ public class ConfigManager {
                 ", storageServiceHost='" + storageServiceHost + '\'' +
                 ", configPath='" + configPath + '\'' +
                 ", storageServiceMode='" + storageServiceMode + '\'' +
-                ", storageServiceJdbcUrl='" + storageServiceJdbcUrl + '\'' +
-                ", storageServiceUsername='" + storageServiceUsername + '\'' +
-                ", storageServicePassword='" + storageServicePassword + '\'' +
-                ", storageServiceWebPort='" + storageServiceWebPort + '\'' +
-                ", serverServiceTcpPort='" + serverServiceTcpPort + '\'' +
                 ", recordRate='" + recordRate + '\'' +
                 ", startTimeMachine='" + startTimeMachine + '\'' +
                 ", allowDayOfWeeks='" + allowDayOfWeeks + '\'' +

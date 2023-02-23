@@ -2,8 +2,8 @@ package io.arex.inst.dubbo;
 
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.ContextManager;
-import io.arex.inst.runtime.context.RecordLimiter;
 import io.arex.inst.runtime.listener.CaseEvent;
 import io.arex.inst.runtime.listener.CaseEventDispatcher;
 import io.arex.inst.runtime.listener.EventSource;
@@ -41,7 +41,7 @@ public class DubboProviderExtractor {
         }
         // Replay scene
         if (StringUtil.isNotEmpty(adapter.getCaseId())) {
-            return false;
+            return Config.get().getBoolean("arex.disable.replay", false);
         }
         // Do not skip if header with arex-force-record=true
         if (adapter.forceRecord()) {
@@ -54,9 +54,7 @@ public class DubboProviderExtractor {
         if (IgnoreUtils.ignoreOperation(adapter.getOperationName())) {
             return true;
         }
-        // record switch todo
-        // Record rate limit
-        return !RecordLimiter.acquire(adapter.getServiceOperation());
+        return Config.get().invalidRecord(adapter.getServiceOperation());
     }
     public static void onServiceExit(Invoker<?> invoker, Invocation invocation, Result result) {
         if (!ContextManager.needRecordOrReplay()) {
