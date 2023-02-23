@@ -34,6 +34,7 @@
         <module>dubbo/arex-dubbo</module>
         <module>authentication/arex-jwt</module>
         <module>authentication/arex-spring-security</module>
+        <module>authentication/arex-shiro</module>
     </modules>
     <dependencies>
         <dependency>
