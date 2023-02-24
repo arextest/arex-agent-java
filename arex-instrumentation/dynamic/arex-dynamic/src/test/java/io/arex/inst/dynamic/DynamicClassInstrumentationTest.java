@@ -19,6 +19,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import net.bytebuddy.ByteBuddy;
@@ -130,34 +133,62 @@ class DynamicClassInstrumentationTest {
 
     @Test
     void onEnter() {
-        Mockito.when(ContextManager.needRecord()).thenReturn(false);
-        Mockito.when(ContextManager.needReplay()).thenReturn(false);
-        assertFalse(DynamicClassInstrumentation.MethodAdvice.onEnter(null, null, null, null));
-
-        Mockito.when(ContextManager.needRecord()).thenReturn(true);
-        assertFalse(DynamicClassInstrumentation.MethodAdvice.onEnter(null, null, null, null));
-
+        AtomicReference<DynamicClassExtractor> atomicReference = new AtomicReference<>();
         Mockito.when(ContextManager.needRecord()).thenReturn(false);
         Mockito.when(ContextManager.needReplay()).thenReturn(true);
+//        Mockito.when(ContextManager.needRecord()).thenReturn(false);
+
         try (MockedConstruction<DynamicClassExtractor> mocked = Mockito.mockConstruction(DynamicClassExtractor.class, (mock, context) -> {
             System.out.println("mock DynamicClassExtractor");
+            atomicReference.set(mock);
             Mockito.when(mock.replay()).thenReturn(MockResult.success(false, null));
         })) {
-            assertTrue(DynamicClassInstrumentation.MethodAdvice.onEnter(null, null, null, null));
+            assertTrue(DynamicClassInstrumentation.MethodAdvice.onEnter( null, null, null, null,null, new DynamicClassExtractor(null, null, null, null)));
         }
+
+
+        Mockito.when(ContextManager.needRecord()).thenReturn(false);
+        Mockito.when(ContextManager.needReplay()).thenReturn(false);
+        assertFalse(DynamicClassInstrumentation.MethodAdvice.onEnter(null, null, null, null, null, atomicReference.get()));
+
+        Mockito.when(ContextManager.needRecord()).thenReturn(true);
+        assertFalse(DynamicClassInstrumentation.MethodAdvice.onEnter(null, null, null, null, null, null));
     }
 
     @ParameterizedTest
     @MethodSource("onExitCase")
     void onExit(Runnable mocker, MockResult mockResult, Predicate<MockResult> predicate) {
         mocker.run();
+        AtomicReference<DynamicClassExtractor> atomicReference = new AtomicReference<>();
         try (MockedConstruction<DynamicClassExtractor> mocked = Mockito.mockConstruction(DynamicClassExtractor.class, (mock, context) -> {
             System.out.println("mock DynamicClassExtractor");
+            atomicReference.set(mock);
             Mockito.doNothing().when(mock).record();
         })) {
             DynamicClassInstrumentation.MethodAdvice.onExit(
-                "java.lang.System", "getenv", new Object[]{"java.lang.String"}, mockResult, null, null);
+                "java.lang.System", "getenv", new Object[]{"java.lang.String"}, mockResult, new DynamicClassExtractor(null, null, null, null), null, null);
             assertTrue(predicate.test(mockResult));
+        }
+    }
+    @Test
+    void onExitSetResponse() {
+        Mockito.when(ContextManager.needRecord()).thenReturn(true);
+        Mockito.when(RepeatedCollectManager.exitAndValidate()).thenReturn(true);
+        AtomicReference<DynamicClassExtractor> atomicReference = new AtomicReference<>();
+        Object mockResult = "nomalResult";
+        Future futureResult = Executors.newFixedThreadPool(2).submit(() -> System.out.println("yes"));
+        try (MockedConstruction<DynamicClassExtractor> mocked = Mockito.mockConstruction(DynamicClassExtractor.class, (mock, context) -> {
+            System.out.println("mock DynamicClassExtractor");
+            atomicReference.set(mock);
+            Mockito.doNothing().when(mock).record();
+        })) {
+            DynamicClassInstrumentation.MethodAdvice.onExit(
+                    "java.lang.System", "getenv", new Object[]{"java.lang.String"}, null, new DynamicClassExtractor(null, null, null, null), null, mockResult);
+            Mockito.verify(atomicReference.get()).setResponse(mockResult);
+
+            DynamicClassInstrumentation.MethodAdvice.onExit(
+                    "java.lang.System", "getenv", new Object[]{"java.lang.String"}, null, new DynamicClassExtractor(null, null, null, null), null, futureResult);
+            Mockito.verify(atomicReference.get()).setFutureResponse(futureResult);
         }
     }
 
