@@ -60,7 +60,7 @@ class ServletExtractorTest {
 
         Runnable verify1 = () -> {
             try {
-                Mockito.verify(adapter).copyBodyToResponse(response);
+                Mockito.verify(adapter, Mockito.atLeastOnce()).copyBodyToResponse(response);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -70,8 +70,6 @@ class ServletExtractorTest {
             Mockito.when(adapter.getResponseHeader(response, ArexConstants.REPLAY_ID)).thenReturn(null);
             Mockito.when(ContextManager.needRecordOrReplay()).thenReturn(false);
         };
-
-        Runnable verify2 = () -> {};
 
         Runnable mock3 = () -> {
             Mockito.when(adapter.getResponseHeader(response, ArexConstants.REPLAY_ID)).thenReturn(null);
@@ -89,7 +87,7 @@ class ServletExtractorTest {
             Mockito.when(ContextManager.needRecord()).thenReturn(true);
             Mockito.when(ContextManager.currentContext()).thenReturn(ArexContext.of("mock-trace-id"));
         };
-        Runnable verify3 = () -> {
+        Runnable verify2 = () -> {
             Mockito.verify(adapter).setResponseHeader(response, ArexConstants.RECORD_ID, "mock-trace-id");
         };
 
@@ -98,7 +96,7 @@ class ServletExtractorTest {
             Mockito.when(ContextManager.needReplay()).thenReturn(true);
         };
 
-        Runnable verify4 = () -> {
+        Runnable verify3 = () -> {
             Mockito.verify(adapter).setResponseHeader(response, ArexConstants.REPLAY_ID, null);
         };
 
@@ -107,16 +105,16 @@ class ServletExtractorTest {
             Mockito.when(adapter.getAttribute(request, ServletAdviceHelper.SERVLET_RESPONSE)).thenReturn(null);
         };
 
-        Runnable verify5 = () -> {
+        Runnable verify4 = () -> {
             Mockito.verify(adapter).getResponseBytes(response);
         };
 
         return Stream.of(
             arguments("response header contains arex trace", mock1, verify1),
-            arguments("no need record or replay", mock2, verify2),
-            arguments("record execute", mock3, verify3),
-            arguments("replay execute", mock4, verify4),
-            arguments("get method", mock5, verify5)
+            arguments("no need record or replay", mock2, verify1),
+            arguments("record execute", mock3, verify2),
+            arguments("replay execute", mock4, verify3),
+            arguments("get method", mock5, verify4)
         );
     }
 }
