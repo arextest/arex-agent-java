@@ -11,7 +11,9 @@ import io.arex.inst.runtime.listener.EventSource;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.util.IgnoreUtils;
 import io.arex.inst.runtime.util.LogUtil;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
@@ -30,6 +32,7 @@ public class ServletAdviceHelper {
     private static final Set<String> FILTERED_CONTENT_TYPE = new HashSet<>();
     private static final Set<String> FILTERED_GET_URL_SUFFIX = new HashSet<>();
     private static final String HTTP_METHOD_GET = "GET";
+    private static final List<Integer> RESPONSE_STATUS_LIST = new ArrayList<>();
 
     static {
         FILTERED_CONTENT_TYPE.add("/javascript");
@@ -45,6 +48,9 @@ public class ServletAdviceHelper {
         FILTERED_GET_URL_SUFFIX.add(".pdf");
         FILTERED_GET_URL_SUFFIX.add(".map");
         FILTERED_GET_URL_SUFFIX.add(".ico");
+
+        RESPONSE_STATUS_LIST.add(200);
+        RESPONSE_STATUS_LIST.add(302);
     }
 
     public static <TRequest, TResponse> Pair<TRequest, TResponse> onServiceEnter(
@@ -82,8 +88,15 @@ public class ServletAdviceHelper {
                 return;
             }
 
+            // Do not record if arex trace was removed
+            if (!ContextManager.needRecordOrReplay()) {
+                adapter.copyBodyToResponse(httpServletResponse);
+                return;
+            }
+
+            // Do not record if response status is not OK or REDIRECTION
             int statusCode = adapter.getStatus(httpServletResponse);
-            if (200 != statusCode && 302 != statusCode) {
+            if (!RESPONSE_STATUS_LIST.contains(statusCode)) {
                 adapter.copyBodyToResponse(httpServletResponse);
                 return;
             }
