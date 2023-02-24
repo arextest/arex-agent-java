@@ -43,12 +43,12 @@ public class JedisFactoryInstrumentation extends TypeInstrumentation {
     @SuppressWarnings("unused")
     public static class MakeObjectAdvice {
 
-        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class)
+        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class, suppress = Throwable.class)
         public static boolean onEnter() {
             return true;
         }
 
-        @Advice.OnMethodExit
+        @Advice.OnMethodExit(suppress = Throwable.class)
         public static void  onExit(@Advice.FieldValue("jedisSocketFactory") JedisSocketFactory factory,
                                    @Advice.FieldValue("clientConfig") JedisClientConfig clientConfig,
                                    @Advice.Return(readOnly = false) PooledObject<Jedis> result) throws Exception {

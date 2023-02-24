@@ -35,12 +35,12 @@ public class JWTInstrumentation extends TypeInstrumentation {
     }
 
     public static class MethodAdvice {
-        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class)
+        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class, suppress = Throwable.class)
         public static boolean onEnter() {
             return ContextManager.needReplay();
         }
 
-        @Advice.OnMethodExit
+        @Advice.OnMethodExit(suppress = Throwable.class)
         public static void onExit(@Advice.Argument(0) Object jwt, @Advice.Return(readOnly = false, typing = Assigner.Typing.DYNAMIC) Object result) {
             if (ContextManager.needReplay()) {
                 result = jwt;

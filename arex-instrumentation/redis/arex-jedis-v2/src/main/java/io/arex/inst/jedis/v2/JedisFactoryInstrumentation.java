@@ -47,13 +47,13 @@ public class JedisFactoryInstrumentation extends TypeInstrumentation {
     @SuppressWarnings("unused")
     public static class MakeObjectAdvice {
 
-        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class)
+        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class, suppress = Throwable.class)
         public static boolean onEnter() {
             return true;
         }
 
         // todo: change instrumentation: JedisFactory -> DefaultPoolObject
-        @Advice.OnMethodExit
+        @Advice.OnMethodExit(suppress = Throwable.class)
         public static void  onExit(@Advice.FieldValue("hostAndPort") AtomicReference<HostAndPort> hostAndPort,
                                    @Advice.FieldValue("connectionTimeout") Integer connectionTimeout,
                                    @Advice.FieldValue("soTimeout") Integer soTimeout,

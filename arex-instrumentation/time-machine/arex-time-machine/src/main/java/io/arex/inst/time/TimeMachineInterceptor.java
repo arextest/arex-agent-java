@@ -5,12 +5,12 @@ import net.bytebuddy.asm.Advice;
 
 public class TimeMachineInterceptor {
 
-    @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class)
+    @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class, suppress = Throwable.class)
     public static long onEnter() {
         return TimeCache.get();
     }
 
-    @Advice.OnMethodExit
+    @Advice.OnMethodExit(suppress = Throwable.class)
     public static void onExit(@Advice.Enter long replay, @Advice.Return(readOnly = false) long result) {
         if (replay > 0) {
             result = replay;

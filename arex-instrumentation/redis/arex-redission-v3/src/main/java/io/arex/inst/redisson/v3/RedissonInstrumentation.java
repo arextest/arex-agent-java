@@ -79,12 +79,12 @@ public class RedissonInstrumentation extends TypeInstrumentation {
             return new MethodInstrumentation(matcher, advice);
         }
 
-        @Advice.OnMethodEnter(skipOn = Advice.OnDefaultValue.class)
+        @Advice.OnMethodEnter(skipOn = Advice.OnDefaultValue.class, suppress = Throwable.class)
         public static boolean onEnter() {
             return false;
         }
 
-        @Advice.OnMethodExit
+        @Advice.OnMethodExit(suppress = Throwable.class)
         public static <V> void onExit(@Advice.Argument(0) String name,
             @Advice.FieldValue("commandExecutor") CommandAsyncExecutor commandExecutor,
             @Advice.Return(readOnly = false) RBucket<V> redissonBucket) {
@@ -103,12 +103,12 @@ public class RedissonInstrumentation extends TypeInstrumentation {
             return new MethodInstrumentation(matcher, advice);
         }
 
-        @Advice.OnMethodEnter(skipOn = Advice.OnDefaultValue.class)
+        @Advice.OnMethodEnter(skipOn = Advice.OnDefaultValue.class, suppress = Throwable.class)
         public static boolean onEnter() {
             return false;
         }
 
-        @Advice.OnMethodExit
+        @Advice.OnMethodExit(suppress = Throwable.class)
         public static <V> void onExit(@Advice.Argument(0) String name, @Advice.Argument(1) Codec codec,
             @Advice.FieldValue("commandExecutor") CommandAsyncExecutor commandExecutor,
             @Advice.Return(readOnly = false) RBucket<V> redissonBucket) {
@@ -126,12 +126,12 @@ public class RedissonInstrumentation extends TypeInstrumentation {
             return new MethodInstrumentation(matcher, advice);
         }
 
-        @Advice.OnMethodEnter(skipOn = Advice.OnDefaultValue.class)
+        @Advice.OnMethodEnter(skipOn = Advice.OnDefaultValue.class, suppress = Throwable.class)
         public static boolean onEnter() {
             return false;
         }
 
-        @Advice.OnMethodExit
+        @Advice.OnMethodExit(suppress = Throwable.class)
         public static <V> void onExit(@Advice.FieldValue("commandExecutor") CommandAsyncExecutor commandExecutor,
             @Advice.Return(readOnly = false) RBuckets redissonBuckets) {
             redissonBuckets = new RedissonBucketsWrapper(commandExecutor);
@@ -148,12 +148,12 @@ public class RedissonInstrumentation extends TypeInstrumentation {
             return new MethodInstrumentation(matcher, advice);
         }
 
-        @Advice.OnMethodEnter(skipOn = Advice.OnDefaultValue.class)
+        @Advice.OnMethodEnter(skipOn = Advice.OnDefaultValue.class, suppress = Throwable.class)
         public static boolean onEnter() {
             return false;
         }
 
-        @Advice.OnMethodExit
+        @Advice.OnMethodExit(suppress = Throwable.class)
         public static <V> void onExit(@Advice.Argument(0) Codec codec,
             @Advice.FieldValue("commandExecutor") CommandAsyncExecutor commandExecutor,
             @Advice.Return(readOnly = false) RBuckets redissonBuckets) {
@@ -171,12 +171,12 @@ public class RedissonInstrumentation extends TypeInstrumentation {
             return new MethodInstrumentation(matcher, advice);
         }
 
-        @Advice.OnMethodEnter(skipOn = Advice.OnDefaultValue.class)
+        @Advice.OnMethodEnter(skipOn = Advice.OnDefaultValue.class, suppress = Throwable.class)
         public static boolean onEnter() {
             return false;
         }
 
-        @Advice.OnMethodExit
+        @Advice.OnMethodExit(suppress = Throwable.class)
         public static <V> void onExit(@Advice.FieldValue("commandExecutor") CommandAsyncExecutor commandExecutor,
             @Advice.Return(readOnly = false) RKeys redissonKeys) {
             redissonKeys = new RedissonKeysWrapper(commandExecutor);
@@ -193,12 +193,12 @@ public class RedissonInstrumentation extends TypeInstrumentation {
             return new MethodInstrumentation(matcher, advice);
         }
 
-        @Advice.OnMethodEnter(skipOn = Advice.OnDefaultValue.class)
+        @Advice.OnMethodEnter(skipOn = Advice.OnDefaultValue.class, suppress = Throwable.class)
         public static boolean onEnter() {
             return false;
         }
 
-        @Advice.OnMethodExit
+        @Advice.OnMethodExit(suppress = Throwable.class)
         public static <V> void onExit(@Advice.Argument(0) String name, @Advice.This RedissonClient redisson,
             @Advice.FieldValue("commandExecutor") CommandAsyncExecutor commandExecutor,
             @Advice.Return(readOnly = false) RList<V> redissonList) {
@@ -217,12 +217,12 @@ public class RedissonInstrumentation extends TypeInstrumentation {
             return new MethodInstrumentation(matcher, advice);
         }
 
-        @Advice.OnMethodEnter(skipOn = Advice.OnDefaultValue.class)
+        @Advice.OnMethodEnter(skipOn = Advice.OnDefaultValue.class, suppress = Throwable.class)
         public static boolean onEnter() {
             return false;
         }
 
-        @Advice.OnMethodExit
+        @Advice.OnMethodExit(suppress = Throwable.class)
         public static <V> void onExit(@Advice.Argument(0) String name, @Advice.Argument(1) Codec codec,
             @Advice.This RedissonClient redisson, @Advice.FieldValue("commandExecutor") CommandAsyncExecutor commandExecutor,
             @Advice.Return(readOnly = false) RList<V> redissonList) {
@@ -240,12 +240,12 @@ public class RedissonInstrumentation extends TypeInstrumentation {
             return new MethodInstrumentation(matcher, advice);
         }
 
-        @Advice.OnMethodEnter(skipOn = Advice.OnDefaultValue.class)
+        @Advice.OnMethodEnter(skipOn = Advice.OnDefaultValue.class, suppress = Throwable.class)
         public static boolean onEnter() {
             return false;
         }
 
-        @Advice.OnMethodExit
+        @Advice.OnMethodExit(suppress = Throwable.class)
         public static <V> void onExit(@Advice.Argument(0) String name, @Advice.This RedissonClient redisson,
             @Advice.FieldValue("commandExecutor") CommandAsyncExecutor commandExecutor,
             @Advice.Return(readOnly = false) RSet<V> redissonSet) {
@@ -264,7 +264,7 @@ public class RedissonInstrumentation extends TypeInstrumentation {
             return new MethodInstrumentation(matcher, advice);
         }
 
-        @Advice.OnMethodEnter(skipOn = Advice.OnDefaultValue.class)
+        @Advice.OnMethodEnter(skipOn = Advice.OnDefaultValue.class, suppress = Throwable.class)
         public static boolean onEnter() {
             return false;
         }

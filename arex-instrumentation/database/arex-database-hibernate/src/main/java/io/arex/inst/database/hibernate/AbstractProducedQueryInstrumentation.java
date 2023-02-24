@@ -46,7 +46,7 @@ public class AbstractProducedQueryInstrumentation extends TypeInstrumentation {
     }
 
     private static class UniqueElementAdvice {
-        @Advice.OnMethodEnter()
+        @Advice.OnMethodEnter(suppress = Throwable.class)
         public static void onEnter(@Advice.Argument(0) List list) {
             if (!ContextManager.needReplay()) {
                 return;

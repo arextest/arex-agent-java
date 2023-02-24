@@ -53,7 +53,7 @@ public class OkHttpCallInstrumentation extends TypeInstrumentation {
     }
 
     public static final class ExecuteAdvice {
-        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class)
+        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class, suppress = Throwable.class)
         public static boolean onEnter(
                 @Advice.This Call call,
                 @Advice.Local("wrapped") HttpClientExtractor<Request, Response> extractor,
@@ -69,7 +69,7 @@ public class OkHttpCallInstrumentation extends TypeInstrumentation {
             return mockResult != null && mockResult.notIgnoreMockResult();
         }
 
-        @Advice.OnMethodExit(onThrowable = IOException.class)
+        @Advice.OnMethodExit(onThrowable = IOException.class, suppress = Throwable.class)
         public static void onExit(
                 @Advice.Local("wrapped") HttpClientExtractor<Request, Response> extractor,
                 @Advice.Thrown(readOnly = false) Exception throwable,
@@ -98,7 +98,7 @@ public class OkHttpCallInstrumentation extends TypeInstrumentation {
     }
 
     public static final class EnqueueAdvice {
-        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class)
+        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class, suppress = Throwable.class)
         public static boolean onEnter(@Advice.This Call call,
             @Advice.Argument(value = 0, readOnly = false) Callback callback,
             @Advice.Local("mockResult") MockResult mockResult) {
@@ -113,7 +113,7 @@ public class OkHttpCallInstrumentation extends TypeInstrumentation {
             return false;
         }
 
-        @Advice.OnMethodExit
+        @Advice.OnMethodExit(suppress = Throwable.class)
         public static void onExit(@Advice.Argument(value = 0) Callback callback,
             @Advice.Local("mockResult") MockResult mockResult) {
             if (callback instanceof OkHttpCallbackWrapper &&

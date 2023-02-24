@@ -54,7 +54,7 @@ public class ExecutorInstrumentation extends TypeInstrumentation {
     @SuppressWarnings("unused")
     public static class QueryAdvice {
 
-        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class)
+        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class, suppress = Throwable.class)
         public static boolean onMethodEnter(@Advice.Argument(0) MappedStatement var1,
                                             @Advice.Argument(1) Object var2,
                                             @Advice.Argument(5) BoundSql boundSql,
@@ -66,7 +66,7 @@ public class ExecutorInstrumentation extends TypeInstrumentation {
             return mockResult != null && mockResult.notIgnoreMockResult();
         }
 
-        @Advice.OnMethodExit(onThrowable = Throwable.class)
+        @Advice.OnMethodExit(onThrowable = Throwable.class, suppress = Throwable.class)
         public static void onExit(@Advice.Argument(0) MappedStatement var1,
                                   @Advice.Argument(1) Object var2,
                                   @Advice.Argument(5) BoundSql boundSql,
@@ -95,7 +95,7 @@ public class ExecutorInstrumentation extends TypeInstrumentation {
     @SuppressWarnings("unused")
     public static class UpdateAdvice {
 
-        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class)
+        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class, suppress = Throwable.class)
         public static boolean onMethodEnter(@Advice.Argument(0) MappedStatement var1,
                                             @Advice.Argument(1) Object var2,
                                             @Advice.Local("extractor") DatabaseExtractor extractor,
@@ -114,7 +114,7 @@ public class ExecutorInstrumentation extends TypeInstrumentation {
             return mockResult != null && mockResult.notIgnoreMockResult();
         }
 
-        @Advice.OnMethodExit(onThrowable = Throwable.class)
+        @Advice.OnMethodExit(onThrowable = Throwable.class, suppress = Throwable.class)
         public static void onExit(@Advice.Argument(0) MappedStatement var1,
                                   @Advice.Argument(1) Object var2,
                                   @Advice.Thrown(readOnly = false) Throwable throwable,

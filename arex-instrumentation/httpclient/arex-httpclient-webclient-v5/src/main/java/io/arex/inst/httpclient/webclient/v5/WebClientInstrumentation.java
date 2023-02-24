@@ -58,7 +58,7 @@ public class WebClientInstrumentation extends TypeInstrumentation {
     public static final class ExchangeAdvice {
         private ExchangeAdvice() {}
 
-        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class)
+        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class, suppress = Throwable.class)
         public static boolean onEnter(@Advice.Argument(0) ClientRequest clientRequest,
                                       @Advice.FieldValue("strategies") ExchangeStrategies strategies,
                                       @Advice.Local("wrapper") WebClientWrapper wrapper,
@@ -73,7 +73,7 @@ public class WebClientInstrumentation extends TypeInstrumentation {
             return mockResult != null && mockResult.notIgnoreMockResult();
         }
 
-        @Advice.OnMethodExit
+        @Advice.OnMethodExit(suppress = Throwable.class)
         public static void onExit(
                 @Advice.Local("wrapper") WebClientWrapper wrapper,
                 @Advice.Local("mockResult") MockResult mockResult,

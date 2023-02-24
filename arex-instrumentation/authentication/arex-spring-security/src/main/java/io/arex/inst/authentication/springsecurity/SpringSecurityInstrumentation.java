@@ -37,7 +37,7 @@ public class SpringSecurityInstrumentation extends TypeInstrumentation {
     }
 
     public static class PreAuthorizationAdvice {
-        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class)
+        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class, suppress = Throwable.class)
         public static boolean onEnter(@Advice.Argument(0) Object object) {
             if (object instanceof FilterInvocation) {
                 FilterInvocation invocation = (FilterInvocation)object;
@@ -53,7 +53,7 @@ public class SpringSecurityInstrumentation extends TypeInstrumentation {
     }
 
     public static class PostAuthorizationAdvice {
-        @Advice.OnMethodExit(onThrowable = AccessDeniedException.class)
+        @Advice.OnMethodExit(onThrowable = AccessDeniedException.class, suppress = Throwable.class)
         public static void onExit(@Advice.Argument(1) Object returnedObject,
                                   @Advice.Thrown(readOnly = false) AccessDeniedException exception,
                                   @Advice.Return(readOnly = false) Object result) {

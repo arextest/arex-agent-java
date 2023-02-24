@@ -48,7 +48,7 @@ public class LoaderInstrumentation extends TypeInstrumentation {
 
     @SuppressWarnings("unused")
     public static class QueryAdvice {
-        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class)
+        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class, suppress = Throwable.class)
         public static boolean onEnter(@Advice.This Loader loader,
                                       @Advice.Argument(1) QueryParameters queryParameters,
                                       @Advice.Local("mockResult") MockResult mockResult,
@@ -64,7 +64,7 @@ public class LoaderInstrumentation extends TypeInstrumentation {
             return mockResult != null && mockResult.notIgnoreMockResult();
         }
 
-        @Advice.OnMethodExit(onThrowable = Throwable.class)
+        @Advice.OnMethodExit(onThrowable = Throwable.class, suppress = Throwable.class)
         public static void onExit(@Advice.This Loader loader,
                                   @Advice.Argument(1) QueryParameters queryParameters,
                                   @Advice.Thrown(readOnly = false) Throwable throwable,

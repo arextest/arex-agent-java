@@ -61,7 +61,7 @@ public class ServletInstrumentationV5 extends TypeInstrumentation {
 
     public static class ServiceAdvice {
 
-        @Advice.OnMethodEnter
+        @Advice.OnMethodEnter(suppress = Throwable.class)
         public static void onEnter(@Advice.Argument(value = 0, readOnly = false) HttpServletRequest request,
             @Advice.Argument(value = 1, readOnly = false) HttpServletResponse response) {
             Pair<HttpServletRequest, HttpServletResponse> pair =
@@ -80,7 +80,7 @@ public class ServletInstrumentationV5 extends TypeInstrumentation {
             }
         }
 
-        @Advice.OnMethodExit
+        @Advice.OnMethodExit(suppress = Throwable.class)
         public static void onExit(@Advice.Argument(value = 0, readOnly = false) HttpServletRequest request,
             @Advice.Argument(value = 1, readOnly = false) HttpServletResponse response) {
             ServletAdviceHelper.onServiceExit(ServletAdapterImplV5.getInstance(), request, response);

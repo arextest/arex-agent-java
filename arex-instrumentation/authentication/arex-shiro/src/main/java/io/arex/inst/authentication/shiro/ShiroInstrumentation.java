@@ -35,7 +35,7 @@ public class ShiroInstrumentation extends TypeInstrumentation {
     }
 
     public static class PreHandleAdvice {
-        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class)
+        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class, suppress = Throwable.class)
         public static boolean onEnter(@Advice.Argument(0) ServletRequest request) {
             boolean isReplay = false;
             if (request instanceof ShiroHttpServletRequest) {
@@ -48,7 +48,7 @@ public class ShiroInstrumentation extends TypeInstrumentation {
             return isReplay || ContextManager.needReplay();
         }
 
-        @Advice.OnMethodExit()
+        @Advice.OnMethodExit(suppress = Throwable.class)
         public static void onExit(@Advice.Enter boolean needReplay,
                                   @Advice.Return(readOnly = false) boolean result) {
             if (needReplay) {

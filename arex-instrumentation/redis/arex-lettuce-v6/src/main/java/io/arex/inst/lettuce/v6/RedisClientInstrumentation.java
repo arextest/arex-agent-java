@@ -46,7 +46,7 @@ public class RedisClientInstrumentation extends TypeInstrumentation {
     }
 
     public static class NewStatefulRedisConnectionAdvice {
-        @Advice.OnMethodExit
+        @Advice.OnMethodExit(suppress = Throwable.class)
         public static <K, V> void onExit(
             @Advice.Return(readOnly = false) StatefulRedisConnectionImpl<K, V> connection,
             @Advice.FieldValue("redisURI") RedisURI redisURI) {

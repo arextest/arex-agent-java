@@ -72,7 +72,7 @@ public class AbstractEntityPersisterInstrumentation extends TypeInstrumentation 
     @SuppressWarnings("unused")
     public static class InsertAdvice {
 
-        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class)
+        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class, suppress = Throwable.class)
         public static boolean onEnter(@Advice.Argument(2) String sql,
                                       @Advice.Argument(3) Object object,
                                       @Advice.Local("mockResult") MockResult mockResult,
@@ -87,7 +87,7 @@ public class AbstractEntityPersisterInstrumentation extends TypeInstrumentation 
             return mockResult != null && mockResult.notIgnoreMockResult();
         }
 
-        @Advice.OnMethodExit(onThrowable = Throwable.class)
+        @Advice.OnMethodExit(onThrowable = Throwable.class, suppress = Throwable.class)
         public static void onExit(
                 @Advice.Return(readOnly = false) Serializable serializable,
                 @Advice.Thrown(readOnly = false) Throwable throwable,
@@ -120,7 +120,7 @@ public class AbstractEntityPersisterInstrumentation extends TypeInstrumentation 
 
     @SuppressWarnings("unused")
     public static class UpdateOrInsertAdvice {
-        @Advice.OnMethodEnter(skipOn = Advice.OnDefaultValue.class)
+        @Advice.OnMethodEnter(skipOn = Advice.OnDefaultValue.class, suppress = Throwable.class)
         public static int onEnter(
                 @Advice.Argument(7) Object object,
                 @Advice.Argument(8) String sql,
@@ -137,7 +137,7 @@ public class AbstractEntityPersisterInstrumentation extends TypeInstrumentation 
             return 1;
         }
 
-        @Advice.OnMethodExit(onThrowable = Throwable.class)
+        @Advice.OnMethodExit(onThrowable = Throwable.class, suppress = Throwable.class)
         public static void onExit(
                 @Advice.Argument(7) Object object,
                 @Advice.Argument(8) String sql,
@@ -166,7 +166,7 @@ public class AbstractEntityPersisterInstrumentation extends TypeInstrumentation 
 
     @SuppressWarnings("unused")
     public static class DeleteAdvice {
-        @Advice.OnMethodEnter(skipOn = Advice.OnDefaultValue.class)
+        @Advice.OnMethodEnter(skipOn = Advice.OnDefaultValue.class, suppress = Throwable.class)
         public static int onEnter(
                 @Advice.Argument(3) Object object,
                 @Advice.Argument(4) String sql,
@@ -182,7 +182,7 @@ public class AbstractEntityPersisterInstrumentation extends TypeInstrumentation 
             return 1;
         }
 
-        @Advice.OnMethodExit(onThrowable = Throwable.class)
+        @Advice.OnMethodExit(onThrowable = Throwable.class, suppress = Throwable.class)
         public static void onExit(
                 @Advice.Argument(3) Object object,
                 @Advice.Argument(4) String sql,

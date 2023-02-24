@@ -74,12 +74,12 @@ public class DateTimeInstrumentation extends TypeInstrumentation {
             return new MethodInstrumentation(matcher, advice);
         }
 
-        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class)
+        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class, suppress = Throwable.class)
         public static long onEnter() {
             return TimeCache.get();
         }
 
-        @Advice.OnMethodExit
+        @Advice.OnMethodExit(suppress = Throwable.class)
         public static void onExit(
             @Advice.Enter long mockMills,
             @Advice.Return(readOnly = false) Instant result) {
@@ -101,12 +101,12 @@ public class DateTimeInstrumentation extends TypeInstrumentation {
             return new MethodInstrumentation(matcher, advice);
         }
 
-        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class)
+        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class, suppress = Throwable.class)
         public static long onEnter() {
             return TimeCache.get();
         }
 
-        @Advice.OnMethodExit
+        @Advice.OnMethodExit(suppress = Throwable.class)
         public static void onExit(
             @Advice.Enter long mockMills,
             @Advice.Argument(0) Clock clock,
@@ -129,12 +129,12 @@ public class DateTimeInstrumentation extends TypeInstrumentation {
             return new MethodInstrumentation(matcher, advice);
         }
 
-        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class)
+        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class, suppress = Throwable.class)
         public static long onEnter() {
             return TimeCache.get();
         }
 
-        @Advice.OnMethodExit
+        @Advice.OnMethodExit(suppress = Throwable.class)
         public static void onExit(
             @Advice.Enter long mockMills,
             @Advice.Argument(0) Clock clock,
@@ -157,12 +157,12 @@ public class DateTimeInstrumentation extends TypeInstrumentation {
             return new MethodInstrumentation(matcher, advice);
         }
 
-        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class)
+        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class, suppress = Throwable.class)
         public static long onEnter() {
             return TimeCache.get();
         }
 
-        @Advice.OnMethodExit
+        @Advice.OnMethodExit(suppress = Throwable.class)
         public static void onExit(
             @Advice.Enter long mockMills,
             @Advice.Argument(0) Clock clock,
@@ -183,7 +183,7 @@ public class DateTimeInstrumentation extends TypeInstrumentation {
             return new MethodInstrumentation(matcher, advice);
         }
 
-        @Advice.OnMethodExit
+        @Advice.OnMethodExit(suppress = Throwable.class)
         public static void onExit(@Advice.FieldValue(value = "fastTime", readOnly = false) long fastTime) {
             long mockMills = TimeCache.get();
             if (mockMills > 0L) {

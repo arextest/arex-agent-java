@@ -50,7 +50,7 @@ public class InternalHttpClientInstrumentation extends TypeInstrumentation {
 
     public static class ExecuteAdvice {
 
-        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class)
+        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class, suppress = Throwable.class)
         public static boolean onEnter(
                 @Advice.Argument(1) HttpRequest request,
                 @Advice.Local("extractor") HttpClientExtractor<HttpRequest, HttpResponse> extractor,
@@ -67,7 +67,7 @@ public class InternalHttpClientInstrumentation extends TypeInstrumentation {
             return mockResult != null && mockResult.notIgnoreMockResult();
         }
 
-        @Advice.OnMethodExit(onThrowable = Exception.class)
+        @Advice.OnMethodExit(onThrowable = Exception.class, suppress = Throwable.class)
         public static void onExit(
                 @Advice.Thrown(readOnly = false) Exception throwable,
                 @Advice.Return(readOnly = false) CloseableHttpResponse response,

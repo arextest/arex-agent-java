@@ -112,7 +112,7 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
 
     public final static class MethodAdvice {
 
-        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class)
+        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class, suppress = Throwable.class)
         public static boolean onEnter(@Advice.Origin("#t") String className,
                                       @Advice.Origin("#m") String methodName,
                                       @Advice.AllArguments Object[] args,
@@ -133,7 +133,7 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
             return false;
         }
 
-        @Advice.OnMethodExit(onThrowable = Throwable.class)
+        @Advice.OnMethodExit(onThrowable = Throwable.class, suppress = Throwable.class)
         public static void onExit(@Advice.Origin("#t") String className, @Advice.Origin("#m") String methodName,
                                   @Advice.AllArguments Object[] args,
                                   @Advice.Local("mockResult") MockResult mockResult,
