@@ -15,7 +15,6 @@ public class DynamicClassEntity {
     private final String keyFormula;
     private final String returnType;
     private List<String> parameters;
-    private boolean isGenericReturnType;
     public DynamicClassEntity(String clazzName, String operation, String parameterTypes, String keyFormula) {
         this.clazzName = clazzName;
         this.operation = operation;
@@ -56,13 +55,6 @@ public class DynamicClassEntity {
         return this.parameters;
     }
 
-    public boolean isGenericReturnType() {
-        return isGenericReturnType;
-    }
-
-    public void setGenericReturnType(boolean genericReturnType) {
-        isGenericReturnType = genericReturnType;
-    }
 
     @Override
     public String toString() {
