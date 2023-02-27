@@ -19,4 +19,7 @@ public class ArexConstants {
      * dubbo stream protocol:streaming
      */
     public static final String DUBBO_STREAM_NAME = "streaming";
+
+    public static final String UUID_SIGNATURE = "java.util.UUID.randomUUID";
+    public static final String CURRENT_TIME_MILLIS_SIGNATURE = "java.lang.System.currentTimeMillis";
 }

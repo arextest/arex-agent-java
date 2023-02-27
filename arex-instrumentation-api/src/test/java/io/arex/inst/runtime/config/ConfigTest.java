@@ -1,6 +1,12 @@
 package io.arex.inst.runtime.config;
 
 import io.arex.inst.runtime.context.RecordLimiter;
+import io.arex.inst.runtime.model.ArexConstants;
+import io.arex.inst.runtime.model.DynamicClassEntity;
+import java.util.Arrays;
+import java.util.List;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -44,5 +50,27 @@ class ConfigTest {
                 arguments(mocker3, predicate2),
                 arguments(mocker4, predicate1)
         );
+    }
+
+    @Test
+    void testDynamicClassEntities() {
+        ConfigBuilder config = ConfigBuilder.create("mock");
+        String genericObject = "innerTest";
+        String genericTypeName = genericObject.getClass().getName();
+        DynamicClassEntity genericEntity = new DynamicClassEntity(null, null, null, "T:" + genericTypeName);
+        DynamicClassEntity uuidEntity = new DynamicClassEntity(null, null, null, ArexConstants.UUID_SIGNATURE);
+        DynamicClassEntity systemEntity = new DynamicClassEntity(null, null, null, ArexConstants.CURRENT_TIME_MILLIS_SIGNATURE);
+        List<DynamicClassEntity> dynamicClassEntities = Arrays.asList(systemEntity, genericEntity, uuidEntity);
+        config.dynamicClassList(dynamicClassEntities).build();
+        Assertions.assertEquals(3, Config.get().dynamicClassEntities().size());
+        Assertions.assertEquals(1, Config.get().getGenericReturnTypeMapSize());
+        Assertions.assertEquals(genericTypeName, Config.get().getGenericReturnType(genericEntity.getSignature()));
+    }
+
+    @Test
+    void testDynamicClassEntitiesNull() {
+        ConfigBuilder config = ConfigBuilder.create("mock");
+        config.dynamicClassList(null).build();
+        Assertions.assertEquals(0, Config.get().getGenericReturnTypeMapSize());
     }
 }

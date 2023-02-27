@@ -7,6 +7,7 @@ import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.dynamic.listener.ListenableFutureAdapter;
 import io.arex.inst.dynamic.listener.ResponseConsumer;
+import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.serializer.Serializer;
@@ -60,8 +61,32 @@ public class DynamicClassExtractor {
 
     public void setResponse(Object response) {
         this.result = response;
-        this.resultClazz = TypeUtil.getName(response);
+        this.resultClazz = buildResultClazz(TypeUtil.getName(response));
         record();
+    }
+
+    protected String buildResultClazz(String resultClazz) {
+        if (Config.get() == null || resultClazz == null) {
+            return resultClazz;
+        }
+
+        if (Config.get().getGenericReturnTypeMapSize() == 0) {
+            return resultClazz;
+        }
+
+        if (resultClazz.contains(TypeUtil.HORIZONTAL_LINE_STR)) {
+            return resultClazz;
+        }
+
+        String extractorSignature = clazzName + operation;
+
+        String genericReturnType = Config.get().getGenericReturnType(extractorSignature);
+
+        if (StringUtil.isEmpty(genericReturnType)) {
+            return resultClazz;
+        }
+
+        return resultClazz + TypeUtil.HORIZONTAL_LINE + genericReturnType;
     }
 
     public void record() {

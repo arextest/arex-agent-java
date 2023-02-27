@@ -1,6 +1,7 @@
 package io.arex.inst.dynamic;
 
 import io.arex.agent.bootstrap.util.CollectionUtil;
+import io.arex.inst.runtime.model.ArexConstants;
 import java.lang.reflect.Method;
 import java.util.Collections;
 
@@ -43,12 +44,12 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
     public DynamicClassInstrumentation(List<DynamicClassEntity> dynamicClassList) {
         this.dynamicClassList = dynamicClassList;
         for (DynamicClassEntity entity : dynamicClassList) {
-            if (StringUtil.isNotEmpty(entity.getKeyFormula()) && StringUtil.isNotEmpty(entity.getOperation())) {
-                if (entity.getKeyFormula().contains("java.lang.System.currentTimeMillis")) {
+            if (StringUtil.isNotEmpty(entity.getAdditionalSignature()) && StringUtil.isNotEmpty(entity.getOperation())) {
+                if (entity.getAdditionalSignature().contains(ArexConstants.CURRENT_TIME_MILLIS_SIGNATURE)) {
                     replaceTimeMillisList.add(entity);
                     continue;
                 }
-                if (entity.getKeyFormula().contains("java.util.UUID.randomUUID")) {
+                if (entity.getAdditionalSignature().contains(ArexConstants.UUID_SIGNATURE)) {
                     replaceUuidList.add(entity);
                     continue;
                 }
