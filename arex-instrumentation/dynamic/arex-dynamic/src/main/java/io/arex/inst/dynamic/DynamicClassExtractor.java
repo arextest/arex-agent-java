@@ -1,25 +1,29 @@
 package io.arex.inst.dynamic;
 
 import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.JdkFutureAdapters;
 import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.StringUtil;
-import io.arex.inst.dynamic.listener.DirectExecutor;
+import io.arex.inst.dynamic.listener.ListenableFutureAdapt;
 import io.arex.inst.dynamic.listener.ResponseConsumer;
-import io.arex.inst.dynamic.listener.ResponseFutureCallback;
+import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
+import io.arex.inst.runtime.model.DynamicClassEntity;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.util.IgnoreUtils;
 import io.arex.inst.runtime.util.LogUtil;
 import io.arex.inst.runtime.util.MockUtils;
 import io.arex.inst.runtime.util.TypeUtil;
 import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +34,6 @@ public class DynamicClassExtractor {
     private static final String SERIALIZER = "gson";
     private static final String LISTENABLE_FUTURE = "com.google.common.util.concurrent.ListenableFuture";
     private static final String COMPLETABLE_FUTURE = "java.util.concurrent.CompletableFuture";
-    private static final String NORMAL_FUTURE = "java.util.concurrent.Future";
 
     private final String clazzName;
     private final String operation;
@@ -42,6 +45,8 @@ public class DynamicClassExtractor {
     private final String methodReturnType;
     private int methodSignatureKeyHash;
 
+    private static List<DynamicClassEntity> genericReturnTypeEntities = new ArrayList<>();
+
     public DynamicClassExtractor(String clazzName, String operation, Object[] args, String methodReturnType) {
         this.clazzName = clazzName;
         this.operation = operation;
@@ -51,17 +56,46 @@ public class DynamicClassExtractor {
 
     public void setFutureResponse(Future<?> result) {
         if (result instanceof CompletableFuture) {
-            ((CompletableFuture) result).whenComplete(new ResponseConsumer(this));
+            ((CompletableFuture<?>) result).whenComplete(new ResponseConsumer(this));
             return;
         }
 
-        Futures.addCallback(JdkFutureAdapters.listenInPoolThread(result), new ResponseFutureCallback(this), DirectExecutor.INSTANCE);
+        if (LISTENABLE_FUTURE.equals(methodReturnType)) {
+            new ListenableFutureAdapt(this).addCallBack(result);
+        }
     }
 
     public void setResponse(Object response) {
         this.result = response;
-        this.resultClazz = TypeUtil.getName(response);
+        this.resultClazz = buildResultClazz(TypeUtil.getName(response));
         record();
+    }
+
+    private String buildResultClazz(String resultClazz) {
+       updateEntities();
+
+       if (resultClazz == null) {
+           return null;
+       }
+
+       if (resultClazz.contains(TypeUtil.HORIZONTAL_LINE_STR)) {
+            return resultClazz;
+        }
+
+       for (DynamicClassEntity entity : genericReturnTypeEntities) {
+           if (Objects.equals(clazzName, entity.getClazzName()) && Objects.equals(operation, entity.getOperation())) {
+               return resultClazz + TypeUtil.HORIZONTAL_LINE + entity.getKeyFormula();
+           }
+       }
+       return resultClazz;
+    }
+
+    private void updateEntities() {
+        List<DynamicClassEntity> entities = Config.get().dynamicClassEntities().stream()
+                .filter(DynamicClassEntity::isGenericReturnType).collect(Collectors.toList());
+        if (!Objects.equals(entities.toString(), genericReturnTypeEntities.toString())) {
+            genericReturnTypeEntities = entities;
+        }
     }
 
     public void record() {
@@ -105,7 +139,7 @@ public class DynamicClassExtractor {
             return result;
         }
 
-        if (LISTENABLE_FUTURE.equals(this.methodReturnType) || NORMAL_FUTURE.equals(this.methodReturnType)) {
+        if (LISTENABLE_FUTURE.equals(this.methodReturnType)) {
             if (result instanceof Throwable) {
                 return Futures.immediateFailedFuture((Throwable) result);
             }

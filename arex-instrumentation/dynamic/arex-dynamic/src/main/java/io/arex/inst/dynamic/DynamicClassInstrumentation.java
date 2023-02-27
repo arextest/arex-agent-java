@@ -52,6 +52,7 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
                     replaceUuidList.add(entity);
                     continue;
                 }
+                entity.setGenericReturnType(true);
             }
 
             if (emptyOperationClass == null && StringUtil.isEmpty(entity.getOperation())) {
@@ -109,9 +110,11 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
     public List<String> adviceClassNames() {
         return asList("io.arex.inst.dynamic.DynamicClassExtractor",
                       "io.arex.inst.dynamic.ReplaceMethodHelper",
-                      "io.arex.inst.dynamic.listener.ResponseFutureCallback",
+                      "io.arex.inst.dynamic.listener.ListenableFutureAdapt",
+                      "io.arex.inst.dynamic.listener.ListenableFutureAdapt$ResponseFutureCallback",
                       "io.arex.inst.dynamic.listener.ResponseConsumer",
-                      "io.arex.inst.dynamic.listener.DirectExecutor");
+                      "io.arex.inst.dynamic.listener.DirectExecutor",
+                      "com.google.common.util.concurrent.FutureCallback");
     }
 
     public final static class MethodAdvice {
