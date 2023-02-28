@@ -109,7 +109,8 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
     public List<String> adviceClassNames() {
         return asList("io.arex.inst.dynamic.DynamicClassExtractor",
                       "io.arex.inst.dynamic.ReplaceMethodHelper",
-                      "io.arex.inst.dynamic.listener.ResponseFutureCallback",
+                      "io.arex.inst.dynamic.listener.ListenableFutureAdapter",
+                      "io.arex.inst.dynamic.listener.ListenableFutureAdapter$ResponseFutureCallback",
                       "io.arex.inst.dynamic.listener.ResponseConsumer",
                       "io.arex.inst.dynamic.listener.DirectExecutor");
     }

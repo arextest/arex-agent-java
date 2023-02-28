@@ -6,8 +6,8 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import io.arex.agent.bootstrap.model.ArexMocker;
 import io.arex.agent.bootstrap.model.Mocker.Target;
+import io.arex.inst.dynamic.listener.ListenableFutureAdapter;
 import io.arex.inst.dynamic.listener.ResponseConsumer;
-import io.arex.inst.dynamic.listener.ResponseFutureCallback;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.agent.bootstrap.model.MockResult;
@@ -16,7 +16,6 @@ import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.util.IgnoreUtils;
 import io.arex.inst.runtime.util.MockUtils;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
@@ -150,9 +149,9 @@ class DynamicClassExtractorTest {
     }
 
     @Test
-    void testFuture() {
+    void testSetFutureResponse() {
         AtomicReference<ResponseConsumer> atomicConsumer = new AtomicReference<>();
-        AtomicReference<ResponseFutureCallback> atomicCallBack = new AtomicReference<>();
+        AtomicReference<String> atomicCallBack = new AtomicReference<>();
         try (MockedConstruction<ResponseConsumer> mocked = Mockito.mockConstruction(ResponseConsumer.class, (mock, context) -> {
             atomicConsumer.set(mock);
         })) {
@@ -162,14 +161,16 @@ class DynamicClassExtractorTest {
             Assertions.assertNotNull(atomicConsumer.get());
         }
 
-        try (MockedConstruction<ResponseFutureCallback> mocked = Mockito.mockConstruction(ResponseFutureCallback.class, (mock, context) -> {
-            atomicCallBack.set(mock);
-        })) {
-            ListenableFuture<?> listenableFuture = MoreExecutors.newDirectExecutorService()
-                    .submit(() -> System.out.println());
-            new DynamicClassExtractor(null, null, null, null).setFutureResponse(listenableFuture);
-            Assertions.assertNotNull(atomicCallBack.get());
+        try (MockedStatic<ListenableFutureAdapter> adapterMockedStatic = mockStatic(ListenableFutureAdapter.class)) {
+            DynamicClassExtractor extractor = new DynamicClassExtractor(null, null,
+                    null, "com.google.common.util.concurrent.ListenableFuture");
+
+            ListenableFuture<String> resultFuture = Futures.immediateFuture("result");
+
+            extractor.setFutureResponse(Futures.immediateFuture(resultFuture));
+            adapterMockedStatic.verify(() -> ListenableFutureAdapter.addCallBack(any(), any()));
         }
+
     }
 
     @Test
@@ -187,12 +188,9 @@ class DynamicClassExtractorTest {
             NullPointerException exception = new NullPointerException();
             responseConsumer.accept(null, exception);
             Mockito.verify(extractorAtomicReference.get(), Mockito.times(1)).setResponse(exception);
-
-            ResponseFutureCallback responseFutureCallback = new ResponseFutureCallback(
-                    new DynamicClassExtractor(null, null, null, null));
-            responseFutureCallback.onSuccess(result);
+            ListenableFutureAdapter.addCallBack(Futures.immediateFuture(result), new DynamicClassExtractor(null, null, null, null));
             Mockito.verify(extractorAtomicReference.get(), Mockito.times(1)).setResponse(result);
-            responseFutureCallback.onFailure(exception);
+            ListenableFutureAdapter.addCallBack(Futures.immediateFailedFuture(exception), new DynamicClassExtractor(null, null, null, null));
             Mockito.verify(extractorAtomicReference.get(), Mockito.times(1)).setResponse(exception);
         }
     }
@@ -201,7 +199,6 @@ class DynamicClassExtractorTest {
     void restoreResponseTest() {
         String listenableFuture = "com.google.common.util.concurrent.ListenableFuture";
         String completableFuture = "java.util.concurrent.CompletableFuture";
-        String normalFuture = "java.util.concurrent.Future";
         List cntSuccess = new ArrayList<>();
         List cntFailure = new ArrayList<>();
         RuntimeException exception = new RuntimeException();
@@ -224,19 +221,8 @@ class DynamicClassExtractorTest {
         getResultCompletableFuture((CompletableFuture) completableFutureResultException, cntSuccess, cntFailure);
 
 
-        DynamicClassExtractor dynamicClassExtractor3 = new DynamicClassExtractor(null, null, null,
-                normalFuture);
-        Object futureResult = dynamicClassExtractor3.restoreResponse("result");
-        Object futureResultException = dynamicClassExtractor.restoreResponse(exception);
-        Assertions.assertTrue(futureResult instanceof ListenableFuture);
-        Assertions.assertTrue(futureResultException instanceof ListenableFuture);
-
-
-        getResultFormListenFuture((ListenableFuture) futureResult, cntSuccess, cntFailure);
-        getResultFormListenFuture((ListenableFuture) futureResultException, cntSuccess, cntFailure);
-
-        Assertions.assertEquals(3, cntSuccess.size());
-        Assertions.assertEquals(3, cntFailure.size());
+        Assertions.assertEquals(2, cntSuccess.size());
+        Assertions.assertEquals(2, cntFailure.size());
 
         DynamicClassExtractor dynamicClassExtractor4 = new DynamicClassExtractor(null, null, null,
                 "java.lang.String");

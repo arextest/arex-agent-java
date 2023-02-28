@@ -1,13 +1,12 @@
 package io.arex.inst.dynamic;
 
 import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.JdkFutureAdapters;
+import com.google.common.util.concurrent.ListenableFuture;
 import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.StringUtil;
-import io.arex.inst.dynamic.listener.DirectExecutor;
+import io.arex.inst.dynamic.listener.ListenableFutureAdapter;
 import io.arex.inst.dynamic.listener.ResponseConsumer;
-import io.arex.inst.dynamic.listener.ResponseFutureCallback;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.serializer.Serializer;
@@ -30,7 +29,6 @@ public class DynamicClassExtractor {
     private static final String SERIALIZER = "gson";
     private static final String LISTENABLE_FUTURE = "com.google.common.util.concurrent.ListenableFuture";
     private static final String COMPLETABLE_FUTURE = "java.util.concurrent.CompletableFuture";
-    private static final String NORMAL_FUTURE = "java.util.concurrent.Future";
 
     private final String clazzName;
     private final String operation;
@@ -51,11 +49,13 @@ public class DynamicClassExtractor {
 
     public void setFutureResponse(Future<?> result) {
         if (result instanceof CompletableFuture) {
-            ((CompletableFuture) result).whenComplete(new ResponseConsumer(this));
+            ((CompletableFuture<?>) result).whenComplete(new ResponseConsumer(this));
             return;
         }
 
-        Futures.addCallback(JdkFutureAdapters.listenInPoolThread(result), new ResponseFutureCallback(this), DirectExecutor.INSTANCE);
+        if (LISTENABLE_FUTURE.equals(methodReturnType)) {
+            ListenableFutureAdapter.addCallBack((ListenableFuture<?>) result, this);
+        }
     }
 
     public void setResponse(Object response) {
@@ -105,7 +105,7 @@ public class DynamicClassExtractor {
             return result;
         }
 
-        if (LISTENABLE_FUTURE.equals(this.methodReturnType) || NORMAL_FUTURE.equals(this.methodReturnType)) {
+        if (LISTENABLE_FUTURE.equals(this.methodReturnType)) {
             if (result instanceof Throwable) {
                 return Futures.immediateFailedFuture((Throwable) result);
             }
