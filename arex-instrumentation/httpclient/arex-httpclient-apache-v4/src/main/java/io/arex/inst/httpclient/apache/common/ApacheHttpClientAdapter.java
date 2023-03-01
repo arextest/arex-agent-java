@@ -4,6 +4,7 @@ import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.httpclient.common.HttpClientAdapter;
 import io.arex.inst.httpclient.common.HttpResponseWrapper;
 import io.arex.inst.httpclient.common.HttpResponseWrapper.StringTuple;
+import java.io.ByteArrayOutputStream;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpRequest;
@@ -12,15 +13,11 @@ import org.apache.http.StatusLine;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.BasicHttpEntity;
-import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.HttpEntityWrapper;
-import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,19 +39,18 @@ public class ApacheHttpClientAdapter implements HttpClientAdapter<HttpRequest, H
     @Override
     public byte[] getRequestBytes() {
         if (!(this.httpRequest instanceof HttpEntityEnclosingRequestBase)) {
-            return null;
+            return ZERO_BYTE;
         }
-        HttpEntityEnclosingRequestBase httpEntityEnclosingRequestBase;
-        httpEntityEnclosingRequestBase = (HttpEntityEnclosingRequestBase) this.httpRequest;
-        HttpEntity entity = httpEntityEnclosingRequestBase.getEntity();
+        HttpEntityEnclosingRequestBase enclosingRequestBase = (HttpEntityEnclosingRequestBase) this.httpRequest;
+        HttpEntity entity = enclosingRequestBase.getEntity();
         byte[] content;
-        try {
-            content = EntityUtils.toByteArray(entity);
-        } catch (IOException e) {
+        try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()){
+            entity.writeTo(byteArrayOutputStream);
+            content = byteArrayOutputStream.toByteArray();
+        } catch (Throwable e) {
             LOGGER.warn("extract request content error:{}", e.getMessage(), e);
-            return null;
+            content = ZERO_BYTE;
         }
-        httpEntityEnclosingRequestBase.setEntity(new ByteArrayEntity(content));
         return content;
     }
 
@@ -83,10 +79,11 @@ public class ApacheHttpClientAdapter implements HttpClientAdapter<HttpRequest, H
         }
 
         byte[] content;
-        try (InputStream stream = httpEntity.getContent()) {
-            content = ApacheHttpClientHelper.readInputStream(stream);
-        } catch (Exception ex) {
-            LOGGER.warn("read content error:{}", ex.getMessage(), ex);
+        try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()){
+            httpEntity.writeTo(byteArrayOutputStream);
+            content = byteArrayOutputStream.toByteArray();
+        } catch (Throwable e) {
+            LOGGER.warn("read content error:{}", e.getMessage(), e);
             return null;
         }
 
@@ -94,6 +91,7 @@ public class ApacheHttpClientAdapter implements HttpClientAdapter<HttpRequest, H
             ((BasicHttpEntity) httpEntity).setContent(new ByteArrayInputStream(content));
             response.setEntity(httpEntity);
         } else if (httpEntity instanceof HttpEntityWrapper) {
+            // Output response normally now, later need to check revert DecompressingEntity
             BasicHttpEntity entity = ApacheHttpClientHelper.createHttpEntity(response);
             entity.setContent(new ByteArrayInputStream(content));
             response.setEntity(entity);
@@ -119,6 +117,7 @@ public class ApacheHttpClientAdapter implements HttpClientAdapter<HttpRequest, H
         HttpResponse response = new CloseableHttpResponseProxy(statusLine);
         response.setLocale(new Locale(wrapped.getLocale().name(), wrapped.getLocale().value()));
         appendHeaders(response, wrapped.getHeaders());
+        // Output response normally now, later need to check revert DecompressingEntity
         BasicHttpEntity entity = ApacheHttpClientHelper.createHttpEntity(response);
         entity.setContent(new ByteArrayInputStream(wrapped.getContent()));
         entity.setContentLength(wrapped.getContent().length);

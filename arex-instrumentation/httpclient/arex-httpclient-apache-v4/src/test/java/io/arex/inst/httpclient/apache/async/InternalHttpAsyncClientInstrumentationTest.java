@@ -1,6 +1,7 @@
 package io.arex.inst.httpclient.apache.async;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
@@ -44,7 +45,7 @@ class InternalHttpAsyncClientInstrumentationTest {
 
     @Test
     void adviceClassNames() {
-        assertNotNull(target.adviceClassNames());
+        assertEquals(8, target.adviceClassNames().size());
     }
 
     @Test
