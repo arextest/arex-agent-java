@@ -178,6 +178,9 @@ public class HealthManager {
          * Record rate acquire
          */
         boolean acquire(String methodName, double rate) {
+            if (rate <= 0) {
+                return false;
+            }
             Pair<Double, RateLimiter> rateLimiterPair = RATE_LIMITER_MAP.computeIfAbsent(methodName, key -> {
                 return Pair.of(rate, RateLimiter.create(rate / BASE));
             });
