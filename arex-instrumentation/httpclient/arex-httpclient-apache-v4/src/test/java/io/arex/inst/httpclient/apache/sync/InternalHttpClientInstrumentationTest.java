@@ -50,7 +50,7 @@ class InternalHttpClientInstrumentationTest {
 
     @Test
     void adviceClassNames() {
-        assertNotNull(target.adviceClassNames());
+        assertEquals(7, target.adviceClassNames().size());
     }
 
     @Test

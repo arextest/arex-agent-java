@@ -45,7 +45,10 @@ public class InternalHttpClientInstrumentation extends TypeInstrumentation {
                 "io.arex.inst.httpclient.common.HttpClientExtractor",
                 "io.arex.inst.httpclient.apache.common.ApacheHttpClientAdapter",
                 "io.arex.inst.httpclient.apache.common.ApacheHttpClientHelper",
-                "io.arex.inst.httpclient.common.HttpClientAdapter");
+                "io.arex.inst.httpclient.common.HttpClientAdapter",
+                "io.arex.inst.httpclient.apache.common.CloseableHttpResponseProxy",
+                "io.arex.inst.httpclient.common.HttpResponseWrapper",
+                "io.arex.inst.httpclient.common.HttpResponseWrapper$StringTuple");
     }
 
     public static class ExecuteAdvice {

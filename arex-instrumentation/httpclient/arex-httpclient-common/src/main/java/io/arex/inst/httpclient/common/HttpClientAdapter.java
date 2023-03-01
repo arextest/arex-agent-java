@@ -3,6 +3,7 @@ package io.arex.inst.httpclient.common;
 import java.net.URI;
 
 public interface HttpClientAdapter<TRequest, TResponse> {
+    byte[] ZERO_BYTE = new byte[0];
     String CONTENT_TYPE_NAME = "Content-Type";
     String USER_AGENT_NAME = "User-Agent";
 

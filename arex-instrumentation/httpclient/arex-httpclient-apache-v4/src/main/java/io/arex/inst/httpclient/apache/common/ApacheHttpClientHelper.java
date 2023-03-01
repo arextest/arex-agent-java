@@ -9,10 +9,6 @@ import org.apache.http.message.ParserCursor;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.CharArrayBuffer;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Arrays;
-
 class ApacheHttpClientHelper {
 
     public static BasicHttpEntity createHttpEntity(HttpResponse response) {
@@ -39,31 +35,5 @@ class ApacheHttpClientHelper {
         final CharArrayBuffer buffer = convertToBuffer(statusLine);
         final ParserCursor cursor = new ParserCursor(0, buffer.length());
         return BasicLineParser.INSTANCE.parseStatusLine(buffer, cursor);
-    }
-
-    public static byte[] readInputStream(InputStream in) throws IOException {
-        byte[] buffer = new byte[0];
-
-        int read;
-        int stepSize = 1024;
-        for(int i = 0; i < Integer.MAX_VALUE; i += read) {
-            if (i >= buffer.length) {
-                if (buffer.length < i + stepSize) {
-                    buffer = Arrays.copyOf(buffer, i + stepSize);
-                }
-            } else {
-                stepSize = buffer.length - i;
-            }
-
-            read = in.read(buffer, i, stepSize);
-            if (read < 0) {
-                if (buffer.length != i) {
-                    buffer = Arrays.copyOf(buffer, i);
-                }
-                break;
-            }
-        }
-
-        return buffer;
     }
 }
