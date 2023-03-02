@@ -1,8 +1,10 @@
 package io.arex.inst.runtime.config;
 
+import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.context.RecordLimiter;
 import io.arex.inst.runtime.model.DynamicClassEntity;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -10,6 +12,7 @@ import java.util.function.Function;
 
 public class Config {
     private static Config INSTANCE = null;
+    private final Map<String, String> genericReturnTypeCacheMap = new HashMap<>();
 
     static void update(boolean enableDebug, String serviceName, List<DynamicClassEntity> entities,
                        Map<String, String> properties, Set<String> excludeServiceOperations,
@@ -38,6 +41,28 @@ public class Config {
         this.excludeServiceOperations = excludeServiceOperations;
         this.dubboStreamReplayThreshold = dubboStreamReplayThreshold;
         this.recordRate = recordRate;
+        buildGenericReturnTypeCacheMap();
+    }
+
+    private void buildGenericReturnTypeCacheMap() {
+        if (entities == null) {
+            return;
+        }
+        for (DynamicClassEntity entity : entities) {
+            String genericReturnType = entity.getGenericReturnType();
+            if (StringUtil.isEmpty(genericReturnType)) {
+                continue;
+            }
+
+            genericReturnTypeCacheMap.putIfAbsent(entity.getSignature(), genericReturnType);
+        }
+    }
+
+    public String getGenericReturnType(String methodSignature) {
+        return genericReturnTypeCacheMap.get(methodSignature);
+    }
+    public int getGenericReturnTypeMapSize() {
+        return genericReturnTypeCacheMap.size();
     }
 
     public boolean isEnableDebug() {

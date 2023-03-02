@@ -11,6 +11,7 @@ import io.arex.inst.extension.MethodInstrumentation;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.context.RepeatedCollectManager;
+import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.model.DynamicClassEntity;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -212,8 +213,8 @@ class DynamicClassInstrumentationTest {
 
     @Test
     void testTransformer() {
-        DynamicClassEntity testReturnPrimitiveType = new DynamicClassEntity("io.arex.inst.dynamic.DynamicTestClass", "testReturnPrimitiveType", "", "java.lang.System.currentTimeMillis");
-        DynamicClassEntity testReturnNonPrimitiveType = new DynamicClassEntity("io.arex.inst.dynamic.DynamicTestClass", "testReturnNonPrimitiveType", "", "java.util.UUID.randomUUID");
+        DynamicClassEntity testReturnPrimitiveType = new DynamicClassEntity("io.arex.inst.dynamic.DynamicTestClass", "testReturnPrimitiveType", "", ArexConstants.CURRENT_TIME_MILLIS_SIGNATURE);
+        DynamicClassEntity testReturnNonPrimitiveType = new DynamicClassEntity("io.arex.inst.dynamic.DynamicTestClass", "testReturnNonPrimitiveType", "", ArexConstants.UUID_SIGNATURE);
         DynamicClassInstrumentation instrumentation = new DynamicClassInstrumentation(Arrays.asList(testReturnPrimitiveType, testReturnNonPrimitiveType));
         try (MockedStatic<ReplaceMethodHelper> replaceTimeMillsMockMockedStatic = Mockito.mockStatic(
                 ReplaceMethodHelper.class)) {

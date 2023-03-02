@@ -1,5 +1,6 @@
 package io.arex.inst.dynamic;
 
+import com.google.common.base.Optional;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -8,13 +9,19 @@ import io.arex.agent.bootstrap.model.ArexMocker;
 import io.arex.agent.bootstrap.model.Mocker.Target;
 import io.arex.inst.dynamic.listener.ListenableFutureAdapter;
 import io.arex.inst.dynamic.listener.ResponseConsumer;
+import io.arex.inst.runtime.config.Config;
+import io.arex.inst.runtime.config.ConfigBuilder;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.inst.runtime.model.ArexConstants;
+import io.arex.inst.runtime.model.DynamicClassEntity;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.util.IgnoreUtils;
 import io.arex.inst.runtime.util.MockUtils;
+import io.arex.inst.runtime.util.TypeUtil;
+import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.AfterAll;
@@ -252,5 +259,31 @@ class DynamicClassExtractorTest {
                 cntFailure.add("test");
             }
         }, MoreExecutors.directExecutor());
+    }
+
+    @Test
+    void testBuildResultClazz() {
+        ConfigBuilder config = ConfigBuilder.create("mock");
+        String genericObject = "innerTest";
+        String genericTypeName = genericObject.getClass().getName();
+        DynamicClassExtractor dynamicClassExtractor = new DynamicClassExtractor(null, null, null, null);
+        String configNull = dynamicClassExtractor.buildResultClazz(genericTypeName);
+        Assertions.assertEquals(genericTypeName, configNull);
+
+        DynamicClassEntity genericEntity = new DynamicClassEntity(null, null, null, "T:" + genericTypeName);
+        DynamicClassEntity uuidEntity = new DynamicClassEntity(null, null, null, ArexConstants.UUID_SIGNATURE);
+
+        config.dynamicClassList(Arrays.asList(uuidEntity)).build();
+        String emptyMapReturnType = dynamicClassExtractor.buildResultClazz(genericTypeName);
+        Assertions.assertEquals(genericTypeName, emptyMapReturnType);
+
+        List<DynamicClassEntity> dynamicClassEntities = Arrays.asList(uuidEntity, genericEntity);
+        config.dynamicClassList(dynamicClassEntities).build();
+        Optional<String> guavaOptional = Optional.of(genericObject);
+        String expectedReturnClazz = guavaOptional.getClass().getName() + TypeUtil.HORIZONTAL_LINE + genericTypeName;
+        String actualReturnClazz = dynamicClassExtractor.buildResultClazz(TypeUtil.getName(guavaOptional));
+        Assertions.assertEquals(expectedReturnClazz, actualReturnClazz);
+        java.util.Optional optional = java.util.Optional.of(genericObject);
+        Assertions.assertEquals(TypeUtil.getName(optional), dynamicClassExtractor.buildResultClazz(TypeUtil.getName(optional)));
     }
 }
