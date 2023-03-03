@@ -2,6 +2,7 @@ package io.arex.inst.httpclient.okhttp.v3;
 
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 
@@ -79,5 +80,11 @@ public class OkHttpCallbackWrapperTest {
 
         okHttpCallbackWrapper.replay(MockResult.success(new IOException("mock IOException")));
         verify(delegate).onFailure(any(), any());
+
+        MockResult mockResult = MockResult.success(createResponse());
+        Mockito.doThrow(new IOException("mock IOException"))
+            .when(delegate).onResponse(call, (Response) mockResult.getResult());
+
+        assertThrows(RuntimeException.class, () -> okHttpCallbackWrapper.replay(mockResult));
     }
 }

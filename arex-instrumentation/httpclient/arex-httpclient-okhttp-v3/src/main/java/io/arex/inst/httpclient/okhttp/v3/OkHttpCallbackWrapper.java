@@ -19,7 +19,7 @@ public class OkHttpCallbackWrapper implements Callback {
     private final TraceTransmitter traceTransmitter;
 
     public OkHttpCallbackWrapper(Call call, Callback delegate) {
-        this(call, delegate, new HttpClientExtractor<>(new OkHttpClientAdapter(call.request().newBuilder().build())));
+        this(call, delegate, new HttpClientExtractor<>(new OkHttpClientAdapter(call.request())));
     }
 
     @VisibleForTesting

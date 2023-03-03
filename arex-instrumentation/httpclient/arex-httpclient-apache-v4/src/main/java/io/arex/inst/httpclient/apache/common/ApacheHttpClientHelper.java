@@ -1,15 +1,18 @@
 package io.arex.inst.httpclient.apache.common;
 
+import io.arex.inst.runtime.util.IgnoreUtils;
 import org.apache.http.Header;
+import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.message.BasicLineParser;
 import org.apache.http.message.ParserCursor;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.CharArrayBuffer;
 
-class ApacheHttpClientHelper {
+public class ApacheHttpClientHelper {
 
     public static BasicHttpEntity createHttpEntity(HttpResponse response) {
         final BasicHttpEntity entity = new BasicHttpEntity();
@@ -35,5 +38,13 @@ class ApacheHttpClientHelper {
         final CharArrayBuffer buffer = convertToBuffer(statusLine);
         final ParserCursor cursor = new ParserCursor(0, buffer.length());
         return BasicLineParser.INSTANCE.parseStatusLine(buffer, cursor);
+    }
+
+    public static boolean ignoreRequest(HttpRequest httpRequest) {
+        if (!(httpRequest instanceof HttpUriRequest)) {
+            return true;
+        }
+
+        return IgnoreUtils.ignoreOperation(((HttpUriRequest) httpRequest).getURI().getPath());
     }
 }
