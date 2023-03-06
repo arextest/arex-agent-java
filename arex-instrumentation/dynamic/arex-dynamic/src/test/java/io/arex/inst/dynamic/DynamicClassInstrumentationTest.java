@@ -1,9 +1,12 @@
 package io.arex.inst.dynamic;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
+import static org.mockito.ArgumentMatchers.any;
 
 import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.agent.bootstrap.util.StringUtil;
@@ -19,6 +22,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -68,6 +72,11 @@ class DynamicClassInstrumentationTest {
     @Test
     void typeMatcher() {
         assertNotNull(target.matcher());
+    }
+
+    @Test
+    void adviceClassNames() {
+        assertEquals(6, target.adviceClassNames().size());
     }
 
     @ParameterizedTest(name = "[{index}] {0}")
@@ -124,6 +133,8 @@ class DynamicClassInstrumentationTest {
             ElementMatcher<? super MethodDescription> matcher = methodAdvices.get(0).getMethodMatcher();
             return methodAdvices.size() == 1 && matchedMethodCount(matcher, DynamicTestClass.class) == 2;
         };
+
+
 
         return Stream.of(
                 arguments("should_match_2_methods_when_empty_operation", Collections.singletonList(emptyOperation), NOT_EMPTY_PREDICATE.and(emptyOperationPredicate)),
@@ -213,25 +224,28 @@ class DynamicClassInstrumentationTest {
 
     @Test
     void testTransformer() {
-        DynamicClassEntity testReturnPrimitiveType = new DynamicClassEntity("io.arex.inst.dynamic.DynamicTestClass", "testReturnPrimitiveType", "", ArexConstants.CURRENT_TIME_MILLIS_SIGNATURE);
-        DynamicClassEntity testReturnNonPrimitiveType = new DynamicClassEntity("io.arex.inst.dynamic.DynamicTestClass", "testReturnNonPrimitiveType", "", ArexConstants.UUID_SIGNATURE);
-        DynamicClassInstrumentation instrumentation = new DynamicClassInstrumentation(Arrays.asList(testReturnPrimitiveType, testReturnNonPrimitiveType));
+        DynamicClassEntity testSystem = new DynamicClassEntity("io.arex.inst.dynamic.ReplaceMethodClass", "currentTimeMillis", "", ArexConstants.CURRENT_TIME_MILLIS_SIGNATURE);
+        DynamicClassEntity testUUID = new DynamicClassEntity("io.arex.inst.dynamic.ReplaceMethodClass", "uuid", "", ArexConstants.UUID_SIGNATURE);
+        DynamicClassEntity testNextInt = new DynamicClassEntity("io.arex.inst.dynamic.ReplaceMethodClass", "nextInt", "", ArexConstants.NEXT_INT_SIGNATURE);
+        DynamicClassEntity testAll = new DynamicClassEntity("io.arex.inst.dynamic.ReplaceMethodClass", "", "", ArexConstants.NEXT_INT_SIGNATURE);
+        DynamicClassEntity testNoMethod = new DynamicClassEntity("io.arex.inst.dynamic.ReplaceMethodClass", "next", "", ArexConstants.NEXT_INT_SIGNATURE);
         try (MockedStatic<ReplaceMethodHelper> replaceTimeMillsMockMockedStatic = Mockito.mockStatic(
                 ReplaceMethodHelper.class)) {
             replaceTimeMillsMockMockedStatic.when(ReplaceMethodHelper::currentTimeMillis).thenReturn(3L);
             replaceTimeMillsMockMockedStatic.when(ReplaceMethodHelper::uuid).thenReturn(UUID.fromString("7eb4f958-671a-11ed-9022-0242ac120002"));
-
+            DynamicClassInstrumentation target = new DynamicClassInstrumentation(Arrays.asList(testSystem, testUUID, testNextInt, testAll, testNoMethod));
+            replaceTimeMillsMockMockedStatic.when(() -> ReplaceMethodHelper.nextInt(new Random(), 10)).thenReturn(2);
 
             ResettableClassFileTransformer resettableClassFileTransformer =
                     new AgentBuilder.Default(new ByteBuddy())
-                            .type(instrumentation.matcher())
-                            .transform(instrumentation.transformer())
+                            .type(target.matcher())
+                            .transform(target.transformer())
                             .installOnByteBuddyAgent();
 
-            DynamicTestClass testClass = new DynamicTestClass();
-//            assertEquals(3L, testClass.testReturnPrimitiveType());
-//            assertEquals("7eb4f958-671a-11ed-9022-0242ac120002", testClass.testReturnNonPrimitiveType());
+            ReplaceMethodClass testClass = new ReplaceMethodClass();
+            assertDoesNotThrow(testClass::currentTimeMillis);
+            assertDoesNotThrow(testClass::uuid);
+            assertDoesNotThrow(testClass::nextInt);
         }
-
     }
 }
