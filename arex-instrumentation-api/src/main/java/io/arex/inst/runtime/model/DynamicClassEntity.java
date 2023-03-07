@@ -60,7 +60,9 @@ public class DynamicClassEntity {
     }
 
     private boolean isReplaceMethodSignature(String keyFormula) {
-        return ArexConstants.UUID_SIGNATURE.equals(keyFormula) || ArexConstants.CURRENT_TIME_MILLIS_SIGNATURE.equals(keyFormula);
+        return ArexConstants.UUID_SIGNATURE.equals(keyFormula) ||
+               ArexConstants.CURRENT_TIME_MILLIS_SIGNATURE.equals(keyFormula) ||
+               ArexConstants.NEXT_INT_SIGNATURE.equals(keyFormula);
     }
 
     public String getSignature() {
