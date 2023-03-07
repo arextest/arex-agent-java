@@ -1,5 +1,6 @@
 package io.arex.inst.httpclient.okhttp.v3;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -10,6 +11,7 @@ import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.inst.httpclient.common.HttpClientExtractor;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.context.RepeatedCollectManager;
+import io.arex.inst.runtime.util.IgnoreUtils;
 import java.io.IOException;
 import java.util.List;
 import okhttp3.Call;
@@ -44,11 +46,18 @@ public class OkHttpCallInstrumentationTest {
         Mockito.mockConstruction(HttpClientExtractor.class, (mock, context) -> {
             Mockito.when(mock.replay()).thenReturn(MockResult.success("mock"));
         });
-        try (MockedStatic<ContextManager> contextManager = mockStatic(ContextManager.class)) {
+        try (MockedStatic<ContextManager> contextManager = mockStatic(ContextManager.class);
+            MockedStatic<IgnoreUtils> ignoreUtils = mockStatic(IgnoreUtils.class)) {
             contextManager.when(ContextManager::needRecordOrReplay).thenReturn(true);
             contextManager.when(ContextManager::needReplay).thenReturn(true);
-            boolean actResult = OkHttpCallInstrumentation.ExecuteAdvice.onEnter(call, null, null);
-            Assertions.assertTrue(actResult);
+            ignoreUtils.when(() -> IgnoreUtils.ignoreOperation(any())).thenReturn(true);
+
+            boolean actualResult = OkHttpCallInstrumentation.ExecuteAdvice.onEnter(call, null, null);
+            assertFalse(actualResult);
+
+            ignoreUtils.when(() -> IgnoreUtils.ignoreOperation(any())).thenReturn(false);
+            actualResult = OkHttpCallInstrumentation.ExecuteAdvice.onEnter(call, null, null);
+            Assertions.assertTrue(actualResult);
         }
     }
 
@@ -75,13 +84,21 @@ public class OkHttpCallInstrumentationTest {
     @Test
     void enqueueAdviceEnterTest() {
         Call call = Mockito.mock(Call.class);
+        when(call.request()).thenReturn(OkHttpCallbackWrapperTest.createRequest());
         Callback callback = Mockito.mock(Callback.class);
         MockResult mockResult = MockResult.success("mock");
         try (MockedConstruction<OkHttpCallbackWrapper> mocked = Mockito.mockConstruction(OkHttpCallbackWrapper.class, (mock, context) -> {
             Mockito.when(mock.replay()).thenReturn(mockResult);
         })) {
             try (MockedStatic<ContextManager> contextManager = mockStatic(ContextManager.class);
-                MockedStatic<RepeatedCollectManager> repeatedCollectManager = mockStatic(RepeatedCollectManager.class)) {
+                MockedStatic<RepeatedCollectManager> repeatedCollectManager = mockStatic(RepeatedCollectManager.class);
+                MockedStatic<IgnoreUtils> ignoreUtils = mockStatic(IgnoreUtils.class)) {
+                ignoreUtils.when(() -> IgnoreUtils.ignoreOperation(any())).thenReturn(true);
+
+                boolean actualResult = OkHttpCallInstrumentation.EnqueueAdvice.onEnter(call, null, null);
+                assertFalse(actualResult);
+
+                ignoreUtils.when(() -> IgnoreUtils.ignoreOperation(any())).thenReturn(false);
                 contextManager.when(ContextManager::needRecordOrReplay).thenReturn(false);
                 boolean actResult = OkHttpCallInstrumentation.EnqueueAdvice.onEnter(call, callback, mockResult);
                 Assertions.assertFalse(actResult);

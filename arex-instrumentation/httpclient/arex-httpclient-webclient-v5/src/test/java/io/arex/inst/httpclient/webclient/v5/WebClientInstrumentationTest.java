@@ -3,6 +3,10 @@ package io.arex.inst.httpclient.webclient.v5;
 import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.context.RepeatedCollectManager;
+import io.arex.inst.runtime.util.IgnoreUtils;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -10,15 +14,18 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.Mock;
 import org.mockito.MockedConstruction;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+import org.springframework.web.reactive.function.client.ClientRequest;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
+import static org.mockito.ArgumentMatchers.any;
 
 @ExtendWith(MockitoExtension.class)
 class WebClientInstrumentationTest {
@@ -29,6 +36,7 @@ class WebClientInstrumentationTest {
         target = new WebClientInstrumentation();
         Mockito.mockStatic(ContextManager.class);
         Mockito.mockStatic(RepeatedCollectManager.class);
+        Mockito.mockStatic(IgnoreUtils.class);
     }
 
     @AfterAll
@@ -53,13 +61,19 @@ class WebClientInstrumentationTest {
     }
 
     @Test
-    void onEnter() {
+    void onEnter() throws MalformedURLException, URISyntaxException {
+        ClientRequest request = Mockito.mock(ClientRequest.class);
+        Mockito.when(request.url()).thenReturn(new URL("http://localhost").toURI());
+
         try (MockedConstruction<WebClientWrapper> mocked = Mockito.mockConstruction(WebClientWrapper.class, (mock, context) -> {
             Mockito.when(mock.replay()).thenReturn(MockResult.success(false, null));
         })) {
             Mockito.when(ContextManager.needRecordOrReplay()).thenReturn(true);
             Mockito.when(ContextManager.needReplay()).thenReturn(true);
-            assertTrue(WebClientInstrumentation.ExchangeAdvice.onEnter(null, null, null, null));
+            assertTrue(WebClientInstrumentation.ExchangeAdvice.onEnter(request, null, null, null));
+
+            Mockito.when(IgnoreUtils.ignoreOperation(any())).thenReturn(true);
+            assertFalse(WebClientInstrumentation.ExchangeAdvice.onEnter(request, null, null, null));
         }
     }
 

@@ -86,7 +86,7 @@ public class FutureCallbackWrapper<T> implements FutureCallback<T> {
                 return null;
             }
             extractor = new HttpClientExtractor<>(adapter);
-        } catch (Exception ex) {
+        } catch (Throwable ex) {
             LOGGER.warn("create async wrapper error:{}, record or replay was skipped", ex.getMessage(), ex);
             return null;
         }

@@ -6,6 +6,7 @@ import io.arex.inst.runtime.context.RepeatedCollectManager;
 import io.arex.inst.extension.MethodInstrumentation;
 import io.arex.inst.extension.TypeInstrumentation;
 import io.arex.inst.httpclient.common.HttpClientExtractor;
+import io.arex.inst.runtime.util.IgnoreUtils;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
@@ -58,9 +59,14 @@ public class OkHttpCallInstrumentation extends TypeInstrumentation {
                 @Advice.This Call call,
                 @Advice.Local("wrapped") HttpClientExtractor<Request, Response> extractor,
                 @Advice.Local("mockResult") MockResult mockResult) {
+            Request request = call.request();
+            if (IgnoreUtils.ignoreOperation(request.url().uri().getPath())) {
+                return false;
+            }
+
             if (ContextManager.needRecordOrReplay()) {
                 RepeatedCollectManager.enter();
-                OkHttpClientAdapter adapter = new OkHttpClientAdapter(call.request().newBuilder().build());
+                OkHttpClientAdapter adapter = new OkHttpClientAdapter(request);
                 extractor = new HttpClientExtractor<>(adapter);
                 if (ContextManager.needReplay()) {
                     mockResult = extractor.replay();
@@ -102,6 +108,10 @@ public class OkHttpCallInstrumentation extends TypeInstrumentation {
         public static boolean onEnter(@Advice.This Call call,
             @Advice.Argument(value = 0, readOnly = false) Callback callback,
             @Advice.Local("mockResult") MockResult mockResult) {
+            if (IgnoreUtils.ignoreOperation(call.request().url().uri().getPath())) {
+                return false;
+            }
+
             if (ContextManager.needRecordOrReplay() && RepeatedCollectManager.validate()) {
                 // recording works in callback wrapper
                 callback = new OkHttpCallbackWrapper(call, callback);

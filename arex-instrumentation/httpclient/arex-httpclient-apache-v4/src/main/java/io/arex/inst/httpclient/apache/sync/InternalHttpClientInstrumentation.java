@@ -1,6 +1,7 @@
 package io.arex.inst.httpclient.apache.sync;
 
 import io.arex.agent.bootstrap.model.MockResult;
+import io.arex.inst.httpclient.apache.common.ApacheHttpClientHelper;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.context.RepeatedCollectManager;
 import io.arex.inst.extension.MethodInstrumentation;
@@ -58,6 +59,10 @@ public class InternalHttpClientInstrumentation extends TypeInstrumentation {
                 @Advice.Argument(1) HttpRequest request,
                 @Advice.Local("extractor") HttpClientExtractor<HttpRequest, HttpResponse> extractor,
                 @Advice.Local("mockResult") MockResult mockResult) {
+            if (ApacheHttpClientHelper.ignoreRequest(request)) {
+                return false;
+            }
+
             if (ContextManager.needRecordOrReplay()) {
                 RepeatedCollectManager.enter();
                 HttpClientAdapter<HttpRequest, HttpResponse> adapter = new ApacheHttpClientAdapter(request);
