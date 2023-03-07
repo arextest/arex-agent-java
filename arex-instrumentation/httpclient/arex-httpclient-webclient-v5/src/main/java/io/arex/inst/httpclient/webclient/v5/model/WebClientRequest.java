@@ -15,6 +15,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.function.Function;
 
 public class WebClientRequest extends AbstractClientHttpRequest {
@@ -73,7 +74,7 @@ public class WebClientRequest extends AbstractClientHttpRequest {
     public Mono<Void> writeWith(Publisher<? extends DataBuffer> body) {
         return Mono.from(body).doOnSuccess(dataBuffer -> {
             if (dataBuffer != null) {
-                content = dataBuffer.asByteBuffer().array();
+                content = dataBuffer.toString(StandardCharsets.UTF_8).getBytes();
             }
         }).then();
     }

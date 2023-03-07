@@ -24,7 +24,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
-import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.Objects;
 import java.util.function.Function;
@@ -74,17 +73,11 @@ class WebClientWrapperTest {
     static java.util.stream.Stream<Arguments> recordCase() {
         Runnable emptyMocker = () -> {};
         DataBuffer dataBuffer = Mockito.mock(DataBuffer.class);
-        ByteBuffer byteBuffer = Mockito.mock(ByteBuffer.class);
         Runnable mocker1 = () -> {
             ClientResponseBuilder builder = new ClientResponseBuilder(strategies);
-            Mockito.when(byteBuffer.hasArray()).thenReturn(true);
-            Mockito.when(dataBuffer.asByteBuffer()).thenReturn(byteBuffer);
             Function<Flux<DataBuffer>, Flux<DataBuffer>> transformer = dataBufferFlux -> Flux.just(dataBuffer);
             builder.body(transformer);
             Mockito.when(response.mutate()).thenReturn(builder);
-        };
-        Runnable mocker2 = () -> {
-            Mockito.when(byteBuffer.hasArray()).thenReturn(false);
             Mockito.when(dataBuffer.toString(any())).thenReturn("mock");
         };
         Predicate<Mono<ClientResponse>> predicate1 = Objects::isNull;
@@ -107,7 +100,7 @@ class WebClientWrapperTest {
                 arguments(emptyMocker, Mono.just(response).delaySubscription(Duration.ofSeconds(1)), predicate2),
                 arguments(emptyMocker, Mono.error(new NullPointerException("mock")), predicate3),
                 arguments(mocker1, Mono.just(response), predicate4),
-                arguments(mocker2, Mono.just(response), predicate4)
+                arguments(emptyMocker, Mono.just(response), predicate4)
         );
     }
 
