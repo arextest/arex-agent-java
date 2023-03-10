@@ -10,8 +10,6 @@ import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
 
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Collections;
@@ -36,8 +34,8 @@ public class ServletInstrumentationV3 extends TypeInstrumentation {
     @Override
     public List<MethodInstrumentation> methodAdvices() {
         ElementMatcher<MethodDescription> matcher =
-                named("service").and(isProtected()).and(takesArgument(0, named("javax.servlet.ServletRequest")))
-                        .and(takesArgument(1, named("javax.servlet.ServletResponse")));
+                named("service").and(isProtected()).and(takesArgument(0, named("javax.servlet.http.HttpServletRequest")))
+                        .and(takesArgument(1, named("javax.servlet.http.HttpServletResponse")));
 
         String adviceClassName = this.getClass().getName() + "$ServiceAdvice";
 
@@ -61,8 +59,8 @@ public class ServletInstrumentationV3 extends TypeInstrumentation {
 
     public static class ServiceAdvice {
         @Advice.OnMethodEnter
-        public static void onEnter(@Advice.Argument(value = 0, readOnly = false) ServletRequest request,
-                                   @Advice.Argument(value = 1, readOnly = false) ServletResponse response) {
+        public static void onEnter(@Advice.Argument(value = 0, readOnly = false) HttpServletRequest request,
+                                   @Advice.Argument(value = 1, readOnly = false) HttpServletResponse response) {
             Pair<HttpServletRequest, HttpServletResponse> pair =
                     ServletAdviceHelper.onServiceEnter(ServletAdapterImplV3.getInstance(), request, response);
 
@@ -80,8 +78,8 @@ public class ServletInstrumentationV3 extends TypeInstrumentation {
         }
 
         @Advice.OnMethodExit
-        public static void onExit(@Advice.Argument(value = 0, readOnly = false) ServletRequest request,
-                                  @Advice.Argument(value = 1, readOnly = false) ServletResponse response) {
+        public static void onExit(@Advice.Argument(value = 0, readOnly = false) HttpServletRequest request,
+                                  @Advice.Argument(value = 1, readOnly = false) HttpServletResponse response) {
             ServletAdviceHelper.onServiceExit(ServletAdapterImplV3.getInstance(), request, response);
         }
     }
