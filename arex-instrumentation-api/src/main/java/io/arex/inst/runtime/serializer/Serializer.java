@@ -189,6 +189,10 @@ public class Serializer {
         return map.values();
     }
 
+    public Map<String, StringSerializable> getSerializers() {
+        return serializers;
+    }
+
     public StringSerializable getSerializer() {
         return defaultSerializer;
     }
