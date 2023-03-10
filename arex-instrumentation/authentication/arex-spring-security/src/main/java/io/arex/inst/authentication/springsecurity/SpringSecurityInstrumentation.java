@@ -7,7 +7,6 @@ import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.web.FilterInvocation;
 
 import java.util.List;
 
@@ -38,16 +37,7 @@ public class SpringSecurityInstrumentation extends TypeInstrumentation {
 
     public static class PreAuthorizationAdvice {
         @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class)
-        public static boolean onEnter(@Advice.Argument(0) Object object) {
-            if (object instanceof FilterInvocation) {
-                FilterInvocation invocation = (FilterInvocation)object;
-                // authentication is through the filter chain and has not yet reached the servlet
-                String recordId = invocation.getRequest().getHeader("arex-record-id");
-                if (recordId != null && recordId.length() > 0) {
-                    return true;
-                }
-            }
-            // authorize has reached the servlet, but spring-security(@PreAuthorize) will redefine the request header
+        public static boolean onEnter() {
             return ContextManager.needReplay();
         }
     }
@@ -58,7 +48,7 @@ public class SpringSecurityInstrumentation extends TypeInstrumentation {
                                   @Advice.Thrown(readOnly = false) AccessDeniedException exception,
                                   @Advice.Return(readOnly = false) Object result) {
             // suppress AccessDeniedException(@PostAuthorize)
-            if (exception != null) {
+            if (ContextManager.needReplay() && exception != null) {
                 exception = null;
                 result = returnedObject;
             }

@@ -5,6 +5,8 @@ import io.arex.inst.extension.MethodInstrumentation;
 import io.arex.inst.extension.TypeInstrumentation;
 import io.arex.inst.httpservlet.ServletAdviceHelper;
 import io.arex.inst.httpservlet.adapter.impl.ServletAdapterImplV5;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import net.bytebuddy.asm.Advice;
@@ -34,9 +36,9 @@ public class ServletInstrumentationV5 extends TypeInstrumentation {
     @Override
     public List<MethodInstrumentation> methodAdvices() {
         ElementMatcher<MethodDescription> matcher =
-            named("service").and(isProtected())
-                    .and(takesArgument(0, named("jakarta.servlet.http.HttpServletRequest")))
-                    .and(takesArgument(1, named("jakarta.servlet.http.HttpServletResponse")));
+                named("service").and(isProtected())
+                        .and(takesArgument(0, named("jakarta.servlet.ServletRequest")))
+                        .and(takesArgument(1, named("jakarta.servlet.ServletResponse")));
 
         String adviceClassName = this.getClass().getName() + "$ServiceAdvice";
 
@@ -62,10 +64,10 @@ public class ServletInstrumentationV5 extends TypeInstrumentation {
     public static class ServiceAdvice {
 
         @Advice.OnMethodEnter
-        public static void onEnter(@Advice.Argument(value = 0, readOnly = false) HttpServletRequest request,
-            @Advice.Argument(value = 1, readOnly = false) HttpServletResponse response) {
+        public static void onEnter(@Advice.Argument(value = 0, readOnly = false) ServletRequest request,
+                                   @Advice.Argument(value = 1, readOnly = false) ServletResponse response) {
             Pair<HttpServletRequest, HttpServletResponse> pair =
-                ServletAdviceHelper.onServiceEnter(ServletAdapterImplV5.getInstance(), request, response);
+                    ServletAdviceHelper.onServiceEnter(ServletAdapterImplV5.getInstance(), request, response);
 
             if (pair == null) {
                 return;
@@ -81,8 +83,8 @@ public class ServletInstrumentationV5 extends TypeInstrumentation {
         }
 
         @Advice.OnMethodExit
-        public static void onExit(@Advice.Argument(value = 0, readOnly = false) HttpServletRequest request,
-            @Advice.Argument(value = 1, readOnly = false) HttpServletResponse response) {
+        public static void onExit(@Advice.Argument(value = 0, readOnly = false) ServletRequest request,
+                                  @Advice.Argument(value = 1, readOnly = false) ServletResponse response) {
             ServletAdviceHelper.onServiceExit(ServletAdapterImplV5.getInstance(), request, response);
         }
     }
