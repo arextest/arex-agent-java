@@ -28,9 +28,7 @@ public class JCasbinInstrumentation extends TypeInstrumentation {
         ElementMatcher<MethodDescription> matcher = named("enforce").and(isPublic())
                 .and(takesArgument(0, named("java.lang.Object[]")));
 
-        String adviceClassName = this.getClass().getName() + "$MethodAdvice";
-
-        return singletonList(new MethodInstrumentation(matcher, adviceClassName));
+        return singletonList(new MethodInstrumentation(matcher, MethodAdvice.class.getName()));
     }
 
     public static class MethodAdvice {
