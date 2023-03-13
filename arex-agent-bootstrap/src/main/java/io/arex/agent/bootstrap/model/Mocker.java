@@ -18,6 +18,8 @@ public interface Mocker extends Serializable {
 
     void setRecordEnvironment(int var1);
 
+    int getRecordVersion();
+
     void setCreationTime(long var1);
 
     long getCreationTime();

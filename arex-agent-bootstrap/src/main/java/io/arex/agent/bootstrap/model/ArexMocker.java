@@ -6,6 +6,7 @@ public class ArexMocker implements Mocker {
     private String recordId;
     private String appId;
     private int recordEnvironment;
+    private int recordVersion = 1;
     private long creationTime;
     private Mocker.Target targetRequest;
     private Mocker.Target targetResponse;
@@ -40,6 +41,10 @@ public class ArexMocker implements Mocker {
 
     public int getRecordEnvironment() {
         return this.recordEnvironment;
+    }
+
+    public int getRecordVersion() {
+        return this.recordVersion;
     }
 
     public long getCreationTime() {
