@@ -146,4 +146,29 @@ public class ServletAdapterImplV5 implements ServletAdapter<HttpServletRequest, 
     public byte[] getResponseBytes(HttpServletResponse httpServletResponse) {
         return ((CachedBodyResponseWrapperV5) httpServletResponse).getContentAsByteArray();
     }
+
+    @Override
+    public HttpServletRequest asHttpServletRequest(Object servletRequest) {
+        if (servletRequest instanceof HttpServletRequest) {
+            return (HttpServletRequest) servletRequest;
+        }
+        return null;
+    }
+
+    @Override
+    public HttpServletResponse asHttpServletResponse(Object servletResponse) {
+        if (servletResponse instanceof HttpServletResponse) {
+            return (HttpServletResponse) servletResponse;
+        }
+        return null;
+    }
+
+    @Override
+    public boolean markProcessed(HttpServletRequest httpServletRequest, String mark) {
+        if (httpServletRequest.getAttribute(mark) != null) {
+            return true;
+        }
+        httpServletRequest.setAttribute(mark, Boolean.TRUE.toString());
+        return false;
+    }
 }

@@ -5,6 +5,8 @@ import io.arex.inst.extension.MethodInstrumentation;
 import io.arex.inst.extension.TypeInstrumentation;
 import io.arex.inst.httpservlet.ServletAdviceHelper;
 import io.arex.inst.httpservlet.adapter.impl.ServletAdapterImplV5;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import net.bytebuddy.asm.Advice;
@@ -15,32 +17,26 @@ import net.bytebuddy.matcher.ElementMatcher;
 import java.util.Collections;
 import java.util.List;
 
-import static io.arex.inst.extension.matcher.SafeExtendsClassMatcher.extendsClass;
 import static java.util.Arrays.asList;
 import static net.bytebuddy.matcher.ElementMatchers.*;
 
 /**
- * ServletInstrumentation
- *
- * @date 2022/03/03
+ * FilterInstrumentationV5
  */
-public class ServletInstrumentationV5 extends TypeInstrumentation {
+public class FilterInstrumentationV5 extends TypeInstrumentation {
 
     @Override
     public ElementMatcher<TypeDescription> typeMatcher() {
-        return extendsClass(named("jakarta.servlet.http.HttpServlet"), false);
+        return not(isInterface()).and(hasSuperType(named("jakarta.servlet.Filter")));
     }
 
     @Override
     public List<MethodInstrumentation> methodAdvices() {
-        ElementMatcher<MethodDescription> matcher =
-                named("service").and(isProtected())
-                        .and(takesArgument(0, named("jakarta.servlet.http.HttpServletRequest")))
-                        .and(takesArgument(1, named("jakarta.servlet.http.HttpServletResponse")));
+        ElementMatcher<MethodDescription> matcher = named("doFilter")
+                .and(takesArgument(0, named("jakarta.servlet.ServletRequest")))
+                .and(takesArgument(1, named("jakarta.servlet.ServletResponse")));
 
-        String adviceClassName = this.getClass().getName() + "$ServiceAdvice";
-
-        return Collections.singletonList(new MethodInstrumentation(matcher, adviceClassName));
+        return Collections.singletonList(new MethodInstrumentation(matcher, FilterAdvice.class.getName()));
     }
 
     @Override
@@ -59,11 +55,10 @@ public class ServletInstrumentationV5 extends TypeInstrumentation {
                 "io.arex.inst.httpservlet.wrapper.FastByteArrayOutputStream");
     }
 
-    public static class ServiceAdvice {
-
+    public static class FilterAdvice {
         @Advice.OnMethodEnter
-        public static void onEnter(@Advice.Argument(value = 0, readOnly = false) HttpServletRequest request,
-                                   @Advice.Argument(value = 1, readOnly = false) HttpServletResponse response) {
+        public static void onEnter(@Advice.Argument(value = 0, readOnly = false) ServletRequest request,
+                                   @Advice.Argument(value = 1, readOnly = false) ServletResponse response) {
             Pair<HttpServletRequest, HttpServletResponse> pair =
                     ServletAdviceHelper.onServiceEnter(ServletAdapterImplV5.getInstance(), request, response);
 
@@ -81,8 +76,8 @@ public class ServletInstrumentationV5 extends TypeInstrumentation {
         }
 
         @Advice.OnMethodExit
-        public static void onExit(@Advice.Argument(value = 0, readOnly = false) HttpServletRequest request,
-                                  @Advice.Argument(value = 1, readOnly = false) HttpServletResponse response) {
+        public static void onExit(@Advice.Argument(value = 0, readOnly = false) ServletRequest request,
+                                  @Advice.Argument(value = 1, readOnly = false) ServletResponse response) {
             ServletAdviceHelper.onServiceExit(ServletAdapterImplV5.getInstance(), request, response);
         }
     }

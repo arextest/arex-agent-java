@@ -1,20 +1,17 @@
-package io.arex.inst.authentication.shiro;
+package io.arex.inst.authentication.jcasbin;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@ExtendWith(MockitoExtension.class)
-class ShiroInstrumentationTest {
-    static ShiroInstrumentation target = null;
+class JCasbinInstrumentationTest {
+    static JCasbinInstrumentation target = null;
 
     @BeforeAll
     static void setUp() {
-        target = new ShiroInstrumentation();
+        target = new JCasbinInstrumentation();
     }
 
     @AfterAll
@@ -34,11 +31,11 @@ class ShiroInstrumentationTest {
 
     @Test
     void onEnter() {
-        assertFalse(ShiroInstrumentation.PreHandleAdvice.onEnter());
+        assertFalse(JCasbinInstrumentation.MethodAdvice.onEnter());
     }
 
     @Test
     void onExit() {
-        assertDoesNotThrow(() -> ShiroInstrumentation.PreHandleAdvice.onExit(true, false));
+        assertDoesNotThrow(() -> JCasbinInstrumentation.MethodAdvice.onExit(true, false));
     }
 }

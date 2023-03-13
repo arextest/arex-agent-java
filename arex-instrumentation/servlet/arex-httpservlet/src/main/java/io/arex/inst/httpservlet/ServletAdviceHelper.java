@@ -33,6 +33,7 @@ public class ServletAdviceHelper {
     private static final Set<String> FILTERED_GET_URL_SUFFIX = new HashSet<>();
     private static final String HTTP_METHOD_GET = "GET";
     private static final List<Integer> RESPONSE_STATUS_LIST = new ArrayList<>();
+    public static final String PROCESSED_FLAG = "arex-processed-flag";
 
     static {
         FILTERED_CONTENT_TYPE.add("/javascript");
@@ -53,9 +54,43 @@ public class ServletAdviceHelper {
         RESPONSE_STATUS_LIST.add(302);
     }
 
+    /**
+     * If there is an implementation of Filter, it is called by XXXFilter.
+     * If there is no implementation of Filter, it is called by Servlet.service
+     * <pre>
+     * JavaWeb process:
+     *                             filter1                      filter2
+     *                       ----------------------       ----------------------
+     *  ----------           |    ----------      |       |    ----------      |
+     *  | client |--request--|--> | before |      |   ┎---|--> | before |      |
+     *  ----------           |    ----------      |   ¦   |    ----------      |
+     *       ↑               |         ↓          |   ¦   |         ↓          |
+     *       ¦               |  ----------------  |   ¦   |  ----------------  |    -------------------
+     *       ¦               |  |Chain.doFilter|--|---┘   |  |Chain.doFilter| -|--->| Servlet.service |
+     *       ¦               |  ----------------  |       |  ----------------  |    -------------------
+     *       ¦               |                    |       |                    |             ¦
+     *       ¦               |    ----------      |       |    ----------      |             ¦
+     *       ------response--|----| after  | <----|-------|----| after  | <----|-------------┘
+     *                       |    ----------      |       |    ----------      |
+     *                       ----------------------       ----------------------
+     * </pre>
+     */
     public static <TRequest, TResponse> Pair<TRequest, TResponse> onServiceEnter(
-            ServletAdapter<TRequest, TResponse> adapter, TRequest httpServletRequest,
-            TResponse httpServletResponse) {
+            ServletAdapter<TRequest, TResponse> adapter, Object servletRequest,
+            Object servletResponse) {
+        TRequest httpServletRequest = adapter.asHttpServletRequest(servletRequest);
+        if (httpServletRequest == null) {
+            return null;
+        }
+        // This judgment prevents multiple calls (although there are multiple calls in a request, only one pass is allowed)
+        if (adapter.markProcessed(httpServletRequest, PROCESSED_FLAG)) {
+            return null;
+        }
+        TResponse httpServletResponse = adapter.asHttpServletResponse(servletResponse);
+        if (httpServletResponse == null) {
+            return null;
+        }
+
         // Async listener will handle if attr with arex-async-flag
         if (Boolean.TRUE.toString().equals(adapter.getAttribute(httpServletRequest, SERVLET_ASYNC_FLAG))) {
             httpServletResponse = adapter.wrapResponse(httpServletResponse);
@@ -81,9 +116,17 @@ public class ServletAdviceHelper {
 
 
     public static <TRequest, TResponse> void onServiceExit(
-            ServletAdapter<TRequest, TResponse> adapter, TRequest httpServletRequest,
-            TResponse httpServletResponse) {
+            ServletAdapter<TRequest, TResponse> adapter, Object servletRequest,
+            Object servletResponse) {
         try {
+            TRequest httpServletRequest = adapter.asHttpServletRequest(servletRequest);
+            TResponse httpServletResponse = adapter.asHttpServletResponse(servletResponse);
+            if (httpServletRequest == null || httpServletResponse == null) {
+                return;
+            }
+
+            adapter.removeAttribute(httpServletRequest, PROCESSED_FLAG);
+
             if (!adapter.wrapped(httpServletRequest, httpServletResponse)) {
                 return;
             }
@@ -137,7 +180,7 @@ public class ServletAdviceHelper {
 
         // Set response only when return response body
         if (!invocableHandlerMethod.getReturnType().hasMethodAnnotation(ResponseBody.class) &&
-            !invocableHandlerMethod.getBeanType().isAnnotationPresent(RestController.class)) {
+                !invocableHandlerMethod.getBeanType().isAnnotationPresent(RestController.class)) {
             return;
         }
 
