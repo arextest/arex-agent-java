@@ -11,146 +11,155 @@ import java.util.Set;
 import java.util.function.Function;
 
 public class Config {
-    private static Config INSTANCE = null;
-    private final Map<String, String> genericReturnTypeCacheMap = new HashMap<>();
 
-    static void update(boolean enableDebug, String serviceName, List<DynamicClassEntity> entities,
-                       Map<String, String> properties, Set<String> excludeServiceOperations,
-                       int dubboStreamReplayThreshold, int recordRate) {
-        INSTANCE = new Config(enableDebug, serviceName, entities, properties, excludeServiceOperations,
-                dubboStreamReplayThreshold, recordRate);
-    }
+  private static Config INSTANCE = null;
+  private final Map<String, String> genericReturnTypeCacheMap = new HashMap<>();
 
-    public static Config get() {
-        return INSTANCE;
-    }
+  static void update(boolean enableDebug, String serviceName, List<DynamicClassEntity> entities,
+      Map<String, String> properties, Set<String> excludeServiceOperations,
+      int dubboStreamReplayThreshold, int recordRate) {
+    INSTANCE = new Config(enableDebug, serviceName, entities, properties, excludeServiceOperations,
+        dubboStreamReplayThreshold, recordRate);
+  }
 
-    private final boolean enableDebug;
-    private final String serviceName;
-    private final List<DynamicClassEntity> entities;
-    private Map<String, String> properties;
-    private Set<String> excludeServiceOperations;
-    private final int dubboStreamReplayThreshold;
-    private int recordRate;
-    Config(boolean enableDebug, String serviceName, List<DynamicClassEntity> entities, Map<String, String> properties,
-           Set<String> excludeServiceOperations, int dubboStreamReplayThreshold, int recordRate) {
-        this.enableDebug = enableDebug;
-        this.serviceName = serviceName;
-        this.entities = entities;
-        this.properties = properties;
-        this.excludeServiceOperations = excludeServiceOperations;
-        this.dubboStreamReplayThreshold = dubboStreamReplayThreshold;
-        this.recordRate = recordRate;
-        buildGenericReturnTypeCacheMap();
-    }
+  public static Config get() {
+    return INSTANCE;
+  }
 
-    private void buildGenericReturnTypeCacheMap() {
-        if (entities == null) {
-            return;
-        }
-        for (DynamicClassEntity entity : entities) {
-            String genericReturnType = entity.getGenericReturnType();
-            if (StringUtil.isEmpty(genericReturnType)) {
-                continue;
-            }
+  private final boolean enableDebug;
+  private final String serviceName;
+  private final List<DynamicClassEntity> entities;
+  private Map<String, String> properties;
+  private Set<String> excludeServiceOperations;
+  private final int dubboStreamReplayThreshold;
+  private int recordRate;
+  private String recordVersion;
 
-            genericReturnTypeCacheMap.putIfAbsent(entity.getSignature(), genericReturnType);
-        }
-    }
+  Config(boolean enableDebug, String serviceName, List<DynamicClassEntity> entities,
+      Map<String, String> properties,
+      Set<String> excludeServiceOperations, int dubboStreamReplayThreshold, int recordRate) {
+    this.enableDebug = enableDebug;
+    this.serviceName = serviceName;
+    this.entities = entities;
+    this.properties = properties;
+    this.excludeServiceOperations = excludeServiceOperations;
+    this.dubboStreamReplayThreshold = dubboStreamReplayThreshold;
+    this.recordRate = recordRate;
+    this.recordVersion = properties.get("arex.agent.version");
+    buildGenericReturnTypeCacheMap();
+  }
 
-    public String getGenericReturnType(String methodSignature) {
-        return genericReturnTypeCacheMap.get(methodSignature);
+  private void buildGenericReturnTypeCacheMap() {
+    if (entities == null) {
+      return;
     }
-    public int getGenericReturnTypeMapSize() {
-        return genericReturnTypeCacheMap.size();
-    }
+    for (DynamicClassEntity entity : entities) {
+      String genericReturnType = entity.getGenericReturnType();
+      if (StringUtil.isEmpty(genericReturnType)) {
+        continue;
+      }
 
-    public boolean isEnableDebug() {
-        return this.enableDebug;
+      genericReturnTypeCacheMap.putIfAbsent(entity.getSignature(), genericReturnType);
     }
+  }
 
-    public List<DynamicClassEntity> dynamicClassEntities() {
-        return this.entities;
-    }
+  public String getRecordVersion() {
+    return recordVersion;
+  }
 
-    public Set<String> excludeServiceOperations() {
-        return this.excludeServiceOperations;
-    }
+  public String getGenericReturnType(String methodSignature) {
+    return genericReturnTypeCacheMap.get(methodSignature);
+  }
 
-    public String getServiceName() {
-        return this.serviceName;
-    }
+  public int getGenericReturnTypeMapSize() {
+    return genericReturnTypeCacheMap.size();
+  }
 
-    public String getString(String name) {
-        return getRawProperty(name, null);
-    }
+  public boolean isEnableDebug() {
+    return this.enableDebug;
+  }
 
-    public String getString(String name, String defaultValue) {
-        return getRawProperty(name, defaultValue);
-    }
+  public List<DynamicClassEntity> dynamicClassEntities() {
+    return this.entities;
+  }
 
-    public boolean getBoolean(String name, boolean defaultValue) {
-        return safeGetTypedProperty(name, Boolean::parseBoolean, defaultValue);
-    }
+  public Set<String> excludeServiceOperations() {
+    return this.excludeServiceOperations;
+  }
 
-    public int getInt(String name, int defaultValue) {
-        return safeGetTypedProperty(name, Integer::parseInt, defaultValue);
-    }
+  public String getServiceName() {
+    return this.serviceName;
+  }
 
-    public long getLong(String name, long defaultValue) {
-        return safeGetTypedProperty(name, Long::parseLong, defaultValue);
-    }
+  public String getString(String name) {
+    return getRawProperty(name, null);
+  }
 
-    public double getDouble(String name, double defaultValue) {
-        return safeGetTypedProperty(name, Double::parseDouble, defaultValue);
-    }
+  public String getString(String name, String defaultValue) {
+    return getRawProperty(name, defaultValue);
+  }
 
-    private <T> T safeGetTypedProperty(String name, Function<String, T> parser, T defaultValue) {
-        try {
-            T value = getTypedProperty(name, parser);
-            return value == null ? defaultValue : value;
-        } catch (RuntimeException t) {
-            return defaultValue;
-        }
-    }
+  public boolean getBoolean(String name, boolean defaultValue) {
+    return safeGetTypedProperty(name, Boolean::parseBoolean, defaultValue);
+  }
 
-    private <T> T getTypedProperty(String name, Function<String, T> parser) {
-        String value = getRawProperty(name, null);
-        if (value == null || value.trim().isEmpty()) {
-            return null;
-        }
-        return parser.apply(value);
-    }
+  public int getInt(String name, int defaultValue) {
+    return safeGetTypedProperty(name, Integer::parseInt, defaultValue);
+  }
 
-    private String getRawProperty(String name, String defaultValue) {
-        return this.properties.getOrDefault(name, defaultValue);
-    }
+  public long getLong(String name, long defaultValue) {
+    return safeGetTypedProperty(name, Long::parseLong, defaultValue);
+  }
 
-    public int getDubboStreamReplayThreshold() {
-        return dubboStreamReplayThreshold;
-    }
+  public double getDouble(String name, double defaultValue) {
+    return safeGetTypedProperty(name, Double::parseDouble, defaultValue);
+  }
 
-    public int getRecordRate() {
-        return recordRate;
+  private <T> T safeGetTypedProperty(String name, Function<String, T> parser, T defaultValue) {
+    try {
+      T value = getTypedProperty(name, parser);
+      return value == null ? defaultValue : value;
+    } catch (RuntimeException t) {
+      return defaultValue;
     }
+  }
 
-    /**
-     * Conditions for determining invalid recording configuration(debug mode don't judge):
-     * 1. rate <= 0 <br/>
-     * 2. not in working time <br/>
-     * 3. exceed rate limit <br/>
-     * @return true: invalid OR false: valid
-     */
-    public boolean invalidRecord(String path) {
-        if (isEnableDebug()) {
-            return false;
-        }
-        if (getRecordRate() <= 0) {
-            return true;
-        }
-        if (!getBoolean("arex.during.work", false)) {
-            return true;
-        }
-        return !RecordLimiter.acquire(path);
+  private <T> T getTypedProperty(String name, Function<String, T> parser) {
+    String value = getRawProperty(name, null);
+    if (value == null || value.trim().isEmpty()) {
+      return null;
     }
+    return parser.apply(value);
+  }
+
+  private String getRawProperty(String name, String defaultValue) {
+    return this.properties.getOrDefault(name, defaultValue);
+  }
+
+  public int getDubboStreamReplayThreshold() {
+    return dubboStreamReplayThreshold;
+  }
+
+  public int getRecordRate() {
+    return recordRate;
+  }
+
+  /**
+   * Conditions for determining invalid recording configuration(debug mode don't judge): 1. rate <=
+   * 0 <br/> 2. not in working time <br/> 3. exceed rate limit <br/>
+   *
+   * @return true: invalid OR false: valid
+   */
+  public boolean invalidRecord(String path) {
+    if (isEnableDebug()) {
+      return false;
+    }
+    if (getRecordRate() <= 0) {
+      return true;
+    }
+    if (!getBoolean("arex.during.work", false)) {
+      return true;
+    }
+    return !RecordLimiter.acquire(path);
+  }
 }

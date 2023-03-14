@@ -1,105 +1,112 @@
 package io.arex.agent.bootstrap.model;
+
 public class ArexMocker implements Mocker {
-    private String id;
-    private MockCategoryType categoryType;
-    private String replayId;
-    private String recordId;
-    private String appId;
-    private int recordEnvironment;
-    private String recordVersion = "20230313";
-    private long creationTime;
-    private Mocker.Target targetRequest;
-    private Mocker.Target targetResponse;
-    private String operationName;
 
-    public ArexMocker() {
-    }
+  private String id;
+  private MockCategoryType categoryType;
+  private String replayId;
+  private String recordId;
+  private String appId;
+  private int recordEnvironment;
+  private String recordVersion;
+  private long creationTime;
+  private Mocker.Target targetRequest;
+  private Mocker.Target targetResponse;
+  private String operationName;
 
-    public ArexMocker(MockCategoryType categoryType) {
-        this.categoryType = categoryType;
-    }
+  public ArexMocker() {
+  }
 
-    public String getId() {
-        return this.id;
-    }
+  public ArexMocker(MockCategoryType categoryType) {
+    this.categoryType = categoryType;
+  }
 
-    public MockCategoryType getCategoryType() {
-        return this.categoryType;
-    }
+  public String getId() {
+    return this.id;
+  }
 
-    public String getReplayId() {
-        return this.replayId;
-    }
+  public MockCategoryType getCategoryType() {
+    return this.categoryType;
+  }
 
-    public String getRecordId() {
-        return this.recordId;
-    }
+  public String getReplayId() {
+    return this.replayId;
+  }
 
-    public String getAppId() {
-        return this.appId;
-    }
+  public String getRecordId() {
+    return this.recordId;
+  }
 
-    public int getRecordEnvironment() {
-        return this.recordEnvironment;
-    }
+  public String getAppId() {
+    return this.appId;
+  }
 
-    public String getRecordVersion() {
-        return this.recordVersion;
-    }
+  public int getRecordEnvironment() {
+    return this.recordEnvironment;
+  }
 
-    public long getCreationTime() {
-        return this.creationTime;
-    }
 
-    public Mocker.Target getTargetRequest() {
-        return this.targetRequest;
-    }
+  public String getRecordVersion() {
+    return this.recordVersion;
+  }
 
-    public Mocker.Target getTargetResponse() {
-        return this.targetResponse;
-    }
+  public void setRecordVersion(String recordVersion) {
+    this.recordVersion = recordVersion;
+  }
 
-    public String getOperationName() {
-        return this.operationName;
-    }
+  public long getCreationTime() {
+    return this.creationTime;
+  }
 
-    public void setId(String id) {
-        this.id = id;
-    }
+  public Mocker.Target getTargetRequest() {
+    return this.targetRequest;
+  }
 
-    public void setCategoryType(MockCategoryType categoryType) {
-        this.categoryType = categoryType;
-    }
+  public Mocker.Target getTargetResponse() {
+    return this.targetResponse;
+  }
 
-    public void setReplayId(String replayId) {
-        this.replayId = replayId;
-    }
+  public String getOperationName() {
+    return this.operationName;
+  }
 
-    public void setRecordId(String recordId) {
-        this.recordId = recordId;
-    }
+  public void setId(String id) {
+    this.id = id;
+  }
 
-    public void setAppId(String appId) {
-        this.appId = appId;
-    }
+  public void setCategoryType(MockCategoryType categoryType) {
+    this.categoryType = categoryType;
+  }
 
-    public void setRecordEnvironment(int recordEnvironment) {
-        this.recordEnvironment = recordEnvironment;
-    }
+  public void setReplayId(String replayId) {
+    this.replayId = replayId;
+  }
 
-    public void setCreationTime(long creationTime) {
-        this.creationTime = creationTime;
-    }
+  public void setRecordId(String recordId) {
+    this.recordId = recordId;
+  }
 
-    public void setTargetRequest(Mocker.Target targetRequest) {
-        this.targetRequest = targetRequest;
-    }
+  public void setAppId(String appId) {
+    this.appId = appId;
+  }
 
-    public void setTargetResponse(Mocker.Target targetResponse) {
-        this.targetResponse = targetResponse;
-    }
+  public void setRecordEnvironment(int recordEnvironment) {
+    this.recordEnvironment = recordEnvironment;
+  }
 
-    public void setOperationName(String operationName) {
-        this.operationName = operationName;
-    }
+  public void setCreationTime(long creationTime) {
+    this.creationTime = creationTime;
+  }
+
+  public void setTargetRequest(Mocker.Target targetRequest) {
+    this.targetRequest = targetRequest;
+  }
+
+  public void setTargetResponse(Mocker.Target targetResponse) {
+    this.targetResponse = targetResponse;
+  }
+
+  public void setOperationName(String operationName) {
+    this.operationName = operationName;
+  }
 }
