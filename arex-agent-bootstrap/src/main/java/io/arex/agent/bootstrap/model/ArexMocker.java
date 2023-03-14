@@ -1,11 +1,14 @@
 package io.arex.agent.bootstrap.model;
+
 public class ArexMocker implements Mocker {
+
     private String id;
     private MockCategoryType categoryType;
     private String replayId;
     private String recordId;
     private String appId;
     private int recordEnvironment;
+    private String recordVersion;
     private long creationTime;
     private Mocker.Target targetRequest;
     private Mocker.Target targetResponse;
@@ -40,6 +43,15 @@ public class ArexMocker implements Mocker {
 
     public int getRecordEnvironment() {
         return this.recordEnvironment;
+    }
+
+
+    public String getRecordVersion() {
+        return this.recordVersion;
+    }
+
+    public void setRecordVersion(String recordVersion) {
+        this.recordVersion = recordVersion;
     }
 
     public long getCreationTime() {

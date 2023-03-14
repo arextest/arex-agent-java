@@ -29,6 +29,7 @@ import static io.arex.foundation.config.ConfigConstants.*;
 
 // todo: use file
 public class ConfigManager {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(ConfigManager.class);
     public static final ConfigManager INSTANCE = new ConfigManager();
 
@@ -121,21 +122,22 @@ public class ConfigManager {
         System.setProperty(TIME_MACHINE, timeMachine);
     }
 
-    public void setDynamicClassList(List<ConfigService.DynamicClassConfiguration> dynamicClassConfigList) {
+    public void setDynamicClassList(
+        List<ConfigService.DynamicClassConfiguration> dynamicClassConfigList) {
         if (CollectionUtil.isEmpty(dynamicClassConfigList)) {
             return;
         }
         List<DynamicClassEntity> resultList = new ArrayList<>(dynamicClassConfigList.size());
         for (ConfigService.DynamicClassConfiguration config : dynamicClassConfigList) {
             resultList.add(new DynamicClassEntity(config.getFullClassName(),
-                    config.getMethodName(), config.getParameterTypes(), config.getKeyFormula()));
+                config.getMethodName(), config.getParameterTypes(), config.getKeyFormula()));
         }
         this.dynamicClassList = resultList;
     }
 
     @VisibleForTesting
     void init() {
-        agentVersion = "0.0.1";
+        agentVersion = System.getProperty(AGENT_VERSION, "0.0.1");
         setEnableDebug(System.getProperty(ENABLE_DEBUG));
         setServiceName(StringUtils.strip(System.getProperty(SERVICE_NAME)));
         setStorageServiceHost(StringUtils.strip(System.getProperty(STORAGE_SERVICE_HOST)));
@@ -163,19 +165,20 @@ public class ConfigManager {
         configMap.put(TIME_MACHINE, String.valueOf(startTimeMachine()));
         configMap.put(DISABLE_REPLAY, String.valueOf(disableReplay()));
         configMap.put(DURING_WORK, Boolean.toString(nextWorkTime() <= 0));
+        configMap.put(AGENT_VERSION, agentVersion);
         Map<String, String> extendFieldMap = getExtendField();
         if (extendFieldMap != null && !extendFieldMap.isEmpty()) {
             configMap.putAll(extendFieldMap);
         }
 
         ConfigBuilder.create(getServiceName())
-                .enableDebug(isEnableDebug())
-                .addProperties(configMap)
-                .dynamicClassList(getDynamicClassList())
-                .excludeServiceOperations(getExcludeServiceOperations())
-                .dubboStreamReplayThreshold(getDubboStreamReplayThreshold())
-                .recordRate(getRecordRate())
-                .build();
+            .enableDebug(isEnableDebug())
+            .addProperties(configMap)
+            .dynamicClassList(getDynamicClassList())
+            .excludeServiceOperations(getExcludeServiceOperations())
+            .dubboStreamReplayThreshold(getDubboStreamReplayThreshold())
+            .recordRate(getRecordRate())
+            .build();
     }
 
     @VisibleForTesting
@@ -226,7 +229,7 @@ public class ConfigManager {
         ConfigService.INSTANCE.loadAgentConfig(null);
     }
 
-    public boolean isLocalStorage(){
+    public boolean isLocalStorage() {
         return STORAGE_MODE.equalsIgnoreCase(storageServiceMode);
     }
 
@@ -286,7 +289,7 @@ public class ConfigManager {
         String recordCycle = Integer.toBinaryString(allowDayOfWeeks);
         int index = 0;
         for (int length = recordCycle.length() - 1; length >= 0; length--) {
-            index ++;
+            index++;
             if (recordCycle.charAt(length) == '1') {
                 dayOfWeeks.add(DayOfWeek.of(index));
             }
@@ -303,7 +306,8 @@ public class ConfigManager {
         if (StringUtil.isEmpty(allowTimeOfDayFrom)) {
             return;
         }
-        this.allowTimeOfDayFrom = LocalTime.parse(allowTimeOfDayFrom, DateTimeFormatter.ofPattern("HH:mm"));
+        this.allowTimeOfDayFrom = LocalTime.parse(allowTimeOfDayFrom,
+            DateTimeFormatter.ofPattern("HH:mm"));
         System.setProperty(ALLOW_TIME_FROM, allowTimeOfDayFrom);
     }
 
@@ -315,7 +319,8 @@ public class ConfigManager {
         if (StringUtil.isEmpty(allowTimeOfDayTo)) {
             return;
         }
-        this.allowTimeOfDayTo = LocalTime.parse(allowTimeOfDayTo, DateTimeFormatter.ofPattern("HH:mm"));
+        this.allowTimeOfDayTo = LocalTime.parse(allowTimeOfDayTo,
+            DateTimeFormatter.ofPattern("HH:mm"));
         System.setProperty(ALLOW_TIME_TO, allowTimeOfDayTo);
     }
 
@@ -382,7 +387,7 @@ public class ConfigManager {
         }
 
         this.excludeServiceOperations = new HashSet<>(
-                Arrays.asList(StringUtil.split(excludeServiceOperations, ',')));
+            Arrays.asList(StringUtil.split(excludeServiceOperations, ',')));
     }
 
     public void setExcludeServiceOperations(Set<String> excludeServiceOperationSet) {
@@ -440,18 +445,18 @@ public class ConfigManager {
     @Override
     public String toString() {
         return "ConfigManager{" +
-                "enableDebug=" + enableDebug +
-                ", agentVersion='" + agentVersion + '\'' +
-                ", serviceName='" + serviceName + '\'' +
-                ", storageServiceHost='" + storageServiceHost + '\'' +
-                ", configPath='" + configPath + '\'' +
-                ", storageServiceMode='" + storageServiceMode + '\'' +
-                ", recordRate='" + recordRate + '\'' +
-                ", startTimeMachine='" + startTimeMachine + '\'' +
-                ", allowDayOfWeeks='" + allowDayOfWeeks + '\'' +
-                ", allowTimeOfDayFrom='" + allowTimeOfDayFrom + '\'' +
-                ", allowTimeOfDayTo='" + allowTimeOfDayTo + '\'' +
-                ", dynamicClassList='" + dynamicClassList + '\'' +
-                '}';
+            "enableDebug=" + enableDebug +
+            ", agentVersion='" + agentVersion + '\'' +
+            ", serviceName='" + serviceName + '\'' +
+            ", storageServiceHost='" + storageServiceHost + '\'' +
+            ", configPath='" + configPath + '\'' +
+            ", storageServiceMode='" + storageServiceMode + '\'' +
+            ", recordRate='" + recordRate + '\'' +
+            ", startTimeMachine='" + startTimeMachine + '\'' +
+            ", allowDayOfWeeks='" + allowDayOfWeeks + '\'' +
+            ", allowTimeOfDayFrom='" + allowTimeOfDayFrom + '\'' +
+            ", allowTimeOfDayTo='" + allowTimeOfDayTo + '\'' +
+            ", dynamicClassList='" + dynamicClassList + '\'' +
+            '}';
     }
 }

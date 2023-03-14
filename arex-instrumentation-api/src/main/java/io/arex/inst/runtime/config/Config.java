@@ -11,14 +11,16 @@ import java.util.Set;
 import java.util.function.Function;
 
 public class Config {
+
     private static Config INSTANCE = null;
     private final Map<String, String> genericReturnTypeCacheMap = new HashMap<>();
 
     static void update(boolean enableDebug, String serviceName, List<DynamicClassEntity> entities,
-                       Map<String, String> properties, Set<String> excludeServiceOperations,
-                       int dubboStreamReplayThreshold, int recordRate) {
-        INSTANCE = new Config(enableDebug, serviceName, entities, properties, excludeServiceOperations,
-                dubboStreamReplayThreshold, recordRate);
+        Map<String, String> properties, Set<String> excludeServiceOperations,
+        int dubboStreamReplayThreshold, int recordRate) {
+        INSTANCE = new Config(enableDebug, serviceName, entities, properties,
+            excludeServiceOperations,
+            dubboStreamReplayThreshold, recordRate);
     }
 
     public static Config get() {
@@ -32,8 +34,11 @@ public class Config {
     private Set<String> excludeServiceOperations;
     private final int dubboStreamReplayThreshold;
     private int recordRate;
-    Config(boolean enableDebug, String serviceName, List<DynamicClassEntity> entities, Map<String, String> properties,
-           Set<String> excludeServiceOperations, int dubboStreamReplayThreshold, int recordRate) {
+    private String recordVersion;
+
+    Config(boolean enableDebug, String serviceName, List<DynamicClassEntity> entities,
+        Map<String, String> properties,
+        Set<String> excludeServiceOperations, int dubboStreamReplayThreshold, int recordRate) {
         this.enableDebug = enableDebug;
         this.serviceName = serviceName;
         this.entities = entities;
@@ -41,6 +46,7 @@ public class Config {
         this.excludeServiceOperations = excludeServiceOperations;
         this.dubboStreamReplayThreshold = dubboStreamReplayThreshold;
         this.recordRate = recordRate;
+        this.recordVersion = properties.get("arex.agent.version");
         buildGenericReturnTypeCacheMap();
     }
 
@@ -58,9 +64,14 @@ public class Config {
         }
     }
 
+    public String getRecordVersion() {
+        return recordVersion;
+    }
+
     public String getGenericReturnType(String methodSignature) {
         return genericReturnTypeCacheMap.get(methodSignature);
     }
+
     public int getGenericReturnTypeMapSize() {
         return genericReturnTypeCacheMap.size();
     }
@@ -135,10 +146,9 @@ public class Config {
     }
 
     /**
-     * Conditions for determining invalid recording configuration(debug mode don't judge):
-     * 1. rate <= 0 <br/>
-     * 2. not in working time <br/>
-     * 3. exceed rate limit <br/>
+     * Conditions for determining invalid recording configuration(debug mode don't judge): 1. rate <= 0 <br/> 2. not in
+     * working time <br/> 3. exceed rate limit <br/>
+     *
      * @return true: invalid OR false: valid
      */
     public boolean invalidRecord(String path) {

@@ -6,6 +6,7 @@ import io.arex.agent.bootstrap.model.MockStrategyEnum;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.model.Mocker.Target;
 import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.serializer.Serializer;
@@ -20,6 +21,7 @@ public final class MockUtils {
     }
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MockUtils.class);
+
     public static ArexMocker createMessageProducer(String subject) {
         return create(MockCategoryType.MESSAGE_PRODUCER, subject);
     }
@@ -79,6 +81,7 @@ public final class MockUtils {
         mocker.setOperationName(operationName);
         mocker.setTargetRequest(new Target());
         mocker.setTargetResponse(new Target());
+        mocker.setRecordVersion(Config.get().getRecordVersion());
         return mocker;
     }
 
@@ -114,7 +117,7 @@ public final class MockUtils {
         }
 
         return Serializer.deserialize(responseMocker.getTargetResponse().getBody(),
-                responseMocker.getTargetResponse().getType());
+            responseMocker.getTargetResponse().getType());
     }
 
     public static boolean checkResponseMocker(Mocker responseMocker) {

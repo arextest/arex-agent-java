@@ -20,10 +20,12 @@ import java.util.Set;
  * @date 2022/03/16
  */
 public class ConfigService {
+
     public static final ConfigService INSTANCE = new ConfigService();
     private static final Logger LOGGER = LoggerFactory.getLogger(ConfigService.class);
     private static final String CONFIG_LOAD_URL =
-            String.format("http://%s/api/config/agent/load", ConfigManager.INSTANCE.getStorageServiceHost());
+        String.format("http://%s/api/config/agent/load",
+            ConfigManager.INSTANCE.getStorageServiceHost());
 
     ConfigService() {
     }
@@ -38,6 +40,7 @@ public class ConfigService {
             ConfigQueryRequest request = new ConfigQueryRequest();
             request.appId = ConfigManager.INSTANCE.getServiceName();
             request.host = NetUtils.getIpAddress();
+            request.recordVersion = ConfigManager.INSTANCE.getAgentVersion();
 
             String postData = Serializer.serialize(request);
 
@@ -48,8 +51,10 @@ public class ConfigService {
                 return;
             }
             LOGGER.info("Agent config: {}", responseData);
-            ConfigQueryResponse responseModel = Serializer.deserialize(responseData, ConfigQueryResponse.class);
-            if (responseModel != null && responseModel.getBody() != null && responseModel.getBody().getServiceCollectConfiguration() != null) {
+            ConfigQueryResponse responseModel = Serializer.deserialize(responseData,
+                ConfigQueryResponse.class);
+            if (responseModel != null && responseModel.getBody() != null
+                && responseModel.getBody().getServiceCollectConfiguration() != null) {
                 ConfigManager.INSTANCE.parseServiceConfig(responseModel.getBody());
             }
         } catch (Throwable e) {
@@ -58,6 +63,7 @@ public class ConfigService {
     }
 
     public static class ConfigQueryResponse {
+
         private ResponseStatusType responseStatusType;
         private ResponseBody body;
 
@@ -79,6 +85,7 @@ public class ConfigService {
     }
 
     public static class ResponseStatusType {
+
         private int responseCode;
         private String responseDesc;
         private long timestamp;
@@ -109,16 +116,19 @@ public class ConfigService {
     }
 
     public static class ResponseBody {
+
         private ServiceCollectConfig serviceCollectConfiguration;
         private int status;
         private List<DynamicClassConfiguration> dynamicClassConfigurationList;
         private String targetAddress;
         private Map<String, String> extendField;
+
         public ServiceCollectConfig getServiceCollectConfiguration() {
             return serviceCollectConfiguration;
         }
 
-        public void setServiceCollectConfiguration(ServiceCollectConfig serviceCollectConfiguration) {
+        public void setServiceCollectConfiguration(
+            ServiceCollectConfig serviceCollectConfiguration) {
             this.serviceCollectConfiguration = serviceCollectConfiguration;
         }
 
@@ -126,7 +136,8 @@ public class ConfigService {
             return dynamicClassConfigurationList;
         }
 
-        public void setDynamicClassConfigurationList(List<DynamicClassConfiguration> dynamicClassConfigurationList) {
+        public void setDynamicClassConfigurationList(
+            List<DynamicClassConfiguration> dynamicClassConfigurationList) {
             this.dynamicClassConfigurationList = dynamicClassConfigurationList;
         }
 
@@ -148,6 +159,7 @@ public class ConfigService {
     }
 
     public static class ServiceCollectConfig {
+
         private String appId;
         private int sampleRate;
         private int allowDayOfWeeks;
@@ -214,10 +226,12 @@ public class ConfigService {
     }
 
     public static class DynamicClassConfiguration {
+
         private String fullClassName;
         private String methodName;
         private String parameterTypes;
         private String keyFormula;
+
         public String getFullClassName() {
             return fullClassName;
         }
@@ -252,9 +266,11 @@ public class ConfigService {
     }
 
     public static class ConfigQueryRequest {
+
         private String appId;
         private String agentExtVersion;
         private String coreVersion;
+        private String recordVersion;
         private String host;
 
         public String getAppId() {
@@ -279,6 +295,14 @@ public class ConfigService {
 
         public void setCoreVersion(String coreVersion) {
             this.coreVersion = coreVersion;
+        }
+
+        public String getRecordVersion() {
+            return recordVersion;
+        }
+
+        public void setRecordVersion(String recordVersion) {
+            this.recordVersion = recordVersion;
         }
 
         public String getHost() {
