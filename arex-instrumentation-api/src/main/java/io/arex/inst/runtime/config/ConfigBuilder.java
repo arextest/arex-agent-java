@@ -5,6 +5,7 @@ import io.arex.inst.runtime.model.DynamicClassEntity;
 import java.util.*;
 
 public class ConfigBuilder {
+
     private final Map<String, String> properties;
     private boolean enableDebug = false;
     private final String serviceName;
@@ -70,7 +71,8 @@ public class ConfigBuilder {
     }
 
     public void build() {
-        Config.update(enableDebug, serviceName, entities, Collections.unmodifiableMap(new HashMap<>(properties)),
-                excludeServiceOperations, dubboStreamReplayThreshold, recordRate);
+        Config.update(enableDebug, serviceName, entities,
+            Collections.unmodifiableMap(new HashMap<>(properties)),
+            excludeServiceOperations, dubboStreamReplayThreshold, recordRate);
     }
 }
