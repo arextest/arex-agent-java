@@ -5,7 +5,6 @@ import io.arex.inst.runtime.model.DynamicClassEntity;
 import java.util.*;
 
 public class ConfigBuilder {
-
     private final Map<String, String> properties;
     private boolean enableDebug = false;
     private final String serviceName;
