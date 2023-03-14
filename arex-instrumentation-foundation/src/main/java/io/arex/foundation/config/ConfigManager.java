@@ -137,7 +137,7 @@ public class ConfigManager {
 
     @VisibleForTesting
     void init() {
-        agentVersion = System.getProperty(AGENT_VERSION, "20230314");
+        agentVersion = System.getProperty(AGENT_VERSION, "0.0.1");
         setEnableDebug(System.getProperty(ENABLE_DEBUG));
         setServiceName(StringUtils.strip(System.getProperty(SERVICE_NAME)));
         setStorageServiceHost(StringUtils.strip(System.getProperty(STORAGE_SERVICE_HOST)));
