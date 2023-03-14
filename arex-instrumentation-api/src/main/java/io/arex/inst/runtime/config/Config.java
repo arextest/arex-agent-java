@@ -146,8 +146,8 @@ public class Config {
     }
 
     /**
-     * Conditions for determining invalid recording configuration(debug mode don't judge): 1. rate
-     * <= 0 <br/> 2. not in working time <br/> 3. exceed rate limit <br/>
+     * Conditions for determining invalid recording configuration(debug mode don't judge): 1. rate <= 0 <br/> 2. not in
+     * working time <br/> 3. exceed rate limit <br/>
      *
      * @return true: invalid OR false: valid
      */
