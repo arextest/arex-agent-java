@@ -38,6 +38,7 @@ public class ConfigService {
             ConfigQueryRequest request = new ConfigQueryRequest();
             request.appId = ConfigManager.INSTANCE.getServiceName();
             request.host = NetUtils.getIpAddress();
+            request.recordVersion = "20230313";
 
             String postData = Serializer.serialize(request);
 
@@ -255,6 +256,7 @@ public class ConfigService {
         private String appId;
         private String agentExtVersion;
         private String coreVersion;
+        private String recordVersion;
         private String host;
 
         public String getAppId() {
@@ -280,6 +282,10 @@ public class ConfigService {
         public void setCoreVersion(String coreVersion) {
             this.coreVersion = coreVersion;
         }
+
+        public String getRecordVersion() {return recordVersion;}
+
+        public void setRecordVersion(String recordVersion) {this.recordVersion = recordVersion;}
 
         public String getHost() {
             return host;
