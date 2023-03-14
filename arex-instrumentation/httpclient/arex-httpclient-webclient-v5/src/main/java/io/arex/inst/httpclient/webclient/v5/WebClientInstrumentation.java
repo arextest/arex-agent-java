@@ -5,6 +5,7 @@ import io.arex.inst.extension.MethodInstrumentation;
 import io.arex.inst.extension.TypeInstrumentation;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.context.RepeatedCollectManager;
+import io.arex.inst.runtime.util.IgnoreUtils;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
@@ -63,6 +64,10 @@ public class WebClientInstrumentation extends TypeInstrumentation {
                                       @Advice.FieldValue("strategies") ExchangeStrategies strategies,
                                       @Advice.Local("wrapper") WebClientWrapper wrapper,
                                       @Advice.Local("mockResult") MockResult mockResult) {
+            if (IgnoreUtils.ignoreOperation(clientRequest.url().getPath())) {
+                return false;
+            }
+
             if (ContextManager.needRecordOrReplay()) {
                 RepeatedCollectManager.enter();
                 wrapper = new WebClientWrapper(clientRequest, strategies);

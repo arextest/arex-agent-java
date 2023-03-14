@@ -4,10 +4,12 @@ import io.arex.inst.httpclient.common.HttpResponseWrapper;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
-import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.entity.HttpEntityWrapper;
+import org.apache.http.message.BasicHeader;
+import org.apache.http.protocol.HTTP;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -46,7 +48,7 @@ class ApacheHttpClientAdapterTest {
 
     @Test
     void getMethod() {
-        assertNull(target.getMethod());
+        assertEquals("POST", target.getMethod());
     }
 
     @ParameterizedTest
@@ -58,15 +60,23 @@ class ApacheHttpClientAdapterTest {
     }
 
     static Stream<Arguments> getRequestBytesCase() {
+        // Normally read request bytes
         BasicHttpEntity entity = new BasicHttpEntity();
         entity.setContent(new ByteArrayInputStream("mock".getBytes()));
-        HttpEntityEnclosingRequestBase httpRequest = Mockito.mock(HttpEntityEnclosingRequestBase.class);
-        Mockito.when(httpRequest.getEntity()).thenReturn(entity);
-        Predicate<byte[]> predicate1 = Objects::isNull;
-        Predicate<byte[]> predicate2 = bytes -> Arrays.equals("mock".getBytes(), bytes);
+        HttpPost httpPost = new HttpPost();
+        httpPost.setEntity(entity);
+
+        // Read request bytes throw exception
+        HttpPost httpPostWithoutContent = new HttpPost();
+        httpPostWithoutContent.setEntity(new BasicHttpEntity());
+
+        Predicate<byte[]> returnZeroByte = bytes -> Arrays.equals(new byte[0], bytes);
+        Predicate<byte[]> returnNormally = bytes -> Arrays.equals("mock".getBytes(), bytes);
+
         return Stream.of(
-                arguments(request, predicate1),
-                arguments(httpRequest, predicate2)
+                arguments(request, returnZeroByte),
+                arguments(httpPost, returnNormally),
+                arguments(httpPostWithoutContent, returnZeroByte)
         );
     }
 
@@ -93,35 +103,42 @@ class ApacheHttpClientAdapterTest {
     }
 
     static Stream<Arguments> wrapCase() {
-        HttpResponse response1 = Mockito.mock(HttpResponse.class);
+        HttpResponse invalidResponse = Mockito.mock(HttpResponse.class);
+
+        HttpResponse responseWithoutContent = Mockito.mock(HttpResponse.class);
+        Mockito.when(responseWithoutContent.getEntity()).thenReturn(new BasicHttpEntity());
 
         Consumer<HttpResponse> mocker = httpResponse -> {
-            Header Header = Mockito.mock(Header.class);
-            Mockito.when(httpResponse.getAllHeaders()).thenReturn(new Header[]{Header});
-            Locale locale = Mockito.mock(Locale.class);
-            Mockito.when(httpResponse.getLocale()).thenReturn(locale);
+            Mockito.when(httpResponse.getAllHeaders()).thenReturn(new Header[]{
+                Mockito.mock(Header.class),
+                new BasicHeader("name", "value")
+            });
+            Mockito.when(httpResponse.getLocale()).thenReturn(new Locale("zh", "CN"));
             StatusLine statusLine = Mockito.mock(StatusLine.class);
             Mockito.when(httpResponse.getStatusLine()).thenReturn(statusLine);
         };
 
         BasicHttpEntity entity = new BasicHttpEntity();
         entity.setContent(new ByteArrayInputStream("mock".getBytes()));
-        HttpResponse response2 = Mockito.mock(HttpResponse.class);
-        Mockito.when(response2.getEntity()).thenReturn(entity);
-        mocker.accept(response2);
+        HttpResponse responseWithBasicEntity = Mockito.mock(HttpResponse.class);
+        Mockito.when(responseWithBasicEntity.getEntity()).thenReturn(entity);
+        mocker.accept(responseWithBasicEntity);
 
 
-        HttpResponse response3 = Mockito.mock(HttpResponse.class);
+        HttpResponse responseWithEntityWrapper = Mockito.mock(HttpResponse.class);
         HttpEntityWrapper entityWrapper = new HttpEntityWrapper(entity);
-        Mockito.when(response3.getEntity()).thenReturn(entityWrapper);
-        mocker.accept(response3);
+        Mockito.when(responseWithEntityWrapper.getEntity()).thenReturn(entityWrapper);
+        Mockito.when(responseWithEntityWrapper.getFirstHeader(HTTP.CONTENT_TYPE)).thenReturn(new BasicHeader(HTTP.CONTENT_TYPE, "application/json"));
+        Mockito.when(responseWithEntityWrapper.getFirstHeader(HTTP.CONTENT_ENCODING)).thenReturn(new BasicHeader(HTTP.CONTENT_ENCODING, "gzip"));
+        mocker.accept(responseWithEntityWrapper);
 
         Predicate<HttpResponseWrapper> predicate1 = Objects::isNull;
         Predicate<HttpResponseWrapper> predicate2 = Objects::nonNull;
         return Stream.of(
-                arguments(response1, predicate1),
-                arguments(response2, predicate2),
-                arguments(response3, predicate2)
+                arguments(invalidResponse, predicate1),
+                arguments(responseWithoutContent, predicate1),
+                arguments(responseWithBasicEntity, predicate2),
+                arguments(responseWithEntityWrapper, predicate2)
         );
     }
 

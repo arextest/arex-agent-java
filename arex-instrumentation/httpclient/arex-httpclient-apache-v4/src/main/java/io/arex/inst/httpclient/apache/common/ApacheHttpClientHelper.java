@@ -1,19 +1,18 @@
 package io.arex.inst.httpclient.apache.common;
 
+import io.arex.inst.runtime.util.IgnoreUtils;
 import org.apache.http.Header;
+import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.message.BasicLineParser;
 import org.apache.http.message.ParserCursor;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.CharArrayBuffer;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Arrays;
-
-class ApacheHttpClientHelper {
+public class ApacheHttpClientHelper {
 
     public static BasicHttpEntity createHttpEntity(HttpResponse response) {
         final BasicHttpEntity entity = new BasicHttpEntity();
@@ -41,29 +40,11 @@ class ApacheHttpClientHelper {
         return BasicLineParser.INSTANCE.parseStatusLine(buffer, cursor);
     }
 
-    public static byte[] readInputStream(InputStream in) throws IOException {
-        byte[] buffer = new byte[0];
-
-        int read;
-        int stepSize = 1024;
-        for(int i = 0; i < Integer.MAX_VALUE; i += read) {
-            if (i >= buffer.length) {
-                if (buffer.length < i + stepSize) {
-                    buffer = Arrays.copyOf(buffer, i + stepSize);
-                }
-            } else {
-                stepSize = buffer.length - i;
-            }
-
-            read = in.read(buffer, i, stepSize);
-            if (read < 0) {
-                if (buffer.length != i) {
-                    buffer = Arrays.copyOf(buffer, i);
-                }
-                break;
-            }
+    public static boolean ignoreRequest(HttpRequest httpRequest) {
+        if (!(httpRequest instanceof HttpUriRequest)) {
+            return true;
         }
 
-        return buffer;
+        return IgnoreUtils.ignoreOperation(((HttpUriRequest) httpRequest).getURI().getPath());
     }
 }

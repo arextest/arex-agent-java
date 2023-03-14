@@ -1,9 +1,11 @@
 package io.arex.inst.httpclient.okhttp.v3;
 
-import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.inst.httpclient.common.HttpResponseWrapper;
+import java.io.File;
+import java.nio.charset.StandardCharsets;
 import okhttp3.HttpUrl;
 import okhttp3.MediaType;
+import okhttp3.Protocol;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
@@ -16,6 +18,7 @@ import org.mockito.Mock;
 import java.net.URI;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import static io.arex.inst.httpclient.okhttp.v3.OkHttpCallbackWrapperTest.createRequest;
 import static io.arex.inst.httpclient.okhttp.v3.OkHttpCallbackWrapperTest.createResponse;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
@@ -61,8 +64,18 @@ public class OkHttpClientAdapterTest {
 
     @Test
     void wrapTest() {
+        Response responseWithoutBody = new Response.Builder()
+            .code(200)
+            .request(createRequest())
+            .protocol(Protocol.HTTP_1_1)
+            .message("ok")
+            .header("Content-Type", "html/text")
+            .build();;
+        HttpResponseWrapper actResult = okHttpClientAdapter.wrap(responseWithoutBody);
+        Assertions.assertNull(actResult);
+
         Response response = createResponse();
-        HttpResponseWrapper actResult = okHttpClientAdapter.wrap(response);
+        actResult = okHttpClientAdapter.wrap(response);
         Assertions.assertNotNull(actResult);
         Assertions.assertNotNull(actResult.getContent());
         Assertions.assertEquals(13, actResult.getContent().length);
@@ -77,4 +90,19 @@ public class OkHttpClientAdapterTest {
         Assertions.assertNotNull(actResult.body());
     }
 
+    @Test
+    void getRequestBytes() {
+        when(request.body()).thenReturn(
+            null,
+            RequestBody.create("ok", MediaType.parse("application/text")),
+            RequestBody.create(new File("error path"), MediaType.parse("application/file")));
+        byte[] requestBytes = this.okHttpClientAdapter.getRequestBytes();
+        Assertions.assertArrayEquals(new byte[0], requestBytes);
+
+        requestBytes = this.okHttpClientAdapter.getRequestBytes();
+        Assertions.assertArrayEquals("ok".getBytes(StandardCharsets.UTF_8), requestBytes);
+
+        requestBytes = this.okHttpClientAdapter.getRequestBytes();
+        Assertions.assertArrayEquals(new byte[0], requestBytes);
+    }
 }

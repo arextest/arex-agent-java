@@ -1,8 +1,13 @@
 package io.arex.inst.dynamic;
 
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.inst.dynamic.listener.ListenableFutureAdapter;
+import io.arex.inst.dynamic.listener.ResponseConsumer;
+import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.serializer.Serializer;
@@ -13,6 +18,8 @@ import io.arex.inst.runtime.util.TypeUtil;
 import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,31 +28,70 @@ public class DynamicClassExtractor {
     private static final Logger LOGGER = LoggerFactory.getLogger(DynamicClassExtractor.class);
     private static final int RESULT_SIZE_MAX = Integer.parseInt(System.getProperty("arex.dynamic.result.size.limit", "1000"));
     private static final String SERIALIZER = "gson";
+    private static final String LISTENABLE_FUTURE = "com.google.common.util.concurrent.ListenableFuture";
+    private static final String COMPLETABLE_FUTURE = "java.util.concurrent.CompletableFuture";
 
     private final String clazzName;
     private final String operation;
     private final String operationKey;
-    private final String operationResult;
-    private final Object result;
-    private final String resultClazz;
+    private String operationResult;
+    private Object result;
+    private String resultClazz;
     private transient String methodSignatureKey;
+    private final String methodReturnType;
     private int methodSignatureKeyHash;
 
-    public DynamicClassExtractor(String clazzName, String operation, Object[] args) {
-        this(clazzName, operation, args, null);
-    }
-
-    public DynamicClassExtractor(String clazzName, String operation, Object[] args, Object result) {
+    public DynamicClassExtractor(String clazzName, String operation, Object[] args, String methodReturnType) {
         this.clazzName = clazzName;
         this.operation = operation;
         this.operationKey = Serializer.serialize(args, SERIALIZER);
-        this.operationResult = Serializer.serialize(result, SERIALIZER);
-        this.resultClazz = TypeUtil.getName(result);
-        this.result = result;
+        this.methodReturnType = methodReturnType;
+    }
+
+    public void setFutureResponse(Future<?> result) {
+        if (result instanceof CompletableFuture) {
+            ((CompletableFuture<?>) result).whenComplete(new ResponseConsumer(this));
+            return;
+        }
+
+        if (LISTENABLE_FUTURE.equals(methodReturnType)) {
+            ListenableFutureAdapter.addCallBack((ListenableFuture<?>) result, this);
+        }
+    }
+
+    public void setResponse(Object response) {
+        this.result = response;
+        this.resultClazz = buildResultClazz(TypeUtil.getName(response));
+        record();
+    }
+
+    protected String buildResultClazz(String resultClazz) {
+        if (Config.get() == null || resultClazz == null) {
+            return resultClazz;
+        }
+
+        if (Config.get().getGenericReturnTypeMapSize() == 0) {
+            return resultClazz;
+        }
+
+        if (resultClazz.contains(TypeUtil.HORIZONTAL_LINE_STR)) {
+            return resultClazz;
+        }
+
+        String extractorSignature = clazzName + operation;
+
+        String genericReturnType = Config.get().getGenericReturnType(extractorSignature);
+
+        if (StringUtil.isEmpty(genericReturnType)) {
+            return resultClazz;
+        }
+
+        return resultClazz + TypeUtil.HORIZONTAL_LINE + genericReturnType;
     }
 
     public void record() {
         if (needRecord()) {
+            this.operationResult = Serializer.serialize(result, SERIALIZER);
             MockUtils.recordMocker(makeMocker());
             cacheMethodSignature();
         }
@@ -69,6 +115,7 @@ public class DynamicClassExtractor {
                 replayResult = Serializer.deserialize(replayMocker.getTargetResponse().getBody(),
                     TypeUtil.forName(replayMocker.getTargetResponse().getType()), SERIALIZER);
             }
+            replayResult = restoreResponse(replayResult);
             // no key no cache, no parameter methods may return different values
             if (key != null && replayResult != null) {
                 context.getCachedReplayResultMap().put(key, replayResult);
@@ -76,6 +123,31 @@ public class DynamicClassExtractor {
         }
         boolean ignoreMockResult = IgnoreUtils.ignoreMockResult(clazzName, operation);
         return MockResult.success(ignoreMockResult, replayResult);
+    }
+
+    protected Object restoreResponse(Object result) {
+        if (this.methodReturnType == null) {
+            return result;
+        }
+
+        if (LISTENABLE_FUTURE.equals(this.methodReturnType)) {
+            if (result instanceof Throwable) {
+                return Futures.immediateFailedFuture((Throwable) result);
+            }
+            return Futures.immediateFuture(result);
+        }
+
+        if (COMPLETABLE_FUTURE.equals(this.methodReturnType)) {
+            CompletableFuture<Object> completableFuture = new CompletableFuture<>();
+            if (result instanceof Throwable) {
+                completableFuture.completeExceptionally((Throwable) result);
+                return completableFuture;
+            }
+            completableFuture.complete(result);
+            return completableFuture;
+        }
+
+        return result;
     }
 
     private boolean needRecord() {

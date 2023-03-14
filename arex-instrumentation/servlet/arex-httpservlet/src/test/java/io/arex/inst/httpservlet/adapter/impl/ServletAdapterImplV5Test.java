@@ -1,6 +1,7 @@
 package io.arex.inst.httpservlet.adapter.impl;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import io.arex.inst.httpservlet.wrapper.CachedBodyRequestWrapperV5;
@@ -177,5 +178,25 @@ class ServletAdapterImplV5Test {
     @Test
     void getResponseBytes() {
         assertEquals(0, instance.getResponseBytes(instance.wrapResponse(mockResponse)).length);
+    }
+
+    @Test
+    void asHttpServletRequest() {
+        assertNotNull(instance.asHttpServletRequest(mockRequest));
+        assertNull(instance.asHttpServletRequest(null));
+    }
+
+    @Test
+    void asHttpServletResponse() {
+        assertNotNull(instance.asHttpServletResponse(mockResponse));
+        assertNull(instance.asHttpServletResponse(null));
+    }
+
+    @Test
+    void markProcessed() {
+        when(mockRequest.getAttribute(any())).thenReturn("mock");
+        assertTrue(instance.markProcessed(mockRequest, "mock"));
+        when(mockRequest.getAttribute(any())).thenReturn(null);
+        assertFalse(instance.markProcessed(mockRequest, "mock"));
     }
 }

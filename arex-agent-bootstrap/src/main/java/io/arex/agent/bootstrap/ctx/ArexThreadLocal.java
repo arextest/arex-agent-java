@@ -12,7 +12,7 @@ import java.util.WeakHashMap;
  * 3. transmittable-thread-local not work in nio.reactor.Worker（@see AbstractMultiworkerIOReactor）
  * 4. Change from InheritableThreadLocal to ThreadLocal，avoid collect unexpected data
  */
-public class ArexThreadLocal<T> extends ThreadLocal<T> {
+public class ArexThreadLocal<T> extends InheritableThreadLocal<T> {
 
     public ArexThreadLocal() {
     }

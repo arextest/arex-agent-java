@@ -3,13 +3,9 @@ package io.arex.inst.authentication.shiro;
 import io.arex.inst.extension.MethodInstrumentation;
 import io.arex.inst.extension.TypeInstrumentation;
 import io.arex.inst.runtime.context.ContextManager;
-import io.arex.inst.runtime.model.ArexConstants;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
-import org.apache.shiro.web.servlet.ShiroHttpServletRequest;
-
-import javax.servlet.ServletRequest;
 import java.util.List;
 
 import static java.util.Arrays.asList;
@@ -35,20 +31,12 @@ public class ShiroInstrumentation extends TypeInstrumentation {
     }
 
     public static class PreHandleAdvice {
-        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class, suppress = Throwable.class)
-        public static boolean onEnter(@Advice.Argument(0) ServletRequest request) {
-            boolean isReplay = false;
-            if (request instanceof ShiroHttpServletRequest) {
-                // authentication is through the filter chain and has not yet reached the servlet
-                String recordId = ((ShiroHttpServletRequest)request).getHeader(ArexConstants.RECORD_ID);
-                if (recordId != null && recordId.length() > 0) {
-                    isReplay = true;
-                }
-            }
-            return isReplay || ContextManager.needReplay();
+        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class)
+        public static boolean onEnter() {
+            return ContextManager.needReplay();
         }
 
-        @Advice.OnMethodExit(suppress = Throwable.class)
+        @Advice.OnMethodExit()
         public static void onExit(@Advice.Enter boolean needReplay,
                                   @Advice.Return(readOnly = false) boolean result) {
             if (needReplay) {

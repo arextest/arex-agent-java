@@ -35,6 +35,7 @@
         <module>authentication/arex-jwt</module>
         <module>authentication/arex-spring-security</module>
         <module>authentication/arex-shiro</module>
+        <module>authentication/arex-jcasbin</module>
     </modules>
     <dependencies>
         <dependency>

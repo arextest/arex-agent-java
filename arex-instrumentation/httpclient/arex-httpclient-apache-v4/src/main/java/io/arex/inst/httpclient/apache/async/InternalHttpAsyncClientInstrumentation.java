@@ -1,6 +1,7 @@
 package io.arex.inst.httpclient.apache.async;
 
 import io.arex.agent.bootstrap.model.MockResult;
+import io.arex.inst.httpclient.apache.common.ApacheHttpClientHelper;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.context.RepeatedCollectManager;
 import io.arex.inst.extension.MethodInstrumentation;
@@ -59,6 +60,16 @@ public class InternalHttpAsyncClientInstrumentation extends TypeInstrumentation 
         public static boolean onEnter(@Advice.Argument(0) HttpAsyncRequestProducer producer,
             @Advice.Argument(value = 3, readOnly = false) FutureCallback<?> callback,
             @Advice.Local("mockResult") MockResult mockResult) {
+            try {
+                if (ApacheHttpClientHelper.ignoreRequest(producer.generateRequest())) {
+                    callback = FutureCallbackWrapper.wrap(callback);
+                    return false;
+                }
+            } catch (Throwable ignored) {
+                callback = FutureCallbackWrapper.wrap(callback);
+                return false;
+            }
+
             if (ContextManager.needRecordOrReplay() && RepeatedCollectManager.validate()) {
                 // recording works in callback wrapper
                 FutureCallbackWrapper<?> callbackWrapper = FutureCallbackWrapper.get(producer, callback);

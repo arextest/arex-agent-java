@@ -74,7 +74,16 @@ class ServletAdviceHelperTest {
     }
 
     static Stream<Arguments> onServiceEnterCase() {
+        Runnable emptyMocker = () -> {};
+        Runnable mocker01 = () -> {
+            Mockito.when(adapter.asHttpServletRequest(any())).thenReturn("mock");
+            Mockito.when(adapter.markProcessed(any(), any())).thenReturn(true);
+        };
+        Runnable mocker02 = () -> {
+            Mockito.when(adapter.markProcessed(any(), any())).thenReturn(false);
+        };
         Runnable mocker1 = () -> {
+            Mockito.when(adapter.asHttpServletResponse(any())).thenReturn("mock");
             Mockito.when(adapter.getAttribute(any(), any())).thenReturn("true");
         };
         Runnable mocker2 = () -> {
@@ -114,6 +123,9 @@ class ServletAdviceHelperTest {
         Predicate<Pair<?, ?>> predicate1 = Objects::isNull;
         Predicate<Pair<?, ?>> predicate2 = Objects::nonNull;
         return Stream.of(
+                arguments(emptyMocker, predicate1),
+                arguments(mocker01, predicate1),
+                arguments(mocker02, predicate1),
                 arguments(mocker1, predicate2),
                 arguments(mocker2, predicate1),
                 arguments(mocker3, predicate1),
@@ -139,7 +151,10 @@ class ServletAdviceHelperTest {
     }
 
     static Stream<Arguments> onServiceExitCase() {
+        Runnable emptyMocker = () -> {};
         Runnable mocker1 = () -> {
+            Mockito.when(adapter.asHttpServletRequest(any())).thenReturn(request);
+            Mockito.when(adapter.asHttpServletResponse(any())).thenReturn(response);
             Mockito.when(adapter.wrapped(any(), any())).thenReturn(false);
         };
 
@@ -184,6 +199,7 @@ class ServletAdviceHelperTest {
         };
 
         return Stream.of(
+                arguments(emptyMocker, verifyEmpty),
                 arguments(mocker1, verifyEmpty),
                 arguments(mocker2, verifyCopyBody),
                 arguments(mocker3, verifyCopyBody),

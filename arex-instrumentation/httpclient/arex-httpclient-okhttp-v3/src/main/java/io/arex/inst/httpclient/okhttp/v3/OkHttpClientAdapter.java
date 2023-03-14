@@ -18,7 +18,6 @@ import okio.Buffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 
@@ -61,14 +60,16 @@ public class OkHttpClientAdapter implements HttpClientAdapter<Request, Response>
     @Override
     public HttpResponseWrapper wrap(Response response) {
         HttpResponseWrapper wrapper = new HttpResponseWrapper();
-        StatusLine statusLine = new StatusLine(response.protocol(), response.code(), response.message());
-        wrapper.setStatusLine(statusLine.toString());
         try {
             ResponseBody responseBody = response.peekBody(Long.MAX_VALUE);
             wrapper.setContent(responseBody.bytes());
-        } catch (IOException e) {
+        } catch (Throwable e) {
             LOGGER.warn("encode response error:{}", e.getMessage(), e);
+            return null;
         }
+        StatusLine statusLine = new StatusLine(response.protocol(), response.code(), response.message());
+        wrapper.setStatusLine(statusLine.toString());
+
         Headers headers = response.headers();
         wrapper.setHeaders(encodeHeaders(headers));
         return wrapper;
@@ -115,7 +116,7 @@ public class OkHttpClientAdapter implements HttpClientAdapter<Request, Response>
             responseBuilder.code(statusLine.code);
             responseBuilder.message(statusLine.message);
             responseBuilder.protocol(statusLine.protocol);
-        } catch (IOException e) {
+        } catch (Throwable e) {
             LOGGER.warn("decode response StatusLine error:{}", e.getMessage(), e);
         }
         return responseBuilder.build();
@@ -125,15 +126,15 @@ public class OkHttpClientAdapter implements HttpClientAdapter<Request, Response>
     public byte[] getRequestBytes() {
         final RequestBody body = this.httpRequest.body();
         if (body == null) {
-            return null;
+            return ZERO_BYTE;
         }
         try {
             final Buffer buffer = new Buffer();
             body.writeTo(buffer);
             return buffer.readByteArray();
-        } catch (IOException e) {
+        } catch (Throwable e) {
             LOGGER.warn("copy request body to base64 error:{}", e.getMessage(), e);
         }
-        return null;
+        return ZERO_BYTE;
     }
 }

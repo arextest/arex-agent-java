@@ -13,7 +13,6 @@ import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -63,8 +62,12 @@ public class WebClientWrapper {
                             return dataBuffer;
                         }).doOnComplete(() -> {
                             byte[] bodyArray = new byte[]{};
-                            for (byte[] byteArray : bytes) {
-                                bodyArray = ArrayUtils.addAll(bodyArray, byteArray);
+                            if (bytes.size() == 1) {
+                                bodyArray = bytes.get(0);
+                            } else {
+                                for (byte[] byteArray : bytes) {
+                                    bodyArray = ArrayUtils.addAll(bodyArray, byteArray);
+                                }
                             }
                             try (TraceTransmitter tm1 = traceTransmitter1.transmit()) {
                                 extractor.record(WebClientResponse.of(response, bodyArray));
@@ -77,12 +80,7 @@ public class WebClientWrapper {
 
     private void collect(DataBuffer dataBuffer, List<byte[]> bytes) {
         if (dataBuffer != null) {
-            ByteBuffer byteBuffer = dataBuffer.asByteBuffer();
-            if (byteBuffer.hasArray()) {
-                bytes.add(byteBuffer.array());
-            } else {
-                bytes.add(dataBuffer.toString(StandardCharsets.UTF_8).getBytes());
-            }
+            bytes.add(dataBuffer.toString(StandardCharsets.UTF_8).getBytes());
         }
     }
 

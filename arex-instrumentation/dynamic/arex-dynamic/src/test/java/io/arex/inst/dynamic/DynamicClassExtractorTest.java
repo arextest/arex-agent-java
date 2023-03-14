@@ -1,20 +1,38 @@
 package io.arex.inst.dynamic;
 
+import com.google.common.base.Optional;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import io.arex.agent.bootstrap.model.ArexMocker;
 import io.arex.agent.bootstrap.model.Mocker.Target;
+import io.arex.inst.dynamic.listener.ListenableFutureAdapter;
+import io.arex.inst.dynamic.listener.ResponseConsumer;
+import io.arex.inst.runtime.config.Config;
+import io.arex.inst.runtime.config.ConfigBuilder;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.inst.runtime.model.ArexConstants;
+import io.arex.inst.runtime.model.DynamicClassEntity;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.util.IgnoreUtils;
 import io.arex.inst.runtime.util.MockUtils;
+import io.arex.inst.runtime.util.TypeUtil;
+import java.util.Arrays;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -68,7 +86,8 @@ class DynamicClassExtractorTest {
 
             serializer.when(() -> Serializer.serialize(any(), anyString())).thenReturn("mock Serializer.serialize");
 
-            DynamicClassExtractor extractor = new DynamicClassExtractor("clazzName", "operation", args, result);
+            DynamicClassExtractor extractor = new DynamicClassExtractor("clazzName", "operation", args, "returnType");
+            extractor.setResponse(result);
             extractor.record();
             assertTrue(predicate.test(result));
         }
@@ -98,6 +117,7 @@ class DynamicClassExtractorTest {
     void replay(Runnable mocker, Object[] args, Predicate<MockResult> predicate) {
         mocker.run();
 
+
         try (MockedStatic<MockUtils> mockService = mockStatic(MockUtils.class);
             MockedStatic<IgnoreUtils> ignoreService = mockStatic(IgnoreUtils.class);
             MockedStatic<Serializer> serializer = mockStatic(Serializer.class)) {
@@ -119,7 +139,7 @@ class DynamicClassExtractorTest {
             serializer.when(() -> Serializer.serialize(any(), anyString())).thenReturn("mock Serializer.serialize");
             serializer.when(() -> Serializer.deserialize(anyString(), anyString())).thenReturn(new Object());
 
-            DynamicClassExtractor extractor = new DynamicClassExtractor(null, null, args);
+            DynamicClassExtractor extractor = new DynamicClassExtractor(null, null, args, null);
             MockResult mockResult = extractor.replay();
             assertTrue(predicate.test(mockResult));
         }
@@ -133,5 +153,137 @@ class DynamicClassExtractorTest {
         return Stream.of(
                 arguments(needReplay, new Object[]{"mock"}, predicate2)
         );
+    }
+
+    @Test
+    void testSetFutureResponse() {
+        AtomicReference<ResponseConsumer> atomicConsumer = new AtomicReference<>();
+        AtomicReference<String> atomicCallBack = new AtomicReference<>();
+        try (MockedConstruction<ResponseConsumer> mocked = Mockito.mockConstruction(ResponseConsumer.class, (mock, context) -> {
+            atomicConsumer.set(mock);
+        })) {
+            CompletableFuture<Void> completableFuture = CompletableFuture.runAsync(
+                    () -> System.out.println());
+            new DynamicClassExtractor(null, null, null, null).setFutureResponse(completableFuture);
+            Assertions.assertNotNull(atomicConsumer.get());
+        }
+
+        try (MockedStatic<ListenableFutureAdapter> adapterMockedStatic = mockStatic(ListenableFutureAdapter.class)) {
+            DynamicClassExtractor extractor = new DynamicClassExtractor(null, null,
+                    null, "com.google.common.util.concurrent.ListenableFuture");
+
+            ListenableFuture<String> resultFuture = Futures.immediateFuture("result");
+
+            extractor.setFutureResponse(Futures.immediateFuture(resultFuture));
+            adapterMockedStatic.verify(() -> ListenableFutureAdapter.addCallBack(any(), any()));
+        }
+
+    }
+
+    @Test
+    void futureCallBackTest() {
+        AtomicReference<DynamicClassExtractor> extractorAtomicReference = new AtomicReference<>();
+        try (MockedConstruction<DynamicClassExtractor> mocked = Mockito.mockConstruction(DynamicClassExtractor.class, (mock, context) -> {
+            extractorAtomicReference.set(mock);
+        })) {
+            ResponseConsumer responseConsumer = new ResponseConsumer(
+                    new DynamicClassExtractor(null, null, null, null));
+            String result = "result";
+            responseConsumer.accept(result, null);
+            Assertions.assertNotNull(extractorAtomicReference.get());
+            Mockito.verify(extractorAtomicReference.get(), Mockito.times(1)).setResponse(result);
+            NullPointerException exception = new NullPointerException();
+            responseConsumer.accept(null, exception);
+            Mockito.verify(extractorAtomicReference.get(), Mockito.times(1)).setResponse(exception);
+            ListenableFutureAdapter.addCallBack(Futures.immediateFuture(result), new DynamicClassExtractor(null, null, null, null));
+            Mockito.verify(extractorAtomicReference.get(), Mockito.times(1)).setResponse(result);
+            ListenableFutureAdapter.addCallBack(Futures.immediateFailedFuture(exception), new DynamicClassExtractor(null, null, null, null));
+            Mockito.verify(extractorAtomicReference.get(), Mockito.times(1)).setResponse(exception);
+        }
+    }
+
+    @Test
+    void restoreResponseTest() {
+        String listenableFuture = "com.google.common.util.concurrent.ListenableFuture";
+        String completableFuture = "java.util.concurrent.CompletableFuture";
+        List cntSuccess = new ArrayList<>();
+        List cntFailure = new ArrayList<>();
+        RuntimeException exception = new RuntimeException();
+        DynamicClassExtractor dynamicClassExtractor = new DynamicClassExtractor(null, null, null,
+                listenableFuture);
+        Object result = dynamicClassExtractor.restoreResponse("result");
+        Object exceptionResult = dynamicClassExtractor.restoreResponse(exception);
+        Assertions.assertTrue(result instanceof ListenableFuture);
+        Assertions.assertTrue(exceptionResult instanceof ListenableFuture);
+        getResultFormListenFuture((ListenableFuture) result, cntSuccess, cntFailure);
+        getResultFormListenFuture((ListenableFuture) exceptionResult, cntSuccess, cntFailure);
+
+        DynamicClassExtractor dynamicClassExtractor2 = new DynamicClassExtractor(null, null, null,
+                completableFuture);
+        Object completableFutureResult = dynamicClassExtractor2.restoreResponse("result");
+        Object completableFutureResultException = dynamicClassExtractor2.restoreResponse(exception);
+        Assertions.assertTrue(completableFutureResult instanceof CompletableFuture);
+        Assertions.assertTrue(completableFutureResultException instanceof CompletableFuture);
+        getResultCompletableFuture((CompletableFuture) completableFutureResult, cntSuccess, cntFailure);
+        getResultCompletableFuture((CompletableFuture) completableFutureResultException, cntSuccess, cntFailure);
+
+
+        Assertions.assertEquals(2, cntSuccess.size());
+        Assertions.assertEquals(2, cntFailure.size());
+
+        DynamicClassExtractor dynamicClassExtractor4 = new DynamicClassExtractor(null, null, null,
+                "java.lang.String");
+        Object response = dynamicClassExtractor4.restoreResponse("result");
+        Assertions.assertTrue(response instanceof String);
+    }
+
+    private void getResultCompletableFuture(CompletableFuture future2, List cntSuccess, List cntFailure) {
+        future2.whenComplete((object, throwable) -> {
+            if (throwable != null) {
+                cntFailure.add("test");
+            } else {
+                cntSuccess.add("test");
+            }
+        });
+    }
+
+    private void getResultFormListenFuture(ListenableFuture future1, List cntSuccess, List cntFailure) {
+        Futures.addCallback(future1, new FutureCallback() {
+            @Override
+            public void onSuccess(Object result) {
+                cntSuccess.add("test");
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                cntFailure.add("test");
+            }
+        }, MoreExecutors.directExecutor());
+    }
+
+    @Test
+    void testBuildResultClazz() {
+        ConfigBuilder config = ConfigBuilder.create("mock");
+        String genericObject = "innerTest";
+        String genericTypeName = genericObject.getClass().getName();
+        DynamicClassExtractor dynamicClassExtractor = new DynamicClassExtractor(null, null, null, null);
+        String configNull = dynamicClassExtractor.buildResultClazz(genericTypeName);
+        Assertions.assertEquals(genericTypeName, configNull);
+
+        DynamicClassEntity genericEntity = new DynamicClassEntity(null, null, null, "T:" + genericTypeName);
+        DynamicClassEntity uuidEntity = new DynamicClassEntity(null, null, null, ArexConstants.UUID_SIGNATURE);
+
+        config.dynamicClassList(Arrays.asList(uuidEntity)).build();
+        String emptyMapReturnType = dynamicClassExtractor.buildResultClazz(genericTypeName);
+        Assertions.assertEquals(genericTypeName, emptyMapReturnType);
+
+        List<DynamicClassEntity> dynamicClassEntities = Arrays.asList(uuidEntity, genericEntity);
+        config.dynamicClassList(dynamicClassEntities).build();
+        Optional<String> guavaOptional = Optional.of(genericObject);
+        String expectedReturnClazz = guavaOptional.getClass().getName() + TypeUtil.HORIZONTAL_LINE + genericTypeName;
+        String actualReturnClazz = dynamicClassExtractor.buildResultClazz(TypeUtil.getName(guavaOptional));
+        Assertions.assertEquals(expectedReturnClazz, actualReturnClazz);
+        java.util.Optional optional = java.util.Optional.of(genericObject);
+        Assertions.assertEquals(TypeUtil.getName(optional), dynamicClassExtractor.buildResultClazz(TypeUtil.getName(optional)));
     }
 }

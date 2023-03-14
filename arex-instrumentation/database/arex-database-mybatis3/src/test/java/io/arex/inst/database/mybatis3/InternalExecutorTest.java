@@ -1,5 +1,6 @@
 package io.arex.inst.database.mybatis3;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
@@ -9,17 +10,22 @@ import static org.mockito.Mockito.mockStatic;
 import io.arex.agent.bootstrap.model.ArexMocker;
 import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.agent.bootstrap.model.Mocker.Target;
+import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.database.common.DatabaseExtractor;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.util.MockUtils;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.SQLException;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
+
+import org.apache.ibatis.binding.MapperMethod;
 import org.apache.ibatis.mapping.BoundSql;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.reflection.Reflector;
 import org.apache.ibatis.reflection.invoker.Invoker;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -77,32 +83,45 @@ class InternalExecutorTest {
     void testReplay() throws SQLException {
         assertNull(target.replay(extractor, mappedStatement, null));
         assertNull(target.replay(extractor, mappedStatement, new Object()));
+        MapperMethod.ParamMap<Object> paramMap = new MapperMethod.ParamMap<>();
+        assertNull(target.replay(extractor, mappedStatement, paramMap));
+
+        Mockito.when(mappedStatement.getKeyProperties()).thenReturn(new String[]{"key.id"});
+        paramMap.put("ms.id", "ms");
+        assertNull(target.replay(extractor, mappedStatement, paramMap));
     }
 
     @ParameterizedTest
-    @NullSource
     @MethodSource("recordCase")
-    void record(Throwable throwable) {
+    void record(Throwable throwable, Object result) {
+        AtomicReference<DatabaseExtractor> atomicReference = new AtomicReference<>();
         try (MockedConstruction<DatabaseExtractor> mocked = Mockito.mockConstruction(DatabaseExtractor.class, (mock, context) -> {
-            System.out.println("mock DatabaseExtractor");
+            atomicReference.set(mock);
         })) {
-            target.record(mappedStatement, new Object(), boundSql, null, throwable, "insert");
+            target.record(mappedStatement, new Object(), boundSql, result, throwable, "insert");
+            if (throwable != null) {
+                Mockito.verify(atomicReference.get(), Mockito.times(1)).record(throwable);
+            } else {
+                Mockito.verify(atomicReference.get(), Mockito.times(1)).record(result);
+            }
         }
     }
 
     static Stream<Arguments> recordCase() {
         return Stream.of(
-                arguments(new SQLException())
+                arguments(new SQLException(), StringUtil.EMPTY),
+                arguments(null, StringUtil.EMPTY)
         );
     }
 
     @ParameterizedTest
     @MethodSource("testRecordCase")
-    void testRecord(Throwable throwable, Invoker invoker) {
+    void testRecord(Throwable throwable, Invoker invoker, Object result) {
         try (MockedConstruction<Reflector> mocked = Mockito.mockConstruction(Reflector.class, (mock, context) -> {
             Mockito.when(mock.getGetInvoker(any())).thenReturn(invoker);
         })) {
-            target.record(extractor, mappedStatement, new Object(), null, throwable);
+            Mockito.when(mappedStatement.getKeyProperties()).thenReturn(new String[]{"key", "key2"});
+            assertDoesNotThrow(() -> target.record(extractor, mappedStatement, new Object(), result, throwable));
         }
     }
 
@@ -111,9 +130,9 @@ class InternalExecutorTest {
         Invoker invoker2 = Mockito.mock(Invoker.class);
         Mockito.when(invoker2.invoke(any(), any())).thenReturn("");
         return Stream.of(
-                arguments(new NullPointerException(), invoker1),
-                arguments(new SQLException(), invoker1),
-                arguments(new SQLException(), invoker2)
+                arguments(new NullPointerException(), invoker1, StringUtil.EMPTY),
+                arguments(null, invoker1, StringUtil.EMPTY),
+                arguments(new SQLException(), invoker2, StringUtil.EMPTY)
         );
     }
 }

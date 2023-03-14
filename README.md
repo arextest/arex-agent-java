@@ -43,6 +43,7 @@ AREX utilizes the advanced Java technique, Instrument API, and is capable of ins
 - Spring Security 5.x
 - Apache Shiro 1.x
 - Java JWT 3.x
+- JCasbin 1.x
 
 ## Installation
 

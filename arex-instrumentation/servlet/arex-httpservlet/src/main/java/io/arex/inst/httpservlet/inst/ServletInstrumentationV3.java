@@ -60,9 +60,9 @@ public class ServletInstrumentationV3 extends TypeInstrumentation {
     public static class ServiceAdvice {
         @Advice.OnMethodEnter(suppress = Throwable.class)
         public static void onEnter(@Advice.Argument(value = 0, readOnly = false) HttpServletRequest request,
-            @Advice.Argument(value = 1, readOnly = false) HttpServletResponse response) {
+                                   @Advice.Argument(value = 1, readOnly = false) HttpServletResponse response) {
             Pair<HttpServletRequest, HttpServletResponse> pair =
-                ServletAdviceHelper.onServiceEnter(ServletAdapterImplV3.getInstance(), request, response);
+                    ServletAdviceHelper.onServiceEnter(ServletAdapterImplV3.getInstance(), request, response);
 
             if (pair == null) {
                 return;
@@ -79,7 +79,7 @@ public class ServletInstrumentationV3 extends TypeInstrumentation {
 
         @Advice.OnMethodExit(suppress = Throwable.class)
         public static void onExit(@Advice.Argument(value = 0, readOnly = false) HttpServletRequest request,
-            @Advice.Argument(value = 1, readOnly = false) HttpServletResponse response) {
+                                  @Advice.Argument(value = 1, readOnly = false) HttpServletResponse response) {
             ServletAdviceHelper.onServiceExit(ServletAdapterImplV3.getInstance(), request, response);
         }
     }

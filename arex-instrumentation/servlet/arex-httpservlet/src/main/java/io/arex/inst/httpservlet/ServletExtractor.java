@@ -132,6 +132,6 @@ public class ServletExtractor<HttpServletRequest, HttpServletResponse> {
     private String getPattern() {
         Object pattern = adapter
                 .getAttribute(httpServletRequest, "org.springframework.web.servlet.HandlerMapping.bestMatchingPattern");
-        return pattern == null ? "" : String.valueOf(pattern);
+        return pattern == null ? adapter.getRequestURI(httpServletRequest) : String.valueOf(pattern);
     }
 }

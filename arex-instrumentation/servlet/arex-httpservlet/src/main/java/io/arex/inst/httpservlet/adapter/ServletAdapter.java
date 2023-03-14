@@ -57,4 +57,10 @@ public interface ServletAdapter<HttpServletRequest, HttpServletResponse> {
     byte[] getRequestBytes(HttpServletRequest httpServletRequest);
 
     byte[] getResponseBytes(HttpServletResponse httpServletResponse);
+
+    HttpServletRequest asHttpServletRequest(Object servletRequest);
+
+    HttpServletResponse asHttpServletResponse(Object servletResponse);
+
+    boolean markProcessed(HttpServletRequest httpServletRequest, String mark);
 }

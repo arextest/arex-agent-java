@@ -1,15 +1,12 @@
 package io.arex.inst.authentication.shiro;
 
-import org.apache.shiro.web.servlet.ShiroHttpServletRequest;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 
 @ExtendWith(MockitoExtension.class)
 class ShiroInstrumentationTest {
@@ -37,9 +34,7 @@ class ShiroInstrumentationTest {
 
     @Test
     void onEnter() {
-        ShiroHttpServletRequest request = Mockito.mock(ShiroHttpServletRequest.class);
-        Mockito.when(request.getHeader(any())).thenReturn("mock");
-        assertTrue(ShiroInstrumentation.PreHandleAdvice.onEnter(request));
+        assertFalse(ShiroInstrumentation.PreHandleAdvice.onEnter());
     }
 
     @Test

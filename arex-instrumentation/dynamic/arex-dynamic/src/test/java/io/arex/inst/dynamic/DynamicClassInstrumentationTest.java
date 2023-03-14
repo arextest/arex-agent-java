@@ -1,9 +1,12 @@
 package io.arex.inst.dynamic;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
+import static org.mockito.ArgumentMatchers.any;
 
 import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.agent.bootstrap.util.StringUtil;
@@ -11,6 +14,7 @@ import io.arex.inst.extension.MethodInstrumentation;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.context.RepeatedCollectManager;
+import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.model.DynamicClassEntity;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -18,7 +22,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import net.bytebuddy.ByteBuddy;
@@ -64,6 +72,11 @@ class DynamicClassInstrumentationTest {
     @Test
     void typeMatcher() {
         assertNotNull(target.matcher());
+    }
+
+    @Test
+    void adviceClassNames() {
+        assertEquals(6, target.adviceClassNames().size());
     }
 
     @ParameterizedTest(name = "[{index}] {0}")
@@ -121,6 +134,8 @@ class DynamicClassInstrumentationTest {
             return methodAdvices.size() == 1 && matchedMethodCount(matcher, DynamicTestClass.class) == 2;
         };
 
+
+
         return Stream.of(
                 arguments("should_match_2_methods_when_empty_operation", Collections.singletonList(emptyOperation), NOT_EMPTY_PREDICATE.and(emptyOperationPredicate)),
                 arguments("should_match_0_method_when_with_return_void", Arrays.asList(testReturnVoidEntity, testReturnVoidWithParameterEntity), NOT_EMPTY_PREDICATE.and(emptyOperationAndVoidPredicate)),
@@ -130,34 +145,62 @@ class DynamicClassInstrumentationTest {
 
     @Test
     void onEnter() {
-        Mockito.when(ContextManager.needRecord()).thenReturn(false);
-        Mockito.when(ContextManager.needReplay()).thenReturn(false);
-        assertFalse(DynamicClassInstrumentation.MethodAdvice.onEnter(null, null, null, null));
-
-        Mockito.when(ContextManager.needRecord()).thenReturn(true);
-        assertFalse(DynamicClassInstrumentation.MethodAdvice.onEnter(null, null, null, null));
-
+        AtomicReference<DynamicClassExtractor> atomicReference = new AtomicReference<>();
         Mockito.when(ContextManager.needRecord()).thenReturn(false);
         Mockito.when(ContextManager.needReplay()).thenReturn(true);
+//        Mockito.when(ContextManager.needRecord()).thenReturn(false);
+
         try (MockedConstruction<DynamicClassExtractor> mocked = Mockito.mockConstruction(DynamicClassExtractor.class, (mock, context) -> {
             System.out.println("mock DynamicClassExtractor");
+            atomicReference.set(mock);
             Mockito.when(mock.replay()).thenReturn(MockResult.success(false, null));
         })) {
-            assertTrue(DynamicClassInstrumentation.MethodAdvice.onEnter(null, null, null, null));
+            assertTrue(DynamicClassInstrumentation.MethodAdvice.onEnter( null, null, null, null,null, new DynamicClassExtractor(null, null, null, null)));
         }
+
+
+        Mockito.when(ContextManager.needRecord()).thenReturn(false);
+        Mockito.when(ContextManager.needReplay()).thenReturn(false);
+        assertFalse(DynamicClassInstrumentation.MethodAdvice.onEnter(null, null, null, null, null, atomicReference.get()));
+
+        Mockito.when(ContextManager.needRecord()).thenReturn(true);
+        assertFalse(DynamicClassInstrumentation.MethodAdvice.onEnter(null, null, null, null, null, null));
     }
 
     @ParameterizedTest
     @MethodSource("onExitCase")
     void onExit(Runnable mocker, MockResult mockResult, Predicate<MockResult> predicate) {
         mocker.run();
+        AtomicReference<DynamicClassExtractor> atomicReference = new AtomicReference<>();
         try (MockedConstruction<DynamicClassExtractor> mocked = Mockito.mockConstruction(DynamicClassExtractor.class, (mock, context) -> {
             System.out.println("mock DynamicClassExtractor");
+            atomicReference.set(mock);
             Mockito.doNothing().when(mock).record();
         })) {
             DynamicClassInstrumentation.MethodAdvice.onExit(
-                "java.lang.System", "getenv", new Object[]{"java.lang.String"}, mockResult, null, null);
+                "java.lang.System", "getenv", new Object[]{"java.lang.String"}, mockResult, new DynamicClassExtractor(null, null, null, null), null, null);
             assertTrue(predicate.test(mockResult));
+        }
+    }
+    @Test
+    void onExitSetResponse() {
+        Mockito.when(ContextManager.needRecord()).thenReturn(true);
+        Mockito.when(RepeatedCollectManager.exitAndValidate()).thenReturn(true);
+        AtomicReference<DynamicClassExtractor> atomicReference = new AtomicReference<>();
+        Object mockResult = "nomalResult";
+        Future futureResult = Executors.newFixedThreadPool(2).submit(() -> System.out.println("yes"));
+        try (MockedConstruction<DynamicClassExtractor> mocked = Mockito.mockConstruction(DynamicClassExtractor.class, (mock, context) -> {
+            System.out.println("mock DynamicClassExtractor");
+            atomicReference.set(mock);
+            Mockito.doNothing().when(mock).record();
+        })) {
+            DynamicClassInstrumentation.MethodAdvice.onExit(
+                    "java.lang.System", "getenv", new Object[]{"java.lang.String"}, null, new DynamicClassExtractor(null, null, null, null), null, mockResult);
+            Mockito.verify(atomicReference.get()).setResponse(mockResult);
+
+            DynamicClassInstrumentation.MethodAdvice.onExit(
+                    "java.lang.System", "getenv", new Object[]{"java.lang.String"}, null, new DynamicClassExtractor(null, null, null, null), null, futureResult);
+            Mockito.verify(atomicReference.get()).setFutureResponse(futureResult);
         }
     }
 
@@ -181,25 +224,28 @@ class DynamicClassInstrumentationTest {
 
     @Test
     void testTransformer() {
-        DynamicClassEntity testReturnPrimitiveType = new DynamicClassEntity("io.arex.inst.dynamic.DynamicTestClass", "testReturnPrimitiveType", "", "java.lang.System.currentTimeMillis");
-        DynamicClassEntity testReturnNonPrimitiveType = new DynamicClassEntity("io.arex.inst.dynamic.DynamicTestClass", "testReturnNonPrimitiveType", "", "java.util.UUID.randomUUID");
-        DynamicClassInstrumentation instrumentation = new DynamicClassInstrumentation(Arrays.asList(testReturnPrimitiveType, testReturnNonPrimitiveType));
+        DynamicClassEntity testSystem = new DynamicClassEntity("io.arex.inst.dynamic.ReplaceMethodClass", "currentTimeMillis", "", ArexConstants.CURRENT_TIME_MILLIS_SIGNATURE);
+        DynamicClassEntity testUUID = new DynamicClassEntity("io.arex.inst.dynamic.ReplaceMethodClass", "uuid", "", ArexConstants.UUID_SIGNATURE);
+        DynamicClassEntity testNextInt = new DynamicClassEntity("io.arex.inst.dynamic.ReplaceMethodClass", "nextInt", "", ArexConstants.NEXT_INT_SIGNATURE);
+        DynamicClassEntity testAll = new DynamicClassEntity("io.arex.inst.dynamic.ReplaceMethodClass", "", "", ArexConstants.NEXT_INT_SIGNATURE);
+        DynamicClassEntity testNoMethod = new DynamicClassEntity("io.arex.inst.dynamic.ReplaceMethodClass", "next", "", ArexConstants.NEXT_INT_SIGNATURE);
         try (MockedStatic<ReplaceMethodHelper> replaceTimeMillsMockMockedStatic = Mockito.mockStatic(
                 ReplaceMethodHelper.class)) {
             replaceTimeMillsMockMockedStatic.when(ReplaceMethodHelper::currentTimeMillis).thenReturn(3L);
             replaceTimeMillsMockMockedStatic.when(ReplaceMethodHelper::uuid).thenReturn(UUID.fromString("7eb4f958-671a-11ed-9022-0242ac120002"));
-
+            DynamicClassInstrumentation target = new DynamicClassInstrumentation(Arrays.asList(testSystem, testUUID, testNextInt, testAll, testNoMethod));
+            replaceTimeMillsMockMockedStatic.when(() -> ReplaceMethodHelper.nextInt(new Random(), 10)).thenReturn(2);
 
             ResettableClassFileTransformer resettableClassFileTransformer =
                     new AgentBuilder.Default(new ByteBuddy())
-                            .type(instrumentation.matcher())
-                            .transform(instrumentation.transformer())
+                            .type(target.matcher())
+                            .transform(target.transformer())
                             .installOnByteBuddyAgent();
 
-            DynamicTestClass testClass = new DynamicTestClass();
-//            assertEquals(3L, testClass.testReturnPrimitiveType());
-//            assertEquals("7eb4f958-671a-11ed-9022-0242ac120002", testClass.testReturnNonPrimitiveType());
+            ReplaceMethodClass testClass = new ReplaceMethodClass();
+            assertDoesNotThrow(testClass::currentTimeMillis);
+            assertDoesNotThrow(testClass::uuid);
+            assertDoesNotThrow(testClass::nextInt);
         }
-
     }
 }
