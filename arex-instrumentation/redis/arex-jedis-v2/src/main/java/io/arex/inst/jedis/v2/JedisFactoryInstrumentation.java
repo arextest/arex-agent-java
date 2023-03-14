@@ -48,26 +48,29 @@ public class JedisFactoryInstrumentation extends TypeInstrumentation {
     public static class MakeObjectAdvice {
 
         @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class, suppress = Throwable.class)
-        public static boolean onEnter() {
-            return true;
+        public static Jedis onEnter(@Advice.FieldValue("hostAndPort") AtomicReference<HostAndPort> hostAndPort,
+                                    @Advice.FieldValue("connectionTimeout") Integer connectionTimeout,
+                                    @Advice.FieldValue("soTimeout") Integer soTimeout,
+                                    @Advice.FieldValue("ssl") Boolean ssl,
+                                    @Advice.FieldValue("sslSocketFactory") SSLSocketFactory sslSocketFactory,
+                                    @Advice.FieldValue("sslParameters") SSLParameters sslParameters,
+                                    @Advice.FieldValue("hostnameVerifier") HostnameVerifier hostnameVerifier) {
+            final HostAndPort hp = hostAndPort.get();
+            return new JedisWrapper(hp.getHost(), hp.getPort(), connectionTimeout, soTimeout,
+                    ssl, sslSocketFactory, sslParameters, hostnameVerifier);
         }
 
         // todo: change instrumentation: JedisFactory -> DefaultPoolObject
-        @Advice.OnMethodExit(suppress = Throwable.class)
-        public static void  onExit(@Advice.FieldValue("hostAndPort") AtomicReference<HostAndPort> hostAndPort,
-                                   @Advice.FieldValue("connectionTimeout") Integer connectionTimeout,
-                                   @Advice.FieldValue("soTimeout") Integer soTimeout,
-                                   @Advice.FieldValue("ssl") Boolean ssl,
-                                   @Advice.FieldValue("sslSocketFactory") SSLSocketFactory sslSocketFactory,
-                                   @Advice.FieldValue("sslParameters") SSLParameters sslParameters,
-                                   @Advice.FieldValue("hostnameVerifier") HostnameVerifier hostnameVerifier,
+        // need throw JedisException, not suppress throwable
+        @Advice.OnMethodExit
+        public static void  onExit(@Advice.Enter Jedis jedis,
                                    @Advice.FieldValue("password") String password,
                                    @Advice.FieldValue("database") Integer database,
                                    @Advice.FieldValue("clientName") String clientName,
                                    @Advice.Return(readOnly = false) PooledObject<Jedis> result) throws Exception {
-            final HostAndPort hp = hostAndPort.get();
-            Jedis jedis = new JedisWrapper(hp.getHost(), hp.getPort(), connectionTimeout, soTimeout,
-                    ssl, sslSocketFactory, sslParameters, hostnameVerifier);
+            if (jedis == null) {
+                return;
+            }
             try {
                 jedis.connect();
                 if (password != null) {

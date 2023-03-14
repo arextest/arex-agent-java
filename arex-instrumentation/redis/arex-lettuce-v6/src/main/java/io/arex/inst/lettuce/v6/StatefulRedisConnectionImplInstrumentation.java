@@ -54,9 +54,9 @@ public class StatefulRedisConnectionImplInstrumentation extends TypeInstrumentat
     }
 
     public static class NewRedisAsyncCommandsImplAdvice {
-        @Advice.OnMethodEnter(skipOn = Advice.OnDefaultValue.class, suppress = Throwable.class)
+        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class, suppress = Throwable.class)
         public static boolean onEnter() {
-            return false;
+            return true;
         }
 
         @Advice.OnMethodExit(suppress = Throwable.class)
@@ -68,9 +68,9 @@ public class StatefulRedisConnectionImplInstrumentation extends TypeInstrumentat
     }
 
     public static class NewRedisReactiveCommandsImplAdvice {
-        @Advice.OnMethodEnter(skipOn = Advice.OnDefaultValue.class, suppress = Throwable.class)
+        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class, suppress = Throwable.class)
         public static boolean onEnter() {
-            return false;
+            return true;
         }
 
         @Advice.OnMethodExit(suppress = Throwable.class)

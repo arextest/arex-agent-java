@@ -206,7 +206,7 @@ public class DateTimeInstrumentation extends TypeInstrumentation {
         }
 
 
-        @Advice.OnMethodExit
+        @Advice.OnMethodExit(suppress = Throwable.class)
         public static void onExit(@Advice.Return(readOnly = false) Calendar result) {
             long mockMills = TimeCache.get();
             if (mockMills > 0L && result != null) {
@@ -227,12 +227,12 @@ public class DateTimeInstrumentation extends TypeInstrumentation {
         }
 
 
-        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class)
+        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class, suppress = Throwable.class)
         public static long onEnter() {
             return TimeCache.get();
         }
 
-        @Advice.OnMethodExit
+        @Advice.OnMethodExit(suppress = Throwable.class)
         public static void onExit(
             @Advice.Enter long mockMills,
             @Advice.Return(readOnly = false) long result) {
@@ -255,12 +255,12 @@ public class DateTimeInstrumentation extends TypeInstrumentation {
         }
 
 
-        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class)
+        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class, suppress = Throwable.class)
         public static long onEnter() {
             return TimeCache.get();
         }
 
-        @Advice.OnMethodExit
+        @Advice.OnMethodExit(suppress = Throwable.class)
         public static void onExit(
             @Advice.Enter long mockMills,
             @Advice.Argument(0) Clock clock,

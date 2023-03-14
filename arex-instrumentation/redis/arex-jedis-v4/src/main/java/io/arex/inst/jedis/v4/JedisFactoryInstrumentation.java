@@ -44,17 +44,19 @@ public class JedisFactoryInstrumentation extends TypeInstrumentation {
     public static class MakeObjectAdvice {
 
         @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class, suppress = Throwable.class)
-        public static boolean onEnter() {
-            return true;
+        public static Jedis onEnter(@Advice.FieldValue("jedisSocketFactory") JedisSocketFactory factory,
+                                    @Advice.FieldValue("clientConfig") JedisClientConfig clientConfig) {
+            return new JedisWrapper(factory, clientConfig);
         }
 
-        @Advice.OnMethodExit(suppress = Throwable.class)
-        public static void  onExit(@Advice.FieldValue("jedisSocketFactory") JedisSocketFactory factory,
-                                   @Advice.FieldValue("clientConfig") JedisClientConfig clientConfig,
+        // need throw JedisException, not suppress throwable
+        @Advice.OnMethodExit
+        public static void  onExit(@Advice.Enter Jedis jedis,
                                    @Advice.Return(readOnly = false) PooledObject<Jedis> result) throws Exception {
-            Jedis jedis = null;
+            if (jedis == null) {
+                return;
+            }
             try {
-                jedis = new JedisWrapper(factory, clientConfig);
                 jedis.connect();
                 result = new DefaultPooledObject<>(jedis);
             } catch (JedisException jex) {

@@ -120,7 +120,7 @@ public class AbstractEntityPersisterInstrumentation extends TypeInstrumentation 
 
     @SuppressWarnings("unused")
     public static class UpdateOrInsertAdvice {
-        @Advice.OnMethodEnter(skipOn = Advice.OnDefaultValue.class, suppress = Throwable.class)
+        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class, suppress = Throwable.class)
         public static int onEnter(
                 @Advice.Argument(7) Object object,
                 @Advice.Argument(8) String sql,
@@ -131,10 +131,10 @@ public class AbstractEntityPersisterInstrumentation extends TypeInstrumentation 
                 DatabaseExtractor extractor = new DatabaseExtractor(sql, object, METHOD_NAME_UPDATE);
                 mockResult = extractor.replay();
                 if (mockResult != null && mockResult.notIgnoreMockResult()) {
-                    return 0;
+                    return 1;
                 }
             }
-            return 1;
+            return 0;
         }
 
         @Advice.OnMethodExit(onThrowable = Throwable.class, suppress = Throwable.class)
@@ -166,7 +166,7 @@ public class AbstractEntityPersisterInstrumentation extends TypeInstrumentation 
 
     @SuppressWarnings("unused")
     public static class DeleteAdvice {
-        @Advice.OnMethodEnter(skipOn = Advice.OnDefaultValue.class, suppress = Throwable.class)
+        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class, suppress = Throwable.class)
         public static int onEnter(
                 @Advice.Argument(3) Object object,
                 @Advice.Argument(4) String sql,
@@ -176,10 +176,10 @@ public class AbstractEntityPersisterInstrumentation extends TypeInstrumentation 
                 DatabaseExtractor extractor = new DatabaseExtractor(sql, object, METHOD_NAME_DELETE);
                 mockResult = extractor.replay();
                 if (mockResult != null && mockResult.notIgnoreMockResult()) {
-                    return 0;
+                    return 1;
                 }
             }
-            return 1;
+            return 0;
         }
 
         @Advice.OnMethodExit(onThrowable = Throwable.class, suppress = Throwable.class)
