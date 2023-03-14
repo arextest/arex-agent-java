@@ -2,7 +2,7 @@ package io.arex.inst.dynamic;
 
 import java.util.UUID;
 
-public class DynamicTestClass {
+public class DynamicTestClass extends AbstractDynamicTestClass {
 
     public long testReturnPrimitiveType() {
         long timeMillis = System.currentTimeMillis();
