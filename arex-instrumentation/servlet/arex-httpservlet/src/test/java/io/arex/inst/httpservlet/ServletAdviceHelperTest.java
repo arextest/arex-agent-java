@@ -8,6 +8,8 @@ import io.arex.inst.runtime.listener.CaseEventDispatcher;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.httpservlet.adapter.ServletAdapter;
 import io.arex.inst.runtime.util.IgnoreUtils;
+import java.io.IOException;
+import javax.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,12 +40,14 @@ import static org.mockito.ArgumentMatchers.eq;
 class ServletAdviceHelperTest {
     static ServletAdapter adapter;
     static HttpServletRequest request;
+    static HttpServletResponse response;
     static InvocableHandlerMethod invocableHandlerMethod;
 
     @BeforeAll
     static void setUp() {
         adapter = Mockito.mock(ServletAdapter.class);
         request = Mockito.mock(HttpServletRequest.class);
+        response = Mockito.mock(HttpServletResponse.class);
         Mockito.mockStatic(ContextManager.class);
         Mockito.mockStatic(RecordLimiter.class);
         Mockito.mockStatic(CaseEventDispatcher.class);
@@ -124,12 +128,13 @@ class ServletAdviceHelperTest {
 
     @ParameterizedTest
     @MethodSource("onServiceExitCase")
-    void onServiceExit(Runnable mocker) {
+    void onServiceExit(Runnable mocker, Runnable verify) {
         try (MockedConstruction<ServletExtractor> mocked = Mockito.mockConstruction(ServletExtractor.class, (mock, context) -> {
             System.out.println("mock ServletExtractor");
         })) {
             mocker.run();
-            assertDoesNotThrow(() -> ServletAdviceHelper.onServiceExit(adapter, new Object(), new Object()));
+            ServletAdviceHelper.onServiceExit(adapter, request, response);
+            assertDoesNotThrow(verify::run);
         }
     }
 
@@ -137,28 +142,55 @@ class ServletAdviceHelperTest {
         Runnable mocker1 = () -> {
             Mockito.when(adapter.wrapped(any(), any())).thenReturn(false);
         };
+
         Runnable mocker2 = () -> {
+            Mockito.when(ContextManager.needRecordOrReplay()).thenReturn(false);
             Mockito.when(adapter.wrapped(any(), any())).thenReturn(true);
-            Mockito.when(adapter.getStatus(any())).thenReturn(100);
         };
         Runnable mocker3 = () -> {
+            Mockito.when(ContextManager.needRecordOrReplay()).thenReturn(true);
+            Mockito.when(adapter.getStatus(any())).thenReturn(100);
+        };
+        Runnable mocker4 = () -> {
             Mockito.when(adapter.getStatus(any())).thenReturn(200);
             Mockito.when(adapter.getAttribute(any(), eq(ServletAdviceHelper.SERVLET_ASYNC_FLAG))).thenReturn("true");
         };
-        Runnable mocker4 = () -> {
+        Runnable mocker5 = () -> {
             Mockito.when(adapter.getAttribute(any(), eq(ServletAdviceHelper.SERVLET_ASYNC_FLAG))).thenReturn("false");
             Mockito.when(adapter.isAsyncStarted(any())).thenReturn(true);
         };
-        Runnable mocker5 = () -> {
+        Runnable mocker6 = () -> {
             Mockito.when(adapter.isAsyncStarted(any())).thenReturn(false);
+        };
+        Runnable mockThrowException = () -> {
+            Mockito.when(ContextManager.needRecordOrReplay()).thenReturn(false);
+            try {
+                Mockito.doThrow(new IOException("mock io exception")).when(adapter).copyBodyToResponse(response);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        };
+
+        Runnable verifyEmpty = () -> { };
+        Runnable verifyCopyBody = () -> {
+            try {
+                Mockito.verify(adapter, Mockito.atLeastOnce()).copyBodyToResponse(response);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        };
+        Runnable verifyAddListener = () -> {
+            Mockito.verify(adapter, Mockito.atLeastOnce()).addListener(adapter, request, response);
         };
 
         return Stream.of(
-                arguments(mocker1),
-                arguments(mocker2),
-                arguments(mocker3),
-                arguments(mocker4),
-                arguments(mocker5)
+                arguments(mocker1, verifyEmpty),
+                arguments(mocker2, verifyCopyBody),
+                arguments(mocker3, verifyCopyBody),
+                arguments(mocker4, verifyCopyBody),
+                arguments(mocker5, verifyAddListener),
+                arguments(mocker6, verifyEmpty),
+                arguments(mockThrowException, verifyEmpty)
         );
     }
 

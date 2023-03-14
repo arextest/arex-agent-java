@@ -83,7 +83,9 @@ public class ServletAdapterImplV5 implements ServletAdapter<HttpServletRequest, 
 
     @Override
     public void copyBodyToResponse(HttpServletResponse httpServletResponse) throws IOException {
-        ((CachedBodyResponseWrapperV5) httpServletResponse).copyBodyToResponse();
+        if (httpServletResponse instanceof CachedBodyResponseWrapperV5) {
+            ((CachedBodyResponseWrapperV5) httpServletResponse).copyBodyToResponse();
+        }
     }
 
     @Override

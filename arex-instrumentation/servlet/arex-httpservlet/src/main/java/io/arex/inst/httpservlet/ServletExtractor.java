@@ -41,6 +41,7 @@ public class ServletExtractor<HttpServletRequest, HttpServletResponse> {
         }
 
         if (!ContextManager.needRecordOrReplay()) {
+            adapter.copyBodyToResponse(httpServletResponse);
             return;
         }
 
