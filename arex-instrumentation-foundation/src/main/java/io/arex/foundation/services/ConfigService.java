@@ -283,9 +283,13 @@ public class ConfigService {
             this.coreVersion = coreVersion;
         }
 
-        public String getRecordVersion() {return recordVersion;}
+         public String getRecordVersion() {
+            return recordVersion;
+        }
 
-        public void setRecordVersion(String recordVersion) {this.recordVersion = recordVersion;}
+        public void setRecordVersion(String recordVersion) {
+            this.recordVersion = recordVersion;
+        }
 
         public String getHost() {
             return host;
