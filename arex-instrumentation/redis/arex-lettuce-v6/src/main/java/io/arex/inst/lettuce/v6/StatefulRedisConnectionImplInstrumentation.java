@@ -54,12 +54,12 @@ public class StatefulRedisConnectionImplInstrumentation extends TypeInstrumentat
     }
 
     public static class NewRedisAsyncCommandsImplAdvice {
-        @Advice.OnMethodEnter(skipOn = Advice.OnDefaultValue.class)
+        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class, suppress = Throwable.class)
         public static boolean onEnter() {
-            return false;
+            return true;
         }
 
-        @Advice.OnMethodExit
+        @Advice.OnMethodExit(suppress = Throwable.class)
         public static <K, V> void onExit(@Advice.This StatefulRedisConnectionImpl<K, V> connection,
             @Advice.FieldValue("codec") RedisCodec<K, V> codec,
             @Advice.Return(readOnly = false) RedisAsyncCommandsImpl<K, V> returnValue) {
@@ -68,12 +68,12 @@ public class StatefulRedisConnectionImplInstrumentation extends TypeInstrumentat
     }
 
     public static class NewRedisReactiveCommandsImplAdvice {
-        @Advice.OnMethodEnter(skipOn = Advice.OnDefaultValue.class)
+        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class, suppress = Throwable.class)
         public static boolean onEnter() {
-            return false;
+            return true;
         }
 
-        @Advice.OnMethodExit
+        @Advice.OnMethodExit(suppress = Throwable.class)
         public static <K, V> void onExit(@Advice.This StatefulRedisConnectionImpl<K, V> connection,
             @Advice.FieldValue("codec") RedisCodec<K, V> codec,
             @Advice.Return(readOnly = false) RedisReactiveCommandsImpl<K, V> returnValue) {

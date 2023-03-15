@@ -42,7 +42,7 @@ public class InvocableHandlerInstrumentationV5 extends TypeInstrumentation {
 
     public static class InvokeAdvice {
 
-        @Advice.OnMethodExit
+        @Advice.OnMethodExit(suppress = Throwable.class)
         public static void onExit(@Advice.Argument(0) NativeWebRequest nativeWebRequest,
             @Advice.This InvocableHandlerMethod invocableHandlerMethod, @Advice.Return Object response) {
             ServletAdviceHelper.onInvokeForRequestExit(ServletAdapterImplV5.getInstance(),

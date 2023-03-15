@@ -48,7 +48,7 @@ public class DubboConsumerInstrumentation extends TypeInstrumentation {
 
 
     public static class InvokeAdvice {
-        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class)
+        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class, suppress = Throwable.class)
         public static boolean onEnter(@Advice.This Invoker<?> invoker,
                                       @Advice.Argument(0) Invocation invocation,
                                       @Advice.Local("extractor") DubboConsumerExtractor extractor,
@@ -67,7 +67,7 @@ public class DubboConsumerInstrumentation extends TypeInstrumentation {
             return mockResult != null && mockResult.notIgnoreMockResult();
         }
 
-        @Advice.OnMethodExit
+        @Advice.OnMethodExit(suppress = Throwable.class)
         public static void onExit(@Advice.Return(readOnly = false) Result result,
                                   @Advice.Local("extractor") DubboConsumerExtractor extractor,
                                   @Advice.Local("mockResult") MockResult mockResult) {

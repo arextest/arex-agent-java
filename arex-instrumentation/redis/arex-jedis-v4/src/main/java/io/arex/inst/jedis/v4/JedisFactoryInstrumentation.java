@@ -43,31 +43,31 @@ public class JedisFactoryInstrumentation extends TypeInstrumentation {
     @SuppressWarnings("unused")
     public static class MakeObjectAdvice {
 
-        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class)
-        public static boolean onEnter() {
-            return true;
+        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class, suppress = Throwable.class)
+        public static Jedis onEnter(@Advice.FieldValue("jedisSocketFactory") JedisSocketFactory factory,
+                                    @Advice.FieldValue("clientConfig") JedisClientConfig clientConfig) {
+            return new JedisWrapper(factory, clientConfig);
         }
 
+        // need throw JedisException, not suppress throwable
         @Advice.OnMethodExit
-        public static void  onExit(@Advice.FieldValue("jedisSocketFactory") JedisSocketFactory factory,
-                                   @Advice.FieldValue("clientConfig") JedisClientConfig clientConfig,
+        public static void  onExit(@Advice.Enter Jedis jedis,
                                    @Advice.Return(readOnly = false) PooledObject<Jedis> result) throws Exception {
-            Jedis jedis = null;
+            if (jedis == null) {
+                return;
+            }
             try {
-                jedis = new JedisWrapper(factory, clientConfig);
                 jedis.connect();
                 result = new DefaultPooledObject<>(jedis);
             } catch (JedisException jex) {
-                if (jedis != null) {
-                    try {
-                        jedis.quit();
-                    } catch (RuntimeException var5) {
-                    }
+                try {
+                    jedis.quit();
+                } catch (RuntimeException var5) {
+                }
 
-                    try {
-                        jedis.close();
-                    } catch (RuntimeException var4) {
-                    }
+                try {
+                    jedis.close();
+                } catch (RuntimeException var4) {
                 }
                 throw jex;
             }

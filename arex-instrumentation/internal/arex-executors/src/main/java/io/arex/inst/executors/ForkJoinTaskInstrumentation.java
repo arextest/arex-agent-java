@@ -39,14 +39,14 @@ public class ForkJoinTaskInstrumentation extends TypeInstrumentation {
 
     @SuppressWarnings("unused")
     public static class ExecAdvice {
-        @Advice.OnMethodEnter
+        @Advice.OnMethodEnter(suppress = Throwable.class)
         public static void onEnter(
                 @Advice.This Object task,
                 @Advice.Local("backup") Object backup) {
             backup = ArexThreadLocal.Transmitter.replay(Cache.CAPTURED_CACHE.get(task));
         }
 
-        @Advice.OnMethodExit
+        @Advice.OnMethodExit(suppress = Throwable.class)
         public static void onExit(@Advice.Local("backup") Object backup) {
             ArexThreadLocal.Transmitter.restore(backup);
         }
@@ -54,7 +54,7 @@ public class ForkJoinTaskInstrumentation extends TypeInstrumentation {
 
     @SuppressWarnings("unused")
     public static class ConstructorAdvice {
-        @Advice.OnMethodExit
+        @Advice.OnMethodExit(suppress = Throwable.class)
         public static void onExit(@Advice.This Object task) {
             Cache.CAPTURED_CACHE.put(task, ArexThreadLocal.Transmitter.capture());
         }

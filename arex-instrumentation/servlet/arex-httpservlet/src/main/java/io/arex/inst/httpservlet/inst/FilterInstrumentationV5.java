@@ -56,7 +56,7 @@ public class FilterInstrumentationV5 extends TypeInstrumentation {
     }
 
     public static class FilterAdvice {
-        @Advice.OnMethodEnter
+        @Advice.OnMethodEnter(suppress = Throwable.class)
         public static void onEnter(@Advice.Argument(value = 0, readOnly = false) ServletRequest request,
                                    @Advice.Argument(value = 1, readOnly = false) ServletResponse response) {
             Pair<HttpServletRequest, HttpServletResponse> pair =
@@ -75,7 +75,7 @@ public class FilterInstrumentationV5 extends TypeInstrumentation {
             }
         }
 
-        @Advice.OnMethodExit
+        @Advice.OnMethodExit(suppress = Throwable.class)
         public static void onExit(@Advice.Argument(value = 0, readOnly = false) ServletRequest request,
                                   @Advice.Argument(value = 1, readOnly = false) ServletResponse response) {
             ServletAdviceHelper.onServiceExit(ServletAdapterImplV5.getInstance(), request, response);

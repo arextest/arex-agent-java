@@ -13,6 +13,7 @@ import java.io.IOException;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.agent.builder.ResettableClassFileTransformer;
+import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.dynamic.ClassFileLocator;
 import net.bytebuddy.dynamic.DynamicType;
@@ -111,7 +112,8 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
         MethodInstrumentation method) {
         return builder.transform(new AgentBuilder.Transformer.ForAdvice()
                         .include(InstrumentationHolder.getAgentClassLoader())
-                        .advice(method.getMethodMatcher(), method.getAdviceClassName()));
+                        .advice(method.getMethodMatcher(), method.getAdviceClassName())
+                        .withExceptionHandler(Advice.ExceptionHandler.Default.PRINTING));
     }
 
 

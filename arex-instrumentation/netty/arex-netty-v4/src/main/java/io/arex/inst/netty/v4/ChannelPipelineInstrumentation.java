@@ -49,7 +49,7 @@ public class ChannelPipelineInstrumentation extends TypeInstrumentation {
 
     public static final class AddHandlerAdvice {
 
-        @Advice.OnMethodEnter
+        @Advice.OnMethodEnter(suppress = Throwable.class)
         public static void onEnter(@Advice.Argument(2) ChannelHandler handler,
                                    @Advice.Local("callDepth") CallDepth callDepth) {
             callDepth = CallDepth.forClass(handler.getClass());

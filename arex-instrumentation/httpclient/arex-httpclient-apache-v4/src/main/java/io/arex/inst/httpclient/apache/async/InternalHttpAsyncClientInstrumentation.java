@@ -56,7 +56,7 @@ public class InternalHttpAsyncClientInstrumentation extends TypeInstrumentation 
 
     @SuppressWarnings("unused")
     public static class ExecuteAdvice {
-        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class)
+        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class, suppress = Throwable.class)
         public static boolean onEnter(@Advice.Argument(0) HttpAsyncRequestProducer producer,
             @Advice.Argument(value = 3, readOnly = false) FutureCallback<?> callback,
             @Advice.Local("mockResult") MockResult mockResult) {
@@ -86,7 +86,7 @@ public class InternalHttpAsyncClientInstrumentation extends TypeInstrumentation 
             return false;
         }
 
-        @Advice.OnMethodExit
+        @Advice.OnMethodExit(suppress = Throwable.class)
         public static void onExit(@Advice.Argument(value = 3, readOnly = false) FutureCallback<?> callback,
             @Advice.Return(readOnly = false) Future<?> future,
             @Advice.Local("mockResult") MockResult mockResult) {

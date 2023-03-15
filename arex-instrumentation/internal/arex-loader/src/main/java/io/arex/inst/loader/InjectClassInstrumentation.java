@@ -40,7 +40,7 @@ public class InjectClassInstrumentation extends TypeInstrumentation {
     @SuppressWarnings("unused")
     public static class LoadClassAdvice {
 
-        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class)
+        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class, suppress = Throwable.class)
         public static Class<?> onEnter(
                 @Advice.This ClassLoader classLoader, @Advice.Argument(0) String name) {
             Class<?> adviceClass = AdviceInjectorCache.getAdviceClass(name, classLoader);
@@ -51,7 +51,7 @@ public class InjectClassInstrumentation extends TypeInstrumentation {
             return null;
         }
 
-        @Advice.OnMethodExit(onThrowable = Throwable.class)
+        @Advice.OnMethodExit(onThrowable = Throwable.class, suppress = Throwable.class)
         public static void onExit(
                 @Advice.Return(readOnly = false) Class<?> result, @Advice.Enter Class<?> loadedClass) {
             if (loadedClass != null) {

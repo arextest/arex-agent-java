@@ -68,7 +68,7 @@ public class DubboStreamConsumerInstrumentation extends TypeInstrumentation {
     }
 
     public static class SendMessageAdvice {
-        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class)
+        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class, suppress = Throwable.class)
         public static boolean onEnter(@Advice.Argument(0) Object message,
                                       @Advice.FieldValue("stream") ClientStream stream,
                                       @Advice.FieldValue("requestMetadata") RequestMetadata requestMetadata,
@@ -84,7 +84,7 @@ public class DubboStreamConsumerInstrumentation extends TypeInstrumentation {
             return mockResults != null && !mockResults.isEmpty() && mockResults.get(0).notIgnoreMockResult();
         }
 
-        @Advice.OnMethodExit
+        @Advice.OnMethodExit(suppress = Throwable.class)
         public static void onExit(@Advice.This TripleClientCall clientCall,
                                   @Advice.Argument(0) Object message,
                                   @Advice.FieldValue("requestMetadata") RequestMetadata requestMetadata,
@@ -107,14 +107,14 @@ public class DubboStreamConsumerInstrumentation extends TypeInstrumentation {
     }
 
     public static class OnStartAdvice {
-        @Advice.OnMethodEnter
+        @Advice.OnMethodEnter(suppress = Throwable.class)
         public static void onEnter(@Advice.FieldValue("stream") ClientStream stream) {
             DubboStreamConsumerExtractor.init(stream);
         }
     }
 
     public static class OnMessageAdvice {
-        @Advice.OnMethodExit
+        @Advice.OnMethodExit(suppress = Throwable.class)
         public static void onExit(@Advice.Argument(0) byte[] message,
                                   @Advice.FieldValue("stream") ClientStream stream,
                                   @Advice.FieldValue("requestMetadata") RequestMetadata requestMetadata) {
@@ -126,7 +126,7 @@ public class DubboStreamConsumerInstrumentation extends TypeInstrumentation {
     }
 
     public static class OnCompleteAdvice {
-        @Advice.OnMethodEnter
+        @Advice.OnMethodEnter(suppress = Throwable.class)
         public static void onEnter(@Advice.Argument(0) TriRpcStatus status,
                                    @Advice.FieldValue("stream") ClientStream stream,
                                    @Advice.FieldValue("requestMetadata") RequestMetadata requestMetadata) {
@@ -142,7 +142,7 @@ public class DubboStreamConsumerInstrumentation extends TypeInstrumentation {
      * only after all the requests are completed can the onClose logic be triggered
      */
     public static class CloseAdvice {
-        @Advice.OnMethodEnter
+        @Advice.OnMethodEnter(suppress = Throwable.class)
         public static void onEnter(@Advice.FieldValue("requestMetadata") RequestMetadata requestMetadata,
                                    @Advice.FieldValue("listener") ClientCall.Listener listener) {
             if (ContextManager.needReplay()) {

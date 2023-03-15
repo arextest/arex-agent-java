@@ -67,7 +67,7 @@ public class DubboStreamProviderInstrumentation extends TypeInstrumentation {
     }
 
     public static class StartAdvice {
-        @Advice.OnMethodEnter
+        @Advice.OnMethodEnter(suppress = Throwable.class)
         public static void onEnter(@Advice.Argument(0) Invocation invocation,
                                    @Advice.Argument(2) Invoker<?> invoker) {
             DubboProviderExtractor.onServiceEnter(invoker, invocation);
@@ -75,7 +75,7 @@ public class DubboStreamProviderInstrumentation extends TypeInstrumentation {
     }
 
     public static class SendMessageAdvice {
-        @Advice.OnMethodExit
+        @Advice.OnMethodExit(suppress = Throwable.class)
         public static void onExit(@Advice.Argument(0) Object message,
                                   @Advice.FieldValue("serviceName") String serviceName,
                                   @Advice.FieldValue("methodDescriptor") MethodDescriptor methodDescriptor,
@@ -90,7 +90,7 @@ public class DubboStreamProviderInstrumentation extends TypeInstrumentation {
     }
 
     public static class OnMessageAdvice {
-        @Advice.OnMethodEnter
+        @Advice.OnMethodEnter(suppress = Throwable.class)
         public static void onEnter(@Advice.Argument(0) byte[] message,
                                    @Advice.FieldValue("serviceName") String serviceName,
                                    @Advice.FieldValue("stream") ServerStream stream,
@@ -109,7 +109,7 @@ public class DubboStreamProviderInstrumentation extends TypeInstrumentation {
     }
 
     public static class CloseAdvice {
-        @Advice.OnMethodEnter
+        @Advice.OnMethodEnter(suppress = Throwable.class)
         public static void onEnter(@Advice.Argument(0) TriRpcStatus status,
                                    @Advice.FieldValue("serviceName") String serviceName,
                                    @Advice.FieldValue("methodDescriptor") MethodDescriptor methodDescriptor,

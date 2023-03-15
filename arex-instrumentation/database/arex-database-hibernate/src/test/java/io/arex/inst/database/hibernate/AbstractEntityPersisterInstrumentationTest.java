@@ -14,7 +14,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.ArgumentCaptor;
 import org.mockito.MockedConstruction;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -23,11 +22,9 @@ import java.io.Serializable;
 import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-import org.mockito.stubbing.Answer;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isA;
 
 @ExtendWith(MockitoExtension.class)
@@ -125,8 +122,8 @@ class AbstractEntityPersisterInstrumentationTest {
         Predicate<Integer> predicate1 = result -> result == 0;
         Predicate<Integer> predicate2 = result -> result == 1;
         return Stream.of(
-                arguments(needReplay, MockResult.success("mock"), predicate1),
-                arguments(needReplay, null, predicate2)
+                arguments(needReplay, MockResult.success("mock"), predicate2),
+                arguments(needReplay, null, predicate1)
         );
     }
 
@@ -182,9 +179,9 @@ class AbstractEntityPersisterInstrumentationTest {
         Predicate<Integer> predicate1 = result -> result == 0;
         Predicate<Integer> predicate2 = result -> result == 1;
         return Stream.of(
-                arguments(needReplay, MockResult.success(0), predicate1),
-                arguments(needReplay, MockResult.success(true, 0), predicate2),
-                arguments(notNeedReplay, MockResult.success(0), predicate2)
+                arguments(needReplay, MockResult.success(0), predicate2),
+                arguments(needReplay, MockResult.success(true, 0), predicate1),
+                arguments(notNeedReplay, MockResult.success(0), predicate1)
         );
     }
 

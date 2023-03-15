@@ -44,7 +44,7 @@ public class DubboProviderInstrumentation extends TypeInstrumentation {
     }
 
     public static class InvokeAdvice {
-        @Advice.OnMethodEnter
+        @Advice.OnMethodEnter(suppress = Throwable.class)
         public static void onEnter(@Advice.This Invoker<?> invoker,
                                    @Advice.Argument(0) Invocation invocation) {
             if (invocation.getProtocolServiceKey() != null && invocation.getProtocolServiceKey().contains(DUBBO_STREAM_PROTOCOL)) {
@@ -54,7 +54,7 @@ public class DubboProviderInstrumentation extends TypeInstrumentation {
             DubboProviderExtractor.onServiceEnter(invoker, invocation);
         }
 
-        @Advice.OnMethodExit
+        @Advice.OnMethodExit(suppress = Throwable.class)
         public static void onExit(@Advice.This Invoker<?> invoker,
                                   @Advice.Argument(0) Invocation invocation,
                                   @Advice.Return(readOnly = false) Result result) {
