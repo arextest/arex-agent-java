@@ -60,16 +60,14 @@ public class JedisFactoryInstrumentation extends TypeInstrumentation {
                 jedis.connect();
                 result = new DefaultPooledObject<>(jedis);
             } catch (JedisException jex) {
-                if (jedis != null) {
-                    try {
-                        jedis.quit();
-                    } catch (RuntimeException var5) {
-                    }
+                try {
+                    jedis.quit();
+                } catch (RuntimeException var5) {
+                }
 
-                    try {
-                        jedis.close();
-                    } catch (RuntimeException var4) {
-                    }
+                try {
+                    jedis.close();
+                } catch (RuntimeException var4) {
                 }
                 throw jex;
             }
