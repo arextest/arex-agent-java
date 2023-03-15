@@ -3,10 +3,8 @@ package io.arex.inst.dynamic;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
-import static org.mockito.ArgumentMatchers.any;
 
 import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.agent.bootstrap.util.StringUtil;
@@ -34,6 +32,8 @@ import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.agent.builder.ResettableClassFileTransformer;
 import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.description.method.MethodDescription.ForLoadedMethod;
+import net.bytebuddy.description.type.TypeDescription;
+import net.bytebuddy.description.type.TypeDescription.ForLoadedType;
 import net.bytebuddy.matcher.ElementMatcher;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -41,6 +41,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
@@ -69,9 +70,25 @@ class DynamicClassInstrumentationTest {
         Mockito.clearAllCaches();
     }
 
-    @Test
-    void typeMatcher() {
-        assertNotNull(target.matcher());
+    @ParameterizedTest(name = "[{index}] {0}")
+    @CsvSource({
+        "DynamicTestClass",
+        "io.arex.inst.dynamic.*namicTest*",
+        "io.arex.inst.dynamic.*namicTestClass",
+        "io.arex.inst.dynamic.DynamicTest*",
+        "io.arex.inst.dynamic.DynamicTestClass",
+        "ac:io.arex.inst.dynamic.AbstractDynamicTestClass"
+    })
+    void typeMatcher(String fullClazzName) {
+        List<DynamicClassEntity> dynamicClassList = new ArrayList<>();
+        dynamicClassList.add(new DynamicClassEntity(fullClazzName, "", "", null));
+        DynamicClassInstrumentation instrumentation = new DynamicClassInstrumentation(dynamicClassList);
+        ElementMatcher<TypeDescription> matcher = instrumentation.matcher();
+        if (fullClazzName.equals("DynamicTestClass")) {
+            assertFalse(matcher.matches(ForLoadedType.of(DynamicTestClass.class)));
+            return;
+        }
+        assertTrue(matcher.matches(ForLoadedType.of(DynamicTestClass.class)));
     }
 
     @Test
@@ -82,8 +99,8 @@ class DynamicClassInstrumentationTest {
     @ParameterizedTest(name = "[{index}] {0}")
     @MethodSource("methodAdvicesCase")
     void testMethodAdvices(String testName, List<DynamicClassEntity> dynamicClassList, Predicate<List<MethodInstrumentation>> predicate) {
-        target = new DynamicClassInstrumentation(dynamicClassList);
-        List<MethodInstrumentation> methodAdvices = target.methodAdvices();
+        DynamicClassInstrumentation instrumentation = new DynamicClassInstrumentation(dynamicClassList);
+        List<MethodInstrumentation> methodAdvices = instrumentation.methodAdvices();
         assertTrue(predicate.test(methodAdvices));
     }
 
@@ -134,12 +151,13 @@ class DynamicClassInstrumentationTest {
             return methodAdvices.size() == 1 && matchedMethodCount(matcher, DynamicTestClass.class) == 2;
         };
 
-
+        DynamicClassEntity testReturnWithParameterWildcard = new DynamicClassEntity("io.arex.inst.dynamic.DynamicTestClass", "*WithParameter*,testReturnVoid*,*WithParameter", "", null);
 
         return Stream.of(
                 arguments("should_match_2_methods_when_empty_operation", Collections.singletonList(emptyOperation), NOT_EMPTY_PREDICATE.and(emptyOperationPredicate)),
                 arguments("should_match_0_method_when_with_return_void", Arrays.asList(testReturnVoidEntity, testReturnVoidWithParameterEntity), NOT_EMPTY_PREDICATE.and(emptyOperationAndVoidPredicate)),
-                arguments("should_match_2_method_when_with_parameter", Arrays.asList(testReturnNonPrimitiveTypeWithParameterEntity, testReturnPrimitiveTypeWithParameter), NOT_EMPTY_PREDICATE.and(operationWithParameterPredicate))
+                arguments("should_match_2_method_when_with_parameter", Arrays.asList(testReturnNonPrimitiveTypeWithParameterEntity, testReturnPrimitiveTypeWithParameter), NOT_EMPTY_PREDICATE.and(operationWithParameterPredicate)),
+                arguments("should_match_2_method_when_with_parameter_wildcard", Arrays.asList(testReturnWithParameterWildcard), NOT_EMPTY_PREDICATE.and(operationWithParameterPredicate))
         );
     }
 

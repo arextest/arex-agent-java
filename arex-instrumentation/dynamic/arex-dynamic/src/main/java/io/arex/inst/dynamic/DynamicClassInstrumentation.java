@@ -3,6 +3,7 @@ package io.arex.inst.dynamic;
 import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.inst.runtime.model.ArexConstants;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.Collections;
 
 import io.arex.agent.bootstrap.model.MockResult;
@@ -13,10 +14,12 @@ import io.arex.inst.runtime.model.DynamicClassEntity;
 import io.arex.inst.extension.MethodInstrumentation;
 import io.arex.inst.extension.TypeInstrumentation;
 import java.util.concurrent.Future;
+import java.util.function.Function;
 import net.bytebuddy.agent.builder.AgentBuilder.Transformer;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.asm.AsmVisitorWrapper;
 import net.bytebuddy.asm.MemberSubstitution;
+import net.bytebuddy.description.NamedElement;
 import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.implementation.bytecode.assign.Assigner;
@@ -41,6 +44,8 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
     private final List<String> replaceTimeMillisList = new ArrayList<>();
     private final List<String> replaceUuidList = new ArrayList<>();
     private final List<String> replaceNextIntList = new ArrayList<>();
+    private static final String SEPARATOR_STAR = "*";
+    private static final String ABSTRACT_CLASS_PREFIX = "ac:";
 
     public DynamicClassInstrumentation(List<DynamicClassEntity> dynamicClassList) {
         this.dynamicClassList = dynamicClassList;
@@ -71,7 +76,7 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
 
     @Override
     public ElementMatcher<TypeDescription> typeMatcher() {
-        return named(dynamicClassList.get(0).getClazzName());
+        return parseTypeMatcher(dynamicClassList.get(0).getClazzName(), this::parseClazzMatcher);
     }
 
     @Override
@@ -101,7 +106,8 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
         }
 
         for (DynamicClassEntity dynamicClassEntity : withParameterList) {
-            ElementMatcher.Junction<MethodDescription> parameterMatcher = named(dynamicClassEntity.getOperation());
+            ElementMatcher.Junction<MethodDescription> parameterMatcher =
+                parseTypeMatcher(dynamicClassEntity.getOperation(), this::parseMethodMatcher);
 
             if (CollectionUtil.isNotEmpty(dynamicClassEntity.getParameters())) {
                 parameterMatcher = parameterMatcher.and(takesArguments(dynamicClassEntity.getParameters().size()));
@@ -187,7 +193,7 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
         try {
             replaceMethod = ReplaceMethodHelper.class.getDeclaredMethod(replacementMethod, parameterTypes);
         } catch (NoSuchMethodException e) {
-            LOGGER.warn(String.format("Could not find method %s in class ReplaceMock", replacementMethod));
+            LOGGER.warn("Could not find method {} in class ReplaceMock", replacementMethod);
         }
 
         if (replaceMethod == null) {
@@ -208,5 +214,64 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
         searchMethodList.toArray(methods);
 
         return memberSubstitution.on(namedOneOf(methods));
+    }
+
+    private <T extends NamedElement> ElementMatcher.Junction<T> parseTypeMatcher(String originalTypeName,
+        Function<String,  ElementMatcher.Junction<T>> methodMatcher) {
+        String[] typeNames = StringUtil.split(originalTypeName, ',');
+        if (typeNames.length == 1) {
+            return methodMatcher.apply(originalTypeName);
+        }
+
+        ElementMatcher.Junction<T> matcher = none();
+        for (String name : typeNames) {
+            matcher = matcher.or(methodMatcher.apply(name));
+        }
+
+        return matcher;
+    }
+
+    private <T extends MethodDescription> ElementMatcher.Junction<T> parseMethodMatcher(String methodName) {
+        if (methodName.startsWith(SEPARATOR_STAR) && methodName.endsWith(SEPARATOR_STAR)) {
+            return nameContains(methodName.substring(1, methodName.length() - 1));
+        }
+        if (methodName.startsWith(SEPARATOR_STAR)) {
+            return nameEndsWith(methodName.substring(1));
+        }
+        if (methodName.endsWith(SEPARATOR_STAR)) {
+            return nameStartsWith(methodName.substring(0, methodName.length() - 1));
+        }
+        return named(methodName);
+    }
+
+
+    private <T extends TypeDescription> ElementMatcher.Junction<T> parseClazzMatcher(String fullClazzName) {
+        int lastPointIndex = fullClazzName.lastIndexOf('.');
+        if (lastPointIndex < 0) {
+            return none();
+        }
+
+        String packageName = fullClazzName.substring(0, lastPointIndex);
+        String clazzName = fullClazzName.substring(lastPointIndex + 1);
+
+        if (StringUtil.isNotEmpty(packageName)) {
+            ElementMatcher.Junction<T> matcher = nameStartsWith(packageName);
+            if (clazzName.startsWith(SEPARATOR_STAR) && clazzName.endsWith(SEPARATOR_STAR)) {
+                return matcher.and(nameContains(clazzName.substring(1, clazzName.length() - 1)));
+            }
+            if (clazzName.startsWith(SEPARATOR_STAR)) {
+                return matcher.and(nameEndsWith(clazzName.substring(1)));
+            }
+        }
+
+        if (clazzName.endsWith(SEPARATOR_STAR)) {
+            return nameStartsWith(fullClazzName.substring(0, fullClazzName.length() - 1));
+        }
+
+        if (fullClazzName.startsWith(ABSTRACT_CLASS_PREFIX)) {
+            return hasSuperType(named(fullClazzName.substring(ABSTRACT_CLASS_PREFIX.length())));
+        }
+
+        return named(fullClazzName);
     }
 }
