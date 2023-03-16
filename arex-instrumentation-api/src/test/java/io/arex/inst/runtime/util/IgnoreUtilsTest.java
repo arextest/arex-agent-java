@@ -1,5 +1,6 @@
 package io.arex.inst.runtime.util;
 
+import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.config.ConfigBuilder;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
@@ -9,8 +10,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.EmptySource;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mockito;
+import org.mockito.internal.util.collections.Sets;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Collections;
@@ -68,11 +73,25 @@ class IgnoreUtilsTest {
         );
     }
 
-    @Test
-    void ignoreOperation() {
+    @ParameterizedTest(name = "[{index}] {0}")
+    @EmptySource
+    @ValueSource(strings = {"/api", "/api/v1/get/order", "/api/v2/_info", "/api/v3"})
+    void ignoreOperation(String targetName) {
         ConfigBuilder.create("mock")
-                .excludeServiceOperations(Collections.singleton("operation"))
+                .excludeServiceOperations(Sets.newSet("/api", "/api/v1/*", "*_info"))
                 .build();
-        assertTrue(IgnoreUtils.ignoreOperation("operation"));
+        if (StringUtil.isEmpty(targetName) || "/api/v3".equals(targetName)) {
+            assertFalse(IgnoreUtils.ignoreOperation(targetName));
+        } else {
+            assertTrue(IgnoreUtils.ignoreOperation(targetName));
+        }
+    }
+
+    @Test
+    void ignoreOperation_excludePathList() {
+        assertFalse(IgnoreUtils.ignoreOperation("api/v3"));
+
+        ConfigBuilder.create("mock").build();
+        assertFalse(IgnoreUtils.ignoreOperation("api/v3"));
     }
 }

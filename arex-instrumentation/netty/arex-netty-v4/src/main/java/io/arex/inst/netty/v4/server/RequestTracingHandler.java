@@ -79,10 +79,6 @@ public class RequestTracingHandler extends ChannelInboundHandlerAdapter {
             return true;
         }
 
-        if (Config.get().invalidRecord(request.uri())) {
-            return true;
-        }
-
-        return IgnoreUtils.isServiceEnabled(request.method().toString() + " " + request.uri());
+        return Config.get().invalidRecord(request.uri());
     }
 }
