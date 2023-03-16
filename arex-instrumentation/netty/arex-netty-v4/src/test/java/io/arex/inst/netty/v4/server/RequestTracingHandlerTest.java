@@ -89,12 +89,10 @@ class RequestTracingHandlerTest {
         Runnable mocker5 = () -> {
             Mockito.when(IgnoreUtils.ignoreOperation(any())).thenReturn(false);
             Mockito.when(RecordLimiter.acquire(any())).thenReturn(true);
-            Mockito.when(IgnoreUtils.isServiceEnabled(any())).thenReturn(true);
         };
         Channel channel = Mockito.mock(Channel.class);
         Attribute attribute = Mockito.mock(Attribute.class);
         Runnable mocker6 = () -> {
-            Mockito.when(IgnoreUtils.isServiceEnabled(any())).thenReturn(false);
             Mockito.when(ContextManager.needRecordOrReplay()).thenReturn(true);
             Mockito.when(ctx.channel()).thenReturn(channel);
             Mockito.when(channel.attr(any())).thenReturn(attribute);

@@ -31,7 +31,6 @@ public class ServletAdviceHelper {
     public static final String SERVLET_RESPONSE = "arex-servlet-response";
     private static final Set<String> FILTERED_CONTENT_TYPE = new HashSet<>();
     private static final Set<String> FILTERED_GET_URL_SUFFIX = new HashSet<>();
-    private static final String HTTP_METHOD_GET = "GET";
     private static final List<Integer> RESPONSE_STATUS_LIST = new ArrayList<>();
     public static final String PROCESSED_FLAG = "arex-processed-flag";
 
@@ -213,19 +212,22 @@ public class ServletAdviceHelper {
         }
 
         String requestURI = adapter.getRequestURI(httpServletRequest);
+        if (StringUtil.isEmpty(requestURI)) {
+            return false;
+        }
+
+        if (IgnoreUtils.ignoreOperation(requestURI)) {
+            return true;
+        }
 
         // Filter invalid servlet path suffix
-        if (HTTP_METHOD_GET.equals(adapter.getMethod(httpServletRequest))) {
-            return StringUtil.isEmpty(requestURI) || FILTERED_GET_URL_SUFFIX.stream().anyMatch(requestURI::contains);
+        if (FILTERED_GET_URL_SUFFIX.stream().anyMatch(requestURI::contains)) {
+            return true;
         }
 
         // Filter invalid content-type
         String contentType = adapter.getContentType(httpServletRequest);
         if (StringUtil.isEmpty(contentType) || FILTERED_CONTENT_TYPE.stream().anyMatch(contentType::contains)) {
-            return true;
-        }
-
-        if (IgnoreUtils.ignoreOperation(requestURI)) {
             return true;
         }
 
