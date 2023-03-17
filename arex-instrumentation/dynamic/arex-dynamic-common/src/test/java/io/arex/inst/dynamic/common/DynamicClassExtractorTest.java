@@ -1,4 +1,4 @@
-package io.arex.inst.dynamic;
+package io.arex.inst.dynamic.common;
 
 import com.google.common.base.Optional;
 import com.google.common.util.concurrent.FutureCallback;
@@ -7,9 +7,9 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import io.arex.agent.bootstrap.model.ArexMocker;
 import io.arex.agent.bootstrap.model.Mocker.Target;
-import io.arex.inst.dynamic.listener.ListenableFutureAdapter;
-import io.arex.inst.dynamic.listener.ResponseConsumer;
-import io.arex.inst.runtime.config.Config;
+import io.arex.inst.dynamic.common.DynamicClassExtractor;
+import io.arex.inst.dynamic.common.listener.ListenableFutureAdapter;
+import io.arex.inst.dynamic.common.listener.ResponseConsumer;
 import io.arex.inst.runtime.config.ConfigBuilder;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;

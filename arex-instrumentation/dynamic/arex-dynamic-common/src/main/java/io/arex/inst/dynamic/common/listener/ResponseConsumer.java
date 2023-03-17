@@ -1,7 +1,8 @@
-package io.arex.inst.dynamic.listener;
+package io.arex.inst.dynamic.common.listener;
 
-import io.arex.inst.dynamic.DynamicClassExtractor;
 import java.util.function.BiConsumer;
+
+import io.arex.inst.dynamic.common.DynamicClassExtractor;
 
 public class ResponseConsumer implements BiConsumer<Object, Throwable> {
 

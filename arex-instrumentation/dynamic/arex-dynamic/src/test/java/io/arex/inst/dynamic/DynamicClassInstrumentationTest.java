@@ -8,6 +8,7 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.inst.dynamic.common.DynamicClassExtractor;
 import io.arex.inst.extension.MethodInstrumentation;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;

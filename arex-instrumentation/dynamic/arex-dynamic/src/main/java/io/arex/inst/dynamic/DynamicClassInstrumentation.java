@@ -1,6 +1,7 @@
 package io.arex.inst.dynamic;
 
 import io.arex.agent.bootstrap.util.CollectionUtil;
+import io.arex.inst.dynamic.common.DynamicClassExtractor;
 import io.arex.inst.runtime.model.ArexConstants;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -115,7 +116,8 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
                     parameterMatcher = parameterMatcher.and(takesArgument(i, named(dynamicClassEntity.getParameters().get(i))));
                 }
             }
-            matcher = matcher.or(parameterMatcher.and(not(returns(TypeDescription.VOID))));
+            matcher = matcher.or(parameterMatcher.and(not(returns(TypeDescription.VOID)))).
+                    and(not(isAnnotatedWith(named("org.springframework.cache.annotation.Cacheable"))));
         }
 
         return Collections.singletonList(new MethodInstrumentation(matcher, MethodAdvice.class.getName()));
@@ -123,12 +125,12 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
 
     @Override
     public List<String> adviceClassNames() {
-        return asList("io.arex.inst.dynamic.DynamicClassExtractor",
+        return asList("io.arex.inst.dynamic.common.DynamicClassExtractor",
                       "io.arex.inst.dynamic.ReplaceMethodHelper",
-                      "io.arex.inst.dynamic.listener.ListenableFutureAdapter",
-                      "io.arex.inst.dynamic.listener.ListenableFutureAdapter$ResponseFutureCallback",
-                      "io.arex.inst.dynamic.listener.ResponseConsumer",
-                      "io.arex.inst.dynamic.listener.DirectExecutor");
+                      "io.arex.inst.dynamic.common.listener.ListenableFutureAdapter",
+                      "io.arex.inst.dynamic.common.listener.ListenableFutureAdapter$ResponseFutureCallback",
+                      "io.arex.inst.dynamic.common.listener.ResponseConsumer",
+                      "io.arex.inst.dynamic.common.listener.DirectExecutor");
     }
 
     public final static class MethodAdvice {
