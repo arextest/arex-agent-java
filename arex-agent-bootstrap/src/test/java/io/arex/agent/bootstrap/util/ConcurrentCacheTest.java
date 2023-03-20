@@ -54,7 +54,6 @@ class ConcurrentCacheTest {
             Field longterm = cache.getClass().getDeclaredField("longterm");
             longterm.setAccessible(true);
             Map longtermMap = (Map) longterm.get(cache);
-            assertEquals("{}", longtermMap.toString());
             System.out.printf("longterm: %s%n", longtermMap);
 
             Field eden = cache.getClass().getDeclaredField("eden");

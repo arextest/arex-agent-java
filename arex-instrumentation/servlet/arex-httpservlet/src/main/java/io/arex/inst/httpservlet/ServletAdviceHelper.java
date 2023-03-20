@@ -227,7 +227,7 @@ public class ServletAdviceHelper {
 
         // Filter invalid content-type
         String contentType = adapter.getContentType(httpServletRequest);
-        if (StringUtil.isEmpty(contentType) || FILTERED_CONTENT_TYPE.stream().anyMatch(contentType::contains)) {
+        if (StringUtil.isNotEmpty(contentType) && FILTERED_CONTENT_TYPE.stream().anyMatch(contentType::contains)) {
             return true;
         }
 
