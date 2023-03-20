@@ -100,20 +100,23 @@ class ServletAdviceHelperTest {
         };
         Runnable mocker5 = () -> {
             Mockito.when(adapter.getRequestHeader(any(), eq(ArexConstants.REPLAY_WARM_UP))).thenReturn("false");
-            Mockito.when(adapter.getRequestURI(any())).thenReturn(".png");
+            Mockito.when(adapter.getRequestURI(any())).thenReturn("");
         };
         Runnable mocker6 = () -> {
             Mockito.when(adapter.getRequestURI(any())).thenReturn("uri");
-            Mockito.when(adapter.getContentType(any())).thenReturn("image/");
+            Mockito.when(IgnoreUtils.ignoreOperation(any())).thenReturn(true);
+
         };
         Runnable mocker7 = () -> {
-            Mockito.when(adapter.getContentType(any())).thenReturn("mock");
+            Mockito.when(IgnoreUtils.ignoreOperation(any())).thenReturn(false);
+            Mockito.when(adapter.getRequestURI(any())).thenReturn(".png");
         };
         Runnable mocker7_1 = () -> {
-            Mockito.when(IgnoreUtils.ignoreOperation(any())).thenReturn(true);
+            Mockito.when(adapter.getRequestURI(any())).thenReturn("uri");
+            Mockito.when(adapter.getContentType(any())).thenReturn("image/");
         };
         Runnable mocker8 = () -> {
-            Mockito.when(IgnoreUtils.ignoreOperation(any())).thenReturn(false);
+            Mockito.when(adapter.getContentType(any())).thenReturn("mock");
             Mockito.when(RecordLimiter.acquire(any())).thenReturn(true);
             Mockito.when(ContextManager.needRecordOrReplay()).thenReturn(true);
         };
