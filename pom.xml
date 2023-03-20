@@ -37,10 +37,21 @@
         <version.junit-jupiter>5.8.2</version.junit-jupiter>
         <mockito-junit-jupiter.version>4.7.0</mockito-junit-jupiter.version>
         <sonar.exclusions>
-            **/src/test/**,
+            **/test/**,
+            **/*Test.java,
             **/target/**,
             **/model/**
         </sonar.exclusions>
+        <sonar.test.exclusions>
+            **/test/**,
+            **/*Test.java
+        </sonar.test.exclusions>
+        <sonar.coverage.exclusions>
+            **/test/**,
+            **/*Test.java,
+            **/target/**,
+            **/model/**
+        </sonar.coverage.exclusions>
     </properties>
 
     <dependencyManagement>

@@ -2,23 +2,21 @@ package io.arex.inst.extension.matcher;
 
 import io.arex.agent.bootstrap.cache.LoadedModuleCache;
 import io.arex.agent.bootstrap.internal.Pair;
-import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.agent.bootstrap.util.ConcurrentCache;
 import io.arex.inst.runtime.context.ResourceManager;
 import io.arex.inst.extension.ModuleDescription;
 import net.bytebuddy.matcher.ElementMatcher;
 
-import java.util.Map;
-import java.util.WeakHashMap;
-
 public class ModuleVersionMatcher extends ElementMatcher.Junction.AbstractBase<ClassLoader> {
-
-    private static final String BYTEBUDDY_PREFIX = StringUtil.removeShadePrefix("net.bytebuddy.");
 
     public static ElementMatcher.Junction<ClassLoader> versionMatch(ModuleDescription description) {
         return new IgnoreClassloaderMatcher(new ModuleVersionMatcher(description));
     }
 
-    private final Map<ClassLoader, Boolean> cache = new WeakHashMap<>();
+    /**
+     * Don't use static final, because each matcher instance has a copy of CACHE
+     */
+    private final ConcurrentCache<ClassLoader, Boolean> cache = new ConcurrentCache<>(8);
     private final ModuleDescription description;
 
     ModuleVersionMatcher(ModuleDescription description) {
@@ -28,13 +26,6 @@ public class ModuleVersionMatcher extends ElementMatcher.Junction.AbstractBase<C
     @Override
     public boolean matches(ClassLoader cl) {
         if (cl == null) {
-            return false;
-        }
-
-        String name = cl.getClass().getName();
-        if (name.startsWith("sun.reflect.DelegatingClassLoader") ||
-            name.startsWith("jdk.internal.reflect.DelegatingClassLoader") ||
-            name.startsWith(BYTEBUDDY_PREFIX)) {
             return false;
         }
         return description == null || cache.computeIfAbsent(cl, this::versionMatches);
@@ -47,27 +38,5 @@ public class ModuleVersionMatcher extends ElementMatcher.Junction.AbstractBase<C
             return true;
         }
         return description.isSupported(version);
-    }
-
-    static class IgnoreClassloaderMatcher extends ElementMatcher.Junction.AbstractBase<ClassLoader> {
-
-        private ElementMatcher<ClassLoader> matcher;
-
-        public IgnoreClassloaderMatcher(ElementMatcher<ClassLoader> matcher) {
-            this.matcher = matcher;
-        }
-
-        @Override
-        public boolean matches(ClassLoader loader) {
-            if (loader == null) {
-                return false;
-            }
-
-            String loaderName = loader.getClass().getName();
-            if (loaderName.startsWith("sun.reflect") || loaderName.startsWith("jdk.internal.reflect")) {
-                return false;
-            }
-            return matcher.matches(loader);
-        }
     }
 }

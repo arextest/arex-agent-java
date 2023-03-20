@@ -1,16 +1,18 @@
 package io.arex.inst.extension.matcher;
 
+import io.arex.agent.bootstrap.util.ConcurrentCache;
 import net.bytebuddy.matcher.ElementMatcher;
 
-import java.util.Map;
-import java.util.WeakHashMap;
-
 public class HasClassNameMatcher extends ElementMatcher.Junction.AbstractBase<ClassLoader> {
+
     public static ElementMatcher.Junction<ClassLoader> hasClassNamed(String className) {
-        return new HasClassNameMatcher(className);
+        return new IgnoreClassloaderMatcher(new HasClassNameMatcher(className));
     }
 
-    private final Map<ClassLoader, Boolean> cache = new WeakHashMap<>();
+    /**
+     * Don't use static final, because each matcher instance has a copy of CACHE
+     */
+    private final ConcurrentCache<ClassLoader, Boolean> cache = new ConcurrentCache<>(8);
     private final String className;
 
 
