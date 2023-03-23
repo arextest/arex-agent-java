@@ -1,12 +1,12 @@
-package io.arex.inst.dynamic;
+package io.arex.inst.dynamic.common;
 
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.StringUtil;
-import io.arex.inst.dynamic.listener.ListenableFutureAdapter;
-import io.arex.inst.dynamic.listener.ResponseConsumer;
+import io.arex.inst.dynamic.common.listener.ListenableFutureAdapter;
+import io.arex.inst.dynamic.common.listener.ResponseConsumer;
 import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
@@ -37,7 +37,7 @@ public class DynamicClassExtractor {
     private String operationResult;
     private Object result;
     private String resultClazz;
-    private transient String methodSignatureKey;
+    private String methodSignatureKey;
     private final String methodReturnType;
     private int methodSignatureKeyHash;
 
@@ -64,6 +64,7 @@ public class DynamicClassExtractor {
         this.resultClazz = buildResultClazz(TypeUtil.getName(response));
         record();
     }
+
 
     protected String buildResultClazz(String resultClazz) {
         if (Config.get() == null || resultClazz == null) {

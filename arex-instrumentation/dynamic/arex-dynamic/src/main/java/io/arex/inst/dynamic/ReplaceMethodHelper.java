@@ -30,11 +30,15 @@ public class ReplaceMethodHelper {
             return UUID.fromString(replayMocker.getTargetResponse().getBody());
         }
         UUID realUuid = UUID.randomUUID();
-        if (ContextManager.needRecord()) {
-            Mocker mocker = createMocker();
-            mocker.getTargetResponse().setType(STRING_TYPE_NAME);
-            mocker.getTargetResponse().setBody(realUuid.toString());
-            MockUtils.recordMocker(mocker);
+        try {
+            if (ContextManager.needRecord()) {
+                Mocker mocker = createMocker();
+                mocker.getTargetResponse().setType(STRING_TYPE_NAME);
+                mocker.getTargetResponse().setBody(realUuid.toString());
+                MockUtils.recordMocker(mocker);
+            }
+        } catch (Throwable ex) {
+            LogUtil.warn("replaceUuidRecord", ex);
         }
         return realUuid;
     }

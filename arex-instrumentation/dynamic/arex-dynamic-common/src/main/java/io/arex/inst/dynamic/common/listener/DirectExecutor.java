@@ -1,4 +1,4 @@
-package io.arex.inst.dynamic.listener;
+package io.arex.inst.dynamic.common.listener;
 
 import java.util.concurrent.Executor;
 

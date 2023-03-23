@@ -1,10 +1,11 @@
-package io.arex.inst.dynamic.listener;
+package io.arex.inst.dynamic.common.listener;
 
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
-
 import com.google.common.util.concurrent.ListenableFuture;
-import io.arex.inst.dynamic.DynamicClassExtractor;
+
+import io.arex.inst.dynamic.common.DynamicClassExtractor;
+
 
 public class ListenableFutureAdapter {
 

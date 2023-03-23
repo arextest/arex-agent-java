@@ -25,6 +25,8 @@
         <module>redis/arex-lettuce-v6</module>
         <module>redis/arex-redission-v3</module>
         <module>dynamic/arex-dynamic</module>
+        <module>dynamic/arex-dynamic-common</module>
+        <module>dynamic/arex-spring-cache</module>
         <module>time-machine/arex-time-machine</module>
         <module>httpclient/arex-httpclient-common</module>
         <module>httpclient/arex-httpclient-okhttp-v3</module>
