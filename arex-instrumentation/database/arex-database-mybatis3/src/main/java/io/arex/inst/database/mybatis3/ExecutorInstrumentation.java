@@ -66,12 +66,6 @@ public class ExecutorInstrumentation extends TypeInstrumentation {
         );
     }
 
-    @Override
-    public List<String> adviceClassNames() {
-        return asList("io.arex.inst.database.common.DatabaseExtractor",
-                "io.arex.inst.database.mybatis3.InternalExecutor");
-    }
-
     @SuppressWarnings("unused")
     public static class QueryAdvice {
 

@@ -64,10 +64,6 @@ public class AbstractEntityPersisterInstrumentation extends TypeInstrumentation 
                 this.getClass().getName() + "$DeleteAdvice");
     }
 
-    @Override
-    public List<String> adviceClassNames() {
-        return asList("io.arex.inst.database.common.DatabaseExtractor");
-    }
 
     @SuppressWarnings("unused")
     public static class InsertAdvice {

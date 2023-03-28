@@ -1,6 +1,5 @@
 package io.arex.inst.spring;
 
-import java.util.Arrays;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
@@ -30,16 +29,6 @@ public class SpringCacheInstrumentation extends TypeInstrumentation {
     public List<MethodInstrumentation> methodAdvices() {
        return Collections.singletonList(new MethodInstrumentation(named("execute").and(isProtected()).and(takesArguments(4)),
                SpringCacheAdvice.class.getName()));
-    }
-
-    @Override
-    public List<String> adviceClassNames() {
-        return Arrays.asList("io.arex.inst.spring.SpringCacheAdviceHelper",
-                             "io.arex.inst.dynamic.common.DynamicClassExtractor",
-                             "io.arex.inst.dynamic.common.listener.ListenableFutureAdapter",
-                             "io.arex.inst.dynamic.common.listener.ListenableFutureAdapter$ResponseFutureCallback",
-                             "io.arex.inst.dynamic.common.listener.ResponseConsumer",
-                             "io.arex.inst.dynamic.common.listener.DirectExecutor");
     }
 
     @SuppressWarnings("unused")

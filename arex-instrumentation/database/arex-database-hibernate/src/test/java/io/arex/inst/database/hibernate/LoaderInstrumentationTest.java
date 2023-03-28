@@ -55,11 +55,6 @@ class LoaderInstrumentationTest {
     }
 
     @Test
-    void adviceClassNames() {
-        assertNotNull(target.adviceClassNames());
-    }
-
-    @Test
     void onEnter() throws SQLException {
         Mockito.when(ContextManager.needRecordOrReplay()).thenReturn(true);
         Mockito.when(ContextManager.needReplay()).thenReturn(true);

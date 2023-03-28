@@ -3,6 +3,7 @@ package io.arex.agent.instrumentation;
 import io.arex.agent.bootstrap.AgentInstaller;
 import io.arex.agent.bootstrap.TraceContextManager;
 import io.arex.agent.bootstrap.util.CollectionUtil;
+import io.arex.agent.bootstrap.util.AdviceClassesCollector;
 import io.arex.foundation.config.ConfigManager;
 import io.arex.foundation.healthy.HealthManager;
 import io.arex.foundation.serializer.JacksonSerializer;
@@ -58,6 +59,7 @@ public abstract class BaseAgentInstaller implements AgentInstaller {
     }
 
     private void installSerializer() {
+        AdviceClassesCollector.INSTANCE.addClassToLoaderSearch(JacksonSerializer.class);
         Serializer.Builder builder = Serializer.builder(JacksonSerializer.INSTANCE);
         List<StringSerializable> serializableList =
                 SPIUtil.load(StringSerializable.class, getClassLoader());
@@ -66,7 +68,6 @@ public abstract class BaseAgentInstaller implements AgentInstaller {
         }
         builder.build();
     }
-
     private void initDataCollector() {
         DataCollector collector = DataCollectorService.INSTANCE;
         if (ConfigManager.INSTANCE.isLocalStorage()) {

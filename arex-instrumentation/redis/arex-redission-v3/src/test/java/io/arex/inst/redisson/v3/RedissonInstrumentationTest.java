@@ -42,11 +42,6 @@ class RedissonInstrumentationTest {
     }
 
     @Test
-    void adviceClassNames() {
-        assertNotNull(target.adviceClassNames());
-    }
-
-    @Test
     void onEnter() {
         assertTrue(RedissonInstrumentation.GetBucketAdvice.onEnter());
     }

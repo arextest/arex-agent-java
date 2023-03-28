@@ -37,11 +37,6 @@ class JedisFactoryInstrumentationTest {
     }
 
     @Test
-    void adviceClassNames() {
-        assertNotNull(target.adviceClassNames());
-    }
-
-    @Test
     void onEnter() {
         try (MockedConstruction<JedisWrapper> mocked = Mockito.mockConstruction(JedisWrapper.class, (mock, context) -> {
         })) {

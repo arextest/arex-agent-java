@@ -35,11 +35,6 @@ class StatefulRedisConnectionImplInstrumentationTest {
     }
 
     @Test
-    void adviceClassNames() {
-        assertNotNull(target.adviceClassNames());
-    }
-
-    @Test
     void onEnter() {
         assertTrue(StatefulRedisConnectionImplInstrumentation.NewRedisAsyncCommandsImplAdvice.onEnter());
     }

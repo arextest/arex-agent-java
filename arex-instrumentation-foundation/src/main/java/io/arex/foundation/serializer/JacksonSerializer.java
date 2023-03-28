@@ -46,13 +46,7 @@ public final class JacksonSerializer implements StringSerializable {
     private static final Logger LOGGER = LoggerFactory.getLogger(JacksonSerializer.class);
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
-    private static final SimpleModule MODULE = new SimpleModule() {
-        @Override
-        public void setupModule(SetupContext context) {
-            super.setupModule(context);
-            context.addBeanSerializerModifier(new CustomSerializerModifier());
-        }
-    };
+    private static final SimpleModule MODULE = new JacksonSimpleModule();
 
     public static final JacksonSerializer INSTANCE = new JacksonSerializer();
 
@@ -158,6 +152,15 @@ public final class JacksonSerializer implements StringSerializable {
         module.addDeserializer(java.sql.Date.class, new SqlDateDeserialize());
         module.addDeserializer(Time.class, new SqlTimeDeserialize());
         module.addDeserializer(Instant.class, new InstantDeserialize());
+    }
+
+    private static class JacksonSimpleModule extends SimpleModule {
+
+        @Override
+        public void setupModule(SetupContext context) {
+            super.setupModule(context);
+            context.addBeanSerializerModifier(new CustomSerializerModifier());
+        }
     }
 
     /**

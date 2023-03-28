@@ -17,7 +17,6 @@ import net.bytebuddy.matcher.ElementMatcher;
 import java.util.Collections;
 import java.util.List;
 
-import static java.util.Arrays.asList;
 import static net.bytebuddy.matcher.ElementMatchers.*;
 
 /**
@@ -37,22 +36,6 @@ public class FilterInstrumentationV5 extends TypeInstrumentation {
                 .and(takesArgument(1, named("jakarta.servlet.ServletResponse")));
 
         return Collections.singletonList(new MethodInstrumentation(matcher, FilterAdvice.class.getName()));
-    }
-
-    @Override
-    public List<String> adviceClassNames() {
-        return asList(
-                "io.arex.inst.httpservlet.adapter.ServletAdapter",
-                "io.arex.inst.httpservlet.adapter.impl.ServletAdapterImplV5",
-                "io.arex.inst.httpservlet.ServletAdviceHelper",
-                "io.arex.inst.httpservlet.listener.ServletAsyncListenerV5",
-                "io.arex.inst.httpservlet.wrapper.CachedBodyRequestWrapperV5",
-                "io.arex.inst.httpservlet.wrapper.CachedBodyResponseWrapperV5",
-                "io.arex.inst.httpservlet.wrapper.CachedBodyRequestWrapperV5$ContentCachingInputStream",
-                "io.arex.inst.httpservlet.wrapper.CachedBodyResponseWrapperV5$ResponseServletOutputStream",
-                "io.arex.inst.httpservlet.wrapper.CachedBodyResponseWrapperV5$ResponsePrintWriter",
-                "io.arex.inst.httpservlet.ServletExtractor",
-                "io.arex.inst.httpservlet.wrapper.FastByteArrayOutputStream");
     }
 
     public static class FilterAdvice {

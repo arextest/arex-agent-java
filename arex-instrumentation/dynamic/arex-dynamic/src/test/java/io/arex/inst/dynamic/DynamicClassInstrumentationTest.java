@@ -92,11 +92,6 @@ class DynamicClassInstrumentationTest {
         assertTrue(matcher.matches(ForLoadedType.of(DynamicTestClass.class)));
     }
 
-    @Test
-    void adviceClassNames() {
-        assertEquals(6, target.adviceClassNames().size());
-    }
-
     @ParameterizedTest(name = "[{index}] {0}")
     @MethodSource("methodAdvicesCase")
     void testMethodAdvices(String testName, List<DynamicClassEntity> dynamicClassList, Predicate<List<MethodInstrumentation>> predicate) {

@@ -16,7 +16,6 @@ import net.bytebuddy.matcher.ElementMatcher;
 
 import java.util.List;
 
-import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static net.bytebuddy.matcher.ElementMatchers.*;
 
@@ -34,17 +33,6 @@ public class ChannelPipelineInstrumentation extends TypeInstrumentation {
                         .and(takesArgument(1, String.class))
                         .and(takesArgument(2, named("io.netty.channel.ChannelHandler"))),
                 AddHandlerAdvice.class.getName()));
-    }
-
-    @Override
-    public List<String> adviceClassNames() {
-        return asList(
-                "io.arex.inst.netty.v4.ChannelPipelineInstrumentation$AddHandlerAdvice",
-                "io.arex.inst.netty.v4.server.RequestTracingHandler",
-                "io.arex.inst.netty.v4.server.ResponseTracingHandler",
-                "io.arex.inst.netty.v4.server.ServerCodecTracingHandler",
-                "io.arex.inst.netty.v4.common.AttributeKey",
-                "io.arex.inst.netty.v4.common.NettyHelper");
     }
 
     public static final class AddHandlerAdvice {

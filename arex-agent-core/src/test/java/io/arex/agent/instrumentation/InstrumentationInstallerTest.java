@@ -83,7 +83,6 @@ class InstrumentationInstallerTest {
         };
         Runnable mocker4 = () -> {
             Mockito.when(module.instrumentationTypes()).thenReturn(Collections.singletonList(inst));
-            Mockito.when(inst.adviceClassNames()).thenReturn(Collections.singletonList("mock"));
             AgentBuilder.Transformer transformer = Mockito.mock(AgentBuilder.Transformer.class);
             Mockito.when(inst.transformer()).thenReturn(transformer);
         };

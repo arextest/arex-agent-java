@@ -63,6 +63,10 @@ public class Serializer {
         }
     }
 
+    public static Serializer getINSTANCE() {
+        return INSTANCE;
+    }
+
     /**
      * Deserialize by Class
      *
@@ -163,11 +167,11 @@ public class Serializer {
         }
     }
 
-    private StringSerializable getSerializer() {
+    public StringSerializable getSerializer() {
         return defaultSerializer;
     }
 
-    private StringSerializable getSerializer(String name) {
+    public StringSerializable getSerializer(String name) {
         if (name == null) {
             return defaultSerializer;
         }

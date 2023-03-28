@@ -61,12 +61,6 @@ public class DubboStreamConsumerInstrumentation extends TypeInstrumentation {
         return asList(onStartMethod, sendMessageMethod, onMessageMethod, onCompleteMethod, halfCloseMethod);
     }
 
-    @Override
-    public List<String> adviceClassNames() {
-        return asList("io.arex.inst.dubbo.stream.DubboStreamConsumerExtractor",
-                "io.arex.inst.dubbo.stream.DubboStreamAdapter");
-    }
-
     public static class SendMessageAdvice {
         @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class, suppress = Throwable.class)
         public static boolean onEnter(@Advice.Argument(0) Object message,

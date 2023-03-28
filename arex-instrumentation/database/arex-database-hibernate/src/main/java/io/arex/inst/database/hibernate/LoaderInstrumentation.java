@@ -16,7 +16,6 @@ import org.hibernate.loader.Loader;
 
 import java.util.List;
 
-import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static net.bytebuddy.matcher.ElementMatchers.*;
 import static net.bytebuddy.matcher.ElementMatchers.takesArgument;
@@ -37,13 +36,6 @@ public class LoaderInstrumentation extends TypeInstrumentation {
                         .and(takesArgument(1, named("org.hibernate.engine.spi.QueryParameters")))
                         .and(takesArgument(3, named("org.hibernate.transform.ResultTransformer"))),
                 this.getClass().getName() + "$QueryAdvice"));
-    }
-
-    @Override
-    public List<String> adviceClassNames() {
-        return asList(
-                "io.arex.inst.database.common.DatabaseExtractor",
-                "io.arex.inst.database.common.DatabaseHelper");
     }
 
     @SuppressWarnings("unused")

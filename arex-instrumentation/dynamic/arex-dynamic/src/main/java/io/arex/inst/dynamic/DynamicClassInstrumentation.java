@@ -31,7 +31,6 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static java.util.Arrays.asList;
 import static net.bytebuddy.matcher.ElementMatchers.*;
 
 /**
@@ -121,16 +120,6 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
         }
 
         return Collections.singletonList(new MethodInstrumentation(matcher, MethodAdvice.class.getName()));
-    }
-
-    @Override
-    public List<String> adviceClassNames() {
-        return asList("io.arex.inst.dynamic.common.DynamicClassExtractor",
-                      "io.arex.inst.dynamic.ReplaceMethodHelper",
-                      "io.arex.inst.dynamic.common.listener.ListenableFutureAdapter",
-                      "io.arex.inst.dynamic.common.listener.ListenableFutureAdapter$ResponseFutureCallback",
-                      "io.arex.inst.dynamic.common.listener.ResponseConsumer",
-                      "io.arex.inst.dynamic.common.listener.DirectExecutor");
     }
 
     public final static class MethodAdvice {

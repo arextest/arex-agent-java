@@ -59,13 +59,6 @@ public class DubboStreamProviderInstrumentation extends TypeInstrumentation {
         return asList(startMethod, sendMessageMethod, onMessageMethod, closeMethod);
     }
 
-    @Override
-    public List<String> adviceClassNames() {
-        return asList("io.arex.inst.dubbo.DubboProviderExtractor",
-                "io.arex.inst.dubbo.stream.DubboStreamProviderExtractor",
-                "io.arex.inst.dubbo.stream.DubboStreamAdapter");
-    }
-
     public static class StartAdvice {
         @Advice.OnMethodEnter(suppress = Throwable.class)
         public static void onEnter(@Advice.Argument(0) Invocation invocation,

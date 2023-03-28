@@ -42,17 +42,6 @@ public class OkHttpCallInstrumentation extends TypeInstrumentation {
 
     }
 
-    @Override
-    public List<String> adviceClassNames() {
-        return asList(
-                "io.arex.inst.httpclient.okhttp.v3.OkHttpClientAdapter",
-                "io.arex.inst.httpclient.okhttp.v3.OkHttpCallbackWrapper",
-                "io.arex.inst.httpclient.common.HttpClientExtractor",
-                "io.arex.inst.httpclient.common.HttpClientAdapter",
-                "io.arex.inst.httpclient.common.HttpResponseWrapper",
-                "io.arex.inst.httpclient.common.HttpResponseWrapper$StringTuple");
-    }
-
     public static final class ExecuteAdvice {
         @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class, suppress = Throwable.class)
         public static boolean onEnter(

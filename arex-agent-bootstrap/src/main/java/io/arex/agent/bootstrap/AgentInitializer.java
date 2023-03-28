@@ -1,5 +1,6 @@
 package io.arex.agent.bootstrap;
 
+import io.arex.agent.bootstrap.util.AdviceClassesCollector;
 import java.io.File;
 import java.lang.instrument.Instrumentation;
 import java.lang.reflect.Constructor;
@@ -15,14 +16,37 @@ public class AgentInitializer {
         }
 
         System.setProperty("arex-agent-jar-file-path", agentFile.getAbsolutePath());
-        classLoader = createAgentClassLoader(agentFile);
+        File[] extensionFiles = getExtensionJarFiles(agentFile);
+        classLoader = createAgentClassLoader(agentFile, extensionFiles);
         InstrumentationHolder.setAgentClassLoader(classLoader);
         AgentInstaller installer = createAgentInstaller(inst, agentFile, agentArgs);
+        addJarToLoaderSearch(agentFile, extensionFiles);
         installer.install();
     }
 
-    private static AgentClassLoader createAgentClassLoader(File agentFile) {
-        return new AgentClassLoader(agentFile, getParentClassLoader(), null);
+    private static void addJarToLoaderSearch(File agentFile, File[] extensionFiles) {
+        AdviceClassesCollector.INSTANCE.addJarToLoaderSearch(agentFile);
+
+        if (extensionFiles == null) {
+            return;
+        }
+
+        for (File file : extensionFiles) {
+            AdviceClassesCollector.INSTANCE.addJarToLoaderSearch(file);
+        }
+    }
+
+    private static AgentClassLoader createAgentClassLoader(File agentFile, File[] extensionFiles) {
+        return new AgentClassLoader(agentFile, getParentClassLoader(), extensionFiles);
+    }
+
+    private static File[] getExtensionJarFiles(File jarFile) {
+        String extensionDir = jarFile.getParent() + "/extensions/";
+        return new File(extensionDir).listFiles(AgentInitializer::isJar);
+    }
+
+    private static boolean isJar(File f) {
+        return f.isFile() && f.getName().endsWith(".jar");
     }
 
     private static AgentInstaller createAgentInstaller(Instrumentation inst, File file, String agentArgs) throws Exception {

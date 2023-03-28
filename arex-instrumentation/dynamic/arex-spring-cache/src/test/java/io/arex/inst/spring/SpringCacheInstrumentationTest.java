@@ -57,11 +57,6 @@ class SpringCacheInstrumentationTest {
     }
 
     @Test
-    void adviceClassName() {
-        assertEquals(6, target.adviceClassNames().size());
-    }
-
-    @Test
     void onEnterRecord() {
         Mockito.when(ContextManager.needRecord()).thenReturn(true);
         Mockito.when(SpringCacheAdviceHelper.needRecordOrReplay(any())).thenReturn(true);

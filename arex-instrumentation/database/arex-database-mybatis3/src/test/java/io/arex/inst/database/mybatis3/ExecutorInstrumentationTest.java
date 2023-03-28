@@ -68,11 +68,6 @@ class ExecutorInstrumentationTest {
     }
 
     @Test
-    void adviceClassNames() {
-        assertNotNull(target.adviceClassNames());
-    }
-
-    @Test
     void onEnter() throws SQLException {
         Mockito.when(ContextManager.needReplay()).thenReturn(true);
         assertFalse(ExecutorInstrumentation.QueryAdvice.onMethodEnter(null, null, null, MockResult.success("mock")));Mockito.when(ContextManager.needRecordOrReplay()).thenReturn(true);

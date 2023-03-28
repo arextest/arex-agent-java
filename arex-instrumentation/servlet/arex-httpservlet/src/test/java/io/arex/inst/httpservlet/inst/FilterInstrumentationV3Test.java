@@ -41,11 +41,6 @@ class FilterInstrumentationV3Test {
     }
 
     @Test
-    void adviceClassNames() {
-        assertEquals(10, inst.adviceClassNames().size());
-    }
-
-    @Test
     void ServiceAdvice_onEnter() {
         Mockito.when(ServletAdviceHelper.onServiceEnter(any(), any(), any())).thenReturn(null);
         assertDoesNotThrow(() -> ServletInstrumentationV3.ServiceAdvice.onEnter(null, null));

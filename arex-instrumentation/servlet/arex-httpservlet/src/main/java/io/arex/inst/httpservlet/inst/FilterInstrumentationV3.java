@@ -17,7 +17,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.Collections;
 import java.util.List;
 
-import static java.util.Arrays.asList;
 import static net.bytebuddy.matcher.ElementMatchers.*;
 
 /**
@@ -37,21 +36,6 @@ public class FilterInstrumentationV3 extends TypeInstrumentation {
                 .and(takesArgument(1, named("javax.servlet.ServletResponse")));
 
         return Collections.singletonList(new MethodInstrumentation(matcher, FilterAdvice.class.getName()));
-    }
-
-    @Override
-    public List<String> adviceClassNames() {
-        return asList(
-                "io.arex.inst.httpservlet.adapter.ServletAdapter",
-                "io.arex.inst.httpservlet.adapter.impl.ServletAdapterImplV3",
-                "io.arex.inst.httpservlet.ServletAdviceHelper",
-                "io.arex.inst.httpservlet.listener.ServletAsyncListenerV3",
-                "io.arex.inst.httpservlet.wrapper.CachedBodyRequestWrapperV3",
-                "io.arex.inst.httpservlet.wrapper.CachedBodyResponseWrapperV3",
-                "io.arex.inst.httpservlet.wrapper.CachedBodyRequestWrapperV3$ContentCachingInputStream",
-                "io.arex.inst.httpservlet.wrapper.CachedBodyResponseWrapperV3$ResponseServletOutputStream",
-                "io.arex.inst.httpservlet.wrapper.CachedBodyResponseWrapperV3$ResponsePrintWriter",
-                "io.arex.inst.httpservlet.ServletExtractor");
     }
 
     public static class FilterAdvice {

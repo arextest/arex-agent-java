@@ -16,7 +16,6 @@ import reactor.core.publisher.Mono;
 
 import java.util.List;
 
-import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 import static net.bytebuddy.matcher.ElementMatchers.takesArgument;
@@ -37,24 +36,6 @@ public class WebClientInstrumentation extends TypeInstrumentation {
 
     }
 
-    @Override
-    public List<String> adviceClassNames() {
-        return asList(
-                "io.arex.inst.httpclient.webclient.v5.WebClientInstrumentation$ExchangeAdvice",
-                "io.arex.inst.httpclient.webclient.v5.WebClientWrapper",
-                "io.arex.inst.httpclient.webclient.v5.WebClientAdapter",
-                "io.arex.inst.httpclient.webclient.v5.model.WebClientDefaultResponse",
-                "io.arex.inst.httpclient.webclient.v5.model.WebClientDefaultResponse$DefaultHeaders",
-                "io.arex.inst.httpclient.webclient.v5.model.WebClientDefaultResponse$BodyContext",
-                "io.arex.inst.httpclient.webclient.v5.model.WebClientHttpResponse",
-                "io.arex.inst.httpclient.webclient.v5.model.WebClientRequest",
-                "io.arex.inst.httpclient.webclient.v5.model.WebClientResponse",
-                "io.arex.inst.httpclient.webclient.v5.util.WebClientUtils",
-                "io.arex.inst.httpclient.common.HttpClientAdapter",
-                "io.arex.inst.httpclient.common.HttpResponseWrapper",
-                "io.arex.inst.httpclient.common.HttpResponseWrapper$StringTuple",
-                "io.arex.inst.httpclient.common.HttpClientExtractor");
-    }
 
     public static final class ExchangeAdvice {
         private ExchangeAdvice() {}

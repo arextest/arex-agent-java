@@ -52,11 +52,6 @@ class InternalHttpClientInstrumentationTest {
     }
 
     @Test
-    void adviceClassNames() {
-        assertEquals(7, target.adviceClassNames().size());
-    }
-
-    @Test
     void methodAdvices() {
         assertNotNull(target.methodAdvices());
     }
