@@ -232,7 +232,7 @@ public final class JacksonSerializer implements StringSerializable {
         public void serialize(LocalDateTime value, JsonGenerator gen, SerializerProvider serializers)
                 throws IOException {
             gen.writeString(
-                    value.format(DateFormatParser.INSTANCE.getFormatter(DatePatternConstants.SIMPLE_DATE_FORMAT_MILLIS)));
+                    value.format(DateFormatParser.INSTANCE.getFormatter(DatePatternConstants.localDateTimeFormat)));
         }
     }
 
@@ -243,7 +243,7 @@ public final class JacksonSerializer implements StringSerializable {
         public LocalDateTime deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
             JsonNode node = p.getCodec().readTree(p);
             return LocalDateTime.parse(node.asText(),
-                    DateFormatParser.INSTANCE.getFormatter(node.asText(), DatePatternConstants.SIMPLE_DATE_FORMAT_MILLIS));
+                    DateFormatParser.INSTANCE.getFormatter(node.asText(), DatePatternConstants.localDateTimeFormat));
         }
     }
 
@@ -274,7 +274,7 @@ public final class JacksonSerializer implements StringSerializable {
         @Override
         public void serialize(LocalTime value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
             gen.writeString(value
-                    .format(DateFormatParser.INSTANCE.getFormatter(DatePatternConstants.SHORT_TIME_FORMAT_MILLISECOND)));
+                    .format(DateFormatParser.INSTANCE.getFormatter(DatePatternConstants.localTimeFormat)));
         }
     }
 
@@ -285,7 +285,7 @@ public final class JacksonSerializer implements StringSerializable {
         public LocalTime deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
             JsonNode node = p.getCodec().readTree(p);
             return LocalTime.parse(node.asText(), DateFormatParser.INSTANCE
-                    .getFormatter(node.asText(), DatePatternConstants.SHORT_TIME_FORMAT_MILLISECOND));
+                    .getFormatter(node.asText(), DatePatternConstants.localTimeFormat));
         }
     }
 

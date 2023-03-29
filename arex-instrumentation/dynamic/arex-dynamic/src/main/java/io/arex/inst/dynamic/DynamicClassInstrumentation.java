@@ -116,9 +116,10 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
                     parameterMatcher = parameterMatcher.and(takesArgument(i, named(dynamicClassEntity.getParameters().get(i))));
                 }
             }
-            matcher = matcher.or(parameterMatcher.and(not(returns(TypeDescription.VOID)))).
-                    and(not(isAnnotatedWith(named("org.springframework.cache.annotation.Cacheable"))));
+            matcher = matcher.or(parameterMatcher.and(not(returns(TypeDescription.VOID))));
         }
+
+        matcher = matcher.and(not(isAnnotatedWith(named("org.springframework.cache.annotation.Cacheable"))));
 
         return Collections.singletonList(new MethodInstrumentation(matcher, MethodAdvice.class.getName()));
     }
