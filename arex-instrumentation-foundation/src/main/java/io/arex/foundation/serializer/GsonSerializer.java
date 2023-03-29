@@ -32,7 +32,7 @@ public class GsonSerializer implements StringSerializable {
     private static final JsonSerializer<LocalDateTime> LOCAL_DATE_TIME_JSON_SERIALIZER =
         ((src, typeOfSrc, context) -> new JsonPrimitive(src.format(DateTimeFormatter.ofPattern(JacksonSerializer.DatePatternConstants.localDateTimeFormat))));
     private static final JsonDeserializer<LocalDateTime> LOCAL_DATE_TIME_JSON_DESERIALIZER = (json, type, context) ->
-            LocalDateTime.parse(json.getAsString(), JacksonSerializer.DateFormatParser.INSTANCE.getFormatter(JacksonSerializer.DatePatternConstants.SIMPLE_DATE_FORMAT_MILLIS));
+            LocalDateTime.parse(json.getAsString(), JacksonSerializer.DateFormatParser.INSTANCE.getFormatter(JacksonSerializer.DatePatternConstants.localDateTimeFormat));
     private static final JsonSerializer<LocalDate> LOCAL_DATE_JSON_SERIALIZER =
         ((src, typeOfSrc, context) -> new JsonPrimitive(src.format(DateTimeFormatter.ofPattern(JacksonSerializer.DatePatternConstants.SHORT_DATE_FORMAT))));
 
@@ -43,7 +43,7 @@ public class GsonSerializer implements StringSerializable {
         ((src, typeOfSrc, context) -> new JsonPrimitive(src.format(DateTimeFormatter.ofPattern(JacksonSerializer.DatePatternConstants.localTimeFormat))));
 
     private static final JsonDeserializer<LocalTime> LOCAL_TIME_JSON_DESERIALIZER = (json, type, context) ->
-            LocalTime.parse(json.getAsString(), JacksonSerializer.DateFormatParser.INSTANCE.getFormatter(JacksonSerializer.DatePatternConstants.SHORT_TIME_FORMAT_MILLISECOND));
+            LocalTime.parse(json.getAsString(), JacksonSerializer.DateFormatParser.INSTANCE.getFormatter(JacksonSerializer.DatePatternConstants.localTimeFormat));
 
     private static final JsonSerializer<Calendar> CALENDAR_JSON_SERIALIZER =
         (((src, typeOfSrc, context) -> new JsonPrimitive(
