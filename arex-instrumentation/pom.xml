@@ -12,6 +12,10 @@
     <artifactId>arex-instrumentation-parent</artifactId>
     <packaging>pom</packaging>
 
+    <properties>
+        <springframework.version>5.3.24</springframework.version>
+    </properties>
+
     <modules>
         <module>internal/arex-executors</module>
         <module>internal/arex-loader</module>
@@ -26,7 +30,7 @@
         <module>redis/arex-redission-v3</module>
         <module>dynamic/arex-dynamic</module>
         <module>dynamic/arex-dynamic-common</module>
-        <module>dynamic/arex-spring-cache</module>
+        <module>dynamic/arex-cache</module>
         <module>time-machine/arex-time-machine</module>
         <module>httpclient/arex-httpclient-common</module>
         <module>httpclient/arex-httpclient-okhttp-v3</module>

@@ -1,6 +1,5 @@
 package io.arex.inst.runtime.config;
 
-import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.context.RecordLimiter;
 import io.arex.inst.runtime.model.DynamicClassEntity;
 
@@ -13,7 +12,7 @@ import java.util.function.Function;
 public class Config {
 
     private static Config INSTANCE = null;
-    private final Map<String, String> genericReturnTypeCacheMap = new HashMap<>();
+    private final Map<String, DynamicClassEntity> dynamicEntityMap = new HashMap<>();
 
     static void update(boolean enableDebug, String serviceName, List<DynamicClassEntity> entities,
         Map<String, String> properties, Set<String> excludeServiceOperations,
@@ -47,20 +46,15 @@ public class Config {
         this.dubboStreamReplayThreshold = dubboStreamReplayThreshold;
         this.recordRate = recordRate;
         this.recordVersion = properties.get("arex.agent.version");
-        buildGenericReturnTypeCacheMap();
+        buildDynamicEntityMap();
     }
 
-    private void buildGenericReturnTypeCacheMap() {
+    private void buildDynamicEntityMap() {
         if (entities == null) {
             return;
         }
         for (DynamicClassEntity entity : entities) {
-            String genericReturnType = entity.getGenericReturnType();
-            if (StringUtil.isEmpty(genericReturnType)) {
-                continue;
-            }
-
-            genericReturnTypeCacheMap.putIfAbsent(entity.getSignature(), genericReturnType);
+            dynamicEntityMap.putIfAbsent(entity.getSignature(), entity);
         }
     }
 
@@ -68,12 +62,12 @@ public class Config {
         return recordVersion;
     }
 
-    public String getGenericReturnType(String methodSignature) {
-        return genericReturnTypeCacheMap.get(methodSignature);
+    public DynamicClassEntity getDynamicEntity(String methodSignature) {
+        return dynamicEntityMap.get(methodSignature);
     }
 
-    public int getGenericReturnTypeMapSize() {
-        return genericReturnTypeCacheMap.size();
+    public Map<String, DynamicClassEntity> getDynamicEntityMap() {
+        return dynamicEntityMap;
     }
 
     public boolean isEnableDebug() {

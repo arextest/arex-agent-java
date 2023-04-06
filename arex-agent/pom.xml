@@ -99,7 +99,7 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>arex-spring-cache</artifactId>
+            <artifactId>arex-cache</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

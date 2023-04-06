@@ -29,12 +29,12 @@ public class ListenableFutureAdapter {
 
         @Override
         public void onSuccess(Object result) {
-            extractor.setResponse(result);
+            extractor.recordResponse(result);
         }
 
         @Override
         public void onFailure(Throwable throwable) {
-            extractor.setResponse(throwable);
+            extractor.recordResponse(throwable);
         }
     }
 

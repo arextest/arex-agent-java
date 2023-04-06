@@ -1,10 +1,10 @@
 package io.arex.inst.dynamic;
 
 import io.arex.agent.bootstrap.util.CollectionUtil;
+import io.arex.inst.dynamic.common.DynamiConstants;
 import io.arex.inst.dynamic.common.DynamicClassExtractor;
 import io.arex.inst.runtime.model.ArexConstants;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.Collections;
 
 import io.arex.agent.bootstrap.model.MockResult;
@@ -14,7 +14,6 @@ import io.arex.inst.runtime.context.RepeatedCollectManager;
 import io.arex.inst.runtime.model.DynamicClassEntity;
 import io.arex.inst.extension.MethodInstrumentation;
 import io.arex.inst.extension.TypeInstrumentation;
-import java.util.concurrent.Future;
 import java.util.function.Function;
 import net.bytebuddy.agent.builder.AgentBuilder.Transformer;
 import net.bytebuddy.asm.Advice;
@@ -37,9 +36,10 @@ import static net.bytebuddy.matcher.ElementMatchers.*;
  * DynamicClassInstrumentation
  */
 public class DynamicClassInstrumentation extends TypeInstrumentation {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(DynamicClassInstrumentation.class);
     private final List<DynamicClassEntity> dynamicClassList;
-    private DynamicClassEntity emptyOperationClass = null;
+    private DynamicClassEntity onlyClass = null;
     private final List<DynamicClassEntity> withParameterList = new ArrayList<>();
     private final List<String> replaceTimeMillisList = new ArrayList<>();
     private final List<String> replaceUuidList = new ArrayList<>();
@@ -65,8 +65,8 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
                 }
             }
 
-            if (emptyOperationClass == null && StringUtil.isEmpty(entity.getOperation())) {
-                emptyOperationClass = entity;
+            if (onlyClass == null && StringUtil.isEmpty(entity.getOperation())) {
+                onlyClass = entity;
                 continue;
             }
 
@@ -100,64 +100,59 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
 
     @Override
     public List<MethodInstrumentation> methodAdvices() {
-        ElementMatcher.Junction<MethodDescription> matcher = none();
-        if (emptyOperationClass != null) {
-            matcher = isMethod().and(not(takesNoArguments())).and(not(returns(TypeDescription.VOID)));
-        }
-
-        for (DynamicClassEntity dynamicClassEntity : withParameterList) {
-            ElementMatcher.Junction<MethodDescription> parameterMatcher =
-                parseTypeMatcher(dynamicClassEntity.getOperation(), this::parseMethodMatcher);
-
-            if (CollectionUtil.isNotEmpty(dynamicClassEntity.getParameters())) {
-                parameterMatcher = parameterMatcher.and(takesArguments(dynamicClassEntity.getParameters().size()));
-                for (int i = 0; i < dynamicClassEntity.getParameters().size(); i++) {
-                    parameterMatcher = parameterMatcher.and(takesArgument(i, named(dynamicClassEntity.getParameters().get(i))));
-                }
+        ElementMatcher.Junction<MethodDescription> matcher = null;
+        if (onlyClass != null) {
+            matcher = isMethod().and(not(takesNoArguments()))
+                .and(not(returns(TypeDescription.VOID)))
+                .and(not(isAnnotatedWith(namedOneOf(DynamiConstants.SPRING_CACHE, DynamiConstants.AREX_MOCK))));
+        } else if (CollectionUtil.isNotEmpty(withParameterList)) {
+            matcher = builderMethodMatcher(withParameterList.get(0));
+            for (int i = 1; i < withParameterList.size(); i++) {
+                matcher = matcher.or(builderMethodMatcher(withParameterList.get(i)));
             }
-            matcher = matcher.or(parameterMatcher.and(not(returns(TypeDescription.VOID))));
         }
-
-        matcher = matcher.and(not(isAnnotatedWith(named("org.springframework.cache.annotation.Cacheable"))));
-
         return Collections.singletonList(new MethodInstrumentation(matcher, MethodAdvice.class.getName()));
+    }
+
+    private ElementMatcher.Junction<MethodDescription> builderMethodMatcher(DynamicClassEntity entity) {
+        ElementMatcher.Junction<MethodDescription> matcher =
+            parseTypeMatcher(entity.getOperation(), this::parseMethodMatcher)
+                .and(not(returns(TypeDescription.VOID)))
+                .and(not(isAnnotatedWith(namedOneOf(DynamiConstants.SPRING_CACHE, DynamiConstants.AREX_MOCK))));
+        if (CollectionUtil.isNotEmpty(entity.getParameters())) {
+            matcher = matcher.and(takesArguments(entity.getParameters().size()));
+            for (int i = 0; i < entity.getParameters().size(); i++) {
+                matcher = matcher.and(takesArgument(i, named(entity.getParameters().get(i))));
+            }
+        }
+        return matcher;
     }
 
     public final static class MethodAdvice {
 
         @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class, suppress = Throwable.class)
-        public static boolean onEnter(@Advice.Origin("#t") String className,
-                                      @Advice.Origin("#m") String methodName,
-                                      @Advice.Origin("#r") String returnType,
-                                      @Advice.AllArguments Object[] args,
-                                      @Advice.Local("mockResult") MockResult mockResult,
-                                      @Advice.Local("recordOriginalExtractor") DynamicClassExtractor recordOriginalExtractor) {
+        public static boolean onEnter(@Advice.Origin Method method,
+            @Advice.AllArguments Object[] args,
+            @Advice.Local("extractor") DynamicClassExtractor extractor,
+            @Advice.Local("mockResult") MockResult mockResult) {
             if (ContextManager.needRecordOrReplay()) {
-                recordOriginalExtractor = new DynamicClassExtractor(className, methodName, args, returnType);
+                extractor = new DynamicClassExtractor(method, args);
             }
-            // record
-            if (ContextManager.needRecord()) {
-                RepeatedCollectManager.enter();
-                return false;
-            }
-
-            // replay
             if (ContextManager.needReplay()) {
-                mockResult = recordOriginalExtractor.replay();
+                mockResult = extractor.replay();
                 return mockResult != null && mockResult.notIgnoreMockResult();
             }
-
+            if (ContextManager.needRecord()) {
+                RepeatedCollectManager.enter();
+            }
             return false;
         }
 
         @Advice.OnMethodExit(onThrowable = Throwable.class, suppress = Throwable.class)
-        public static void onExit(@Advice.Origin("#t") String className, @Advice.Origin("#m") String methodName,
-                                  @Advice.AllArguments Object[] args,
-                                  @Advice.Local("mockResult") MockResult mockResult,
-                                  @Advice.Local("recordOriginalExtractor") DynamicClassExtractor recordOriginalExtractor,
-                                  @Advice.Thrown(readOnly = false) Throwable throwable,
-                                  @Advice.Return(readOnly = false, typing = Assigner.Typing.DYNAMIC) Object result) {
-            // replay
+        public static void onExit(@Advice.Local("extractor") DynamicClassExtractor extractor,
+            @Advice.Local("mockResult") MockResult mockResult,
+            @Advice.Thrown(readOnly = false) Throwable throwable,
+            @Advice.Return(readOnly = false, typing = Assigner.Typing.DYNAMIC) Object result) {
             if (mockResult != null && mockResult.notIgnoreMockResult()) {
                 if (mockResult.getThrowable() != null) {
                     throwable = mockResult.getThrowable();
@@ -166,21 +161,15 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
                 }
                 return;
             }
-
-            // record
-            if (ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate()) {
-                Object recordResult = throwable != null ? throwable : result;
-                // future record in call back
-                if (result instanceof Future) {
-                    recordOriginalExtractor.setFutureResponse((Future) result);
-                    return;
-                }
-                recordOriginalExtractor.setResponse(recordResult);
+            if (ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate() && extractor != null) {
+                extractor.recordResponse(throwable != null ? throwable : result);
             }
         }
     }
 
-    private AsmVisitorWrapper replaceMethodSpecifiesCode(List<String> searchMethodList, String searchCode, String replacementMethod, Class<?>... parameterTypes) {
+    private AsmVisitorWrapper replaceMethodSpecifiesCode(List<String> searchMethodList, String searchCode,
+        String replacementMethod, Class<?>... parameterTypes) {
+
         Method replaceMethod = null;
         try {
             replaceMethod = ReplaceMethodHelper.class.getDeclaredMethod(replacementMethod, parameterTypes);
@@ -193,8 +182,8 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
         }
 
         MemberSubstitution memberSubstitution = MemberSubstitution.relaxed()
-                .method(target -> target.toString().contains(searchCode))
-                .replaceWith(replaceMethod);
+            .method(target -> target.toString().contains(searchCode))
+            .replaceWith(replaceMethod);
 
         // The searchMethodList contains empty to replace all methods of this type (including constructors)
         if (searchMethodList.contains(StringUtil.EMPTY)) {
@@ -209,7 +198,11 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
     }
 
     private <T extends NamedElement> ElementMatcher.Junction<T> parseTypeMatcher(String originalTypeName,
-        Function<String,  ElementMatcher.Junction<T>> methodMatcher) {
+        Function<String, ElementMatcher.Junction<T>> methodMatcher) {
+        if (!originalTypeName.contains(",")) {
+            return methodMatcher.apply(originalTypeName);
+        }
+
         String[] typeNames = StringUtil.split(originalTypeName, ',');
         if (typeNames.length == 1) {
             return methodMatcher.apply(originalTypeName);

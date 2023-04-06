@@ -7,6 +7,8 @@ public class StringUtil {
     public static final String EMPTY = "";
     public static final String[] EMPTY_STRING_ARRAY = new String[0];
 
+    public static final int INDEX_NOT_FOUND = -1;
+
     public static String defaultString(final String str) {
         return str == null ? EMPTY : str;
     }
@@ -33,37 +35,6 @@ public class StringUtil {
             return true;
         }
     }
-
-    public static String[] split(final String source, final char separator) {
-        if (isEmpty(source)) {
-            return EMPTY_STRING_ARRAY;
-        }
-
-        final int len = source.length();
-        final List<String> list = new ArrayList<>();
-        int i = 0, start = 0;
-        boolean match = false;
-        boolean lastMatch = false;
-        while (i < len) {
-            if (source.charAt(i) == separator) {
-                if (match) {
-                    list.add(source.substring(start, i));
-                    match = false;
-                    lastMatch = true;
-                }
-                start = ++i;
-                continue;
-            }
-            lastMatch = false;
-            match = true;
-            i++;
-        }
-        if (match || lastMatch) {
-            list.add(source.substring(start, i));
-        }
-        return list.toArray(new String[0]);
-    }
-
     public static String join(final Iterable<?> iterable, final String separator) {
         if (iterable == null) {
             return null;
@@ -108,11 +79,8 @@ public class StringUtil {
             return Collections.emptyMap();
         }
         Map<String, String> map = new HashMap<>();
-        for (String str : content.split(";")) {
-            if (isEmpty(str)) {
-                continue;
-            }
-            String[] arr = str.split("=");
+        for (String str : StringUtil.split(content, ';')) {
+            String[] arr = StringUtil.split(str, '=');
             if (arr.length != 2) {
                 continue;
             }
@@ -134,17 +102,51 @@ public class StringUtil {
     public static String substring(String str, int start) {
         if (str == null) {
             return null;
-        } else {
-            if (start < 0) {
-                start += str.length();
-            }
-
-            if (start < 0) {
-                start = 0;
-            }
-
-            return start > str.length() ? "" : str.substring(start);
         }
+
+        if (start < 0) {
+            start += str.length();
+        }
+
+        if (start < 0) {
+            start = 0;
+        }
+
+        return start > str.length() ? EMPTY : str.substring(start);
+    }
+
+    public static String[] split(final String source, final char separator) {
+        return split(source, separator, false);
+    }
+
+    public static String[] split(final String source, final char separator, final boolean preserveAllTokens) {
+        if (isEmpty(source)) {
+            return EMPTY_STRING_ARRAY;
+        }
+
+        final int len = source.length();
+        final List<String> list = new ArrayList<>();
+        int i = 0, start = 0;
+        boolean match = false;
+        boolean lastMatch = false;
+        while (i < len) {
+            if (source.charAt(i) == separator) {
+                if (match || preserveAllTokens) {
+                    list.add(source.substring(start, i));
+                    match = false;
+                    lastMatch = true;
+                }
+                start = ++i;
+                continue;
+            }
+            lastMatch = false;
+            match = true;
+            i++;
+        }
+        if (match || preserveAllTokens && lastMatch) {
+            list.add(source.substring(start, i));
+        }
+        return list.toArray(new String[list.size()]);
     }
 
     public static String[] splitByWholeSeparator(String str, String separator) {
@@ -185,6 +187,36 @@ public class StringUtil {
             return 0;
         }
         return Base64.getEncoder().encodeToString(str.getBytes(StandardCharsets.UTF_8)).hashCode();
+    }
+
+    public static String replace(final String text, final String searchString, final String replacement) {
+        return replace(text, searchString, replacement, -1);
+    }
+
+    public static String replace(final String text, final String searchString, final String replacement, int max) {
+        if (isEmpty(text) || isEmpty(searchString) || replacement == null || max == 0) {
+            return text;
+        }
+        int start = 0;
+        int end = text.indexOf(searchString, start);
+        if (end == INDEX_NOT_FOUND) {
+            return text;
+        }
+        final int replLength = searchString.length();
+        int increase = replacement.length() - replLength;
+        increase = Math.max(increase, 0);
+        increase *= max < 0 ? 16 : Math.min(max, 64);
+        final StringBuilder buf = new StringBuilder(text.length() + increase);
+        while (end != INDEX_NOT_FOUND) {
+            buf.append(text, start, end).append(replacement);
+            start = end + replLength;
+            if (--max == 0) {
+                break;
+            }
+            end = text.indexOf(searchString, start);
+        }
+        buf.append(text.substring(start));
+        return buf.toString();
     }
 
     public static String replaceEach(final String text, final String[] searchList, final String[] replacementList,

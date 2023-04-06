@@ -1,7 +1,6 @@
 package io.arex.inst.dynamic;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
@@ -10,7 +9,6 @@ import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.dynamic.common.DynamicClassExtractor;
 import io.arex.inst.extension.MethodInstrumentation;
-import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.context.RepeatedCollectManager;
 import io.arex.inst.runtime.model.ArexConstants;
@@ -20,12 +18,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Random;
 import java.util.UUID;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import net.bytebuddy.ByteBuddy;
@@ -42,8 +36,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
@@ -72,12 +66,13 @@ class DynamicClassInstrumentationTest {
     }
 
     @ParameterizedTest(name = "[{index}] {0}")
-    @CsvSource({
+    @ValueSource(strings = {
         "DynamicTestClass",
         "io.arex.inst.dynamic.*namicTest*",
         "io.arex.inst.dynamic.*namicTestClass",
         "io.arex.inst.dynamic.DynamicTest*",
         "io.arex.inst.dynamic.DynamicTestClass",
+        "io.arex.inst.dynamic.DynamicTestClass,xxx,",
         "ac:io.arex.inst.dynamic.AbstractDynamicTestClass"
     })
     void typeMatcher(String fullClazzName) {
@@ -158,82 +153,46 @@ class DynamicClassInstrumentationTest {
     }
 
     @Test
-    void onEnter() {
-        AtomicReference<DynamicClassExtractor> atomicReference = new AtomicReference<>();
-        Mockito.when(ContextManager.needRecord()).thenReturn(false);
-        Mockito.when(ContextManager.needReplay()).thenReturn(true);
-//        Mockito.when(ContextManager.needRecord()).thenReturn(false);
+    void onEnter() throws NoSuchMethodException {
+        Method test1 = DynamicTestClass.class.getDeclaredMethod("testWithArexMock", String.class);
+        try(MockedConstruction ignored = Mockito.mockConstruction(DynamicClassExtractor.class, ((extractor, context) -> {
+            Mockito.when(extractor.replay()).thenReturn(MockResult.success("test"));
+        }))) {
+            // record
+            Mockito.when(ContextManager.needRecordOrReplay()).thenReturn(true);
+            Mockito.when(ContextManager.needRecord()).thenReturn(true);
+            DynamicClassExtractor extractor = new DynamicClassExtractor(test1, new Object[]{"mock"}, "#val", null);
+            boolean actualResult = DynamicClassInstrumentation.MethodAdvice.onEnter(test1, new Object[]{ "name", 18 }, extractor, null);
+            assertFalse(actualResult);
 
-        try (MockedConstruction<DynamicClassExtractor> mocked = Mockito.mockConstruction(DynamicClassExtractor.class, (mock, context) -> {
-            System.out.println("mock DynamicClassExtractor");
-            atomicReference.set(mock);
-            Mockito.when(mock.replay()).thenReturn(MockResult.success(false, null));
-        })) {
-            assertTrue(DynamicClassInstrumentation.MethodAdvice.onEnter( null, null, null, null,null, new DynamicClassExtractor(null, null, null, null)));
-        }
-
-
-        Mockito.when(ContextManager.needRecord()).thenReturn(false);
-        Mockito.when(ContextManager.needReplay()).thenReturn(false);
-        assertFalse(DynamicClassInstrumentation.MethodAdvice.onEnter(null, null, null, null, null, atomicReference.get()));
-
-        Mockito.when(ContextManager.needRecord()).thenReturn(true);
-        assertFalse(DynamicClassInstrumentation.MethodAdvice.onEnter(null, null, null, null, null, null));
-    }
-
-    @ParameterizedTest
-    @MethodSource("onExitCase")
-    void onExit(Runnable mocker, MockResult mockResult, Predicate<MockResult> predicate) {
-        mocker.run();
-        AtomicReference<DynamicClassExtractor> atomicReference = new AtomicReference<>();
-        try (MockedConstruction<DynamicClassExtractor> mocked = Mockito.mockConstruction(DynamicClassExtractor.class, (mock, context) -> {
-            System.out.println("mock DynamicClassExtractor");
-            atomicReference.set(mock);
-            Mockito.doNothing().when(mock).record();
-        })) {
-            DynamicClassInstrumentation.MethodAdvice.onExit(
-                "java.lang.System", "getenv", new Object[]{"java.lang.String"}, mockResult, new DynamicClassExtractor(null, null, null, null), null, null);
-            assertTrue(predicate.test(mockResult));
+            // replay
+            Mockito.when(ContextManager.needRecord()).thenReturn(false);
+            Mockito.when(ContextManager.needReplay()).thenReturn(true);
+            actualResult = DynamicClassInstrumentation.MethodAdvice.onEnter(test1, new Object[]{ "name", 18 }, extractor, null);
+            assertTrue(actualResult);
         }
     }
+
     @Test
-    void onExitSetResponse() {
-        Mockito.when(ContextManager.needRecord()).thenReturn(true);
-        Mockito.when(RepeatedCollectManager.exitAndValidate()).thenReturn(true);
-        AtomicReference<DynamicClassExtractor> atomicReference = new AtomicReference<>();
-        Object mockResult = "nomalResult";
-        Future futureResult = Executors.newFixedThreadPool(2).submit(() -> System.out.println("yes"));
-        try (MockedConstruction<DynamicClassExtractor> mocked = Mockito.mockConstruction(DynamicClassExtractor.class, (mock, context) -> {
-            System.out.println("mock DynamicClassExtractor");
-            atomicReference.set(mock);
-            Mockito.doNothing().when(mock).record();
-        })) {
-            DynamicClassInstrumentation.MethodAdvice.onExit(
-                    "java.lang.System", "getenv", new Object[]{"java.lang.String"}, null, new DynamicClassExtractor(null, null, null, null), null, mockResult);
-            Mockito.verify(atomicReference.get()).setResponse(mockResult);
+    void onExit() throws NoSuchMethodException {
+        // replay with success result
+        MockResult success = MockResult.success("success");
+        DynamicClassInstrumentation.MethodAdvice.onExit(null, success, null, null);
+        // replay with throwable
+        MockResult throwable = MockResult.success(new NullPointerException());
+        DynamicClassInstrumentation.MethodAdvice.onExit(null, throwable, null, null);
 
-            DynamicClassInstrumentation.MethodAdvice.onExit(
-                    "java.lang.System", "getenv", new Object[]{"java.lang.String"}, null, new DynamicClassExtractor(null, null, null, null), null, futureResult);
-            Mockito.verify(atomicReference.get()).setFutureResponse(futureResult);
-        }
-    }
-
-    static Stream<Arguments> onExitCase() {
-        Runnable mockerNeedReplay = () -> {
-            Mockito.when(ContextManager.currentContext()).thenReturn(ArexContext.of("test-case-id"));
-        };
-        Runnable mockerNeedRecord = () -> {
+        // record
+        try(MockedConstruction ignored = Mockito.mockConstruction(DynamicClassExtractor.class, ((extractor, context) -> {
+            Mockito.doNothing().when(extractor).recordResponse(throwable);
+        }))) {
             Mockito.when(ContextManager.needRecord()).thenReturn(true);
             Mockito.when(RepeatedCollectManager.exitAndValidate()).thenReturn(true);
-        };
-        Predicate<MockResult> predicate1 = Objects::isNull;
-        Predicate<MockResult> predicate2 = Objects::nonNull;
-        return Stream.of(
-                arguments(mockerNeedReplay, null, predicate1),
-                arguments(mockerNeedRecord, MockResult.success("mock"), predicate2),
-                arguments(mockerNeedRecord, MockResult.success(new RuntimeException()), predicate2),
-                arguments(mockerNeedRecord, null, predicate1)
-        );
+            Method test1 = DynamicTestClass.class.getDeclaredMethod("testWithArexMock", String.class);
+            DynamicClassExtractor extractor = new DynamicClassExtractor(test1, new Object[]{"mock"}, "#val", null);
+            DynamicClassInstrumentation.MethodAdvice.onExit(extractor, null, null, throwable);
+            Mockito.verify(extractor, Mockito.times(1)).recordResponse(throwable);
+        }
     }
 
     @Test

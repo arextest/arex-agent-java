@@ -21,4 +21,8 @@ public class ArrayUtils {
         }
         return array.clone();
     }
+
+    public static boolean isEmpty(final Object[] array) {
+        return array == null || array.length == 0;
+    }
 }
