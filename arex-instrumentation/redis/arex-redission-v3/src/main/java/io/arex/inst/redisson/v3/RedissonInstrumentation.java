@@ -27,7 +27,6 @@ import org.redisson.command.CommandAsyncExecutor;
 import java.util.Arrays;
 import java.util.List;
 
-import static java.util.Arrays.asList;
 import static net.bytebuddy.matcher.ElementMatchers.isMethod;
 import static net.bytebuddy.matcher.ElementMatchers.isPublic;
 import static net.bytebuddy.matcher.ElementMatchers.named;
@@ -53,20 +52,6 @@ public class RedissonInstrumentation extends TypeInstrumentation {
             GetSetAdvice.getMethodInstrumentation(), GetSetWithCodecAdvice.getMethodInstrumentation(),
             GetMapAdvice.getMethodInstrumentation(), GetMapWithOptionsAdvice.getMethodInstrumentation(),
             GetMapWithCodecAdvice.getMethodInstrumentation(), GetMapWithCodecOptionsAdvice.getMethodInstrumentation());
-    }
-
-    @Override
-    public List<String> adviceClassNames() {
-        return asList(
-            "io.arex.inst.redisson.v3.wrapper.RedissonBucketsWrapper",
-            "io.arex.inst.redisson.v3.wrapper.RedissonBucketWrapper",
-            "io.arex.inst.redisson.v3.wrapper.RedissonKeysWrapper",
-            "io.arex.inst.redisson.v3.wrapper.RedissonListWrapper",
-            "io.arex.inst.redisson.v3.wrapper.RedissonMapWrapper",
-            "io.arex.inst.redisson.v3.wrapper.RedissonSetWrapper",
-            "io.arex.inst.redisson.v3.RedissonWrapperCommon",
-            "io.arex.inst.redis.common.RedisExtractor$RedisCluster",
-            "io.arex.inst.redis.common.RedisKeyUtil");
     }
 
     public static class GetBucketAdvice {

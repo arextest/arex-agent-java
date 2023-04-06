@@ -51,11 +51,6 @@ class InternalHttpAsyncClientInstrumentationTest {
     }
 
     @Test
-    void adviceClassNames() {
-        assertEquals(8, target.adviceClassNames().size());
-    }
-
-    @Test
     void onEnter() throws HttpException, IOException {
         HttpAsyncRequestProducer producer1 = Mockito.mock(HttpAsyncRequestProducer.class);
         Mockito.when(producer1.generateRequest()).thenThrow(new RuntimeException("mock exception"));

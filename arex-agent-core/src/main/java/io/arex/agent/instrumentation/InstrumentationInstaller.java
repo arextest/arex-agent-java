@@ -4,7 +4,6 @@ import io.arex.inst.extension.ModuleInstrumentation;
 import io.arex.inst.extension.MethodInstrumentation;
 import io.arex.inst.extension.TypeInstrumentation;
 import io.arex.agent.bootstrap.InstrumentationHolder;
-import io.arex.agent.instrumentation.bytebuddy.AdviceInjector;
 import io.arex.foundation.config.ConfigManager;
 import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.foundation.util.SPIUtil;
@@ -85,11 +84,6 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
     private AgentBuilder installType(AgentBuilder builder, ElementMatcher<ClassLoader> moduleMatcher,
         TypeInstrumentation type) {
         AgentBuilder.Identified identified = builder.type(type.matcher(), moduleMatcher);
-        List<String> advicesClassNames = type.adviceClassNames();
-        if (CollectionUtil.isNotEmpty(advicesClassNames)) {
-            identified = identified.transform(new AdviceInjector(advicesClassNames));
-        }
-
         AgentBuilder.Transformer transformer = type.transformer();
         if (transformer != null) {
             identified = identified.transform(transformer);

@@ -40,11 +40,6 @@ public class AbstractProducedQueryInstrumentation extends TypeInstrumentation {
         return singletonList(new MethodInstrumentation(matcher, adviceClassName));
     }
 
-    @Override
-    public List<String> adviceClassNames() {
-        return singletonList("io.arex.inst.database.common.DatabaseExtractor");
-    }
-
     private static class UniqueElementAdvice {
         @Advice.OnMethodEnter(suppress = Throwable.class)
         public static void onEnter(@Advice.Argument(0) List list) {

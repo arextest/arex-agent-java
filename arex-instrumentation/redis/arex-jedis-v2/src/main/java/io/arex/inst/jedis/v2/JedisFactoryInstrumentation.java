@@ -17,7 +17,6 @@ import javax.net.ssl.SSLSocketFactory;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static net.bytebuddy.matcher.ElementMatchers.*;
 
@@ -33,15 +32,6 @@ public class JedisFactoryInstrumentation extends TypeInstrumentation {
         return singletonList(new MethodInstrumentation(
                 isMethod().and(named("makeObject")).and(takesArguments(0)),
                 this.getClass().getName() + "$MakeObjectAdvice"));
-    }
-
-    @Override
-    public List<String> adviceClassNames() {
-        return asList(
-                "io.arex.inst.jedis.v2.JedisWrapper",
-                "io.arex.inst.redis.common.RedisExtractor",
-                "io.arex.inst.redis.common.RedisExtractor$RedisCluster",
-                "io.arex.inst.redis.common.RedisKeyUtil");
     }
 
     @SuppressWarnings("unused")

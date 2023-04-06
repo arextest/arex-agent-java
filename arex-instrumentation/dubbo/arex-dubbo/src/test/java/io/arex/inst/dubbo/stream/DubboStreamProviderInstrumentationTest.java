@@ -45,11 +45,6 @@ class DubboStreamProviderInstrumentationTest {
     }
 
     @Test
-    void adviceClassNames() {
-        assertNotNull(target.adviceClassNames());
-    }
-
-    @Test
     void startOnEnter() {
         try (MockedStatic<DubboProviderExtractor> extractor = Mockito.mockStatic(DubboProviderExtractor.class)) {
             DubboStreamProviderInstrumentation.StartAdvice.onEnter(null, null);

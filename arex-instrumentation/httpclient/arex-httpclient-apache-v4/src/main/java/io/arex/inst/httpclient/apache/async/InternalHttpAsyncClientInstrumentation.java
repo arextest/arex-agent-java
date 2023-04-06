@@ -15,7 +15,6 @@ import org.apache.http.nio.protocol.HttpAsyncRequestProducer;
 import java.util.List;
 import java.util.concurrent.Future;
 
-import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static net.bytebuddy.matcher.ElementMatchers.isMethod;
 import static net.bytebuddy.matcher.ElementMatchers.named;
@@ -39,19 +38,6 @@ public class InternalHttpAsyncClientInstrumentation extends TypeInstrumentation 
                         .and(takesArgument(2, named("org.apache.http.protocol.HttpContext")))
                         .and(takesArgument(3, named("org.apache.http.concurrent.FutureCallback"))),
                 this.getClass().getName() + "$ExecuteAdvice"));
-    }
-
-    @Override
-    public List<String> adviceClassNames() {
-        return asList(
-                "io.arex.inst.httpclient.apache.async.FutureCallbackWrapper",
-                "io.arex.inst.httpclient.apache.common.ApacheHttpClientAdapter",
-                "io.arex.inst.httpclient.apache.common.ApacheHttpClientHelper",
-                "io.arex.inst.httpclient.apache.common.CloseableHttpResponseProxy",
-                "io.arex.inst.httpclient.common.HttpClientExtractor",
-                "io.arex.inst.httpclient.common.HttpClientAdapter",
-                "io.arex.inst.httpclient.common.HttpResponseWrapper",
-                "io.arex.inst.httpclient.common.HttpResponseWrapper$StringTuple");
     }
 
     @SuppressWarnings("unused")

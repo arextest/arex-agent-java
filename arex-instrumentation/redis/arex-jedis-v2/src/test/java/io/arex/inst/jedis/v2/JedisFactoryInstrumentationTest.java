@@ -39,11 +39,6 @@ class JedisFactoryInstrumentationTest {
     }
 
     @Test
-    void adviceClassNames() {
-        assertNotNull(target.adviceClassNames());
-    }
-
-    @Test
     void onEnter() {
         HostAndPort hostAndPort = Mockito.mock(HostAndPort.class);
         Mockito.when(hostAndPort.getPort()).thenReturn(0);

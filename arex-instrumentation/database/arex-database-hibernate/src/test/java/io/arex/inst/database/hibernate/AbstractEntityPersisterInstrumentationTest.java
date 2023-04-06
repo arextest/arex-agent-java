@@ -56,11 +56,6 @@ class AbstractEntityPersisterInstrumentationTest {
     }
 
     @Test
-    void adviceClassNames() {
-        assertNotNull(target.adviceClassNames());
-    }
-
-    @Test
     void onInsertEnter() {
         Mockito.when(ContextManager.needRecordOrReplay()).thenReturn(true);
         Mockito.when(ContextManager.needReplay()).thenReturn(true);

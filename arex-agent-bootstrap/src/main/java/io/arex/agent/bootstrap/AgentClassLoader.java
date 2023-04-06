@@ -9,6 +9,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -48,13 +49,13 @@ public class AgentClassLoader extends URLClassLoader {
     private JarFile agentJarFile;
     private List<JarInfo> extensionJarFiles;
 
-    public AgentClassLoader(File jarFile, ClassLoader parent, String[] extensionJars) {
+    public AgentClassLoader(File jarFile, ClassLoader parent, File[] extensionJars) {
         super(new URL[]{}, parent);
 
         try {
             this.agentJarFile = new JarFile(jarFile, false);
             agentJarInfo = new JarInfo(agentJarFile, jarFile);
-            extensionJarFiles = getExtensionJarFiles(jarFile);
+            extensionJarFiles = getExtensionJarFiles(extensionJars);
             for (JarInfo jarInfo : extensionJarFiles) {
                 super.addURL(jarInfo.getSourceFile().toURI().toURL());
             }
@@ -63,28 +64,23 @@ public class AgentClassLoader extends URLClassLoader {
         }
     }
 
-    private List<JarInfo> getExtensionJarFiles(File jarFile) {
-        String extensionDir = jarFile.getParent() + "/extensions/";
-        List<JarInfo> extensionJarFiles = new ArrayList<>();
-        File[] extensionFiles = new File(extensionDir).listFiles(this::isJar);
-
+    private List<JarInfo> getExtensionJarFiles(File[] extensionFiles) {
         if (extensionFiles == null) {
-            return extensionJarFiles;
+            return Collections.emptyList();
         }
 
+        List<JarInfo> jarFiles = new ArrayList<>(extensionFiles.length);
+
         for (File file : extensionFiles) {
-            if (!file.getAbsolutePath().equals(jarFile.getAbsolutePath())) {
-                try {
-                    JarInfo jarInfo = new JarInfo(new JarFile(file, false), file);
-                    extensionJarFiles.add(jarInfo);
-                } catch (IOException e) {
-                    System.err.printf(
-                        String.format("Add extension file failed, file: %s%n", file.getAbsolutePath()));
-                }
+            try {
+                JarInfo jarInfo = new JarInfo(new JarFile(file, false), file);
+                jarFiles.add(jarInfo);
+            } catch (IOException e) {
+                System.err.printf("Add extension file failed, file: %s%n", file.getAbsolutePath());
             }
         }
 
-        return extensionJarFiles;
+        return jarFiles;
     }
 
     @Override
@@ -232,10 +228,6 @@ public class AgentClassLoader extends URLClassLoader {
                 return iterator.next();
             }
         };
-    }
-
-    private boolean isJar(File f) {
-        return f.isFile() && f.getName().endsWith(".jar");
     }
 
     private static class JarEntryInfo {

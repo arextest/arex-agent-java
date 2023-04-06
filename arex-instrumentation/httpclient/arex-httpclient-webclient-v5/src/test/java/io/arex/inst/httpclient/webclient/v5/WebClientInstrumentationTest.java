@@ -56,11 +56,6 @@ class WebClientInstrumentationTest {
     }
 
     @Test
-    void adviceClassNames() {
-        assertNotNull(target.adviceClassNames());
-    }
-
-    @Test
     void onEnter() throws MalformedURLException, URISyntaxException {
         ClientRequest request = Mockito.mock(ClientRequest.class);
         Mockito.when(request.url()).thenReturn(new URL("http://localhost").toURI());

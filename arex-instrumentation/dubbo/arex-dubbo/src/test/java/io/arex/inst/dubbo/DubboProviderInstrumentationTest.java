@@ -41,11 +41,6 @@ class DubboProviderInstrumentationTest {
     }
 
     @Test
-    void adviceClassNames() {
-        assertNotNull(target.adviceClassNames());
-    }
-
-    @Test
     void onEnter() {
         Invocation invocation = Mockito.mock(Invocation.class);
         Mockito.when(invocation.getProtocolServiceKey()).thenReturn(":tri");

@@ -61,11 +61,6 @@ class DubboStreamConsumerInstrumentationTest {
     }
 
     @Test
-    void adviceClassNames() {
-        assertNotNull(target.adviceClassNames());
-    }
-
-    @Test
     void sendMessageOnEnter() {
         try (MockedConstruction<DubboStreamConsumerExtractor> mocked = Mockito.mockConstruction(DubboStreamConsumerExtractor.class, (mock, context) -> {
             Mockito.when(mock.replay(any(), any())).thenReturn(Collections.singletonList(MockResult.success("mock")));

@@ -16,11 +16,6 @@ public abstract class TypeInstrumentation {
 
     public abstract List<MethodInstrumentation> methodAdvices();
 
-    // todo: auto find advice class
-    public List<String> adviceClassNames() {
-        return null;
-    }
-
     public AgentBuilder.Transformer transformer() {
         return null;
     }

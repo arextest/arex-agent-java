@@ -50,7 +50,8 @@
             **/test/**,
             **/*Test.java,
             **/target/**,
-            **/model/**
+            **/model/**,
+            **/serializer/**
         </sonar.coverage.exclusions>
     </properties>
 

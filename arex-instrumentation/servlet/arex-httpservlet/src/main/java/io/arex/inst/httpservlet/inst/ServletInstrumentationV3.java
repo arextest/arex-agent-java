@@ -16,7 +16,6 @@ import java.util.Collections;
 import java.util.List;
 
 import static io.arex.inst.extension.matcher.SafeExtendsClassMatcher.extendsClass;
-import static java.util.Arrays.asList;
 import static net.bytebuddy.matcher.ElementMatchers.*;
 
 /**
@@ -42,20 +41,6 @@ public class ServletInstrumentationV3 extends TypeInstrumentation {
         return Collections.singletonList(new MethodInstrumentation(matcher, adviceClassName));
     }
 
-    @Override
-    public List<String> adviceClassNames() {
-        return asList(
-                "io.arex.inst.httpservlet.adapter.ServletAdapter",
-                "io.arex.inst.httpservlet.adapter.impl.ServletAdapterImplV3",
-                "io.arex.inst.httpservlet.ServletAdviceHelper",
-                "io.arex.inst.httpservlet.listener.ServletAsyncListenerV3",
-                "io.arex.inst.httpservlet.wrapper.CachedBodyRequestWrapperV3",
-                "io.arex.inst.httpservlet.wrapper.CachedBodyResponseWrapperV3",
-                "io.arex.inst.httpservlet.wrapper.CachedBodyRequestWrapperV3$ContentCachingInputStream",
-                "io.arex.inst.httpservlet.wrapper.CachedBodyResponseWrapperV3$ResponseServletOutputStream",
-                "io.arex.inst.httpservlet.wrapper.CachedBodyResponseWrapperV3$ResponsePrintWriter",
-                "io.arex.inst.httpservlet.ServletExtractor");
-    }
 
     public static class ServiceAdvice {
         @Advice.OnMethodEnter(suppress = Throwable.class)

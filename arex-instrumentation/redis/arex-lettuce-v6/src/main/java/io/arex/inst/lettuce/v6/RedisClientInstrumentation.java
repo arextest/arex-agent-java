@@ -12,7 +12,6 @@ import net.bytebuddy.matcher.ElementMatcher;
 import java.util.Collections;
 import java.util.List;
 
-import static java.util.Arrays.asList;
 import static net.bytebuddy.matcher.ElementMatchers.isProtected;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 
@@ -34,16 +33,6 @@ public class RedisClientInstrumentation extends TypeInstrumentation {
         return Collections.singletonList(new MethodInstrumentation(matcher, adviceClassName));
     }
 
-    @Override
-    public List<String> adviceClassNames() {
-        return asList(
-                "io.arex.inst.lettuce.v6.RedisAsyncCommandsImplWrapper",
-                "io.arex.inst.lettuce.v6.LettuceHelper",
-                "io.arex.inst.lettuce.v6.RedisCommandBuilderImpl",
-                "io.arex.inst.lettuce.v6.RedisReactiveCommandsImplWrapper",
-                "io.arex.inst.redis.common.RedisExtractor$RedisCluster",
-                "io.arex.inst.redis.common.RedisKeyUtil");
-    }
 
     public static class NewStatefulRedisConnectionAdvice {
         @Advice.OnMethodExit(suppress = Throwable.class)
