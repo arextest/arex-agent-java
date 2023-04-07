@@ -44,8 +44,11 @@ public class ContextManager {
         if (StringUtil.isEmpty(traceId)) {
             return null;
         }
-
-        return RECORD_MAP.computeIfAbsent(traceId, ArexContext::of);
+        // first init execute
+        if (createIfAbsent) {
+            return RECORD_MAP.computeIfAbsent(traceId, ArexContext::of);
+        }
+        return RECORD_MAP.get(traceId);
     }
 
     public static boolean needRecord() {
