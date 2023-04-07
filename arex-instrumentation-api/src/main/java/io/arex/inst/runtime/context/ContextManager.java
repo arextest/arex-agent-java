@@ -44,7 +44,11 @@ public class ContextManager {
         if (StringUtil.isEmpty(traceId)) {
             return null;
         }
-
+        // execute after init, RECORD_MAP will null if call overdueCleanUp(temporary solution)
+        if (!createIfAbsent) {
+            return RECORD_MAP.get(traceId);
+        }
+        // first init execute
         return RECORD_MAP.computeIfAbsent(traceId, ArexContext::of);
     }
 
