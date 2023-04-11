@@ -55,11 +55,15 @@ class SpringCacheInstrumentationTest {
         try(MockedConstruction ignored = Mockito.mockConstruction(DynamicClassExtractor.class, ((extractor, context) -> {
             Mockito.when(extractor.replay()).thenReturn(MockResult.success("test"));
         }))) {
+            Method testReturnVoid = TestArexMock.class.getDeclaredMethod("testReturnVoid");
+            boolean actualResult = SpringCacheInstrumentation.SpringCacheAdvice.onEnter(testReturnVoid, null, null, null);
+            assertFalse(actualResult);
+
             // record
             Mockito.when(ContextManager.needRecordOrReplay()).thenReturn(true);
             Mockito.when(ContextManager.needRecord()).thenReturn(true);
             DynamicClassExtractor extractor = new DynamicClassExtractor(test1, new Object[]{"mock"}, "#val", null);
-            boolean actualResult = SpringCacheInstrumentation.SpringCacheAdvice.onEnter(test1, new Object[]{ "name", 18 }, extractor, null);
+            actualResult = SpringCacheInstrumentation.SpringCacheAdvice.onEnter(test1, new Object[]{ "name", 18 }, extractor, null);
             assertFalse(actualResult);
 
             // replay
@@ -72,12 +76,16 @@ class SpringCacheInstrumentationTest {
 
     @Test
     void onExit() throws NoSuchMethodException {
+        Method testReturnVoid = TestArexMock.class.getDeclaredMethod("testReturnVoid");
+        SpringCacheInstrumentation.SpringCacheAdvice.onExit(testReturnVoid, null, null, null, null);
+
+        Method test1 = TestArexMock.class.getDeclaredMethod("testWithCacheableAnnotation", String.class, int.class);
         // replay with success result
         MockResult success = MockResult.success("success");
-        SpringCacheInstrumentation.SpringCacheAdvice.onExit(null, success, null, null);
+        SpringCacheInstrumentation.SpringCacheAdvice.onExit(test1, null, success, null, null);
         // replay with throwable
         MockResult throwable = MockResult.success(new NullPointerException());
-        SpringCacheInstrumentation.SpringCacheAdvice.onExit(null, throwable, null, null);
+        SpringCacheInstrumentation.SpringCacheAdvice.onExit(test1, null, throwable, null, null);
 
         // record
         try(MockedConstruction ignored = Mockito.mockConstruction(DynamicClassExtractor.class, ((extractor, context) -> {
@@ -85,9 +93,8 @@ class SpringCacheInstrumentationTest {
         }))) {
             Mockito.when(ContextManager.needRecord()).thenReturn(true);
             Mockito.when(RepeatedCollectManager.exitAndValidate()).thenReturn(true);
-            Method test1 = TestArexMock.class.getDeclaredMethod("testWithCacheableAnnotation", String.class, int.class);
             DynamicClassExtractor extractor = new DynamicClassExtractor(test1, new Object[]{"mock"}, "#val", null);
-            SpringCacheInstrumentation.SpringCacheAdvice.onExit(extractor, null, null, throwable);
+            SpringCacheInstrumentation.SpringCacheAdvice.onExit(test1, extractor, null, null, throwable);
             Mockito.verify(extractor, Mockito.times(1)).recordResponse(throwable);
         }
     }

@@ -1,6 +1,9 @@
 package io.arex.inst.runtime.util;
 
+import io.arex.agent.bootstrap.util.ArrayUtils;
 import io.arex.agent.bootstrap.util.StringUtil;
+
+import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import org.slf4j.Logger;
@@ -28,6 +31,10 @@ public class TypeUtil {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TypeUtil.class);
     private static final ConcurrentMap<String, Type> TYPE_NAME_CACHE = new ConcurrentHashMap<>();
+    /**
+     * Suppresses default constructor, ensuring non-instantiability.
+     */
+    private TypeUtil() {}
 
     public static Type forName(String typeName) {
         if (StringUtil.isEmpty(typeName) || HORIZONTAL_LINE_STR.equals(typeName)) {
@@ -41,7 +48,7 @@ public class TypeUtil {
 
         String[] types = StringUtil.split(typeName, HORIZONTAL_LINE);
 
-        if (types == null || types.length == 0) {
+        if (ArrayUtils.isEmpty(types)) {
             return null;
         }
 
@@ -49,7 +56,6 @@ public class TypeUtil {
             Class<?> raw = classForName(types[0]);
 
             if (types.length > 1 && StringUtil.isNotEmpty(types[1])) {
-
                 if (raw == null) {
                     return null;
                 }
@@ -109,8 +115,8 @@ public class TypeUtil {
             return optionalToString((Optional<?>) result);
         }
 
-        if (result instanceof List) {
-            return listToString((List<?>) result);
+        if (result instanceof Collection<?>) {
+            return collectionToString((Collection<?>) result);
         }
 
         if (result instanceof ParameterizedType) {
@@ -124,93 +130,6 @@ public class TypeUtil {
         return result.getClass().getName();
     }
 
-    /**
-     * get all entry type name of map
-     *
-     * @return example: java.util.LinkedHashMap-java.lang.String,java.lang.Integer;java.lang.String,java.lang.Long;
-     */
-    public static String getMapAllEntryTypeName(Map<?, ?> response) {
-        StringBuilder builder = new StringBuilder();
-        builder.append(response.getClass().getName()).append(TypeUtil.HORIZONTAL_LINE);
-        for (Map.Entry<?, ?> entry : response.entrySet()) {
-            String keyClassName =
-                entry.getKey() == null ? TypeUtil.DEFAULT_CLASS_NAME : entry.getKey().getClass().getName();
-            String valueClassName =
-                entry.getValue() == null ? TypeUtil.DEFAULT_CLASS_NAME : entry.getValue().getClass().getName();
-            builder.append(keyClassName).append(TypeUtil.COMMA);
-            builder.append(valueClassName).append(TypeUtil.SEMICOLON);
-        }
-        return builder.toString();
-    }
-
-    /**
-     * only support {@code List<Object> and List<List<Object>>} type
-     */
-    private static String listToString(List<?> result) {
-        StringBuilder builder = new StringBuilder();
-        builder.append(result.getClass().getName());
-
-        if (result.isEmpty()) {
-            return builder.toString();
-        }
-
-        builder.append(HORIZONTAL_LINE);
-
-        List<String> linkedList = new LinkedList<>();
-
-        for (Object innerObj : result) {
-            if (innerObj == null) {
-                continue;
-            }
-
-            String innerObjClassName = innerObj.getClass().getName();
-            if (!linkedList.contains(innerObjClassName)) {
-                linkedList.add(innerObjClassName);
-            }
-
-            if (innerObj instanceof List) {
-                List<?> innerList = (List<?>) innerObj;
-                for (Object innerElement : innerList) {
-                    if (innerElement == null) {
-                        continue;
-                    }
-
-                    String innerElementClassName = innerElement.getClass().getName();
-
-                    // 默认list<list<Object,Object>>中的数据类型一致，内层list取到第一个非null元素即break。
-                    linkedList.add(innerElementClassName);
-                    break;
-                }
-            } else {
-                break;
-            }
-        }
-        builder.append(StringUtil.join(linkedList, ","));
-        return builder.toString();
-    }
-
-    private static String optionalToString(Optional<?> result) {
-        StringBuilder builder = new StringBuilder();
-        builder.append(Optional.class.getName());
-        result.ifPresent(o -> builder.append(HORIZONTAL_LINE).append(getName(o)));
-        return builder.toString();
-    }
-
-    private static String mapToString(Map<?, ?> result) {
-        if (result.size() < 1) {
-            return result.getClass().getName();
-        }
-        StringBuilder builder = new StringBuilder();
-        builder.append(result.getClass().getName()).append(HORIZONTAL_LINE);
-        for (Map.Entry<?, ?> entry : result.entrySet()) {
-            String keyClassName = entry.getKey() == null ? DEFAULT_CLASS_NAME : entry.getKey().getClass().getName();
-            String valueClassName =
-                entry.getValue() == null ? DEFAULT_CLASS_NAME : entry.getValue().getClass().getName();
-            builder.append(keyClassName).append(COMMA).append(valueClassName);
-            break;
-        }
-        return builder.toString();
-    }
 
     /**
      * Get raw class of type
@@ -255,6 +174,75 @@ public class TypeUtil {
         return builder.toString();
     }
 
+    /**
+     * only support {@code List<Object> and List<List<Object>>} type
+     */
+    private static String collectionToString(Collection<?> result) {
+        StringBuilder builder = new StringBuilder();
+        builder.append(result.getClass().getName());
+
+        if (result.isEmpty()) {
+            return builder.toString();
+        }
+
+        builder.append(HORIZONTAL_LINE);
+
+        List<String> linkedList = new LinkedList<>();
+
+        for (Object innerObj : result) {
+            if (innerObj == null) {
+                continue;
+            }
+
+            String innerObjClassName = innerObj.getClass().getName();
+            if (!linkedList.contains(innerObjClassName)) {
+                linkedList.add(innerObjClassName);
+            }
+
+            if (innerObj instanceof List) {
+                List<?> innerList = (List<?>) innerObj;
+                for (Object innerElement : innerList) {
+                    if (innerElement == null) {
+                        continue;
+                    }
+
+                    String innerElementClassName = innerElement.getClass().getName();
+
+                    // By default, the data types in list<list<Object,Object>> are the same, and the inner list gets the first non-null element, which is break.
+                    linkedList.add(innerElementClassName);
+                    break;
+                }
+            } else {
+                break;
+            }
+        }
+        builder.append(StringUtil.join(linkedList, ","));
+        return builder.toString();
+    }
+
+    private static String optionalToString(Optional<?> result) {
+        StringBuilder builder = new StringBuilder();
+        builder.append(Optional.class.getName());
+        result.ifPresent(o -> builder.append(HORIZONTAL_LINE).append(getName(o)));
+        return builder.toString();
+    }
+
+    private static String mapToString(Map<?, ?> result) {
+        if (result.size() < 1) {
+            return result.getClass().getName();
+        }
+        StringBuilder builder = new StringBuilder();
+        builder.append(result.getClass().getName()).append(HORIZONTAL_LINE);
+        for (Map.Entry<?, ?> entry : result.entrySet()) {
+            String keyClassName = entry.getKey() == null ? DEFAULT_CLASS_NAME : entry.getKey().getClass().getName();
+            String valueClassName =
+                entry.getValue() == null ? DEFAULT_CLASS_NAME : entry.getValue().getClass().getName();
+            builder.append(keyClassName).append(COMMA).append(valueClassName);
+            break;
+        }
+        return builder.toString();
+    }
+
     private static Class<?> classForName(String type) {
         try {
             if (Thread.currentThread().getContextClassLoader() == null) {
@@ -275,8 +263,7 @@ public class TypeUtil {
         if (type.getRawType() != null) {
             builder.append(type.getRawType().getTypeName());
         }
-        if (type.getActualTypeArguments() != null && type.getActualTypeArguments().length > 0
-            && type.getActualTypeArguments()[0] != null) {
+        if (ArrayUtils.isNotEmpty(type.getActualTypeArguments()) && type.getActualTypeArguments()[0] != null) {
             builder.append(TypeUtil.HORIZONTAL_LINE).append(type.getActualTypeArguments()[0].getTypeName());
         }
         return builder.toString();
