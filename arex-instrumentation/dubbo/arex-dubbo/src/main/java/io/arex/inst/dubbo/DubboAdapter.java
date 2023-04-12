@@ -1,6 +1,5 @@
 package io.arex.inst.dubbo;
 
-import com.google.common.collect.Sets;
 import io.arex.agent.bootstrap.ctx.TraceTransmitter;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.inst.runtime.context.ContextManager;
@@ -19,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Type;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -27,10 +27,16 @@ import static io.arex.inst.runtime.model.ArexConstants.DUBBO_STREAM_PROTOCOL;
 
 public class DubboAdapter {
     private static final Logger LOGGER = LoggerFactory.getLogger(DubboAdapter.class);
-    private static final Set<String> FILTER_KEY_SET = Sets.newHashSet("schema", "class");
+    private static final Set<String> FILTER_KEY_SET = new HashSet<>();
     private final Invoker<?> invoker;
     private final Invocation invocation;
     private final TraceTransmitter traceTransmitter;
+
+    static {
+        FILTER_KEY_SET.add("schema");
+        FILTER_KEY_SET.add("class");
+    }
+
     private DubboAdapter(Invoker<?> invoker, Invocation invocation) {
         this.invoker = invoker;
         this.invocation = invocation;
