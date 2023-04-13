@@ -51,7 +51,8 @@
             **/*Test.java,
             **/target/**,
             **/model/**,
-            **/serializer/**
+            **/serializer/**,
+            **/foundation/**
         </sonar.coverage.exclusions>
     </properties>
 

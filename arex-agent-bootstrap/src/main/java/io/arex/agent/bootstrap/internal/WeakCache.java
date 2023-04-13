@@ -5,7 +5,7 @@ import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 import java.util.concurrent.*;
 
-class WeakCache<K, V> extends ReferenceQueue<K> implements Cache<K, V> {
+public class WeakCache<K, V> extends ReferenceQueue<K> implements Cache<K, V> {
     final ConcurrentMap<WeakReferenceKey<K>, V> target;
 
     public WeakCache() {

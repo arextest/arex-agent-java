@@ -6,6 +6,7 @@ import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.ArrayUtils;
 import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.inst.ProtoJsonSerializer;
 import io.arex.inst.dynamic.common.listener.ListenableFutureAdapter;
 import io.arex.inst.dynamic.common.listener.ResponseConsumer;
 import io.arex.inst.runtime.config.Config;
@@ -33,6 +34,7 @@ public class DynamicClassExtractor {
     private static final String SERIALIZER = "gson";
     private static final String LISTENABLE_FUTURE = "com.google.common.util.concurrent.ListenableFuture";
     private static final String COMPLETABLE_FUTURE = "java.util.concurrent.CompletableFuture";
+    private static final String PROTOBUF_PACKAGE_NAME = "com.google.protobuf";
 
     private final String clazzName;
     private final String methodName;
@@ -68,6 +70,10 @@ public class DynamicClassExtractor {
             this.setFutureResponse((Future<?>) response);
             return;
         }
+        if (isProtoBufObject(response)) {
+            this.recordProtoBufResponse(response);
+            return;
+        }
         this.result = response;
         this.resultClazz = buildResultClazz(TypeUtil.getName(response));
         if (needRecord()) {
@@ -77,9 +83,45 @@ public class DynamicClassExtractor {
         }
     }
 
+    private void recordProtoBufResponse(Object response) {
+        this.result = response;
+        this.resultClazz = buildResultClazz(TypeUtil.getName(response));
+        if (needRecord()) {
+            this.serializedResult = ProtoJsonSerializer.getInstance().serialize(this.result);
+            Mocker mocker = makeMocker();
+            mocker.getTargetResponse().setAttribute("isProtoBuf", "true");
+            MockUtils.recordMocker(mocker);
+            cacheMethodSignature();
+        }
+    }
+
+    private boolean isProtoBufObject(Mocker mocker) {
+        return mocker.getTargetResponse().getAttribute("isProtoBuf") != null;
+    }
+
+    private boolean isProtoBufObject(Object result) {
+        if (result == null) {
+            return false;
+        }
+        if (result instanceof Collection<?>) {
+            Collection<?> collection = (Collection<?>) result;
+            if (collection.isEmpty()) {
+                return false;
+            }
+            return isProtoBufObject(collection.iterator().next());
+        }
+        Class<?> clazz = result.getClass();
+        if (clazz.getSuperclass() == null) {
+            return false;
+        }
+        return PROTOBUF_PACKAGE_NAME.equals(clazz.getSuperclass().getPackage().getName());
+    }
+
+
     public MockResult replay() {
         String key = buildCacheKey();
-        Map<String, Object> cachedReplayResultMap = ContextManager.currentContext().getCachedReplayResultMap();
+        Map<String, Object> cachedReplayResultMap = ContextManager.currentContext()
+                .getCachedReplayResultMap();
         Object replayResult = null;
         // First get replay result from cache
         if (key != null) {
@@ -90,8 +132,8 @@ public class DynamicClassExtractor {
         if (replayResult == null) {
             Mocker replayMocker = MockUtils.replayMocker(makeMocker());
             if (MockUtils.checkResponseMocker(replayMocker)) {
-                replayResult = Serializer.deserialize(replayMocker.getTargetResponse().getBody(),
-                    TypeUtil.forName(replayMocker.getTargetResponse().getType()), SERIALIZER);
+                String typeName = replayMocker.getTargetResponse().getType();
+                replayResult = deserializeResult(replayMocker, typeName);
             }
             replayResult = restoreResponse(replayResult);
             // no key no cache, no parameter methods may return different values
@@ -101,6 +143,15 @@ public class DynamicClassExtractor {
         }
         boolean ignoreMockResult = IgnoreUtils.ignoreMockResult(clazzName, methodName);
         return MockResult.success(ignoreMockResult, replayResult);
+    }
+
+    private Object deserializeResult(Mocker replayMocker, String typeName) {
+        if (isProtoBufObject(replayMocker)) {
+            return ProtoJsonSerializer.getInstance().deserialize(replayMocker.getTargetResponse().getBody(),
+                    TypeUtil.forName(typeName));
+        }
+        return Serializer.deserialize(replayMocker.getTargetResponse().getBody(),
+                TypeUtil.forName(typeName), SERIALIZER);
     }
 
     void setFutureResponse(Future<?> result) {
