@@ -8,7 +8,6 @@ import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.model.DynamicClassEntity;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -32,7 +31,7 @@ public class DynamicClassModuleInstrumentation extends ModuleInstrumentation {
         List<DynamicClassEntity> dynamicClassList = Config.get().dynamicClassEntities();
 
         if (CollectionUtil.isEmpty(dynamicClassList)) {
-            return Collections.emptyList();
+            return typeInstList;
         }
 
         Map<String, List<DynamicClassEntity>> dynamicMap = dynamicClassList.stream().collect(
@@ -40,6 +39,7 @@ public class DynamicClassModuleInstrumentation extends ModuleInstrumentation {
         for (Map.Entry<String, List<DynamicClassEntity>> entry : dynamicMap.entrySet()) {
             typeInstList.add(new DynamicClassInstrumentation(entry.getValue()));
         }
+
         return typeInstList;
     }
 }

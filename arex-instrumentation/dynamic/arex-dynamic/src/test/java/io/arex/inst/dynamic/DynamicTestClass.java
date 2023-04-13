@@ -1,5 +1,6 @@
 package io.arex.inst.dynamic;
 
+import com.arextest.common.annotation.ArexMock;
 import java.util.UUID;
 
 public class DynamicTestClass extends AbstractDynamicTestClass {
@@ -36,5 +37,10 @@ public class DynamicTestClass extends AbstractDynamicTestClass {
     public void testReturnVoidWithParameter(String val) {
         long timeMillis = System.currentTimeMillis();
         System.out.println("testReturnVoidWithParameter: " + timeMillis);
+    }
+
+    @ArexMock
+    public String testWithArexMock(String val) {
+        return val + "testWithArexMock";
     }
 }

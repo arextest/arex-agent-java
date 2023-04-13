@@ -19,6 +19,12 @@
             <version>${project.version}</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>com.arextest</groupId>
+            <artifactId>arex-common</artifactId>
+            <version>0.1.4</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
 </project>

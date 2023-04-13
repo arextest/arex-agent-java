@@ -1,5 +1,6 @@
 package io.arex.agent.bootstrap.util;
 
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -28,5 +29,10 @@ class ArrayUtilsTest {
                 arguments(new byte[]{1}, null, predicate2),
                 arguments(new byte[]{1}, new byte[]{2}, predicate3)
         );
+    }
+
+    @Test
+    void isEmpty() {
+        assertTrue(ArrayUtils.isEmpty(new Object[0]));
     }
 }
