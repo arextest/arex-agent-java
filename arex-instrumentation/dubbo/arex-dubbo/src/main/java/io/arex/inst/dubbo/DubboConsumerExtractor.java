@@ -21,6 +21,7 @@ public class DubboConsumerExtractor {
     private Mocker makeMocker() {
         Mocker mocker = MockUtils.createDubboConsumer(adapter.getServiceOperation());
         mocker.getTargetRequest().setBody(adapter.getRequest());
+        mocker.getTargetRequest().setType(adapter.getRequestParamType());
         mocker.getTargetResponse().setType(adapter.getReturnType());
         return mocker;
     }

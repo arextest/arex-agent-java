@@ -5,6 +5,7 @@ import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.inst.dubbo.DubboAdapter;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.util.IgnoreUtils;
 import io.arex.inst.runtime.util.LogUtil;
@@ -67,7 +68,8 @@ public class DubboStreamConsumerExtractor {
             StreamModel.DataModel requestModel = getUnRecordRequest(dataModels);
             if (requestModel.getData() != null) {
                 Object request = requestMetadata.packableMethod.parseRequest(requestModel.getData());
-                mocker.getTargetRequest().setBody(Serializer.serialize(request));
+                mocker.getTargetRequest().setBody(DubboAdapter.parseRequest(request, Serializer::serialize));
+                mocker.getTargetRequest().setType(DubboAdapter.parseRequest(request, TypeUtil::getName));
             }
             if (throwable != null) {
                 mocker.getTargetResponse().setBody(Serializer.serialize(throwable));

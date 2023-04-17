@@ -2,6 +2,7 @@ package io.arex.inst.dubbo.stream;
 
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.CollectionUtil;
+import io.arex.inst.dubbo.DubboAdapter;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.serializer.Serializer;
@@ -126,7 +127,8 @@ public class DubboStreamProviderExtractor {
                     StreamModel.DataModel dataModel = requestsList.get(i);
                     if (dataModel.getData() != null) {
                         Object request = packableMethod.parseRequest(dataModel.getData());
-                        mocker.getTargetRequest().setBody(Serializer.serialize(request));
+                        mocker.getTargetRequest().setBody(DubboAdapter.parseRequest(request, Serializer::serialize));
+                        mocker.getTargetRequest().setType(DubboAdapter.parseRequest(request, TypeUtil::getName));
                     }
                     // The result is recorded for the last time, the previous requests are all compensate record
                     if (i == (requestTimes - 1)) {

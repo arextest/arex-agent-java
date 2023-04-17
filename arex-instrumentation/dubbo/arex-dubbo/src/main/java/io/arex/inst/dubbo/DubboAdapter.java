@@ -2,6 +2,8 @@ package io.arex.inst.dubbo;
 
 import io.arex.agent.bootstrap.ctx.TraceTransmitter;
 import io.arex.agent.bootstrap.model.Mocker;
+import io.arex.agent.bootstrap.util.ArrayUtils;
+import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.serializer.Serializer;
@@ -18,12 +20,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Type;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Function;
 
-import static io.arex.inst.runtime.model.ArexConstants.DUBBO_STREAM_NAME;
-import static io.arex.inst.runtime.model.ArexConstants.DUBBO_STREAM_PROTOCOL;
+import static io.arex.inst.runtime.model.ArexConstants.*;
 
 public class DubboAdapter {
     private static final Logger LOGGER = LoggerFactory.getLogger(DubboAdapter.class);
@@ -59,11 +59,20 @@ public class DubboAdapter {
         return getPath() + "." + getOperationName();
     }
     public String getRequest() {
-        Object request = null;
-        if (invocation.getArguments() != null && invocation.getArguments().length > 0) {
-            request = invocation.getArguments()[0];
+        return parseRequest(invocation.getArguments(), Serializer::serialize);
+    }
+    public String getRequestParamType() {
+        return parseRequest(invocation.getArguments(), TypeUtil::getName);
+    }
+    public static String parseRequest(Object request, Function<Object, String> parser) {
+        if (request instanceof Object[]) {
+            Object[] requests = (Object[]) request;
+            if (requests.length > 0) {
+                // take only the first request parameter, and in most cases will be packed as one object
+                return parser.apply(requests[0]);
+            }
         }
-        return Serializer.serialize(request);
+        return parser.apply(request);
     }
     public String getReturnType() {
         Type returnType = null;
