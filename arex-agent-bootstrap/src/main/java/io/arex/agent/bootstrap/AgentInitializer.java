@@ -15,7 +15,7 @@ public class AgentInitializer {
             return;
         }
 
-        System.setProperty("arex-agent-jar-file-path", agentFile.getAbsolutePath());
+        System.setProperty("arex.agent.jar.file.path", agentFile.getAbsolutePath());
         File[] extensionFiles = getExtensionJarFiles(agentFile);
         classLoader = createAgentClassLoader(agentFile, extensionFiles);
         InstrumentationHolder.setAgentClassLoader(classLoader);

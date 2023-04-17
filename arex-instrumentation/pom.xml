@@ -5,12 +5,16 @@
     <parent>
         <groupId>io.arex</groupId>
         <artifactId>arex-agent-parent</artifactId>
-        <version>0.1.0</version>
+        <version>${revision}</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>arex-instrumentation-parent</artifactId>
     <packaging>pom</packaging>
+
+    <properties>
+        <springframework.version>5.3.24</springframework.version>
+    </properties>
 
     <modules>
         <module>internal/arex-executors</module>
@@ -26,24 +30,27 @@
         <module>redis/arex-redission-v3</module>
         <module>dynamic/arex-dynamic</module>
         <module>dynamic/arex-dynamic-common</module>
-        <module>dynamic/arex-spring-cache</module>
+        <module>dynamic/arex-cache</module>
         <module>time-machine/arex-time-machine</module>
         <module>httpclient/arex-httpclient-common</module>
         <module>httpclient/arex-httpclient-okhttp-v3</module>
         <module>httpclient/arex-httpclient-apache-v4</module>
         <module>httpclient/arex-httpclient-webclient-v5</module>
         <module>netty/arex-netty-v4</module>
-        <module>dubbo/arex-dubbo</module>
+        <module>dubbo/arex-dubbo-apache-v2</module>
+        <module>dubbo/arex-dubbo-apache-v3</module>
+        <module>dubbo/arex-dubbo-alibaba</module>
+        <module>dubbo/arex-dubbo-common</module>
         <module>authentication/arex-jwt</module>
         <module>authentication/arex-spring-security</module>
         <module>authentication/arex-shiro</module>
         <module>authentication/arex-jcasbin</module>
+        <module>foundation/arex-serializer</module>
     </modules>
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>arex-instrumentation-api</artifactId>
-            <version>0.1.0</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/com.google.auto.service/auto-service -->
         <dependency>

@@ -1,17 +1,19 @@
 package io.arex.foundation.serializer;
 
 import com.google.auto.service.AutoService;
+
+import io.arex.agent.thirdparty.util.time.DateFormatUtils;
 import io.arex.foundation.serializer.JacksonSerializer.DateFormatParser;
 import io.arex.foundation.util.NumberTypeAdaptor;
 import io.arex.agent.bootstrap.util.StringUtil;
 import com.google.gson.Gson;
 import com.google.gson.JsonDeserializer;
+
 import io.arex.inst.runtime.serializer.StringSerializable;
 import io.arex.inst.runtime.util.TypeUtil;
 import java.sql.Time;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
-import org.apache.commons.lang3.time.DateFormatUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.google.gson.*;
@@ -86,7 +88,7 @@ public class GsonSerializer implements StringSerializable {
     private static final JsonSerializer<Date> DATE_JSON_SERIALIZER =
         (((src, typeOfSrc, context) -> new JsonPrimitive(DateFormatUtils.format(src, JacksonSerializer.DatePatternConstants.SIMPLE_DATE_FORMAT_MILLIS))));
     private static final JsonDeserializer<Date> DATE_JSON_DESERIALIZER = (json, type, context) ->
-            new Date(Long.parseLong(json.getAsString()));
+            DateFormatParser.INSTANCE.parseDate(json.getAsString());
 
     private static final JsonSerializer<java.sql.Date> SQL_DATE_JSON_SERIALIZER =
         (((src, typeOfSrc, context) -> new JsonPrimitive(DateFormatUtils.format(src, JacksonSerializer.DatePatternConstants.SIMPLE_DATE_FORMAT_MILLIS))));
@@ -120,7 +122,21 @@ public class GsonSerializer implements StringSerializable {
     private static final ExclusionStrategy EXCLUSION_STRATEGY = new ExclusionStrategy() {
         @Override
         public boolean shouldSkipField(FieldAttributes f) {
-            return "stackTrace".equals(f.getName()) || "suppressedExceptions".equals(f.getName());
+            String fieldName = f.getName();
+            if ("stackTrace".equals(fieldName) || "suppressedExceptions".equals(fieldName)) {
+                return true;
+            }
+            String className = f.getDeclaringClass().getName();
+            List<String> fieldNameList = JacksonSerializer.INSTANCE.getSkipFieldNameList(className);
+
+            if (fieldNameList == null) {
+                return false;
+            }
+
+            if (fieldNameList.isEmpty()) {
+                return true;
+            }
+            return fieldNameList.contains(fieldName);
         }
 
         @Override
@@ -128,45 +144,45 @@ public class GsonSerializer implements StringSerializable {
             return false;
         }
     };
-
-    private static final Gson SERIALIZER = new GsonBuilder().registerTypeAdapterFactory(NumberTypeAdaptor.FACTORY)
-//        .registerTypeAdapter(org.joda.time.DateTime.class, DATE_TIME_JSON_SERIALIZER)
-//        .registerTypeAdapter(org.joda.time.DateTime.class, DATE_TIME_JSON_DESERIALIZER)
-//        .registerTypeAdapter(org.joda.time.LocalDateTime.class, JODA_LOCAL_DATE_TIME_JSON_SERIALIZER)
-//        .registerTypeAdapter(org.joda.time.LocalDateTime.class, JODA_LOCAL_DATE_TIME_JSON_DESERIALIZER)
-//        .registerTypeAdapter(org.joda.time.LocalDate.class, JODA_LOCAL_DATE_JSON_SERIALIZER)
-//        .registerTypeAdapter(org.joda.time.LocalDate.class, JODA_LOCAL_DATE_JSON_DESERIALIZER)
-//        .registerTypeAdapter(org.joda.time.LocalTime.class, JODA_LOCAL_TIME_JSON_SERIALIZER)
-//        .registerTypeAdapter(org.joda.time.LocalTime.class, JODA_LOCAL_TIME_JSON_DESERIALIZER)
-        .registerTypeAdapter(LocalDateTime.class, LOCAL_DATE_TIME_JSON_SERIALIZER)
-        .registerTypeAdapter(LocalDateTime.class, LOCAL_DATE_TIME_JSON_DESERIALIZER)
-        .registerTypeAdapter(LocalDate.class, LOCAL_DATE_JSON_SERIALIZER)
-        .registerTypeAdapter(LocalDate.class, LOCAL_DATE_JSON_DESERIALIZER)
-        .registerTypeAdapter(LocalTime.class, LOCAL_TIME_JSON_SERIALIZER)
-        .registerTypeAdapter(LocalTime.class, LOCAL_TIME_JSON_DESERIALIZER)
-        .registerTypeAdapter(Calendar.class, CALENDAR_JSON_SERIALIZER)
-        .registerTypeAdapter(Calendar.class, CALENDAR_JSON_DESERIALIZER)
-        .registerTypeAdapter(GregorianCalendar.class, GREGORIAN_CALENDAR_JSON_SERIALIZER)
-        .registerTypeAdapter(GregorianCalendar.class, GREGORIAN_CALENDAR_JSON_DESERIALIZER)
-        .registerTypeAdapter(XMLGregorianCalendar.class, XML_GREGORIAN_CALENDAR_JSON_SERIALIZER)
-        .registerTypeAdapter(XMLGregorianCalendar.class, XML_GREGORIAN_CALENDAR_JSON_DESERIALIZER)
-        .registerTypeAdapter(Timestamp.class, TIMESTAMP_JSON_SERIALIZER)
-        .registerTypeAdapter(Timestamp.class, TIMESTAMP_JSON_DESERIALIZER)
-        .registerTypeAdapter(Date.class, DATE_JSON_SERIALIZER)
-        .registerTypeAdapter(Date.class, DATE_JSON_DESERIALIZER)
-        .registerTypeAdapter(java.sql.Date.class, SQL_DATE_JSON_SERIALIZER)
-        .registerTypeAdapter(java.sql.Date.class, SQL_DATE_JSON_DESERIALIZER)
-        .registerTypeAdapter(Time.class, TIME_JSON_SERIALIZER)
-        .registerTypeAdapter(Time.class, TIME_JSON_DESERIALIZER)
-        .registerTypeAdapter(Instant.class, INSTANT_JSON_SERIALIZER)
-        .registerTypeAdapter(Instant.class, INSTANT_JSON_DESERIALIZER)
-        .registerTypeAdapter(Class.class, CLASS_JSON_SERIALIZER)
-        .registerTypeAdapter(Class.class, CLASS_JSON_DESERIALIZER)
-        .enableComplexMapKeySerialization()
-        .setExclusionStrategies(EXCLUSION_STRATEGY)
-        .disableHtmlEscaping().create();
-
+    public static final GsonSerializer INSTANCE = new GsonSerializer();
+    private final Gson serializer;
     public GsonSerializer() {
+        serializer = new GsonBuilder().registerTypeAdapterFactory(NumberTypeAdaptor.FACTORY)
+//              .registerTypeAdapter(org.joda.time.DateTime.class, DATE_TIME_JSON_SERIALIZER)
+//              .registerTypeAdapter(org.joda.time.DateTime.class, DATE_TIME_JSON_DESERIALIZER)
+//              .registerTypeAdapter(org.joda.time.LocalDateTime.class, JODA_LOCAL_DATE_TIME_JSON_SERIALIZER)
+//              .registerTypeAdapter(org.joda.time.LocalDateTime.class, JODA_LOCAL_DATE_TIME_JSON_DESERIALIZER)
+//              .registerTypeAdapter(org.joda.time.LocalDate.class, JODA_LOCAL_DATE_JSON_SERIALIZER)
+//              .registerTypeAdapter(org.joda.time.LocalDate.class, JODA_LOCAL_DATE_JSON_DESERIALIZER)
+//              .registerTypeAdapter(org.joda.time.LocalTime.class, JODA_LOCAL_TIME_JSON_SERIALIZER)
+//              .registerTypeAdapter(org.joda.time.LocalTime.class, JODA_LOCAL_TIME_JSON_DESERIALIZER)
+                .registerTypeAdapter(LocalDateTime.class, LOCAL_DATE_TIME_JSON_SERIALIZER)
+                .registerTypeAdapter(LocalDateTime.class, LOCAL_DATE_TIME_JSON_DESERIALIZER)
+                .registerTypeAdapter(LocalDate.class, LOCAL_DATE_JSON_SERIALIZER)
+                .registerTypeAdapter(LocalDate.class, LOCAL_DATE_JSON_DESERIALIZER)
+                .registerTypeAdapter(LocalTime.class, LOCAL_TIME_JSON_SERIALIZER)
+                .registerTypeAdapter(LocalTime.class, LOCAL_TIME_JSON_DESERIALIZER)
+                .registerTypeAdapter(Calendar.class, CALENDAR_JSON_SERIALIZER)
+                .registerTypeAdapter(Calendar.class, CALENDAR_JSON_DESERIALIZER)
+                .registerTypeAdapter(GregorianCalendar.class, GREGORIAN_CALENDAR_JSON_SERIALIZER)
+                .registerTypeAdapter(GregorianCalendar.class, GREGORIAN_CALENDAR_JSON_DESERIALIZER)
+                .registerTypeAdapter(XMLGregorianCalendar.class, XML_GREGORIAN_CALENDAR_JSON_SERIALIZER)
+                .registerTypeAdapter(XMLGregorianCalendar.class, XML_GREGORIAN_CALENDAR_JSON_DESERIALIZER)
+                .registerTypeAdapter(Timestamp.class, TIMESTAMP_JSON_SERIALIZER)
+                .registerTypeAdapter(Timestamp.class, TIMESTAMP_JSON_DESERIALIZER)
+                .registerTypeAdapter(Date.class, DATE_JSON_SERIALIZER)
+                .registerTypeAdapter(Date.class, DATE_JSON_DESERIALIZER)
+                .registerTypeAdapter(java.sql.Date.class, SQL_DATE_JSON_SERIALIZER)
+                .registerTypeAdapter(java.sql.Date.class, SQL_DATE_JSON_DESERIALIZER)
+                .registerTypeAdapter(Time.class, TIME_JSON_SERIALIZER)
+                .registerTypeAdapter(Time.class, TIME_JSON_DESERIALIZER)
+                .registerTypeAdapter(Instant.class, INSTANT_JSON_SERIALIZER)
+                .registerTypeAdapter(Instant.class, INSTANT_JSON_DESERIALIZER)
+                .registerTypeAdapter(Class.class, CLASS_JSON_SERIALIZER)
+                .registerTypeAdapter(Class.class, CLASS_JSON_DESERIALIZER)
+                .enableComplexMapKeySerialization()
+                .setExclusionStrategies(EXCLUSION_STRATEGY)
+                .disableHtmlEscaping().create();
 
     }
 
@@ -181,8 +197,8 @@ public class GsonSerializer implements StringSerializable {
             return null;
         }
         try {
-            return SERIALIZER.toJson(object);
-        } catch (Exception ex) {
+            return serializer.toJson(object);
+        } catch (Throwable ex) {
             LOGGER.warn("serialize", ex);
             return null;
         }
@@ -194,8 +210,8 @@ public class GsonSerializer implements StringSerializable {
             return null;
         }
         try {
-            return SERIALIZER.fromJson(json, clazz);
-        } catch (Exception ex) {
+            return serializer.fromJson(json, clazz);
+        } catch (Throwable ex) {
             LOGGER.warn("gson-deserialize-clazz", ex);
             return null;
         }
@@ -207,11 +223,16 @@ public class GsonSerializer implements StringSerializable {
             return null;
         }
         try {
-            return SERIALIZER.fromJson(json, type);
-        } catch (Exception ex) {
+            return serializer.fromJson(json, type);
+        } catch (Throwable ex) {
             LOGGER.warn("gson-deserialize-type", ex);
             return null;
         }
+    }
+
+    @Override
+    public StringSerializable reCreateSerializer() {
+        return new GsonSerializer();
     }
 
 }

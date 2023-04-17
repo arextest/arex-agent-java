@@ -7,18 +7,20 @@ import io.arex.agent.bootstrap.InstrumentationHolder;
 import io.arex.foundation.config.ConfigManager;
 import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.foundation.util.SPIUtil;
-import java.io.IOException;
 
+import io.arex.inst.extension.matcher.IgnoredTypesMatcher;
+import io.arex.inst.runtime.model.DynamicClassEntity;
+import io.arex.inst.runtime.model.DynamicClassStatusEnum;
+import java.util.stream.Collectors;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.agent.builder.ResettableClassFileTransformer;
 import net.bytebuddy.asm.Advice;
-import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.dynamic.ClassFileLocator;
-import net.bytebuddy.dynamic.DynamicType;
+import net.bytebuddy.dynamic.loading.ClassReloadingStrategy;
 import net.bytebuddy.dynamic.scaffold.MethodGraph;
+import net.bytebuddy.dynamic.scaffold.TypeWriter;
 import net.bytebuddy.matcher.ElementMatcher;
-import net.bytebuddy.utility.JavaModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,12 +28,12 @@ import java.io.File;
 import java.lang.instrument.Instrumentation;
 import java.util.*;
 
-import static net.bytebuddy.matcher.ElementMatchers.*;
-
 @SuppressWarnings("unused")
 public class InstrumentationInstaller extends BaseAgentInstaller {
-
     private static final Logger LOGGER = LoggerFactory.getLogger(InstrumentationInstaller.class);
+    private static final String BYTECODE_DUMP_DIR = "/bytecode-dump";
+    private ModuleInstrumentation dynamicModule;
+    private ResettableClassFileTransformer resettableClassFileTransformer;
 
     public InstrumentationInstaller(Instrumentation inst, File agentFile, String agentArgs) {
         super(inst, agentFile, agentArgs);
@@ -39,36 +41,99 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
 
     @Override
     protected ResettableClassFileTransformer transform() {
-        if (ConfigManager.INSTANCE.invalid()) {
-            LOGGER.warn("[arex] config is invalid and stop instrument");
-            return null;
+        if (ConfigManager.FIRST_TRANSFORM.compareAndSet(false, true)) {
+            createDumpDirectory();
+            resettableClassFileTransformer = install(getAgentBuilder(), false);
+            LOGGER.info("[AREX] Agent install successfully.");
+            return resettableClassFileTransformer;
         }
-        return install(getAgentBuilder());
+
+        resetClass();
+
+        return retransform();
     }
 
-    private ResettableClassFileTransformer install(AgentBuilder builder) {
+    private ResettableClassFileTransformer retransform() {
+        List<DynamicClassEntity> retransformList = ConfigManager.INSTANCE.getDynamicClassList().stream()
+            .filter(item -> DynamicClassStatusEnum.RETRANSFORM == item.getStatus()).collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(retransformList)) {
+            return resettableClassFileTransformer;
+        }
+
+        instrumentation.removeTransformer(resettableClassFileTransformer);
+        resettableClassFileTransformer = install(getAgentBuilder(), true);
+        LOGGER.info("[AREX] Agent retransform successfully.");
+
+        for (DynamicClassEntity item : retransformList) {
+            LOGGER.info("[AREX] Agent retransform class: {}.", item.getClazzName());
+            item.setStatus(DynamicClassStatusEnum.UNCHANGED);
+        }
+        return resettableClassFileTransformer;
+    }
+
+    private void resetClass() {
+        Set<String> resetClassSet = new HashSet<>();
+        Map<String, List<DynamicClassEntity>> dynamicMap = ConfigManager.INSTANCE.getDynamicClassList().stream()
+            .collect(Collectors.groupingBy(DynamicClassEntity::getClazzName));
+        for (Map.Entry<String, List<DynamicClassEntity>> entry : dynamicMap.entrySet()) {
+            if (entry.getValue().stream().allMatch(item-> DynamicClassStatusEnum.RESET == item.getStatus())) {
+                resetClassSet.add(entry.getKey());
+            }
+        }
+
+        ConfigManager.INSTANCE.getDynamicClassList().removeIf(item -> DynamicClassStatusEnum.RESET == item.getStatus());
+
+        if (CollectionUtil.isEmpty(resetClassSet)) {
+            return;
+        }
+
+        // TODO: optimize reset abstract class
+        for (Class<?> clazz : this.instrumentation.getAllLoadedClasses()) {
+            if (resetClassSet.contains(clazz.getName())) {
+                try {
+                    ClassReloadingStrategy.of(this.instrumentation).reset(clazz);
+                    LOGGER.info("[arex] reset class successfully, name: {}", clazz.getName());
+                } catch (Exception e) {
+                    LOGGER.warn("[arex] reset class failed, name: {}", clazz.getName(), e);
+                }
+            }
+        }
+
+
+    }
+
+    private ResettableClassFileTransformer install(AgentBuilder builder, boolean retransform) {
         List<ModuleInstrumentation> list = loadInstrumentationModules();
 
         for (ModuleInstrumentation module : list) {
-            builder = installModule(builder, module);
+            builder = installModule(builder, module, retransform);
         }
-
-        ResettableClassFileTransformer transformer = builder.installOn(this.instrumentation);
-        return transformer;
+        return builder.installOn(this.instrumentation);
     }
 
     private List<ModuleInstrumentation> loadInstrumentationModules() {
         return SPIUtil.load(ModuleInstrumentation.class);
     }
 
-    private AgentBuilder installModule(AgentBuilder builder, ModuleInstrumentation module) {
+    private AgentBuilder installModule(AgentBuilder builder, ModuleInstrumentation module, boolean retransform) {
         if (disabledModule(module.name())) {
             LOGGER.warn("[arex] disabled instrumentation module: {}", module.name());
             return builder;
         }
 
+        if (retransform) {
+            if (retranformModule(module.name())) {
+                LOGGER.info("[arex] retransform instrumentation module: {}", module.name());
+                return installTypes(builder, module, module.instrumentationTypes());
+            }
+            return builder;
+        }
 
-        List<TypeInstrumentation> types = module.instrumentationTypes();
+        LOGGER.info("[arex] installed instrumentation module: {}", module.name());
+        return installTypes(builder, module, module.instrumentationTypes());
+    }
+
+    private AgentBuilder installTypes(AgentBuilder builder, ModuleInstrumentation module, List<TypeInstrumentation> types) {
         if (CollectionUtil.isEmpty(types)) {
             LOGGER.warn("[arex] invalid instrumentation module: {}", module.name());
             return builder;
@@ -77,7 +142,7 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
         for (TypeInstrumentation inst : types) {
             builder = installType(builder, module.matcher(), inst);
         }
-        LOGGER.info("[arex] installed instrumentation module: {}", module.name());
+
         return builder;
     }
 
@@ -117,17 +182,9 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
         AgentBuilder builder = new AgentBuilder.Default(
                 new ByteBuddy().with(MethodGraph.Compiler.ForDeclaredMethods.INSTANCE))
             .enableNativeMethodPrefix("arex_")
-            .ignore(nameStartsWith("net.bytebuddy.")
-                .or(nameContains("javassist"))
-                .or(nameContains(".asm."))
-                .or(nameContains(".reflectasm."))
-                .or(nameStartsWith("sun.reflect"))
-                .or(nameStartsWith("com.intellij."))
-                .or(nameStartsWith("shaded."))
-                .or(nameStartsWith("io.arex"))
-                .or(isSynthetic())
-            )
-            .with(new TransformListener(agentFile))
+            .disableClassFormatChanges()
+            .ignore(new IgnoredTypesMatcher())
+            .with(new TransformListener())
             .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
             .with(AgentBuilder.InitializationStrategy.NoOp.INSTANCE)
             .with(AgentBuilder.TypeStrategy.Default.REBASE)
@@ -137,46 +194,27 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
         return builder;
     }
 
-    static class TransformListener extends AgentBuilder.Listener.Adapter {
-        private File debugDumpPath;
-        public TransformListener(File agentFile) {
-            if (!ConfigManager.INSTANCE.isEnableDebug()) {
-                return;
-            }
-
-            debugDumpPath = new File(agentFile.getParent(), "/debugDump");
-            if (!debugDumpPath.exists()) {
-                debugDumpPath.mkdir();
-            }
-        }
-
-        @Override
-        public void onTransformation(TypeDescription typeDescription, ClassLoader classLoader, JavaModule module,
-                                     boolean loaded, DynamicType dynamicType) {
-            LOGGER.info("[arex] onTransformation: {} loaded: {} from classLoader {}", typeDescription.getName(), loaded, classLoader);
-            saveDebugDump(dynamicType);
-        }
-
-        @Override
-        public void onError(String typeName, ClassLoader classLoader, JavaModule module, boolean loaded,
-                            Throwable throwable) {
-            LOGGER.error("[arex] onError: {} loaded: {} from classLoader {}, throwable: {}", typeName, loaded, classLoader, throwable);
-        }
-
-        private void saveDebugDump(DynamicType dynamicType) {
-            if (debugDumpPath == null) {
-                return;
-            }
-
-            try {
-                dynamicType.saveIn(debugDumpPath);
-            } catch (IOException e) {
-                LOGGER.error("save class: {} failed, exception: {}", dynamicType.getTypeDescription().getActualName(), e.getMessage());
-            }
-        }
+    private boolean disabledModule(String moduleName) {
+        return ConfigManager.INSTANCE.getDisabledModules().contains(moduleName);
     }
 
-    public boolean disabledModule(String moduleName) {
-        return ConfigManager.INSTANCE.getDisabledInstrumentationModules().contains(moduleName);
+    private boolean retranformModule(String moduleName) {
+        return ConfigManager.INSTANCE.getRetransformModules().contains(moduleName);
+    }
+
+    private void createDumpDirectory() {
+        if (!ConfigManager.INSTANCE.isEnableDebug()) {
+            return;
+        }
+
+        try {
+            File bytecodeDumpPath = new File(agentFile.getParent(), BYTECODE_DUMP_DIR);
+            if (!bytecodeDumpPath.exists()) {
+                bytecodeDumpPath.mkdir();
+            }
+            System.setProperty(TypeWriter.DUMP_PROPERTY, bytecodeDumpPath.getPath());
+        } catch (Exception e) {
+            LOGGER.info("[arex] Failed to create directory to instrumented bytecode: {}", e.getMessage());
+        }
     }
 }

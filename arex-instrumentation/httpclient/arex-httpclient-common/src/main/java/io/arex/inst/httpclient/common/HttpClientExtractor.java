@@ -87,7 +87,7 @@ public class HttpClientExtractor<TRequest, TResponse> {
         return adapter.getUri().getQuery();
     }
 
-    private final static List<String> ALLOW_HTTP_METHOD_BODY_SETS;
+    private static final List<String> ALLOW_HTTP_METHOD_BODY_SETS;
 
     static {
         ALLOW_HTTP_METHOD_BODY_SETS = new ArrayList<>(4);

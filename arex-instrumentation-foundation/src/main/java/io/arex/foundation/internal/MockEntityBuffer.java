@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class MockEntityBuffer {
-    private final static int DEFAULT_SIZE = 1024;
+    private static final int DEFAULT_SIZE = 1024;
     private DataEntity[] buffer;
     private int head = 0;
     private volatile int tail = 0;

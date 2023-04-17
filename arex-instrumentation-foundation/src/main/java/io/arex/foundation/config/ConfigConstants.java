@@ -15,10 +15,13 @@ public class ConfigConstants {
     public static final String ALLOW_TIME_FROM = "arex.allow.time.from";
     public static final String ALLOW_TIME_TO = "arex.allow.time.to";
 
-    public static final String DISABLE_INSTRUMENTATION_MODULE = "arex.disable.instrumentation.module";
+    public static final String DISABLE_MODULE = "arex.disable.instrumentation.module";
+    public static final String RETRANSFORM_MODULE = "arex.retransform.instrumentation.module";
+
     public static final String EXCLUDE_SERVICE_OPERATION = "arex.exclude.service.operation";
     public static final String DUBBO_STREAM_REPLAY_THRESHOLD = "arex.dubbo.replay.threshold";
     public static final String DISABLE_REPLAY = "arex.disable.replay";
     public static final String DURING_WORK = "arex.during.work";
     public static final String AGENT_VERSION = "arex.agent.version";
+    public static final String IP_VALIDATE = "arex.ip.validate";
 }

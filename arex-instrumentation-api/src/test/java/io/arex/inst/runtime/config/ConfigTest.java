@@ -39,6 +39,9 @@ class ConfigTest {
         };
         Runnable mocker4 = () -> {
             config.addProperty("arex.during.work", "true").build();;
+        };
+        Runnable mocker5 = () -> {
+            config.addProperty("arex.ip.validate", "true").build();;
             RecordLimiter.init(mock -> true);
         };
 
@@ -48,29 +51,35 @@ class ConfigTest {
                 arguments(mocker1, predicate1),
                 arguments(mocker2, predicate2),
                 arguments(mocker3, predicate2),
-                arguments(mocker4, predicate1)
+                arguments(mocker4, predicate2),
+                arguments(mocker5, predicate1)
         );
     }
 
     @Test
-    void testDynamicClassEntities() {
-        ConfigBuilder config = ConfigBuilder.create("mock");
+    void testDynamicClassList() {
+        ConfigBuilder.create("mock").dynamicClassList(null).build();
+        assertNull(Config.get().getDynamicClassList());
+
+        ConfigBuilder config = ConfigBuilder.create("mock").addProperty("arex.agent.version", "0.3.4");
         String genericObject = "innerTest";
         String genericTypeName = genericObject.getClass().getName();
-        DynamicClassEntity genericEntity = new DynamicClassEntity(null, null, null, "T:" + genericTypeName);
+        DynamicClassEntity genericEntity = new DynamicClassEntity("classA", "methodA", null, "T:" + genericTypeName);
         DynamicClassEntity uuidEntity = new DynamicClassEntity(null, null, null, ArexConstants.UUID_SIGNATURE);
         DynamicClassEntity systemEntity = new DynamicClassEntity(null, null, null, ArexConstants.CURRENT_TIME_MILLIS_SIGNATURE);
-        List<DynamicClassEntity> dynamicClassEntities = Arrays.asList(systemEntity, genericEntity, uuidEntity);
+        DynamicClassEntity abstractEntity = new DynamicClassEntity("ac:classB", "methodB", null, "T:" + genericTypeName);
+        List<DynamicClassEntity> dynamicClassEntities = Arrays.asList(systemEntity, genericEntity, uuidEntity, abstractEntity);
         config.dynamicClassList(dynamicClassEntities).build();
-        Assertions.assertEquals(3, Config.get().dynamicClassEntities().size());
-        Assertions.assertEquals(1, Config.get().getGenericReturnTypeMapSize());
-        Assertions.assertEquals(genericTypeName, Config.get().getGenericReturnType(genericEntity.getSignature()));
-    }
+        Assertions.assertEquals(4, Config.get().getDynamicClassList().size());
+        Assertions.assertEquals(genericTypeName, Config.get().getDynamicEntity(genericEntity.getSignature()).getActualType());
 
-    @Test
-    void testDynamicClassEntitiesNull() {
-        ConfigBuilder config = ConfigBuilder.create("mock");
-        config.dynamicClassList(null).build();
-        Assertions.assertEquals(0, Config.get().getGenericReturnTypeMapSize());
+        assertEquals("mock", Config.get().getServiceName());
+        assertEquals("0.3.4", Config.get().getRecordVersion());
+        assertEquals("0.3.4", Config.get().getString("arex.agent.version"));
+        assertNull(Config.get().excludeServiceOperations());
+        assertEquals(0, Config.get().getDubboStreamReplayThreshold());
+        assertEquals(3, Config.get().getDynamicClassSignatureMap().size());
+        assertEquals(1, Config.get().getDynamicAbstractClassList().length);
+        assertEquals("classB", Config.get().getDynamicAbstractClassList()[0]);
     }
 }

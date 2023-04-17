@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.arex</groupId>
         <artifactId>arex-agent-parent</artifactId>
-        <version>0.1.0</version>
+        <version>${revision}</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -29,13 +29,12 @@
             <artifactId>slf4j-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.google.auto.service</groupId>
-            <artifactId>auto-service</artifactId>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-            <version>3.7</version>
+            <groupId>com.google.auto.service</groupId>
+            <artifactId>auto-service</artifactId>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -96,7 +95,6 @@
                 <configuration>
                     <artifactSet>
                         <includes>
-                            <include>org.apache.commons:commons-lang3</include>
                             <include>commons-logging:**</include>
                             <include>org.apache.httpcomponents:httpasyncclient</include>
                             <include>org.apache.httpcomponents:httpclient</include>

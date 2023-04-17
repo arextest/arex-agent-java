@@ -49,5 +49,4 @@ class AgentInitializerTest {
             ex.printStackTrace();
         }
     }
-
 }

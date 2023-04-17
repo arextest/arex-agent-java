@@ -81,8 +81,8 @@ public class RedisExtractor {
     }
 
     static class RedisCluster {
-        private final static ConcurrentHashMap<String, String> REDIS_CLUSTER_CACHE = new ConcurrentHashMap<>(5);
-        private final static AtomicInteger sequence = new AtomicInteger();
+        private static final ConcurrentHashMap<String, String> REDIS_CLUSTER_CACHE = new ConcurrentHashMap<>(5);
+        private static final AtomicInteger sequence = new AtomicInteger();
 
         static String get(String key) {
             return REDIS_CLUSTER_CACHE.computeIfAbsent(key, k -> "Cluster" + sequence.addAndGet(1));

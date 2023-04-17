@@ -1,5 +1,6 @@
 package io.arex.agent.bootstrap.util;
 
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -23,10 +24,21 @@ class ArrayUtilsTest {
         Predicate<byte[]> predicate2 = bytes -> bytes.length == 1;
         Predicate<byte[]> predicate3 = bytes -> bytes.length == 2;
         return Stream.of(
-                arguments(null, null, predicate1),
-                arguments(null, new byte[]{2}, predicate2),
-                arguments(new byte[]{1}, null, predicate2),
-                arguments(new byte[]{1}, new byte[]{2}, predicate3)
+            arguments(null, null, predicate1),
+            arguments(null, new byte[]{2}, predicate2),
+            arguments(new byte[]{1}, null, predicate2),
+            arguments(new byte[]{1}, new byte[]{2}, predicate3)
         );
+    }
+
+    @Test
+    void isEmpty() {
+        assertTrue(ArrayUtils.isEmpty(new Object[0]));
+    }
+
+    @Test
+    void isNotEmpty() {
+        assertFalse(ArrayUtils.isNotEmpty(new Object[0]));
+        assertTrue(ArrayUtils.isNotEmpty(new Object[]{"test"}));
     }
 }

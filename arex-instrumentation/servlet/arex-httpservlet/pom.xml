@@ -5,7 +5,7 @@
     <parent>
         <artifactId>arex-instrumentation-parent</artifactId>
         <groupId>io.arex</groupId>
-        <version>0.1.0</version>
+        <version>${revision}</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -28,7 +28,7 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-webmvc</artifactId>
-            <version>5.3.15</version>
+            <version>${springframework.version}</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

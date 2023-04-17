@@ -7,7 +7,38 @@
     <groupId>io.arex</groupId>
     <artifactId>arex-agent-parent</artifactId>
     <packaging>pom</packaging>
-    <version>0.1.0</version>
+    <version>${revision}</version>
+
+    <name>arex-agent-java</name>
+    <url>https://github.com/arextest/arex-agent-java</url>
+
+    <scm>
+        <url>https://github.com/arextest/arex-agent-java</url>
+        <connection>scm:git:https://github.com/arextest/arex-agent-java.git</connection>
+        <developerConnection>scm:git:https://github.com/arextest/arex-agent-java.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+
+    <issueManagement>
+        <system>GitHub</system>
+        <url>https://github.com/arextest/arex-agent-java/issues</url>
+    </issueManagement>
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>AREX</name>
+            <email>arex.test.com@gmail.com</email>
+            <organization>AREX group</organization>
+            <organizationUrl>http://www.arextest.com</organizationUrl>
+        </developer>
+    </developers>
 
     <modules>
         <module>arex-agent</module>
@@ -18,9 +49,12 @@
         <module>arex-attacher</module>
         <module>arex-integration-tests</module>
         <module>arex-instrumentation-api</module>
+        <module>arex-third-party</module>
     </modules>
 
     <properties>
+        <!-- Maven CI Friendly Versions https://maven.apache.org/maven-ci-friendly.html -->
+        <revision>0.3.4</revision>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
@@ -40,7 +74,8 @@
             **/test/**,
             **/*Test.java,
             **/target/**,
-            **/model/**
+            **/model/**,
+            **/thirdparty/**
         </sonar.exclusions>
         <sonar.test.exclusions>
             **/test/**,
@@ -51,7 +86,10 @@
             **/*Test.java,
             **/target/**,
             **/model/**,
-            **/serializer/**
+            **/serializer/**,
+            **/context/**,
+            **/wrapper/**,
+            **/thirdparty/**
         </sonar.coverage.exclusions>
     </properties>
 
@@ -80,6 +118,11 @@
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>arex-instrumentation-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>arex-third-party</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -195,6 +238,31 @@
                         <phase>test</phase>
                         <goals>
                             <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>flatten-maven-plugin</artifactId>
+                <version>1.4.1</version>
+                <configuration>
+                    <updatePomFile>true</updatePomFile>
+                    <flattenMode>resolveCiFriendliesOnly</flattenMode>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>flatten</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>flatten</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>flatten.clean</id>
+                        <phase>clean</phase>
+                        <goals>
+                            <goal>clean</goal>
                         </goals>
                     </execution>
                 </executions>

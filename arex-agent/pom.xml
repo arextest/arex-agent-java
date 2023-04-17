@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.arex</groupId>
         <artifactId>arex-agent-parent</artifactId>
-        <version>0.1.0</version>
+        <version>${revision}</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -28,6 +28,10 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>arex-instrumentation-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>arex-third-party</artifactId>
         </dependency>
 
         <!--Agent instrumentation start-->
@@ -99,7 +103,7 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>arex-spring-cache</artifactId>
+            <artifactId>arex-cache</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -124,7 +128,22 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>arex-dubbo</artifactId>
+            <artifactId>arex-dubbo-apache-v2</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>arex-dubbo-apache-v3</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>arex-dubbo-alibaba</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>arex-dubbo-common</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -171,6 +190,8 @@
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
                         </manifest>
                         <manifestEntries>
                             <Premain-Class>io.arex.agent.ArexJavaAgent</Premain-Class>
@@ -178,6 +199,8 @@
                             <Can-Redefine-Classes>true</Can-Redefine-Classes>
                             <Can-Retransform-Classes>true</Can-Retransform-Classes>
                             <Can-Set-Native-Method-Prefix>true</Can-Set-Native-Method-Prefix>
+                            <Build-Time>${maven.build.timestamp}</Build-Time>
+                            <Built-By>arextest.com</Built-By>
                         </manifestEntries>
                     </archive>
                 </configuration>
