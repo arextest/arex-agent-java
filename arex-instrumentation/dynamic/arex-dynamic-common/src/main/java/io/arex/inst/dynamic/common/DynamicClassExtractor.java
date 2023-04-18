@@ -6,7 +6,7 @@ import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.ArrayUtils;
 import io.arex.agent.bootstrap.util.StringUtil;
-import io.arex.inst.ProtoJsonSerializer;
+import io.arex.inst.serializer.ProtoJsonSerializer;
 import io.arex.inst.dynamic.common.listener.ListenableFutureAdapter;
 import io.arex.inst.dynamic.common.listener.ResponseConsumer;
 import io.arex.inst.runtime.config.Config;
@@ -82,7 +82,7 @@ public class DynamicClassExtractor {
                 this.serializedResult = Serializer.serialize(this.result, SERIALIZER);
             }
             mocker.getTargetResponse().setBody(this.serializedResult);
-            MockUtils.recordMocker(makeMocker());
+            MockUtils.recordMocker(mocker);
             cacheMethodSignature();
         }
     }

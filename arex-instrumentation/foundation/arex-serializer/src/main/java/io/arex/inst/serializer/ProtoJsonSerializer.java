@@ -1,9 +1,8 @@
-package io.arex.inst;
+package io.arex.inst.serializer;
 
 import com.google.protobuf.AbstractMessage.Builder;
 import com.google.protobuf.util.JsonFormat;
 import com.google.protobuf.AbstractMessage;
-import io.arex.agent.bootstrap.internal.WeakCache;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.serializer.StringSerializable;
@@ -21,7 +20,6 @@ public class ProtoJsonSerializer implements StringSerializable{
     private static final ProtoJsonSerializer INSTANCE = new ProtoJsonSerializer();
     private static final JsonFormat.Printer JSON_PRINTER = JsonFormat.printer().omittingInsignificantWhitespace();
     private static final JsonFormat.Parser JSON_PARSER = JsonFormat.parser().ignoringUnknownFields();
-    private static final WeakCache<String, AbstractMessage.Builder<?>> BUILDER_WEAK_CACHE = new WeakCache<>();
 
     public static ProtoJsonSerializer getInstance() {
         return INSTANCE;
@@ -112,18 +110,11 @@ public class ProtoJsonSerializer implements StringSerializable{
      * Create Class.Builder based on Class reflection for Json deserialization
      * @param clazz
      * @return Class.Builder
-     * JSON_PARSER.merge(value, builder) will modify the value of build, so clear() is required every time the build object is obtained from the cacheMap.
      */
     private AbstractMessage.Builder<?> getMessageBuilder(Class<?> clazz)
             throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
-        Builder<?> cacheBuild = BUILDER_WEAK_CACHE.get(clazz.getName());
-        if (cacheBuild != null) {
-            return cacheBuild.clear();
-        }
         Method method = clazz.getDeclaredMethod("newBuilder");
-        Builder<?> builder = (Builder<?>) method.invoke(null);
-        BUILDER_WEAK_CACHE.put(clazz.getName(), builder);
-        return builder;
+        return (Builder<?>) method.invoke(null);
     }
 
 }
