@@ -41,6 +41,11 @@ public class SpringCacheInstrumentation extends TypeInstrumentation {
             @Advice.Argument(3) Object[] args,
             @Advice.Local("extractor") DynamicClassExtractor extractor,
             @Advice.Local("mockResult") MockResult mockResult) {
+            // only record and replay non-void method
+            if (Void.TYPE.equals(method.getReturnType())) {
+                return false;
+            }
+
             if (ContextManager.needRecordOrReplay()) {
                 Cacheable cacheable = method.getDeclaredAnnotation(Cacheable.class);
                 String keyExpression = cacheable != null ? cacheable.key() : null;
@@ -57,10 +62,16 @@ public class SpringCacheInstrumentation extends TypeInstrumentation {
         }
 
         @Advice.OnMethodExit(onThrowable = Throwable.class, suppress = Throwable.class)
-        public static void onExit(@Advice.Local("extractor") DynamicClassExtractor extractor,
+        public static void onExit(@Advice.Argument(2) Method method,
+            @Advice.Local("extractor") DynamicClassExtractor extractor,
             @Advice.Local("mockResult") MockResult mockResult,
             @Advice.Thrown(readOnly = false) Throwable throwable,
             @Advice.Return(readOnly = false) Object result) {
+            // only record and replay non-void method
+            if (Void.TYPE.equals(method.getReturnType())) {
+                return;
+            }
+
             if (mockResult != null && mockResult.notIgnoreMockResult()) {
                 if (mockResult.getThrowable() != null) {
                     throwable = mockResult.getThrowable();

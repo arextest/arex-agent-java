@@ -135,9 +135,10 @@ class DynamicClassExtractorTest {
 
             Mockito.when(Serializer.serialize(any(), anyString())).thenReturn("mock Serializer.serialize");
             Mockito.when(Serializer.serialize(anyString(), anyString())).thenReturn("");
+            Mockito.when(Serializer.deserialize(anyString(), any(), anyString())).thenReturn("mock result");
             Method testWithArexMock = DynamicClassExtractorTest.class.getDeclaredMethod("testWithArexMock", String.class);
 
-            DynamicClassExtractor extractor = new DynamicClassExtractor(testWithArexMock, new Object[]{"mock"}, "#val", null);
+            DynamicClassExtractor extractor = new DynamicClassExtractor(testWithArexMock, args, "#val", null);
             MockResult mockResult = extractor.replay();
             assertTrue(predicate.test(mockResult));
         }
@@ -149,7 +150,8 @@ class DynamicClassExtractorTest {
         };
         Predicate<MockResult> predicate2 = Objects::nonNull;
         return Stream.of(
-                arguments(needReplay, new Object[]{"mock"}, predicate2)
+            arguments(needReplay, null, predicate2),
+            arguments(needReplay, new Object[]{"mock"}, predicate2)
         );
     }
 

@@ -79,8 +79,14 @@ public class DynamicClassExtractor {
 
     public MockResult replay() {
         String key = buildCacheKey();
-        ArexContext context = ContextManager.currentContext();
-        Object replayResult = context.getCachedReplayResultMap().get(key);
+        Map<String, Object> cachedReplayResultMap = ContextManager.currentContext().getCachedReplayResultMap();
+        Object replayResult = null;
+        // First get replay result from cache
+        if (key != null) {
+            replayResult = cachedReplayResultMap.get(key);
+        }
+
+        // If not in cache, get replay result from mock server
         if (replayResult == null) {
             Mocker replayMocker = MockUtils.replayMocker(makeMocker());
             if (MockUtils.checkResponseMocker(replayMocker)) {
@@ -90,7 +96,7 @@ public class DynamicClassExtractor {
             replayResult = restoreResponse(replayResult);
             // no key no cache, no parameter methods may return different values
             if (key != null && replayResult != null) {
-                context.getCachedReplayResultMap().put(key, replayResult);
+                cachedReplayResultMap.put(key, replayResult);
             }
         }
         boolean ignoreMockResult = IgnoreUtils.ignoreMockResult(clazzName, methodName);
@@ -266,7 +272,7 @@ public class DynamicClassExtractor {
         if (StringUtil.isNotEmpty(this.methodKey)) {
             return String.format("%s_%s_%s", this.clazzName, this.methodName, this.methodKey);
         }
-        return StringUtil.EMPTY;
+        return null;
     }
 
     public String getSerializedResult() {
