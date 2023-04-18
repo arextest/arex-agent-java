@@ -16,13 +16,9 @@ import io.arex.inst.runtime.util.IgnoreUtils;
 import io.arex.inst.runtime.util.MockUtils;
 import io.arex.inst.runtime.util.TypeUtil;
 import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.Iterator;
-import java.util.ServiceLoader;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -30,7 +26,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -50,26 +45,22 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 
 @ExtendWith(MockitoExtension.class)
 class DynamicClassExtractorTest {
-    private static MockedStatic<Serializer> serializerMockedStatic = null;
     private static MockedStatic<ProtoJsonSerializer> mockedProtoJson = null;
     @BeforeAll
     static void setUp() {
         Mockito.mockStatic(ContextManager.class);
-        serializerMockedStatic = mockStatic(Serializer.class);
+        Mockito.mockStatic(Serializer.class);
         mockedProtoJson = mockStatic(ProtoJsonSerializer.class);
     }
 
     @AfterAll
     static void tearDown() {
         Mockito.clearAllCaches();
-        serializerMockedStatic = null;
         mockedProtoJson = null;
     }
 
@@ -365,7 +356,7 @@ class DynamicClassExtractorTest {
             arexMocker2.setTargetResponse(new Target());
             arexMocker2.getTargetResponse().setBody("valueJson");
             arexMocker2.getTargetResponse().setType(ProtoBufClassTest.class.getName());
-            arexMocker2.getTargetResponse().setAttribute("isProtoBuf", "true");
+            arexMocker2.getTargetResponse().setAttribute("Format", "protobuf");
 
             mockService.when(() -> MockUtils.createDynamicClass(any(), any())).thenReturn(arexMocker);
             mockService.when(() -> MockUtils.checkResponseMocker(any())).thenReturn(true);
@@ -394,7 +385,7 @@ class DynamicClassExtractorTest {
             arexMocker3.setTargetResponse(new Target());
             arexMocker3.getTargetResponse().setBody(listJson);
             arexMocker3.getTargetResponse().setType(listTypeName);
-            arexMocker3.getTargetResponse().setAttribute("isProtoBuf", "true");
+            arexMocker3.getTargetResponse().setAttribute("Format", "protobuf");
             Mockito.when(MockUtils.replayMocker(any())).thenReturn(arexMocker3);
             final Type type = TypeUtil.forName(listTypeName);
             extractor.replay();
