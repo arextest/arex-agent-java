@@ -4,6 +4,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import io.arex.agent.bootstrap.model.ArexMocker;
 import io.arex.agent.bootstrap.model.Mocker.Target;
+import io.arex.inst.serializer.ProtoJsonSerializer;
 import io.arex.inst.runtime.config.ConfigBuilder;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
@@ -13,10 +14,11 @@ import io.arex.inst.runtime.model.DynamicClassEntity;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.util.IgnoreUtils;
 import io.arex.inst.runtime.util.MockUtils;
+import io.arex.inst.runtime.util.TypeUtil;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -44,18 +46,22 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
 
 @ExtendWith(MockitoExtension.class)
 class DynamicClassExtractorTest {
+    private static MockedStatic<ProtoJsonSerializer> mockedProtoJson = null;
     @BeforeAll
     static void setUp() {
         Mockito.mockStatic(ContextManager.class);
         Mockito.mockStatic(Serializer.class);
+        mockedProtoJson = mockStatic(ProtoJsonSerializer.class);
     }
 
     @AfterAll
     static void tearDown() {
         Mockito.clearAllCaches();
+        mockedProtoJson = null;
     }
 
     @ParameterizedTest
@@ -296,5 +302,97 @@ class DynamicClassExtractorTest {
             return future;
         }
         return CompletableFuture.completedFuture(val + "testReturnCompletableFuture");
+    }
+
+    @Test
+    public void testProtoBufResultRecord() throws Exception {
+        try (MockedStatic<MockUtils> mockService = mockStatic(MockUtils.class)) {
+            ArexMocker arexMocker = new ArexMocker();
+            arexMocker.setTargetRequest(new Target());
+            arexMocker.setTargetResponse(new Target());
+            mockService.when(() -> MockUtils.createDynamicClass(any(), any())).thenReturn(arexMocker);
+            mockService.when(() -> MockUtils.checkResponseMocker(any())).thenReturn(true);
+            Method testWithArexMock = DynamicClassExtractorTest.class.getDeclaredMethod(
+                    "testWithArexMock", String.class);
+            DynamicClassExtractor extractor = new DynamicClassExtractor(testWithArexMock,
+                    new Object[]{"mock"}, "#val", String.class);
+            ProtoBufClassTest protoBufClassTest1 = new ProtoBufClassTest();
+            ProtoBufClassTest protoBufClassTest2 = new ProtoBufClassTest();
+            ProtoBufClassTest protoBufClassTest3 = new ProtoBufClassTest();
+
+            ProtoJsonSerializer mock = Mockito.mock(ProtoJsonSerializer.class);
+            mockedProtoJson.when(ProtoJsonSerializer::getInstance).thenReturn(mock);
+            Mockito.when(mock.serialize(any())).thenReturn("mock Serializer.serialize");
+
+            // single protoBuf
+            extractor.recordResponse(protoBufClassTest1);
+            Mockito.verify(mock, Mockito.times(1)).serialize(protoBufClassTest1);
+
+            final ArrayList<ProtoBufClassTest> list = new ArrayList<>();
+
+            // empty list
+            extractor.recordResponse(list);
+            Mockito.verify(mock, Mockito.times(0)).serialize(list);
+
+            // list protoBuf
+            list.add(protoBufClassTest2);
+            list.add(protoBufClassTest3);
+
+            extractor.recordResponse(list);
+            Mockito.verify(mock, Mockito.times(1)).serialize(list);
+            mockedProtoJson.clearInvocations();
+        }
+    }
+
+    @Test
+    public void testProtoBufResultReplay() {
+        try (MockedStatic<MockUtils> mockService = mockStatic(MockUtils.class)) {
+            ArexMocker arexMocker = new ArexMocker();
+            arexMocker.setTargetRequest(new Target());
+            arexMocker.setTargetResponse(new Target());
+
+            ArexMocker arexMocker2 = new ArexMocker();
+            arexMocker2.setTargetRequest(new Target());
+            arexMocker2.setTargetResponse(new Target());
+            arexMocker2.getTargetResponse().setBody("valueJson");
+            arexMocker2.getTargetResponse().setType(ProtoBufClassTest.class.getName());
+            arexMocker2.getTargetResponse().setAttribute("Format", "protobuf");
+
+            mockService.when(() -> MockUtils.createDynamicClass(any(), any())).thenReturn(arexMocker);
+            mockService.when(() -> MockUtils.checkResponseMocker(any())).thenReturn(true);
+            Mockito.when(ContextManager.currentContext()).thenReturn(ArexContext.of(""));
+            Mockito.when(MockUtils.replayMocker(any())).thenReturn(arexMocker2);
+
+            Method testWithArexMock = DynamicClassExtractorTest.class.getDeclaredMethod(
+                    "testWithArexMock", String.class);
+            DynamicClassExtractor extractor = new DynamicClassExtractor(testWithArexMock,
+                    new Object[]{"mock"}, "#val", String.class);
+
+            ProtoJsonSerializer mock = Mockito.mock(ProtoJsonSerializer.class);
+            mockedProtoJson.when(ProtoJsonSerializer::getInstance).thenReturn(mock);
+
+            // single protoBuf deserialize
+            extractor.replay();
+            Mockito.clearInvocations(mock);
+
+            // list protoBuf deserialize
+
+            String listJson = "valueJson1" + Serializer.SERIALIZE_SEPARATOR + "valueJson2" + Serializer.SERIALIZE_SEPARATOR;
+            String listTypeName = ArrayList.class.getName() + TypeUtil.HORIZONTAL_LINE + ProtoBufClassTest.class.getName();
+
+            ArexMocker arexMocker3 = new ArexMocker();
+            arexMocker3.setTargetRequest(new Target());
+            arexMocker3.setTargetResponse(new Target());
+            arexMocker3.getTargetResponse().setBody(listJson);
+            arexMocker3.getTargetResponse().setType(listTypeName);
+            arexMocker3.getTargetResponse().setAttribute("Format", "protobuf");
+            Mockito.when(MockUtils.replayMocker(any())).thenReturn(arexMocker3);
+            final Type type = TypeUtil.forName(listTypeName);
+            extractor.replay();
+
+            mockedProtoJson.verify(() -> ProtoJsonSerializer.getInstance(), times(2));
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        }
     }
 }

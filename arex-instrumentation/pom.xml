@@ -42,12 +42,12 @@
         <module>authentication/arex-spring-security</module>
         <module>authentication/arex-shiro</module>
         <module>authentication/arex-jcasbin</module>
+        <module>foundation/arex-serializer</module>
     </modules>
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>arex-instrumentation-api</artifactId>
-            <version>0.2.0</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/com.google.auto.service/auto-service -->
         <dependency>

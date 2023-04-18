@@ -18,11 +18,11 @@ public class Serializer {
         return new Builder(defaultSerializer);
     }
 
-    private static final String EMPTY_LIST_JSON = "[]";
+    public static final String EMPTY_LIST_JSON = "[]";
     private static final String NESTED_LIST = "java.util.ArrayList-java.util.ArrayList";
     private static final String HASH_MAP_VALUES_CLASS = "java.util.HashMap$Values";
     private static final String ARRAY_LIST_CLASS = "java.util.ArrayList";
-    private static final String SERIALIZE_SEPARATOR = "A@R#E$X";
+    public static final String SERIALIZE_SEPARATOR = "A@R#E$X";
     private static final String NULL_STRING = "null";
     private final StringSerializable defaultSerializer;
     private final Map<String, StringSerializable> serializers;
