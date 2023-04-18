@@ -50,6 +50,7 @@ public class AgentAttacher {
             }
             virtualMachine.detach();
         } catch (Throwable e) {
+            // expected behavior, it will be returned as error stream to the caller, if any
             e.printStackTrace();
         }
     }
