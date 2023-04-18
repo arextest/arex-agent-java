@@ -115,4 +115,10 @@ class ConfigManagerTest {
         configManager.parseServiceConfig(serviceConfig);
         assertNull(serviceConfig.getDynamicClassConfigurationList());
     }
+
+    @Test
+    void parseAgentConfig() {
+        configManager.parseAgentConfig("arex.storage.mode=local;arex.enable.debug=true");
+        assertTrue(configManager.isEnableDebug());
+    }
 }

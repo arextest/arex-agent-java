@@ -37,6 +37,9 @@ public class ConfigService {
                 ConfigManager.INSTANCE.parseAgentConfig(agentArgs);
                 return;
             }
+            if (ConfigManager.INSTANCE.isLocalStorage()) {
+                return;
+            }
             ConfigQueryRequest request = new ConfigQueryRequest();
             request.appId = ConfigManager.INSTANCE.getServiceName();
             request.host = NetUtils.getIpAddress();
