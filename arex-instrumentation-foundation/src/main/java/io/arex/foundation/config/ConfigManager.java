@@ -239,11 +239,13 @@ public class ConfigManager {
 
     public void parseAgentConfig(String args) {
         Map<String, String> agentMap = StringUtil.asMap(args);
-        if (agentMap != null && agentMap.size() > 0) {
+        if (!agentMap.isEmpty()) {
             String mode = agentMap.get(STORAGE_SERVICE_MODE);
             if (StringUtil.isNotEmpty(mode)) {
                 storageServiceMode = mode;
             }
+            setEnableDebug(agentMap.get(ENABLE_DEBUG));
+            updateInstrumentationConfig();
         }
     }
 
