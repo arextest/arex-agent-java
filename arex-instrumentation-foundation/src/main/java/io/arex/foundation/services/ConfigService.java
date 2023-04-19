@@ -53,7 +53,7 @@ public class ConfigService {
                 LOGGER.warn("Query agent config, response body is null. request: {}", postData);
                 return;
             }
-            LOGGER.info("Agent config: {}", responseData);
+            LOGGER.info("[arex] load agent config\nrequest: {}\nresponse: {}\n", postData , responseData);
             ConfigQueryResponse responseModel = Serializer.deserialize(responseData,
                 ConfigQueryResponse.class);
             if (responseModel != null && responseModel.getBody() != null
@@ -271,8 +271,6 @@ public class ConfigService {
     public static class ConfigQueryRequest {
 
         private String appId;
-        private String agentExtVersion;
-        private String coreVersion;
         private String recordVersion;
         private String host;
 
@@ -282,22 +280,6 @@ public class ConfigService {
 
         public void setAppId(String appId) {
             this.appId = appId;
-        }
-
-        public String getAgentExtVersion() {
-            return agentExtVersion;
-        }
-
-        public void setAgentExtVersion(String agentExtVersion) {
-            this.agentExtVersion = agentExtVersion;
-        }
-
-        public String getCoreVersion() {
-            return coreVersion;
-        }
-
-        public void setCoreVersion(String coreVersion) {
-            this.coreVersion = coreVersion;
         }
 
         public String getRecordVersion() {

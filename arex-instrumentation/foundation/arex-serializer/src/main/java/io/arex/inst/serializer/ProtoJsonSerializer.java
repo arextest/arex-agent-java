@@ -20,6 +20,7 @@ public class ProtoJsonSerializer implements StringSerializable{
     private static final ProtoJsonSerializer INSTANCE = new ProtoJsonSerializer();
     private static final JsonFormat.Printer JSON_PRINTER = JsonFormat.printer().omittingInsignificantWhitespace();
     private static final JsonFormat.Parser JSON_PARSER = JsonFormat.parser().ignoringUnknownFields();
+    private static final String GSON_SERIALIZER = "gson";
 
     public static ProtoJsonSerializer getInstance() {
         return INSTANCE;
@@ -91,7 +92,8 @@ public class ProtoJsonSerializer implements StringSerializable{
     private <T> T deserializeCollection(String value, Class<?> rawClass, Type[] types) {
         if (types != null && types.length == 1) {
             String[] split = StringUtil.splitByWholeSeparator(value, Serializer.SERIALIZE_SEPARATOR);
-            Collection<Object> collection = (Collection<Object>) Serializer.deserialize(Serializer.EMPTY_LIST_JSON, rawClass);
+            Collection<Object> collection = (Collection<Object>) Serializer.deserialize(Serializer.EMPTY_LIST_JSON, rawClass,
+                    GSON_SERIALIZER);
             for (String innerObject : split) {
                 if (StringUtil.isEmpty(innerObject)) {
                     continue;
