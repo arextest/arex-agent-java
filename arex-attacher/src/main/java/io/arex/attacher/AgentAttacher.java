@@ -34,6 +34,7 @@ public class AgentAttacher {
                 virtualMachine.loadAgent(agentPathAndOptions, additionalParam);
             } catch (IOException e) {
                 if (e.getMessage() != null && e.getMessage().contains("Non-numeric value found")) {
+                    // expected behavior, it will be returned as error stream to the caller, if any
                     System.out.println("It seems to use the lower version of JDK to attach " +
                             "the higher version of JDK, but attach may still success");
                 } else {
