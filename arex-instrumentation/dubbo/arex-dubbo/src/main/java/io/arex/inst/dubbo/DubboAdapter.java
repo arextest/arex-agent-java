@@ -62,6 +62,10 @@ public class DubboAdapter {
         return parseRequest(invocation.getArguments(), Serializer::serialize);
     }
     public String getRequestParamType() {
+        Class<?>[] parameterTypes = invocation.getParameterTypes();
+        if (parameterTypes != null && parameterTypes.length > 0) {
+            return parameterTypes[0].getName();
+        }
         return parseRequest(invocation.getArguments(), TypeUtil::getName);
     }
     public static String parseRequest(Object request, Function<Object, String> parser) {

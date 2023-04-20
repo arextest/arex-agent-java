@@ -127,8 +127,8 @@ public class DubboStreamProviderExtractor {
                     StreamModel.DataModel dataModel = requestsList.get(i);
                     if (dataModel.getData() != null) {
                         Object request = packableMethod.parseRequest(dataModel.getData());
-                        mocker.getTargetRequest().setBody(DubboAdapter.parseRequest(request, Serializer::serialize));
-                        mocker.getTargetRequest().setType(DubboAdapter.parseRequest(request, TypeUtil::getName));
+                        mocker.getTargetRequest().setBody(adapter.getRequest(request));
+                        mocker.getTargetRequest().setType(adapter.getRequestParamType(request));
                     }
                     // The result is recorded for the last time, the previous requests are all compensate record
                     if (i == (requestTimes - 1)) {

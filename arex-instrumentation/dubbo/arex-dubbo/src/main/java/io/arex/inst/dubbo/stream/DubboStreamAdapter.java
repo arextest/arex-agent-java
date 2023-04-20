@@ -3,10 +3,12 @@ package io.arex.inst.dubbo.stream;
 import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.agent.bootstrap.model.MockStrategyEnum;
 import io.arex.agent.bootstrap.model.Mocker;
+import io.arex.inst.dubbo.DubboAdapter;
 import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.util.MockUtils;
+import io.arex.inst.runtime.util.TypeUtil;
 import org.apache.dubbo.rpc.model.MethodDescriptor;
 import org.apache.dubbo.rpc.protocol.tri.stream.Stream;
 
@@ -18,16 +20,18 @@ import java.util.List;
  */
 public class DubboStreamAdapter {
     private String streamId;
-    private DubboStreamAdapter(String streamId) {
+    private MethodDescriptor methodDescriptor;
+    private DubboStreamAdapter(String streamId, MethodDescriptor methodDescriptor) {
         this.streamId = streamId;
+        this.methodDescriptor = methodDescriptor;
     }
 
-    public static DubboStreamAdapter of(String streamId) {
-        return new DubboStreamAdapter(streamId);
+    public static DubboStreamAdapter of(String streamId, MethodDescriptor methodDescriptor) {
+        return new DubboStreamAdapter(streamId, methodDescriptor);
     }
 
-    public static DubboStreamAdapter of(Stream stream) {
-        return of(generateStreamId(stream));
+    public static DubboStreamAdapter of(Stream stream, MethodDescriptor methodDescriptor) {
+        return of(generateStreamId(stream), methodDescriptor);
     }
 
     public void saveRequest(byte[] message) {
@@ -77,5 +81,19 @@ public class DubboStreamAdapter {
      */
     public static String generateStreamId(Stream stream) {
         return Integer.toHexString(System.identityHashCode(stream));
+    }
+
+    public String getRequest(Object request) {
+        return DubboAdapter.parseRequest(request, Serializer::serialize);
+    }
+
+    public String getRequestParamType(Object request) {
+        if (methodDescriptor != null) {
+            Class<?>[] parameterTypes = methodDescriptor.getParameterClasses();
+            if (parameterTypes != null && parameterTypes.length > 0) {
+                return parameterTypes[0].getName();
+            }
+        }
+        return DubboAdapter.parseRequest(request, TypeUtil::getName);
     }
 }

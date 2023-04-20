@@ -32,10 +32,12 @@ import static org.mockito.ArgumentMatchers.any;
 class DubboStreamAdapterTest {
     static DubboStreamAdapter adapter;
     static MockedStatic<DubboStreamCache> dubboStreamCacheMocker;
+    static MethodDescriptor methodDescriptor;
 
     @BeforeAll
     static void setUp() {
-        adapter = DubboStreamAdapter.of(Mockito.mock(Stream.class));
+        methodDescriptor = Mockito.mock(MethodDescriptor.class);
+        adapter = DubboStreamAdapter.of(Mockito.mock(Stream.class), methodDescriptor);
         dubboStreamCacheMocker = Mockito.mockStatic(DubboStreamCache.class);
         Mockito.mockStatic(ContextManager.class);
         Mockito.mockStatic(MockUtils.class);

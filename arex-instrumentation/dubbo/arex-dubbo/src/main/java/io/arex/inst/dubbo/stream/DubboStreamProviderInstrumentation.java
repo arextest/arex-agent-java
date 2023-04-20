@@ -76,7 +76,7 @@ public class DubboStreamProviderInstrumentation extends TypeInstrumentation {
                                   @Advice.FieldValue("stream") ServerStream stream,
                                   @Advice.FieldValue("packableMethod") PackableMethod packableMethod) {
             if (ContextManager.needRecord()) {
-                DubboStreamProviderExtractor extractor = new DubboStreamProviderExtractor(DubboStreamAdapter.of(stream));
+                DubboStreamProviderExtractor extractor = new DubboStreamProviderExtractor(DubboStreamAdapter.of(stream, methodDescriptor));
                 extractor.record(requestMetadata, message, serviceName, methodDescriptor, packableMethod);
             }
         }
@@ -90,7 +90,7 @@ public class DubboStreamProviderInstrumentation extends TypeInstrumentation {
                                    @Advice.FieldValue("methodDescriptor") MethodDescriptor methodDescriptor,
                                    @Advice.FieldValue("packableMethod") PackableMethod packableMethod) {
             if (ContextManager.needRecordOrReplay()) {
-                DubboStreamProviderExtractor extractor = new DubboStreamProviderExtractor(DubboStreamAdapter.of(stream));
+                DubboStreamProviderExtractor extractor = new DubboStreamProviderExtractor(DubboStreamAdapter.of(stream, methodDescriptor));
                 if (ContextManager.needReplay()) {
                     extractor.replay(message, serviceName, methodDescriptor, packableMethod);
                 }
@@ -110,7 +110,7 @@ public class DubboStreamProviderInstrumentation extends TypeInstrumentation {
                                    @Advice.FieldValue("stream") ServerStream stream,
                                    @Advice.FieldValue("packableMethod") PackableMethod packableMethod) {
             if (ContextManager.needRecord()) {
-                DubboStreamProviderExtractor extractor = new DubboStreamProviderExtractor(DubboStreamAdapter.of(stream));
+                DubboStreamProviderExtractor extractor = new DubboStreamProviderExtractor(DubboStreamAdapter.of(stream, methodDescriptor));
                 extractor.complete(status, requestMetadata, serviceName, methodDescriptor, packableMethod);
             }
         }
