@@ -1,8 +1,8 @@
 ---
-name: Bug Report
-about: Create a report to help us improve this project
+name: Bug report
+about: Create a report to help us improve
 title: ''
-labels: bug :lady_beetle:
+labels: 'bug :lady_beetle:'
 assignees: ''
 
 ---
