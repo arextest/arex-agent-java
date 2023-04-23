@@ -142,6 +142,9 @@ public class ServletExtractor<HttpServletRequest, HttpServletResponse> {
     }
 
     private String getRequest() {
+        if ("application/json".equals(adapter.getContentType(httpServletRequest))){
+           return Base64.getEncoder().encodeToString(adapter.getRequestBytes(httpServletRequest));
+        }
         if ("GET".equals(adapter.getMethod(httpServletRequest))) {
             return StringUtil.EMPTY;
         }
