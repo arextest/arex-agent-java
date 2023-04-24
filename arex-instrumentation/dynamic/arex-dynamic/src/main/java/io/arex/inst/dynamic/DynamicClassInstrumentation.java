@@ -3,6 +3,7 @@ package io.arex.inst.dynamic;
 import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.inst.dynamic.common.DynamiConstants;
 import io.arex.inst.dynamic.common.DynamicClassExtractor;
+import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.model.ArexConstants;
 import java.lang.reflect.Method;
 import java.util.Collections;
@@ -38,6 +39,23 @@ import static net.bytebuddy.matcher.ElementMatchers.*;
 public class DynamicClassInstrumentation extends TypeInstrumentation {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DynamicClassInstrumentation.class);
+    private static final String[] ABSTRACT_CLASS_LIST = buildAbstractClassList();
+
+    protected static String[] buildAbstractClassList() {
+        ArrayList<String> list = new ArrayList<>();
+        final Config config = Config.get();
+        if (config == null) {
+            return new String[0];
+        }
+        List<DynamicClassEntity> dynamicClassEntities = config.dynamicClassEntities();
+        for (DynamicClassEntity entity : dynamicClassEntities) {
+            if (isAbstractClass(entity.getClazzName())) {
+                list.add(entity.getClazzName().substring(ABSTRACT_CLASS_PREFIX.length()));
+            }
+        }
+        return list.toArray(new String[0]);
+    }
+
     private final List<DynamicClassEntity> dynamicClassList;
     private DynamicClassEntity onlyClass = null;
     private final List<DynamicClassEntity> withParameterList = new ArrayList<>();
@@ -105,8 +123,14 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
             matcher = isMethod().and(not(takesNoArguments()))
                 .and(not(returns(TypeDescription.VOID)))
                 .and(not(isAnnotatedWith(namedOneOf(DynamiConstants.SPRING_CACHE, DynamiConstants.AREX_MOCK))));
+            if (isNotAbstractClass(onlyClass.getClazzName())) {
+                matcher = matcher.and(not(isOverriddenFrom(namedOneOf(ABSTRACT_CLASS_LIST))));
+            }
         } else if (CollectionUtil.isNotEmpty(withParameterList)) {
             matcher = builderMethodMatcher(withParameterList.get(0));
+            if (isNotAbstractClass(this.dynamicClassList.get(0).getClazzName())) {
+                matcher = matcher.and(not(isOverriddenFrom(namedOneOf(ABSTRACT_CLASS_LIST))));
+            }
             for (int i = 1; i < withParameterList.size(); i++) {
                 matcher = matcher.or(builderMethodMatcher(withParameterList.get(i)));
             }
@@ -253,10 +277,18 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
             return nameStartsWith(fullClazzName.substring(0, fullClazzName.length() - 1));
         }
 
-        if (fullClazzName.startsWith(ABSTRACT_CLASS_PREFIX)) {
+        if (isAbstractClass(fullClazzName)) {
             return hasSuperType(named(fullClazzName.substring(ABSTRACT_CLASS_PREFIX.length())));
         }
 
         return named(fullClazzName);
+    }
+
+    private static boolean isAbstractClass(String fullClazzName) {
+        return fullClazzName.startsWith(ABSTRACT_CLASS_PREFIX);
+    }
+
+    private static boolean isNotAbstractClass(String fullClazzName) {
+        return !isAbstractClass(fullClazzName);
     }
 }
