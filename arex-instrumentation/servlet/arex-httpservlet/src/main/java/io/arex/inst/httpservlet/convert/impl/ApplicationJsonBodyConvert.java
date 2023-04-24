@@ -4,11 +4,9 @@ import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.httpservlet.adapter.ServletAdapter;
 import io.arex.inst.httpservlet.convert.BodyConverters;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.Base64;
 
-public class ApplicationJsonBodyConvert implements BodyConverters<HttpServletRequest, HttpServletResponse> {
+public class ApplicationJsonBodyConvert<HttpServletRequest, HttpServletResponse> implements BodyConverters<HttpServletRequest, HttpServletResponse> {
 
     private static final String CONTENT_TYPE = "application/json";
 
