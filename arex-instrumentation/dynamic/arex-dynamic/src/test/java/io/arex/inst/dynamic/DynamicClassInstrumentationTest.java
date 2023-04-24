@@ -1,6 +1,7 @@
 package io.arex.inst.dynamic;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
@@ -9,6 +10,8 @@ import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.dynamic.common.DynamicClassExtractor;
 import io.arex.inst.extension.MethodInstrumentation;
+import io.arex.inst.runtime.config.Config;
+import io.arex.inst.runtime.config.ConfigBuilder;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.context.RepeatedCollectManager;
 import io.arex.inst.runtime.model.ArexConstants;
@@ -220,5 +223,20 @@ class DynamicClassInstrumentationTest {
             assertDoesNotThrow(testClass::uuid);
             assertDoesNotThrow(testClass::nextInt);
         }
+    }
+
+    @Test
+    void testBuildAbstractClassList() {
+        final ConfigBuilder configBuilder = ConfigBuilder.create("testConfig");
+        configBuilder.dynamicClassList(Arrays.asList(
+                new DynamicClassEntity("io.arex.inst.dynamic.ReplaceMethodClass", "currentTimeMillis", "", ArexConstants.CURRENT_TIME_MILLIS_SIGNATURE),
+                new DynamicClassEntity("io.arex.inst.dynamic.ReplaceMethodClass", "uuid", "", ArexConstants.UUID_SIGNATURE),
+                new DynamicClassEntity("io.arex.inst.dynamic.ReplaceMethodClass", "nextInt", "", ArexConstants.NEXT_INT_SIGNATURE),
+                new DynamicClassEntity("io.arex.inst.dynamic.ReplaceMethodClass", "", "", ArexConstants.NEXT_INT_SIGNATURE),
+                new DynamicClassEntity("ac:io.arex.inst.dynamic.ReplaceMethodClass", "next", "", ArexConstants.NEXT_INT_SIGNATURE)
+        ));
+        configBuilder.build();
+        final String[] abstractClassList = DynamicClassInstrumentation.buildAbstractClassList();
+        assertEquals(1, abstractClassList.length);
     }
 }
