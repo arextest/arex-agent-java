@@ -34,6 +34,7 @@
         <module>httpclient/arex-httpclient-webclient-v5</module>
         <module>netty/arex-netty-v4</module>
         <module>dubbo/arex-dubbo</module>
+        <module>dubbo/arex-dubbo-alibaba</module>
         <module>authentication/arex-jwt</module>
         <module>authentication/arex-spring-security</module>
         <module>authentication/arex-shiro</module>

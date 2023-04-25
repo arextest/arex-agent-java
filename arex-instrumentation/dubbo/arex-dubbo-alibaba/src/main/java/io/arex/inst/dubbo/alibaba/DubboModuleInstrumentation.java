@@ -1,8 +1,6 @@
-package io.arex.inst.dubbo;
+package io.arex.inst.dubbo.alibaba;
 
 import com.google.auto.service.AutoService;
-import io.arex.inst.dubbo.stream.DubboStreamConsumerInstrumentation;
-import io.arex.inst.dubbo.stream.DubboStreamProviderInstrumentation;
 import io.arex.inst.extension.ModuleInstrumentation;
 import io.arex.inst.extension.TypeInstrumentation;
 
@@ -17,15 +15,13 @@ import static java.util.Arrays.asList;
 public class DubboModuleInstrumentation extends ModuleInstrumentation {
 
     public DubboModuleInstrumentation() {
-        super("dubbo-apache");
+        super("dubbo-alibaba");
     }
 
     @Override
     public List<TypeInstrumentation> instrumentationTypes() {
         return asList(
                 new DubboConsumerInstrumentation(),
-                new DubboProviderInstrumentation(),
-                new DubboStreamConsumerInstrumentation(),
-                new DubboStreamProviderInstrumentation());
+                new DubboProviderInstrumentation());
     }
 }

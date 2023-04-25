@@ -97,6 +97,7 @@ public final class MockUtils {
     public static Mocker replayMocker(Mocker requestMocker, MockStrategyEnum mockStrategy) {
         String postJson = Serializer.serialize(requestMocker);
         String data = DataService.INSTANCE.query(postJson, mockStrategy);
+        LOGGER.info("[arex] query mocker: {}", data);
         if (StringUtil.isEmpty(data) || "{}".equals(data)) {
             LOGGER.warn("[arex] response body is null. request: {}", postJson);
             return null;

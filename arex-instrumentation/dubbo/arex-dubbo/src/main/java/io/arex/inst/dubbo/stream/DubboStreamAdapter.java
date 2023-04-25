@@ -12,6 +12,8 @@ import io.arex.inst.runtime.util.TypeUtil;
 import org.apache.dubbo.rpc.model.MethodDescriptor;
 import org.apache.dubbo.rpc.protocol.tri.stream.Stream;
 
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -88,10 +90,18 @@ public class DubboStreamAdapter {
     }
 
     public String getRequestParamType(Object request) {
-        if (methodDescriptor != null) {
-            Class<?>[] parameterTypes = methodDescriptor.getParameterClasses();
-            if (parameterTypes != null && parameterTypes.length > 0) {
-                return parameterTypes[0].getName();
+        if (methodDescriptor == null) {
+            return DubboAdapter.parseRequest(request, TypeUtil::getName);
+        }
+        Type[] genericParameters = methodDescriptor.getMethod().getGenericParameterTypes();
+        if (genericParameters.length <= 0) {
+            return DubboAdapter.parseRequest(request, TypeUtil::getName);
+        }
+        Type genericType = genericParameters[0];
+        if (genericType instanceof ParameterizedType) {
+            Type[] actualTypes = ((ParameterizedType) genericType).getActualTypeArguments();
+            if (actualTypes != null && actualTypes.length > 0) {
+                return actualTypes[0].getTypeName();
             }
         }
         return DubboAdapter.parseRequest(request, TypeUtil::getName);
