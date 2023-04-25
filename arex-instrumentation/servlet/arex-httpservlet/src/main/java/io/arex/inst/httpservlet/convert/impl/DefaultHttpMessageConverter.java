@@ -9,18 +9,12 @@ public class DefaultHttpMessageConverter<HttpServletRequest, HttpServletResponse
 
     }
 
-    private volatile static DefaultHttpMessageConverter instance;
+    private static class SingletonHolder {
+        private static final DefaultHttpMessageConverter INSTANCE = new DefaultHttpMessageConverter();
+    }
 
-
-    public static final DefaultHttpMessageConverter getInstance() {
-        if (instance == null) {
-            synchronized (DefaultHttpMessageConverter.class) {
-                if (instance == null) {
-                    instance = new DefaultHttpMessageConverter();
-                }
-            }
-        }
-        return instance;
+    public static DefaultHttpMessageConverter getInstance() {
+        return SingletonHolder.INSTANCE;
     }
 
 
