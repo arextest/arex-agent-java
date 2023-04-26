@@ -136,8 +136,6 @@ public class DubboAdapter {
                 } else {
                     value = normalizeResponse(rpcResult.getValue(), ProtocolUtils.isGeneric(getGeneric()));
                 }
-                // TODO if shcedule replay, need to set the rpcResult value = record-id:123
-                // because dubbo 2.5 not support set attachment return value to consumer
             }
         } catch (Throwable e) {
             LOGGER.warn(LogUtil.buildTitle("[arex] alibaba dubbo doExecute error"), e);

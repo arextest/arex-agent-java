@@ -72,18 +72,18 @@ public class DubboProviderExtractor {
     }
     public static void setResponseHeader(Invocation invocation) {
         if (ContextManager.needRecord()) {
-            RpcContext.getContext().setAttachment(ArexConstants.RECORD_ID, ContextManager.currentContext().getCaseId());
-            if (invocation instanceof RpcInvocation) {
-                RpcInvocation rpcInvocation = (RpcInvocation) invocation;
-                rpcInvocation.setAttachment(ArexConstants.RECORD_ID, ContextManager.currentContext().getCaseId());
-            }
+            setAttachment(invocation, ArexConstants.RECORD_ID, ContextManager.currentContext().getCaseId());
         }
         if (ContextManager.needReplay()) {
-            RpcContext.getContext().setAttachment(ArexConstants.REPLAY_ID, ContextManager.currentContext().getReplayId());
-            if (invocation instanceof RpcInvocation) {
-                RpcInvocation rpcInvocation = (RpcInvocation) invocation;
-                rpcInvocation.setAttachment(ArexConstants.REPLAY_ID, ContextManager.currentContext().getReplayId());
-            }
+            setAttachment(invocation, ArexConstants.REPLAY_ID, ContextManager.currentContext().getReplayId());
+        }
+    }
+
+    private static void setAttachment(Invocation invocation, String key, String value) {
+        RpcContext.getContext().setAttachment(key, value);
+        if (invocation instanceof RpcInvocation) {
+            RpcInvocation rpcInvocation = (RpcInvocation) invocation;
+            rpcInvocation.setAttachment(key, value);
         }
     }
 }

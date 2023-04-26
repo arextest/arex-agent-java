@@ -21,6 +21,8 @@ public class DubboModuleInstrumentation extends ModuleInstrumentation {
     @Override
     public List<TypeInstrumentation> instrumentationTypes() {
         return asList(
+                new DubboFilterInstrumentation(),
+                new DubboCodecInstrumentation(),
                 new DubboConsumerInstrumentation(),
                 new DubboProviderInstrumentation());
     }
