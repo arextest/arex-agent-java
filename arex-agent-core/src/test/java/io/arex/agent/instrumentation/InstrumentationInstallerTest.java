@@ -119,6 +119,5 @@ class InstrumentationInstallerTest {
         DynamicType dynamicType = Mockito.mock(DynamicType.class);
         listener.onTransformation(typeDescription, null, null, false, dynamicType);
         verify(dynamicType).saveIn(any());
-        listener.onError(null, null,null, false, null);
     }
 }

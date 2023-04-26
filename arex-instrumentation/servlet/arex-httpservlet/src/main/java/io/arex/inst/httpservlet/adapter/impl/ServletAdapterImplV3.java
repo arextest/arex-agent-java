@@ -37,11 +37,17 @@ public class ServletAdapterImplV3 implements ServletAdapter<HttpServletRequest, 
 
     @Override
     public HttpServletRequest wrapRequest(HttpServletRequest httpServletRequest) {
+        if (httpServletRequest instanceof CachedBodyRequestWrapperV3) {
+            return httpServletRequest;
+        }
         return new CachedBodyRequestWrapperV3(httpServletRequest);
     }
 
     @Override
     public HttpServletResponse wrapResponse(HttpServletResponse httpServletResponse) {
+        if (httpServletResponse instanceof CachedBodyResponseWrapperV3) {
+            return httpServletResponse;
+        }
         return new CachedBodyResponseWrapperV3(httpServletResponse);
     }
 
@@ -102,18 +108,37 @@ public class ServletAdapterImplV3 implements ServletAdapter<HttpServletRequest, 
 
     @Override
     public String getFullUrl(HttpServletRequest httpServletRequest) {
-        StringBuilder fullUrl = new StringBuilder(httpServletRequest.getRequestURI());
         String queryString = httpServletRequest.getQueryString();
 
         if (StringUtil.isEmpty(queryString)) {
-            return fullUrl.toString();
+            return httpServletRequest.getRequestURL().toString();
         } else {
-            return fullUrl.append('?').append(queryString).toString();
+            return new StringBuilder(httpServletRequest.getRequestURL()).append('?').append(queryString).toString();
+        }
+    }
+
+    @Override
+    public String getRequestPath(HttpServletRequest httpServletRequest) {
+        String queryString = httpServletRequest.getQueryString();
+
+        if (StringUtil.isEmpty(queryString)) {
+            return httpServletRequest.getRequestURI();
+        } else {
+            return new StringBuilder(httpServletRequest.getRequestURI()).append('?').append(queryString).toString();
         }
     }
 
     @Override
     public String getRequestURI(HttpServletRequest httpServletRequest) {
+        return httpServletRequest.getRequestURI();
+    }
+
+    @Override
+    public String getPattern(HttpServletRequest httpServletRequest) {
+        Object pattern = httpServletRequest.getAttribute("org.springframework.web.servlet.HandlerMapping.bestMatchingPattern");
+        if (pattern != null) {
+            return String.valueOf(pattern);
+        }
         return httpServletRequest.getRequestURI();
     }
 
@@ -168,7 +193,12 @@ public class ServletAdapterImplV3 implements ServletAdapter<HttpServletRequest, 
         if (httpServletRequest.getAttribute(mark) != null) {
             return true;
         }
-        httpServletRequest.setAttribute(mark, Boolean.TRUE.toString());
+        httpServletRequest.setAttribute(mark, Boolean.TRUE);
         return false;
+    }
+
+    @Override
+    public String getParameter(HttpServletRequest servletRequest, String name) {
+        return servletRequest.getParameter(name);
     }
 }

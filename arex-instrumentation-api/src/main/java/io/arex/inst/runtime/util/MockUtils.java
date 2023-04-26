@@ -17,6 +17,8 @@ import org.slf4j.LoggerFactory;
 
 public final class MockUtils {
 
+    private static final String EMPTY_JSON = "{}";
+
     private MockUtils() {
     }
 
@@ -87,6 +89,11 @@ public final class MockUtils {
 
     public static void recordMocker(Mocker requestMocker) {
         String postJson = Serializer.serialize(requestMocker);
+
+        if (Config.get().isEnableDebug()) {
+            LOGGER.info("{}\nrequest: {}", requestMocker.logBuilder(), postJson);
+        }
+
         DataService.INSTANCE.save(postJson);
     }
 
@@ -96,8 +103,14 @@ public final class MockUtils {
 
     public static Mocker replayMocker(Mocker requestMocker, MockStrategyEnum mockStrategy) {
         String postJson = Serializer.serialize(requestMocker);
+
         String data = DataService.INSTANCE.query(postJson, mockStrategy);
-        if (StringUtil.isEmpty(data) || "{}".equals(data)) {
+
+        if (Config.get().isEnableDebug()) {
+            LOGGER.info("{}\nrequest: {}\nresponse: {}", requestMocker.logBuilder(), postJson, data);
+        }
+
+        if (StringUtil.isEmpty(data) || EMPTY_JSON.equals(data)) {
             LOGGER.warn("[arex] response body is null. request: {}", postJson);
             return null;
         }
