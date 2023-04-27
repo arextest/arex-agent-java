@@ -182,6 +182,17 @@ public class StringUtil {
         }
     }
 
+    public static String[] splitByFirstSeparator(String str, char separator) {
+        if (str == null) {
+            return new String[0];
+        }
+        int index = str.indexOf(separator);
+        if (index == -1) {
+            return new String[]{str};
+        }
+        return new String[]{str.substring(0, index), str.substring(index + 1)};
+    }
+
     public static int encodeAndHash(String str){
         if (isBlank(str)) {
             return 0;

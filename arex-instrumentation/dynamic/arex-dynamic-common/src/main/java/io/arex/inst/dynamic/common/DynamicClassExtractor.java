@@ -72,8 +72,8 @@ public class DynamicClassExtractor {
             return;
         }
         this.result = response;
-        this.resultClazz = buildResultClazz(TypeUtil.getName(response));
         if (needRecord()) {
+            this.resultClazz = buildResultClazz(TypeUtil.getName(response));
             Mocker mocker = makeMocker();
             if (isProtobufObject(response)) {
                 mocker.getTargetResponse().setAttribute("Format", PROTOCOL_BUFFERS);
