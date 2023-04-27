@@ -18,6 +18,7 @@ import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tk.mybatis.mapper.entity.EntityTable;
 
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -117,6 +118,8 @@ public final class JacksonSerializer implements StringSerializable {
         MAPPER.configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, false);
         MAPPER.configure(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL, true);
         MAPPER.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
+
+        MAPPER.addMixIn(EntityTable.class,IgnoreType.class);
     }
 
     private void customTimeFormatSerializer(SimpleModule module) {
