@@ -99,7 +99,7 @@ class ConfigManagerTest {
         Predicate<Boolean> predicate2 = result -> result;
         return Stream.of(
                 arguments(mocker1, predicate1),
-                arguments(mocker2, predicate1),
+                arguments(mocker2, predicate2),
                 arguments(mocker3, predicate2)
         );
     }
