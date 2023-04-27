@@ -410,7 +410,7 @@ public class ConfigManager {
     private boolean checkTargetAddress() {
         String localHost = NetUtils.getIpAddress();
         if (StringUtil.isEmpty(targetAddress) || StringUtil.isEmpty(localHost)) {
-            return false;
+            return true;
         }
         return targetAddress.equals(localHost);
     }
