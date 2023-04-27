@@ -70,13 +70,17 @@ class ApacheHttpClientAdapterTest {
         HttpPost httpPostWithoutContent = new HttpPost();
         httpPostWithoutContent.setEntity(new BasicHttpEntity());
 
+        // null entity
+        HttpPost nullEntityRequest = new HttpPost();
+
         Predicate<byte[]> returnZeroByte = bytes -> Arrays.equals(new byte[0], bytes);
         Predicate<byte[]> returnNormally = bytes -> Arrays.equals("mock".getBytes(), bytes);
 
         return Stream.of(
                 arguments(request, returnZeroByte),
                 arguments(httpPost, returnNormally),
-                arguments(httpPostWithoutContent, returnZeroByte)
+                arguments(httpPostWithoutContent, returnZeroByte),
+                arguments(nullEntityRequest, returnZeroByte)
         );
     }
 

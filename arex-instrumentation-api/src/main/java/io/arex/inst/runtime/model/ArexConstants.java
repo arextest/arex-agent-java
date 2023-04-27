@@ -23,4 +23,5 @@ public class ArexConstants {
     public static final String UUID_SIGNATURE = "java.util.UUID.randomUUID";
     public static final String CURRENT_TIME_MILLIS_SIGNATURE = "java.lang.System.currentTimeMillis";
     public static final String NEXT_INT_SIGNATURE = "java.util.Random.nextInt";
+    public static final String SERIALIZE_SKIP_INFO_CONFIG_KEY = "serializeSkipInfoList";
 }

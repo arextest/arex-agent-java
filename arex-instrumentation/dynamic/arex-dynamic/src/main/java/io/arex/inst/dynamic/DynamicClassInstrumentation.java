@@ -4,7 +4,6 @@ import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.inst.dynamic.common.DynamiConstants;
 import io.arex.inst.dynamic.common.DynamicClassExtractor;
 import io.arex.inst.runtime.config.Config;
-import io.arex.inst.runtime.model.ArexConstants;
 import java.lang.reflect.Method;
 import java.util.Collections;
 
@@ -15,6 +14,7 @@ import io.arex.inst.runtime.context.RepeatedCollectManager;
 import io.arex.inst.runtime.model.DynamicClassEntity;
 import io.arex.inst.extension.MethodInstrumentation;
 import io.arex.inst.extension.TypeInstrumentation;
+import java.util.Map;
 import java.util.function.Function;
 import net.bytebuddy.agent.builder.AgentBuilder.Transformer;
 import net.bytebuddy.asm.Advice;
@@ -28,8 +28,6 @@ import net.bytebuddy.matcher.ElementMatcher;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static net.bytebuddy.matcher.ElementMatchers.*;
 
@@ -38,7 +36,6 @@ import static net.bytebuddy.matcher.ElementMatchers.*;
  */
 public class DynamicClassInstrumentation extends TypeInstrumentation {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DynamicClassInstrumentation.class);
     private static final String[] ABSTRACT_CLASS_LIST = buildAbstractClassList();
 
     protected static String[] buildAbstractClassList() {
@@ -59,28 +56,20 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
     private final List<DynamicClassEntity> dynamicClassList;
     private DynamicClassEntity onlyClass = null;
     private final List<DynamicClassEntity> withParameterList = new ArrayList<>();
-    private final List<String> replaceTimeMillisList = new ArrayList<>();
-    private final List<String> replaceUuidList = new ArrayList<>();
-    private final List<String> replaceNextIntList = new ArrayList<>();
     private static final String SEPARATOR_STAR = "*";
     private static final String ABSTRACT_CLASS_PREFIX = "ac:";
+
+    protected ReplaceMethodsProvider replaceMethodsProvider;
 
     public DynamicClassInstrumentation(List<DynamicClassEntity> dynamicClassList) {
         this.dynamicClassList = dynamicClassList;
         for (DynamicClassEntity entity : dynamicClassList) {
-            if (StringUtil.isNotEmpty(entity.getAdditionalSignature())) {
-                if (ArexConstants.CURRENT_TIME_MILLIS_SIGNATURE.equals(entity.getAdditionalSignature())) {
-                    replaceTimeMillisList.add(entity.getOperation());
-                    continue;
+            if (StringUtil.isNotEmpty(entity.getAdditionalSignature()) && ReplaceMethodHelper.needReplace(entity)) {
+                if (replaceMethodsProvider == null) {
+                    replaceMethodsProvider = new ReplaceMethodsProvider();
                 }
-                if (ArexConstants.UUID_SIGNATURE.equals(entity.getAdditionalSignature())) {
-                    replaceUuidList.add(entity.getOperation());
-                    continue;
-                }
-                if (ArexConstants.NEXT_INT_SIGNATURE.equals(entity.getAdditionalSignature())) {
-                    replaceNextIntList.add(entity.getOperation());
-                    continue;
-                }
+                replaceMethodsProvider.add(entity);
+                continue;
             }
 
             if (onlyClass == null && StringUtil.isEmpty(entity.getOperation())) {
@@ -99,19 +88,13 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
 
     @Override
     public Transformer transformer() {
+        if (replaceMethodsProvider == null) {
+            return null;
+        }
         return (builder, typeDescription, classLoader, module) -> {
-            if (CollectionUtil.isNotEmpty(replaceTimeMillisList)) {
-                builder = builder.visit(replaceMethodSpecifiesCode(replaceTimeMillisList, "java.lang.System.currentTimeMillis()", "currentTimeMillis"));
+            for (Map.Entry<String, List<String>> entry : replaceMethodsProvider.getSearchMethodMap().entrySet()) {
+                builder = builder.visit(replaceMethod(entry.getValue(), entry.getKey()));
             }
-
-            if (CollectionUtil.isNotEmpty(replaceUuidList)) {
-                builder = builder.visit(replaceMethodSpecifiesCode(replaceUuidList, "java.util.UUID.randomUUID()", "uuid"));
-            }
-
-            if (CollectionUtil.isNotEmpty(replaceNextIntList)) {
-                builder = builder.visit(replaceMethodSpecifiesCode(replaceNextIntList, "java.util.Random.nextInt(int)", "nextInt", Object.class, int.class));
-            }
-
             return builder;
         };
     }
@@ -134,6 +117,9 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
             for (int i = 1; i < withParameterList.size(); i++) {
                 matcher = matcher.or(builderMethodMatcher(withParameterList.get(i)));
             }
+        }
+        if (matcher == null) {
+            return Collections.emptyList();
         }
         return Collections.singletonList(new MethodInstrumentation(matcher, MethodAdvice.class.getName()));
     }
@@ -191,34 +177,23 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
         }
     }
 
-    private AsmVisitorWrapper replaceMethodSpecifiesCode(List<String> searchMethodList, String searchCode,
-        String replacementMethod, Class<?>... parameterTypes) {
-
-        Method replaceMethod = null;
-        try {
-            replaceMethod = ReplaceMethodHelper.class.getDeclaredMethod(replacementMethod, parameterTypes);
-        } catch (NoSuchMethodException e) {
-            LOGGER.warn("Could not find method {} in class ReplaceMock", replacementMethod);
-        }
+    private AsmVisitorWrapper replaceMethod(List<String> searchMethodList, String searchCode) {
+        Method replaceMethod = ReplaceMethodsProvider.REPLACE_METHOD_MAP.get(searchCode);
 
         if (replaceMethod == null) {
             return AsmVisitorWrapper.NoOp.INSTANCE;
         }
 
         MemberSubstitution memberSubstitution = MemberSubstitution.relaxed()
-            .method(target -> target.toString().contains(searchCode))
-            .replaceWith(replaceMethod);
+                .method(target -> target.toString().contains(searchCode))
+                .replaceWith(replaceMethod);
 
         // The searchMethodList contains empty to replace all methods of this type (including constructors)
         if (searchMethodList.contains(StringUtil.EMPTY)) {
             return memberSubstitution.on(isMethod().or(isConstructor()));
         }
 
-        String[] methods = new String[searchMethodList.size()];
-
-        searchMethodList.toArray(methods);
-
-        return memberSubstitution.on(namedOneOf(methods));
+        return memberSubstitution.on(namedOneOf(searchMethodList.toArray(new String[0])));
     }
 
     private <T extends NamedElement> ElementMatcher.Junction<T> parseTypeMatcher(String originalTypeName,

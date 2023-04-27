@@ -3,14 +3,15 @@ package io.arex.inst.dynamic;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
+import static org.mockito.ArgumentMatchers.any;
 
 import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.dynamic.common.DynamicClassExtractor;
 import io.arex.inst.extension.MethodInstrumentation;
-import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.config.ConfigBuilder;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.context.RepeatedCollectManager;
@@ -147,11 +148,17 @@ class DynamicClassInstrumentationTest {
 
         DynamicClassEntity testReturnWithParameterWildcard = new DynamicClassEntity("io.arex.inst.dynamic.DynamicTestClass", "*WithParameter*,testReturnVoid*,*WithParameter", "", null);
 
+        final DynamicClassEntity testReturnNonPrimitiveType = new DynamicClassEntity(
+                "io.arex.inst.dynamic.DynamicTestClass", "testReturnNonPrimitiveType", "",
+                ArexConstants.UUID_SIGNATURE);
+        Predicate<List<MethodInstrumentation>> emptyListPredicate = List::isEmpty;
+
         return Stream.of(
                 arguments("should_match_2_methods_when_empty_operation", Collections.singletonList(emptyOperation), NOT_EMPTY_PREDICATE.and(emptyOperationPredicate)),
                 arguments("should_match_0_method_when_with_return_void", Arrays.asList(testReturnVoidEntity, testReturnVoidWithParameterEntity), NOT_EMPTY_PREDICATE.and(emptyOperationAndVoidPredicate)),
                 arguments("should_match_2_method_when_with_parameter", Arrays.asList(testReturnNonPrimitiveTypeWithParameterEntity, testReturnPrimitiveTypeWithParameter), NOT_EMPTY_PREDICATE.and(operationWithParameterPredicate)),
-                arguments("should_match_2_method_when_with_parameter_wildcard", Arrays.asList(testReturnWithParameterWildcard), NOT_EMPTY_PREDICATE.and(operationWithParameterPredicate))
+                arguments("should_match_2_method_when_with_parameter_wildcard", Arrays.asList(testReturnWithParameterWildcard), NOT_EMPTY_PREDICATE.and(operationWithParameterPredicate)),
+                arguments("should_match_0_method_when_with_replace_uuid", Collections.singletonList(testReturnNonPrimitiveType), emptyListPredicate)
         );
     }
 
@@ -209,6 +216,7 @@ class DynamicClassInstrumentationTest {
                 ReplaceMethodHelper.class)) {
             replaceTimeMillsMockMockedStatic.when(ReplaceMethodHelper::currentTimeMillis).thenReturn(3L);
             replaceTimeMillsMockMockedStatic.when(ReplaceMethodHelper::uuid).thenReturn(UUID.fromString("7eb4f958-671a-11ed-9022-0242ac120002"));
+            replaceTimeMillsMockMockedStatic.when(() -> ReplaceMethodHelper.needReplace(any())).thenReturn(true);
             DynamicClassInstrumentation target = new DynamicClassInstrumentation(Arrays.asList(testSystem, testUUID, testNextInt, testAll, testNoMethod));
             replaceTimeMillsMockMockedStatic.when(() -> ReplaceMethodHelper.nextInt(new Random(), 10)).thenReturn(2);
 
@@ -223,6 +231,11 @@ class DynamicClassInstrumentationTest {
             assertDoesNotThrow(testClass::uuid);
             assertDoesNotThrow(testClass::nextInt);
         }
+
+        // normal dynamic not need build transformer
+        DynamicClassEntity testNotNeedTransform = new DynamicClassEntity("io.arex.inst.dynamic.ReplaceMethodClass", "currentTimeMillis", "", "");
+        DynamicClassInstrumentation target = new DynamicClassInstrumentation(Collections.singletonList(testNotNeedTransform));
+        assertNull(target.transformer());
     }
 
     @Test
@@ -238,5 +251,15 @@ class DynamicClassInstrumentationTest {
         configBuilder.build();
         final String[] abstractClassList = DynamicClassInstrumentation.buildAbstractClassList();
         assertEquals(1, abstractClassList.length);
+    }
+
+    @Test
+    void testNewReplaceMethods() {
+        final DynamicClassInstrumentation dynamicClassInstrumentation = new DynamicClassInstrumentation(Arrays.asList(
+                new DynamicClassEntity("io.arex.inst.dynamic.ReplaceMethodClass", "currentTimeMillis", "", ArexConstants.CURRENT_TIME_MILLIS_SIGNATURE),
+                new DynamicClassEntity("io.arex.inst.dynamic.ReplaceMethodClass", "uuid", "", ArexConstants.UUID_SIGNATURE),
+                new DynamicClassEntity("io.arex.inst.dynamic.ReplaceMethodClass", "nextInt", "", ArexConstants.NEXT_INT_SIGNATURE),
+                new DynamicClassEntity("io.arex.inst.dynamic.ReplaceMethodClass", "", "", ArexConstants.NEXT_INT_SIGNATURE)));
+        assertEquals(dynamicClassInstrumentation.replaceMethodsProvider.getSearchMethodMap().size(), 3);
     }
 }

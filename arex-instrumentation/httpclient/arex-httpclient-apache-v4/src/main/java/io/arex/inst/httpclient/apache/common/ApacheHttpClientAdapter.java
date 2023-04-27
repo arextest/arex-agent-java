@@ -7,11 +7,11 @@ import io.arex.inst.httpclient.common.HttpResponseWrapper.StringTuple;
 import java.io.ByteArrayOutputStream;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
-import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
-import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.entity.HttpEntityWrapper;
 import org.slf4j.Logger;
@@ -25,10 +25,10 @@ import java.util.Locale;
 
 public class ApacheHttpClientAdapter implements HttpClientAdapter<HttpRequest, HttpResponse> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ApacheHttpClientAdapter.class);
-    private final HttpRequestBase httpRequest;
+    private final HttpUriRequest httpRequest;
 
     public ApacheHttpClientAdapter(HttpRequest httpRequest) {
-        this.httpRequest = (HttpRequestBase) httpRequest;
+        this.httpRequest = (HttpUriRequest) httpRequest;
     }
 
     @Override
@@ -38,11 +38,14 @@ public class ApacheHttpClientAdapter implements HttpClientAdapter<HttpRequest, H
 
     @Override
     public byte[] getRequestBytes() {
-        if (!(this.httpRequest instanceof HttpEntityEnclosingRequestBase)) {
+        if (!(this.httpRequest instanceof HttpEntityEnclosingRequest)) {
             return ZERO_BYTE;
         }
-        HttpEntityEnclosingRequestBase enclosingRequestBase = (HttpEntityEnclosingRequestBase) this.httpRequest;
+        HttpEntityEnclosingRequest enclosingRequestBase = (HttpEntityEnclosingRequest) this.httpRequest;
         HttpEntity entity = enclosingRequestBase.getEntity();
+        if (entity == null) {
+            return ZERO_BYTE;
+        }
         byte[] content;
         try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()){
             entity.writeTo(byteArrayOutputStream);

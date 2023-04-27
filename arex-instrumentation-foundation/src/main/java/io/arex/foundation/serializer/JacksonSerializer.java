@@ -10,7 +10,12 @@ import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
 import com.fasterxml.jackson.databind.ser.BeanSerializerModifier;
 
 import io.arex.foundation.util.JdkUtils;
+import io.arex.inst.runtime.config.Config;
+import io.arex.inst.runtime.model.ArexConstants;
+import io.arex.inst.runtime.model.SerializeSkipInfo;
 import io.arex.inst.runtime.serializer.StringSerializable;
+import io.arex.inst.runtime.util.TypeUtil;
+
 import java.sql.Time;
 import java.time.Instant;
 import org.apache.commons.lang3.StringUtils;
@@ -37,18 +42,23 @@ import java.util.regex.Pattern;
 public final class JacksonSerializer implements StringSerializable {
     public static final String EXTENSION = "json";
 
+    private static final String SKIP_INFO_LIST_TYPE = "java.util.ArrayList-io.arex.inst.runtime.model.SerializeSkipInfo";
     private static List<String> MYBATIS_PLUS_CLASS_LIST = Arrays.asList(
             "com.baomidou.mybatisplus.core.conditions.query.QueryWrapper",
             "com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper",
             "com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper",
             "com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper");
 
+    private static List<String> TK_MYBATIS_PLUS_CLASS_LIST = Arrays.asList(
+            "tk.mybatis.mapper.entity.EntityColumn");
+
     private static final Logger LOGGER = LoggerFactory.getLogger(JacksonSerializer.class);
 
-    private static final ObjectMapper MAPPER = new ObjectMapper();
+    private final ObjectMapper MAPPER = new ObjectMapper();
+    private final Map<String, List<String>> skipInfoMap = new ConcurrentHashMap<>();
     private static final SimpleModule MODULE = new JacksonSimpleModule();
 
-    public static final JacksonSerializer INSTANCE = new JacksonSerializer();
+    public static JacksonSerializer INSTANCE = new JacksonSerializer();
 
     @Override
     public String name() {
@@ -56,11 +66,46 @@ public final class JacksonSerializer implements StringSerializable {
     }
 
     private JacksonSerializer() {
+        buildSkipInfoMap();
         configMapper();
         customTimeFormatSerializer(MODULE);
         customTimeFormatDeserializer(MODULE);
 
         MAPPER.registerModule(MODULE);
+    }
+
+    private void buildSkipInfoMap() {
+        try {
+            Config config = Config.get();
+            if (config == null) {
+                return;
+            }
+            String skipInfoString = config
+                    .getString(ArexConstants.SERIALIZE_SKIP_INFO_CONFIG_KEY, StringUtil.EMPTY);
+            if (StringUtils.isBlank(skipInfoString)) {
+                return;
+            }
+            JavaType javaType = MAPPER.getTypeFactory().constructType(TypeUtil.forName(SKIP_INFO_LIST_TYPE));
+            List<SerializeSkipInfo> serializeSkipInfos = MAPPER.readValue(skipInfoString, javaType);
+
+            if (serializeSkipInfos == null || serializeSkipInfos.isEmpty()) {
+                return;
+            }
+            for (SerializeSkipInfo skipInfo : serializeSkipInfos) {
+                String className = skipInfo.getFullClassName();
+                List<String> fieldNameList = skipInfo.getFieldNameList();
+                if (StringUtils.isBlank(className) || fieldNameList == null) {
+                    continue;
+                }
+                skipInfoMap.put(className, fieldNameList);
+            }
+        } catch (Throwable ex) {
+            LOGGER.warn("buildSkipInfoMap", ex);
+        }
+    }
+
+    public List<String> getSkipFieldNameList(String className) {
+        return skipInfoMap.get(className);
     }
 
     @Override
@@ -96,10 +141,16 @@ public final class JacksonSerializer implements StringSerializable {
         }
 
         JavaType javaType = MAPPER.getTypeFactory().constructType(type);
-        return JacksonSerializer.INSTANCE.deserialize(json, javaType, type);
+        return deserialize(json, javaType);
     }
 
-    public <T> T deserialize(String json, JavaType javaType, Type type) {
+    @Override
+    public StringSerializable reCreateSerializer() {
+        INSTANCE = new JacksonSerializer();
+        return INSTANCE;
+    }
+
+    public <T> T deserialize(String json, JavaType javaType) {
         try {
             return MAPPER.readValue(json, javaType);
         } catch (Exception ex) {
@@ -177,7 +228,22 @@ public final class JacksonSerializer implements StringSerializable {
             if (MYBATIS_PLUS_CLASS_LIST.contains(className)) {
                 beanProperties.removeIf(beanPropertyWriter -> !StringUtils.equals(beanPropertyWriter.getName(), "paramNameValuePairs"));
             }
+            if (TK_MYBATIS_PLUS_CLASS_LIST.contains(className)){
+                beanProperties.removeIf(beanPropertyWriter -> StringUtils.equals(beanPropertyWriter.getName(),"table"));
+            }
 
+            List<String> fieldNameList = JacksonSerializer.INSTANCE.getSkipFieldNameList(className);
+
+            if (fieldNameList == null) {
+                return beanProperties;
+            }
+
+            if (fieldNameList.isEmpty()) {
+                beanProperties.clear();
+                return beanProperties;
+            }
+
+            beanProperties.removeIf(beanPropertyWriter -> fieldNameList.contains(beanPropertyWriter.getName()));
             return beanProperties;
         }
     }
