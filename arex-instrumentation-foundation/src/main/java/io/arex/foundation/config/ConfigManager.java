@@ -444,6 +444,11 @@ public class ConfigManager {
         this.extendField = extendField;
     }
 
+    public void setInvalid() {
+        setRecordRate("0");
+        updateInstrumentationConfig();
+    }
+
     @Override
     public String toString() {
         return "ConfigManager{" +

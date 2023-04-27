@@ -50,7 +50,8 @@ public class ConfigService {
             String responseData = AsyncHttpClientUtil.post(CONFIG_LOAD_URL, postData);
 
             if (StringUtils.isEmpty(responseData) || "{}".equals(responseData)) {
-                LOGGER.warn("Query agent config, response body is null. request: {}", postData);
+                LOGGER.warn("Query agent config, response body is null, stop record, request: {}", postData);
+                ConfigManager.INSTANCE.setInvalid();
                 return;
             }
             LOGGER.info("[arex] load agent config\nrequest: {}\nresponse: {}\n", postData , responseData);
