@@ -166,6 +166,7 @@ public class ConfigManager {
         configMap.put(DISABLE_REPLAY, String.valueOf(disableReplay()));
         configMap.put(DURING_WORK, Boolean.toString(nextWorkTime() <= 0));
         configMap.put(AGENT_VERSION, agentVersion);
+        configMap.put(IP_VALIDATE, Boolean.toString(checkTargetAddress()));
         Map<String, String> extendFieldMap = getExtendField();
         if (extendFieldMap != null && !extendFieldMap.isEmpty()) {
             configMap.putAll(extendFieldMap);
