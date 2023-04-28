@@ -18,7 +18,6 @@ import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tk.mybatis.mapper.entity.EntityTable;
 
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -43,6 +42,9 @@ public final class JacksonSerializer implements StringSerializable {
             "com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper",
             "com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper",
             "com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper");
+
+    private static List<String> TK_MYBATIS_PLUS_CLASS_LIST = Arrays.asList(
+            "tk.mybatis.mapper.entity.EntityColumn");
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JacksonSerializer.class);
 
@@ -118,8 +120,6 @@ public final class JacksonSerializer implements StringSerializable {
         MAPPER.configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, false);
         MAPPER.configure(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL, true);
         MAPPER.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
-
-        MAPPER.addMixIn(EntityTable.class,IgnoreType.class);
     }
 
     private void customTimeFormatSerializer(SimpleModule module) {
@@ -180,7 +180,9 @@ public final class JacksonSerializer implements StringSerializable {
             if (MYBATIS_PLUS_CLASS_LIST.contains(className)) {
                 beanProperties.removeIf(beanPropertyWriter -> !StringUtils.equals(beanPropertyWriter.getName(), "paramNameValuePairs"));
             }
-
+            if (TK_MYBATIS_PLUS_CLASS_LIST.contains(className)){
+                beanProperties.removeIf(beanPropertyWriter -> beanPropertyWriter.getName().equals("table"));
+            }
             return beanProperties;
         }
     }
