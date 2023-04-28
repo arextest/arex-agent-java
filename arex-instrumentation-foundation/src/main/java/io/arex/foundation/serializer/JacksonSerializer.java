@@ -181,7 +181,7 @@ public final class JacksonSerializer implements StringSerializable {
                 beanProperties.removeIf(beanPropertyWriter -> !StringUtils.equals(beanPropertyWriter.getName(), "paramNameValuePairs"));
             }
             if (TK_MYBATIS_PLUS_CLASS_LIST.contains(className)){
-                beanProperties.removeIf(beanPropertyWriter -> beanPropertyWriter.getName().equals("table"));
+                beanProperties.removeIf(beanPropertyWriter -> StringUtils.equals(beanPropertyWriter.getName(),"table"));
             }
             return beanProperties;
         }
