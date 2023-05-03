@@ -147,6 +147,11 @@
             <artifactId>arex-jcasbin</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>arex-integration-mqtt</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <!--Agent instrumentation end-->
 
         <dependency>

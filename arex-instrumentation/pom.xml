@@ -43,6 +43,7 @@
         <module>authentication/arex-shiro</module>
         <module>authentication/arex-jcasbin</module>
         <module>foundation/arex-serializer</module>
+        <module>mq/arex-integration-mqtt</module>
     </modules>
     <dependencies>
         <dependency>

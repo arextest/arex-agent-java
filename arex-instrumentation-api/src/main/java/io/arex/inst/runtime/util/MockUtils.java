@@ -68,6 +68,11 @@ public final class MockUtils {
         return create(MockCategoryType.DUBBO_STREAM_PROVIDER, operationName);
     }
 
+    public static ArexMocker createMqttConsumer(String operationName){
+        return create(MockCategoryType.MQTT_MESSAGE_CONSUMER,operationName);
+    }
+
+
     public static ArexMocker create(MockCategoryType categoryType, String operationName) {
         ArexMocker mocker = new ArexMocker();
         long createTime = System.currentTimeMillis();
