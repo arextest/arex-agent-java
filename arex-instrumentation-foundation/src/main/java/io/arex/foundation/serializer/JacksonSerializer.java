@@ -169,8 +169,6 @@ public final class JacksonSerializer implements StringSerializable {
         MAPPER.configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, false);
         MAPPER.configure(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL, true);
         MAPPER.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
-
-        MAPPER.addMixIn(EntityTable.class,IgnoreType.class);
     }
 
     private void customTimeFormatSerializer(SimpleModule module) {
