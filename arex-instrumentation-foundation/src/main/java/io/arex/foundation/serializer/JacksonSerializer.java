@@ -43,6 +43,9 @@ public final class JacksonSerializer implements StringSerializable {
             "com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper",
             "com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper");
 
+    private static List<String> TK_MYBATIS_PLUS_CLASS_LIST = Arrays.asList(
+            "tk.mybatis.mapper.entity.EntityColumn");
+
     private static final Logger LOGGER = LoggerFactory.getLogger(JacksonSerializer.class);
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
@@ -177,7 +180,9 @@ public final class JacksonSerializer implements StringSerializable {
             if (MYBATIS_PLUS_CLASS_LIST.contains(className)) {
                 beanProperties.removeIf(beanPropertyWriter -> !StringUtils.equals(beanPropertyWriter.getName(), "paramNameValuePairs"));
             }
-
+            if (TK_MYBATIS_PLUS_CLASS_LIST.contains(className)){
+                beanProperties.removeIf(beanPropertyWriter -> StringUtils.equals(beanPropertyWriter.getName(),"table"));
+            }
             return beanProperties;
         }
     }
