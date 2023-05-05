@@ -150,8 +150,16 @@
         <!--Agent instrumentation end-->
 
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j-impl</artifactId>
         </dependency>
     </dependencies>
 
@@ -203,6 +211,10 @@
                                     <pattern>org.slf4j</pattern>
                                     <shadedPattern>shaded.org.slf4j</shadedPattern>
                                 </relocation>
+                                <relocation>
+                                    <pattern>org.apache.logging</pattern>
+                                    <shadedPattern>shaded.org.apache.logging</shadedPattern>
+                                </relocation>
                             </relocations>
                             <transformers>
                                 <transformers implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
@@ -217,8 +229,9 @@
                         </excludes>
                         <includes>
                             <include>org.slf4j:slf4j-api</include>
+                            <include>org.apache.logging.slf4j:**</include>
+                            <include>org.apache.logging.log4j:**</include>
                             <include>net.bytebuddy:byte-buddy</include>
-                            <include>org.slf4j:slf4j-simple</include>
                             <include>io.arex:**</include>
                             <include>com.fasterxml.jackson.core:**</include>
                         </includes>
