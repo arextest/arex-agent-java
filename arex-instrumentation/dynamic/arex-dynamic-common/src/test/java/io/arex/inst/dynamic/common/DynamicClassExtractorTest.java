@@ -17,6 +17,7 @@ import io.arex.inst.runtime.util.MockUtils;
 import io.arex.inst.runtime.util.TypeUtil;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
+import java.time.LocalDateTime;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import org.junit.jupiter.api.AfterAll;
@@ -165,7 +166,7 @@ class DynamicClassExtractorTest {
     void testSetFutureResponse() throws NoSuchMethodException {
         List<Integer> methodSignatureHashList = new ArrayList<>();
         methodSignatureHashList.add(StringUtil.encodeAndHash(
-            "io.arex.inst.dynamic.common.DynamicClassExtractorTest_testReturnListenableFuture_mock_no_result"
+            "io.arex.inst.dynamic.common.DynamicClassExtractorTest_testReturnListenableFuture_mock_has_result_java.lang.String"
         ));
         ArexContext context = Mockito.mock(ArexContext.class);
         Mockito.when(ContextManager.currentContext()).thenReturn(context);
@@ -219,7 +220,7 @@ class DynamicClassExtractorTest {
     @Test
     void testBuildResultClazz() throws NoSuchMethodException {
         Method testWithArexMock = DynamicClassExtractorTest.class.getDeclaredMethod("testWithArexMock", String.class);
-        DynamicClassExtractor extractor = new DynamicClassExtractor(testWithArexMock, new Object[]{"mock"}, "#val", String.class);
+        DynamicClassExtractor extractor = new DynamicClassExtractor(testWithArexMock, new Object[]{"mock"}, "#val", LocalDateTime.class);
 
         // result clazz is emtpy
         String actualResult = extractor.buildResultClazz("");
@@ -231,7 +232,7 @@ class DynamicClassExtractorTest {
 
         // @ArexMock actualType not null
         actualResult = extractor.buildResultClazz("Java.util.List");
-        assertEquals("Java.util.List-java.lang.String", actualResult);
+        assertEquals("Java.util.List-java.time.LocalDateTime", actualResult);
 
         ConfigBuilder.create("mock-service").build();
         extractor = new DynamicClassExtractor(testWithArexMock, new Object[]{"mock"}, "#val", null);
