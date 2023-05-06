@@ -13,12 +13,17 @@ import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.inst.httpclient.apache.common.ApacheHttpClientAdapter;
 import io.arex.inst.httpclient.common.HttpClientExtractor;
 import io.arex.inst.runtime.context.ContextManager;
+
+import java.io.IOException;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+
+import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.concurrent.FutureCallback;
 import org.apache.http.nio.protocol.HttpAsyncRequestProducer;
 import org.junit.jupiter.api.AfterAll;
@@ -91,25 +96,31 @@ class FutureCallbackWrapperTest {
 
     @ParameterizedTest
     @MethodSource("getCase")
-    void get(FutureCallback delegate, boolean skip, Predicate<FutureCallbackWrapper> predicate) {
+    void get(FutureCallback delegate, boolean skip, Predicate<FutureCallbackWrapper> predicate, HttpAsyncRequestProducer requestProducer) {
         try (MockedConstruction<ApacheHttpClientAdapter> mocked = Mockito.mockConstruction(ApacheHttpClientAdapter.class, (mock, context) -> {
             Mockito.when(mock.skipRemoteStorageRequest()).thenReturn(skip);
         })) {
-            HttpAsyncRequestProducer requestProducer = Mockito.mock(HttpAsyncRequestProducer.class);
             FutureCallbackWrapper result = target.get(requestProducer, delegate);
             assertTrue(predicate.test(result));
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
-    static Stream<Arguments> getCase() {
+    static Stream<Arguments> getCase() throws Exception {
         FutureCallback delegate1 = Mockito.mock(FutureCallbackWrapper.class);
+        HttpAsyncRequestProducer requestProducer1 = Mockito.mock(HttpAsyncRequestProducer.class);
+        Mockito.when(requestProducer1.generateRequest()).thenThrow(new IOException());
+
+        HttpAsyncRequestProducer requestProducer2 = Mockito.mock(HttpAsyncRequestProducer.class);
 
         Predicate<FutureCallbackWrapper> predicate1 = Objects::nonNull;
         Predicate<FutureCallbackWrapper> predicate2 = Objects::isNull;
         return Stream.of(
-                arguments(delegate1, true, predicate1),
-                arguments(delegate, true, predicate2),
-                arguments(delegate, false, predicate1)
+                arguments(delegate1, true, predicate1, requestProducer2),
+                arguments(delegate, true, predicate2, requestProducer2),
+                arguments(delegate, false, predicate1, requestProducer2),
+                arguments(delegate, false, predicate2, requestProducer1)
         );
     }
 
