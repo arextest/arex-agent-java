@@ -159,4 +159,18 @@ class StringUtilTest {
     @Test
     void regionMatches() {
     }
+
+    @Test
+    void splitByFirstSeparator() {
+        String[] actualResult = StringUtil.splitByFirstSeparator(null, ',');
+        assertArrayEquals(new String[0], actualResult);
+
+        String noSeparator = "x";
+        actualResult = StringUtil.splitByFirstSeparator(noSeparator, ',');
+        assertArrayEquals(new String[] {"x"}, actualResult);
+
+        String val = "x,,y,z,";
+        actualResult = StringUtil.splitByFirstSeparator(val, ',');
+        assertArrayEquals(new String[] {"x", ",y,z,"}, actualResult);
+    }
 }

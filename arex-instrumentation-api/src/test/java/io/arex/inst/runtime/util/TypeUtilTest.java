@@ -1,8 +1,14 @@
 package io.arex.inst.runtime.util;
 
+import io.arex.agent.bootstrap.internal.Pair;
 import io.arex.agent.bootstrap.util.CollectionUtil;
+import io.arex.agent.bootstrap.util.StringUtil;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -13,10 +19,13 @@ import java.util.stream.Stream;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -76,6 +85,10 @@ class TypeUtilTest {
                 ParameterizedType parameterizedType = (ParameterizedType) type;
                 return "java.util.ArrayList".equals(parameterizedType.getRawType().getTypeName())
                     && "java.lang.String".equals(parameterizedType.getActualTypeArguments()[0].getTypeName());
+            }),
+            arguments("java.util.HashMap$Values-java.lang.String", (Predicate<Type>) type -> {
+                final Class<?> rawClass = TypeUtil.getRawClass(type);
+                return "java.util.HashMap$Values".equals(rawClass.getName());
             })
         );
     }
@@ -91,22 +104,120 @@ class TypeUtilTest {
     }
 
     @Test
-    void getListMapName() {
-        String actualResult = TypeUtil.getListMapName(null);
-        assertNull(actualResult);
-
-        actualResult = TypeUtil.getListMapName(new ArrayList<>());
-        assertEquals("java.util.ArrayList", actualResult);
-
-        List<Map<?, ?>> list = new ArrayList<>();
-        Map<String, String> map = new HashMap<>();
-        list.add(map);
-        actualResult = TypeUtil.getListMapName(list);
-        assertEquals("java.util.ArrayList-java.util.HashMap", actualResult);
-
-
-        map.put("key1", "value1");
-        actualResult = TypeUtil.getListMapName(list);
-        assertEquals("java.util.ArrayList-java.util.HashMap-java.lang.String,java.lang.String", actualResult);
+    void testDoubleMap() {
+        Map<String, Map<String, LocalDateTime>> map = new HashMap<>();
+        Map<String, LocalDateTime> innerMap = new HashMap<>();
+        innerMap.put("key1", LocalDateTime.now());
+        map.put("key", innerMap);
+        String actualResult = TypeUtil.getName(map);
+        assertEquals("java.util.HashMap-java.lang.String,java.util.HashMap-java.lang.String,java.time.LocalDateTime", actualResult);
+        final Type type = TypeUtil.forName(actualResult);
+        assert type != null;
+        assertEquals("java.util.HashMap<java.lang.String, java.util.HashMap<java.lang.String, java.time.LocalDateTime>>", type.getTypeName());
     }
+    @Test
+    void testListMap() {
+        List<Map<String, LocalDateTime>> list = new ArrayList<>();
+        Map<String, LocalDateTime> innerMap = new HashMap<>();
+        innerMap.put("key1", LocalDateTime.now());
+        list.add(innerMap);
+        String actualResult = TypeUtil.getName(list);
+        assertEquals("java.util.ArrayList-java.util.HashMap-java.lang.String,java.time.LocalDateTime", actualResult);
+        final Type type = TypeUtil.forName(actualResult);
+        assert type != null;
+        assertEquals("java.util.ArrayList<java.util.HashMap<java.lang.String, java.time.LocalDateTime>>", type.getTypeName());
+    }
+
+    @Test
+    void testMapList() {
+        Map<String, List<LocalDateTime>> map = new HashMap<>();
+        List<LocalDateTime> innerList = new ArrayList<>();
+        innerList.add(LocalDateTime.now());
+        map.put("key", innerList);
+        String actualResult = TypeUtil.getName(map);
+        assertEquals("java.util.HashMap-java.lang.String,java.util.ArrayList-java.time.LocalDateTime", actualResult);
+        final Type type = TypeUtil.forName(actualResult);
+        assert type != null;
+        assertEquals("java.util.HashMap<java.lang.String, java.util.ArrayList<java.time.LocalDateTime>>", type.getTypeName());
+    }
+
+    @Test
+    void testNoGeneric() {
+        LocalDateTime localDateTime = LocalDateTime.now();
+        final String name = TypeUtil.getName(localDateTime);
+        assertEquals("java.time.LocalDateTime", name);
+        final Type type = TypeUtil.forName(name);
+        assert type != null;
+        assertEquals("java.time.LocalDateTime", type.getTypeName());
+    }
+
+    @Test
+    void testDoubleGenericType() {
+        final Pair pair = Pair.of(LocalDateTime.now(), LocalDate.now());
+        final String name = TypeUtil.getName(pair);
+        assertEquals("io.arex.agent.bootstrap.internal.Pair-java.time.LocalDateTime,java.time.LocalDate", name);
+        final Type type = TypeUtil.forName(name);
+        assert type != null;
+        assertEquals("io.arex.agent.bootstrap.internal.Pair<java.time.LocalDateTime, java.time.LocalDate>", type.getTypeName());
+
+        final Pair pair2 = Pair.of(System.currentTimeMillis(), LocalTime.now());
+        final String name2 = TypeUtil.getName(pair2);
+        assertEquals("io.arex.agent.bootstrap.internal.Pair-java.lang.Long,java.time.LocalTime", name2);
+        final Type type2 = TypeUtil.forName(name2);
+        assert type2 != null;
+        assertEquals("io.arex.agent.bootstrap.internal.Pair<java.lang.Long, java.time.LocalTime>", type2.getTypeName());
+    }
+
+    @Test
+    void testSingle() {
+        final Single<LocalTime> localTimeSingle = new Single<>(LocalTime.now());
+        final String name = TypeUtil.getName(localTimeSingle);
+        assertEquals("io.arex.inst.runtime.util.TypeUtilTest$Single-java.time.LocalTime", name);
+        final Type type = TypeUtil.forName(name);
+        assert type != null;
+        assertEquals("io.arex.inst.runtime.util.TypeUtilTest$Single<java.time.LocalTime>", type.getTypeName());
+        final Single<LocalDateTime> localDateTimeSingle = new Single<>(LocalDateTime.now());
+        final String name2 = TypeUtil.getName(localDateTimeSingle);
+        assertEquals("io.arex.inst.runtime.util.TypeUtilTest$Single-java.time.LocalDateTime", name2);
+        final Type type2 = TypeUtil.forName(name2);
+        assert type2 != null;
+        assertEquals("io.arex.inst.runtime.util.TypeUtilTest$Single<java.time.LocalDateTime>", type2.getTypeName());
+    }
+
+    @Test
+    void testForNameException() {
+        try (MockedStatic<StringUtil> mockedStatic = Mockito.mockStatic(StringUtil.class)) {
+            Assertions.assertDoesNotThrow(() -> TypeUtil.forName("java.lang.String"));
+        }
+    }
+
+    @Test
+    void testInvokeGetFieldType() {
+
+        try {
+            final Method invokeGetFieldType = TypeUtil.class.getDeclaredMethod("invokeGetFieldType",
+                    Field.class, Object.class);
+            invokeGetFieldType.setAccessible(true);
+            assertNull(invokeGetFieldType.invoke(null, null, null));
+            final Field first = Pair.class.getDeclaredField("first");
+            assertDoesNotThrow(() -> invokeGetFieldType.invoke(null, first, new Single<>(null)));
+            assertNull(invokeGetFieldType.invoke(null, first, new Single<>(null)));
+        } catch (Throwable ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    static class Single<T> {
+        private final T value;
+
+        public Single(T value) {
+            this.value = value;
+        }
+
+        public T getValue() {
+            return value;
+        }
+
+    }
+
 }
