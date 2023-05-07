@@ -14,11 +14,11 @@ import java.util.List;
 public class MQTTAdapterModuleInstrumentation extends ModuleInstrumentation {
 
     public MQTTAdapterModuleInstrumentation() {
-        super("mqtt-adapter");
+        super("mqtt");
     }
 
     @Override
     public List<TypeInstrumentation> instrumentationTypes() {
-        return Arrays.asList(new EclipseInstrumentationV3());
+        return Arrays.asList(new MQGenericInstrumentationV3());
     }
 }
