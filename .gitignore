@@ -27,6 +27,7 @@ yarn-error.log*
 
 temp
 
+.flattened-pom.xml
 dependency-reduced-pom.xml
 *.versionsBackup
 MANIFEST.MF
