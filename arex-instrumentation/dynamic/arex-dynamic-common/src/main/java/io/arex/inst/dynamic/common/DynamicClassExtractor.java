@@ -22,6 +22,7 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import org.slf4j.Logger;
@@ -162,7 +163,7 @@ public class DynamicClassExtractor {
 
         // @ArexMock actualType
         if (actualType != null && Object.class != actualType) {
-            return resultClazz + TypeUtil.HORIZONTAL_LINE + TypeUtil.getName(actualType.getName());
+            return resultClazz + TypeUtil.HORIZONTAL_LINE + actualType.getName();
         }
 
         if (Config.get() == null || Config.get().getDynamicEntityMap().isEmpty()) {
@@ -292,10 +293,10 @@ public class DynamicClassExtractor {
     }
 
     private String buildDuplicateMethodKey() {
-        if (StringUtil.isEmpty(serializedResult)) {
+        if (Objects.isNull(result)) {
             return String.format("%s_%s_%s_no_result", clazzName, methodName, methodKey);
         }
-        return String.format("%s_%s_%s_has_result", clazzName, methodName, methodKey);
+        return String.format("%s_%s_%s_has_result_%s", clazzName, methodName, methodKey, result.getClass().getName());
     }
 
     /**
