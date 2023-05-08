@@ -2,8 +2,9 @@ package io.arex.foundation.config;
 
 import com.google.common.annotations.VisibleForTesting;
 import io.arex.agent.bootstrap.util.StringUtil;
-import io.arex.foundation.services.ConfigService;
-import io.arex.foundation.services.TimerService;
+import io.arex.foundation.config.ConfigQueryResponse.DynamicClassConfiguration;
+import io.arex.foundation.config.ConfigQueryResponse.ResponseBody;
+import io.arex.foundation.config.ConfigQueryResponse.ServiceCollectConfig;
 import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.foundation.util.NetUtils;
 import io.arex.inst.runtime.config.ConfigBuilder;
@@ -22,17 +23,15 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 import static io.arex.foundation.config.ConfigConstants.*;
 
 // todo: use file
 public class ConfigManager {
-
     private static final Logger LOGGER = LoggerFactory.getLogger(ConfigManager.class);
     public static final ConfigManager INSTANCE = new ConfigManager();
-
+    private static final int DEFAULT_RECORDING_RATE = 1;
     private boolean enableDebug;
     private String agentVersion;
     private String serviceName;
@@ -55,7 +54,6 @@ public class ConfigManager {
     private String targetAddress;
     private int dubboStreamReplayThreshold;
     private boolean disableReplay;
-    private static List<ConfigListener> listeners = new ArrayList<ConfigListener>();
     private Map<String, String> extendField;
 
     private ConfigManager() {
@@ -106,12 +104,16 @@ public class ConfigManager {
         System.setProperty(STORAGE_SERVICE_HOST, storageServiceHost);
     }
 
-    public void setRecordRate(String recordRate) {
-        if (StringUtil.isEmpty(recordRate)) {
+    public void setRecordRate(int recordRate) {
+        if (recordRate < 0) {
             return;
         }
-        this.recordRate = Integer.parseInt(recordRate);
-        System.setProperty(RECORD_RATE, recordRate);
+        this.recordRate = recordRate;
+        System.setProperty(RECORD_RATE, String.valueOf(recordRate));
+    }
+
+    public int getRecordRate() {
+        return recordRate;
     }
 
     public void setTimeMachine(String timeMachine) {
@@ -123,12 +125,12 @@ public class ConfigManager {
     }
 
     public void setDynamicClassList(
-        List<ConfigService.DynamicClassConfiguration> dynamicClassConfigList) {
+        List<DynamicClassConfiguration> dynamicClassConfigList) {
         if (CollectionUtil.isEmpty(dynamicClassConfigList)) {
             return;
         }
         List<DynamicClassEntity> resultList = new ArrayList<>(dynamicClassConfigList.size());
-        for (ConfigService.DynamicClassConfiguration config : dynamicClassConfigList) {
+        for (DynamicClassConfiguration config : dynamicClassConfigList) {
             resultList.add(new DynamicClassEntity(config.getFullClassName(),
                 config.getMethodName(), config.getParameterTypes(), config.getKeyFormula()));
         }
@@ -142,7 +144,7 @@ public class ConfigManager {
         setServiceName(StringUtils.strip(System.getProperty(SERVICE_NAME)));
         setStorageServiceHost(StringUtils.strip(System.getProperty(STORAGE_SERVICE_HOST)));
         configPath = StringUtils.strip(System.getProperty(CONFIG_PATH));
-        setRecordRate(System.getProperty(RECORD_RATE, "1"));
+        setRecordRate(DEFAULT_RECORDING_RATE);
 
         storageServiceMode = System.getProperty(STORAGE_SERVICE_MODE);
 
@@ -155,8 +157,6 @@ public class ConfigManager {
         setExcludeServiceOperations(System.getProperty(EXCLUDE_SERVICE_OPERATION));
         setDubboStreamReplayThreshold(System.getProperty(DUBBO_STREAM_REPLAY_THRESHOLD, "100"));
         setDisableReplay(System.getProperty(DISABLE_REPLAY));
-
-        TimerService.scheduleAtFixedRate(this::update, 120, 120, TimeUnit.SECONDS);
     }
 
     private void updateInstrumentationConfig() {
@@ -185,20 +185,17 @@ public class ConfigManager {
     @VisibleForTesting
     void readConfigFromFile(String configPath) {
         if (StringUtil.isEmpty(configPath)) {
-            LOGGER.info("arex agent config path is null");
             return;
         }
 
         Map<String, String> configMap = parseConfigFile(configPath);
         if (configMap.size() == 0) {
-            LOGGER.info("arex agent config is empty");
             return;
         }
 
         setEnableDebug(configMap.get(ENABLE_DEBUG));
         setServiceName(configMap.get(SERVICE_NAME));
         setStorageServiceHost(configMap.get(STORAGE_SERVICE_HOST));
-        setRecordRate(configMap.get(RECORD_RATE));
         setDynamicResultSizeLimit(configMap.get(DYNAMIC_RESULT_SIZE_LIMIT));
         setTimeMachine(configMap.get(TIME_MACHINE));
         setStorageServiceMode(configMap.get(STORAGE_SERVICE_MODE));
@@ -226,32 +223,24 @@ public class ConfigManager {
         return configMap;
     }
 
-    private void update() {
-        ConfigService.INSTANCE.loadAgentConfig(null);
-    }
-
     public boolean isLocalStorage() {
         return STORAGE_MODE.equalsIgnoreCase(storageServiceMode);
     }
 
     public void setStorageServiceMode(String storageServiceMode) {
+        if (StringUtil.isEmpty(storageServiceMode)) {
+            return;
+        }
         this.storageServiceMode = storageServiceMode;
     }
 
     public void parseAgentConfig(String args) {
         Map<String, String> agentMap = StringUtil.asMap(args);
         if (!agentMap.isEmpty()) {
-            String mode = agentMap.get(STORAGE_SERVICE_MODE);
-            if (StringUtil.isNotEmpty(mode)) {
-                storageServiceMode = mode;
-            }
+            setStorageServiceMode(agentMap.get(STORAGE_SERVICE_MODE));
             setEnableDebug(agentMap.get(ENABLE_DEBUG));
             updateInstrumentationConfig();
         }
-    }
-
-    public int getRecordRate() {
-        return recordRate;
     }
 
     public List<DynamicClassEntity> getDynamicClassList() {
@@ -327,9 +316,9 @@ public class ConfigManager {
         System.setProperty(ALLOW_TIME_TO, allowTimeOfDayTo);
     }
 
-    public void parseServiceConfig(ConfigService.ResponseBody serviceConfig) {
-        ConfigService.ServiceCollectConfig config = serviceConfig.getServiceCollectConfiguration();
-        setRecordRate(String.valueOf(config.getSampleRate()));
+    public void parseServiceConfig(ResponseBody serviceConfig) {
+        ServiceCollectConfig config = serviceConfig.getServiceCollectConfiguration();
+        setRecordRate(config.getSampleRate());
         setTimeMachine(String.valueOf(config.isTimeMock()));
         setAllowDayOfWeeks(config.getAllowDayOfWeeks());
         setAllowTimeOfDayFrom(config.getAllowTimeOfDayFrom());
@@ -342,11 +331,15 @@ public class ConfigManager {
         updateInstrumentationConfig();
     }
 
-    public boolean invalid() {
+    public boolean valid() {
         if (isLocalStorage()) {
-            return false;
+            return true;
         }
-        return !checkTargetAddress();
+        return checkTargetAddress();
+    }
+
+    public boolean inWorkingTime() {
+        return nextWorkTime() <= 0L;
     }
 
     private long nextWorkTime() {
@@ -410,10 +403,12 @@ public class ConfigManager {
 
     private boolean checkTargetAddress() {
         String localHost = NetUtils.getIpAddress();
-        if (StringUtil.isEmpty(targetAddress) || StringUtil.isEmpty(localHost)) {
+        // Compatible containers can't get IPAddress
+        if (StringUtil.isEmpty(localHost)) {
             return true;
         }
-        return targetAddress.equals(localHost);
+
+        return localHost.equals(targetAddress);
     }
 
     public void setDubboStreamReplayThreshold(String dubboStreamReplayThreshold) {
@@ -445,8 +440,9 @@ public class ConfigManager {
         this.extendField = extendField;
     }
 
-    public void setInvalid() {
-        setRecordRate("0");
+    public void setConfigInvalid() {
+        setRecordRate(0);
+        setAllowDayOfWeeks(0);
         updateInstrumentationConfig();
     }
 
