@@ -1,6 +1,8 @@
 package io.arex.foundation.config;
 
-import io.arex.foundation.services.ConfigService;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -78,36 +80,36 @@ class ConfigManagerTest {
     }
 
     @ParameterizedTest
-    @MethodSource("invalidCase")
-    void invalid(Runnable mocker, Predicate<Boolean> predicate) {
+    @MethodSource("validCase")
+    void valid(Runnable mocker, Predicate<Boolean> predicate) {
         mocker.run();
-        assertTrue(predicate.test(configManager.invalid()));
+        assertTrue(predicate.test(configManager.valid()));
     }
 
-    static Stream<Arguments> invalidCase() {
+    static Stream<Arguments> validCase() {
         Runnable mocker1 = () -> {
             configManager.setStorageServiceMode(ConfigConstants.STORAGE_MODE);
         };
         Runnable mocker2 = () -> {
-            configManager.setStorageServiceMode("");
+            configManager.setStorageServiceMode("xxx");
         };
         Runnable mocker3 = () -> {
             configManager.setTargetAddress("mock");
         };
 
-        Predicate<Boolean> predicate1 = result -> !result;
-        Predicate<Boolean> predicate2 = result -> result;
+        Predicate<Boolean> predicate1 = result -> result;
+        Predicate<Boolean> predicate2 = result -> !result;
         return Stream.of(
                 arguments(mocker1, predicate1),
-                arguments(mocker2, predicate1),
+                arguments(mocker2, predicate2),
                 arguments(mocker3, predicate2)
         );
     }
 
     @Test
     void parseServiceConfig() {
-        ConfigService.ResponseBody serviceConfig = new ConfigService.ResponseBody();
-        ConfigService.ServiceCollectConfig serviceCollect = new ConfigService.ServiceCollectConfig();
+        ConfigQueryResponse.ResponseBody serviceConfig = new ConfigQueryResponse.ResponseBody();
+        ConfigQueryResponse.ServiceCollectConfig serviceCollect = new ConfigQueryResponse.ServiceCollectConfig();
         serviceConfig.setServiceCollectConfiguration(serviceCollect);
         Map<String, String> extendField = new HashMap<>();
         extendField.put("key", "val");
@@ -118,7 +120,39 @@ class ConfigManagerTest {
 
     @Test
     void parseAgentConfig() {
-        configManager.parseAgentConfig("arex.storage.mode=local;arex.enable.debug=true");
+        configManager.parseAgentConfig("arex.storage.mode=xxx;arex.enable.debug=true");
         assertTrue(configManager.isEnableDebug());
+    }
+
+    @Test
+    void inWorkingTime() {
+        configManager.setAllowDayOfWeeks(0);
+        boolean actualResult = configManager.inWorkingTime();
+        assertFalse(actualResult);
+
+        char[] weeks = new char[] {'0','0','1','1','1','1','0'};
+        int week = LocalDate.now().getDayOfWeek().getValue();
+        weeks[week - 1] = '0';
+        configManager.setAllowDayOfWeeks(Integer.parseInt(String.valueOf(weeks), 2));
+        actualResult = configManager.inWorkingTime();
+        assertFalse(actualResult);
+
+        LocalTime localTime = LocalTime.now();
+        if (localTime.isAfter(LocalTime.of(0, 1)) && localTime.isBefore(LocalTime.of(23, 57))) {
+            configManager.setAllowDayOfWeeks(127);
+            configManager.setAllowTimeOfDayFrom(LocalTime.now().minusMinutes(2).format(DateTimeFormatter.ofPattern("HH:mm")));
+            configManager.setAllowTimeOfDayTo("23:59");
+            actualResult = configManager.inWorkingTime();
+            assertTrue(actualResult);
+
+            configManager.setAllowTimeOfDayFrom(LocalTime.now().plusMinutes(2).format(DateTimeFormatter.ofPattern("HH:mm")));
+            actualResult = configManager.inWorkingTime();
+            assertFalse(actualResult);
+
+            configManager.setAllowTimeOfDayFrom(LocalTime.now().minusMinutes(3).format(DateTimeFormatter.ofPattern("HH:mm")));
+            configManager.setAllowTimeOfDayTo(LocalTime.now().minusMinutes(2).format(DateTimeFormatter.ofPattern("HH:mm")));
+            actualResult = configManager.inWorkingTime();
+            assertFalse(actualResult);
+        }
     }
 }

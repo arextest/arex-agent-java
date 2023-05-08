@@ -14,7 +14,7 @@ class HealthManagerTest {
             "1, true",
             "2, false"
     })
-    void acquire(String rate, boolean expect) {
+    void acquire(int rate, boolean expect) {
         ConfigManager.INSTANCE.setRecordRate(rate);
         boolean result = HealthManager.acquire("mock");
         assertEquals(expect, result);

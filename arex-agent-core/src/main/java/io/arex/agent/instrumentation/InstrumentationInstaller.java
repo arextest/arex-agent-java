@@ -39,7 +39,7 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
 
     @Override
     protected ResettableClassFileTransformer transform() {
-        if (ConfigManager.INSTANCE.invalid()) {
+        if (!ConfigManager.INSTANCE.valid()) {
             LOGGER.warn("[arex] config is invalid and stop instrument");
             return null;
         }

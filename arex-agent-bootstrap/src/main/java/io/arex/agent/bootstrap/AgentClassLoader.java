@@ -185,7 +185,7 @@ public class AgentClassLoader extends URLClassLoader {
         if (jarInfo != null && jarInfo.getJarEntry() != null) {
             try {
                 return new URL(
-                    "jar:file:" + jarInfo.getJarInfo().sourceFile.getAbsolutePath() + "!/" + jarInfo.getJarEntry()
+                    "jar:" + jarInfo.getJarInfo().getSourceFile().toURI().toURL() + "!/" + jarInfo.getJarEntry()
                         .getName());
             } catch (MalformedURLException e) {
                 throw new IllegalStateException(jarInfo.getJarEntry().getName(), e);
