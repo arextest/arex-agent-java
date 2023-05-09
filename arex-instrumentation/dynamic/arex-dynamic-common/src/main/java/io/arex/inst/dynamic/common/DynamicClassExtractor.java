@@ -166,13 +166,11 @@ public class DynamicClassExtractor {
             return resultClazz + TypeUtil.HORIZONTAL_LINE + actualType.getName();
         }
 
-        if (Config.get() == null || Config.get().getDynamicEntityMap().isEmpty()) {
+        if (Config.get() == null || Config.get().getDynamicClassSignatureMap().isEmpty()) {
             return resultClazz;
         }
 
-        String signature = getDynamicEntitySignature();
-
-        DynamicClassEntity dynamicEntity = Config.get().getDynamicEntity(signature);
+        DynamicClassEntity dynamicEntity = Config.get().getDynamicEntity(getDynamicEntitySignature());
 
         if (dynamicEntity == null || StringUtil.isEmpty(dynamicEntity.getActualType())) {
             return resultClazz;
@@ -199,7 +197,7 @@ public class DynamicClassExtractor {
             return null;
         }
 
-        if (Config.get() == null || Config.get().getDynamicEntityMap().isEmpty()) {
+        if (Config.get() == null || Config.get().getDynamicClassSignatureMap().isEmpty()) {
             return Serializer.serialize(args, SERIALIZER);
         }
         String signature = getDynamicEntitySignature();

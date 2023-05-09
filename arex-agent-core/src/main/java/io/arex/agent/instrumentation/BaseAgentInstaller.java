@@ -35,9 +35,7 @@ public abstract class BaseAgentInstaller implements AgentInstaller {
     protected final Instrumentation instrumentation;
     protected final File agentFile;
     protected final String agentArgs;
-    private ResettableClassFileTransformer transformer;
     private final AtomicBoolean initDependentComponents = new AtomicBoolean(false);
-    private final AtomicBoolean onlyTransformOnce = new AtomicBoolean(false);
     private ScheduledThreadPoolExecutor scheduler = null;
 
     public BaseAgentInstaller(Instrumentation inst, File agentFile, String agentArgs) {
@@ -60,16 +58,13 @@ public abstract class BaseAgentInstaller implements AgentInstaller {
                 scheduler.schedule(this::install, delaySeconds, TimeUnit.SECONDS);
             }
             if (!ConfigManager.INSTANCE.valid()) {
-                if (!onlyTransformOnce.get()) {
+                if (!ConfigManager.FIRST_TRANSFORM.get()) {
                     LOGGER.warn("[AREX] Agent install will not install due to invalid config.");
                 }
                 return;
             }
             initDependentComponents();
-            if (onlyTransformOnce.compareAndSet(false, true)) {
-                transformer = transform();
-                LOGGER.info("[AREX] Agent install success.");
-            }
+            transform();
         } finally {
             Thread.currentThread().setContextClassLoader(savedContextClassLoader);
         }
@@ -86,8 +81,7 @@ public abstract class BaseAgentInstaller implements AgentInstaller {
     }
 
     /**
-     * Load the ForkJoinTask inner class in advance for transform
-     * ex: java.util.concurrent.ForkJoinTask$AdaptedCallable
+     * Load the ForkJoinTask inner class in advance for transform ex: java.util.concurrent.ForkJoinTask$AdaptedCallable
      */
     private void loadForkJoinTask() {
         ForkJoinTask.class.getDeclaredClasses();

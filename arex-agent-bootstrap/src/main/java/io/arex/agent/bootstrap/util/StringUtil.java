@@ -151,11 +151,11 @@ public class StringUtil {
 
     public static String[] splitByWholeSeparator(String str, String separator) {
         if (str == null) {
-            return new String[0];
+            return StringUtil.EMPTY_STRING_ARRAY;
         } else {
             int len = str.length();
             if (len == 0) {
-                return new String[0];
+                return StringUtil.EMPTY_STRING_ARRAY;
             } else {
                 int separatorLength = separator.length();
                 List<String> substrings = new ArrayList<>();
@@ -177,14 +177,14 @@ public class StringUtil {
                     }
                 }
 
-                return substrings.toArray(new String[0]);
+                return substrings.toArray(StringUtil.EMPTY_STRING_ARRAY);
             }
         }
     }
 
     public static String[] splitByFirstSeparator(String str, char separator) {
         if (str == null) {
-            return new String[0];
+            return StringUtil.EMPTY_STRING_ARRAY;
         }
         int index = str.indexOf(separator);
         if (index == -1) {

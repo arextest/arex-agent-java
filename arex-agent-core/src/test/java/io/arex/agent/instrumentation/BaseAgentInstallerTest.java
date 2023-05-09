@@ -29,9 +29,7 @@ class BaseAgentInstallerTest {
     @Test
     void install() {
         Mockito.when(AdviceInjectorCache.contains(any())).thenReturn(true);
-        try (MockedConstruction<AdviceClassesCollector> collectorMockedConstruction = Mockito.mockConstruction(
-            AdviceClassesCollector.class,
-            (mock, context) -> {
+        try (MockedConstruction<AdviceClassesCollector> ignored = Mockito.mockConstruction(AdviceClassesCollector.class, (mock, context) -> {
                 Mockito.verify(mock, Mockito.times(1)).addClassToLoaderSearch(JacksonSerializer.class);
             })) {
             BaseAgentInstaller installer = new BaseAgentInstaller(ByteBuddyAgent.install(), null, null) {

@@ -1,6 +1,7 @@
 package io.arex.inst.runtime.config.listener;
 
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.serializer.Serializer.Builder;
@@ -10,7 +11,6 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 import java.util.Arrays;
@@ -45,32 +45,34 @@ class SerializeSkipInfoListenerTest {
         builder.addProperty(ArexConstants.SERIALIZE_SKIP_INFO_CONFIG_KEY, "testSkipInfo");
         builder.build();
 
-        // reCreat serializer
+        assertTrue(listener.validate(Config.get()));
+
+        // recreate serializer
         listener.load(Config.get());
         Map<String, StringSerializable> serializers = Serializer.getINSTANCE().getSerializers();
         for (Map.Entry<String, StringSerializable> entry : serializers.entrySet()) {
             StringSerializable stringSerializable = entry.getValue();
             if (stringSerializable instanceof TestSerialize) {
                 TestSerialize testSerialize = (TestSerialize) stringSerializable;
-                assert testSerialize.isReCreate();
+                assert testSerialize.isRecreate();
             }
         }
 
-        // not reCreat serializer
+        // not recreate serializer
         StringSerializable defaultSerializer = Serializer.getINSTANCE().getSerializer();
         listener.load(Config.get());
         Assertions.assertEquals(Serializer.getINSTANCE().getSerializer().hashCode(), defaultSerializer.hashCode());
     }
 
     static class TestSerialize implements StringSerializable {
-        boolean reCreate = false;
+        boolean recreate = false;
 
-        public boolean isReCreate() {
-            return reCreate;
+        public boolean isRecreate() {
+            return recreate;
         }
 
-        public void setReCreate(boolean reCreate) {
-            this.reCreate = reCreate;
+        public void setRecreate(boolean recreate) {
+            this.recreate = recreate;
         }
 
         @Override
@@ -108,7 +110,7 @@ class SerializeSkipInfoListenerTest {
         @Override
         public StringSerializable reCreateSerializer() {
             TestSerialize newSerializer = new TestSerialize();
-            newSerializer.setReCreate(true);
+            newSerializer.setRecreate(true);
             return newSerializer;
         }
     }

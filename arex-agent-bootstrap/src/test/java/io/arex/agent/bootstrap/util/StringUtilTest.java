@@ -118,6 +118,9 @@ class StringUtilTest {
         String[] actualResult = StringUtil.splitByWholeSeparator(null, ",");
         assertArrayEquals(new String[0], actualResult);
 
+        actualResult = StringUtil.splitByWholeSeparator("", ",");
+        assertArrayEquals(new String[0], actualResult);
+
         String val = "x,,y,z,";
         actualResult = StringUtil.splitByWholeSeparator(val, ",,");
         assertArrayEquals(new String[] {"x", "y,z,"}, actualResult);
