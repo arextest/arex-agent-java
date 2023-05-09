@@ -130,9 +130,10 @@ class ConfigManagerTest {
         boolean actualResult = configManager.inWorkingTime();
         assertFalse(actualResult);
 
-        char[] weeks = new char[] {'0','0','1','1','1','1','0'};
+        char[] weeks = new char[] {'1','1','1','1','1','1','1'};
         int week = LocalDate.now().getDayOfWeek().getValue();
-        weeks[week - 1] = '0';
+        // incoming in reverse order ex: today is Monday, so the week is 1, and the index of array is 6
+        weeks[weeks.length - week] = '0';
         configManager.setAllowDayOfWeeks(Integer.parseInt(String.valueOf(weeks), 2));
         actualResult = configManager.inWorkingTime();
         assertFalse(actualResult);

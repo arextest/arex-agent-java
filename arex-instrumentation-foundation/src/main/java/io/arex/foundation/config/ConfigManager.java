@@ -7,8 +7,10 @@ import io.arex.foundation.config.ConfigQueryResponse.ResponseBody;
 import io.arex.foundation.config.ConfigQueryResponse.ServiceCollectConfig;
 import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.foundation.util.NetUtils;
+import io.arex.foundation.util.SPIUtil;
+import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.config.ConfigBuilder;
-import io.arex.inst.runtime.config.ConfigListener;
+import io.arex.inst.runtime.config.listener.ConfigListener;
 import io.arex.inst.runtime.model.DynamicClassEntity;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -54,12 +56,18 @@ public class ConfigManager {
     private String targetAddress;
     private int dubboStreamReplayThreshold;
     private boolean disableReplay;
+    private List<ConfigListener> listeners = new ArrayList<>();
     private Map<String, String> extendField;
 
     private ConfigManager() {
         init();
+        initConfigListener();
         readConfigFromFile(configPath);
         updateInstrumentationConfig();
+    }
+
+    private void initConfigListener() {
+        listeners = SPIUtil.load(ConfigListener.class);
     }
 
     public boolean isEnableDebug() {
@@ -180,6 +188,13 @@ public class ConfigManager {
             .dubboStreamReplayThreshold(getDubboStreamReplayThreshold())
             .recordRate(getRecordRate())
             .build();
+        publish(Config.get());
+    }
+
+    private void publish(Config config) {
+        for (ConfigListener listener : listeners) {
+            listener.load(config);
+        }
     }
 
     @VisibleForTesting

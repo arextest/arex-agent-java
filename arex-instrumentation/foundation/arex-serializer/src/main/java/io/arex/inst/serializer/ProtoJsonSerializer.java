@@ -13,6 +13,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Collection;
+
 import org.slf4j.LoggerFactory;
 
 public class ProtoJsonSerializer implements StringSerializable{
@@ -80,6 +81,11 @@ public class ProtoJsonSerializer implements StringSerializable{
             return deserializeCollection(value, rawClass, actualTypeArguments);
         }
         return deserialize(value, rawClass);
+    }
+
+    @Override
+    public StringSerializable reCreateSerializer() {
+        return INSTANCE;
     }
 
     /**
