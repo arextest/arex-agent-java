@@ -312,7 +312,7 @@ public final class JacksonSerializer implements StringSerializable {
         public LocalDateTime deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
             JsonNode node = p.getCodec().readTree(p);
             return LocalDateTime.parse(node.asText(),
-                    DateFormatParser.INSTANCE.getFormatter(node.asText(), DatePatternConstants.localDateTimeFormat));
+                    DateFormatParser.INSTANCE.getFormatter(DatePatternConstants.localDateTimeFormat));
         }
     }
 
@@ -354,7 +354,7 @@ public final class JacksonSerializer implements StringSerializable {
         public LocalTime deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
             JsonNode node = p.getCodec().readTree(p);
             return LocalTime.parse(node.asText(), DateFormatParser.INSTANCE
-                    .getFormatter(node.asText(), DatePatternConstants.localTimeFormat));
+                    .getFormatter(DatePatternConstants.localTimeFormat));
         }
     }
 
