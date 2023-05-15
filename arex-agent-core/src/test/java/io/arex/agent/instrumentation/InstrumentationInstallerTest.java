@@ -1,15 +1,17 @@
 package io.arex.agent.instrumentation;
 
 import io.arex.foundation.config.ConfigManager;
-import io.arex.foundation.util.SPIUtil;
 import io.arex.inst.extension.MethodInstrumentation;
 import io.arex.inst.extension.ModuleInstrumentation;
 import io.arex.inst.extension.TypeInstrumentation;
+import io.arex.inst.runtime.util.SPIUtil;
+
 import net.bytebuddy.agent.ByteBuddyAgent;
 import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.agent.builder.ResettableClassFileTransformer;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.dynamic.DynamicType;
+import net.bytebuddy.matcher.ElementMatchers;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -48,6 +50,8 @@ class InstrumentationInstallerTest {
         target = new InstrumentationInstaller(ByteBuddyAgent.install(), agentFile, null);
         module = Mockito.mock(ModuleInstrumentation.class);
         inst = Mockito.mock(TypeInstrumentation.class);
+        Mockito.when(module.matcher()).thenReturn(ElementMatchers.none());
+        Mockito.when(inst.matcher()).thenReturn(ElementMatchers.none());
         Mockito.mockStatic(SPIUtil.class);
     }
 

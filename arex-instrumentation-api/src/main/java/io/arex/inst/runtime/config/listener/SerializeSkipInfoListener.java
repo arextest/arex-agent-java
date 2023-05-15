@@ -2,6 +2,9 @@ package io.arex.inst.runtime.config.listener;
 
 import com.google.auto.service.AutoService;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.arex.inst.runtime.serializer.Serializer.Builder;
 import io.arex.inst.runtime.serializer.StringSerializable;
 import java.util.Map;
@@ -14,6 +17,7 @@ import io.arex.inst.runtime.serializer.Serializer;
 @AutoService(ConfigListener.class)
 public class SerializeSkipInfoListener implements ConfigListener {
     private String currentSkipInfo = StringUtil.EMPTY;
+    private static final Logger LOGGER = LoggerFactory.getLogger(SerializeSkipInfoListener.class);
 
     public SerializeSkipInfoListener() {
     }
@@ -30,13 +34,20 @@ public class SerializeSkipInfoListener implements ConfigListener {
     }
 
     public void reBuildSerializer() {
-        Serializer instance = Serializer.getINSTANCE();
-        StringSerializable refreshDefaultSerializer = instance.getSerializer().reCreateSerializer();
-        Builder builder = Serializer.builder(refreshDefaultSerializer);
-        for (Map.Entry<String, StringSerializable> entry : instance.getSerializers().entrySet()) {
-            StringSerializable refreshSerializer = entry.getValue().reCreateSerializer();
-            builder.addSerializer(entry.getKey(), refreshSerializer);
+        try {
+            Serializer instance = Serializer.getINSTANCE();
+            if (instance == null) {
+                return;
+            }
+            StringSerializable refreshDefaultSerializer = instance.getSerializer().reCreateSerializer();
+            Builder builder = Serializer.builder(refreshDefaultSerializer);
+            for (Map.Entry<String, StringSerializable> entry : instance.getSerializers().entrySet()) {
+                StringSerializable refreshSerializer = entry.getValue().reCreateSerializer();
+                builder.addSerializer(entry.getKey(), refreshSerializer);
+            }
+            builder.build();
+        } catch (Exception e) {
+            LOGGER.error("reBuildSerializer error", e);
         }
-        builder.build();
     }
 }

@@ -1,74 +1,76 @@
-package io.arex.foundation.serializer;
+package io.arex.inst.serializer;
 
 import com.google.auto.service.AutoService;
-
-import io.arex.foundation.serializer.JacksonSerializer.DateFormatParser;
-import io.arex.foundation.util.NumberTypeAdaptor;
-import io.arex.agent.bootstrap.util.StringUtil;
+import com.google.gson.ExclusionStrategy;
+import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonDeserializer;
-
+import com.google.gson.JsonPrimitive;
+import com.google.gson.JsonSerializer;
+import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.serializer.StringSerializable;
 import io.arex.inst.runtime.util.TypeUtil;
-import java.sql.Time;
-import java.time.Instant;
-import java.time.format.DateTimeFormatter;
-import org.apache.commons.lang3.time.DateFormatUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import com.google.gson.*;
-
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.XMLGregorianCalendar;
 import java.lang.reflect.Type;
+import java.sql.Time;
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.*;
+import java.time.format.DateTimeFormatter;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.List;
+import java.util.Optional;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
+import org.apache.commons.lang3.time.DateFormatUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @AutoService(StringSerializable.class)
 public class GsonSerializer implements StringSerializable {
     private static final Logger LOGGER = LoggerFactory.getLogger(GsonSerializer.class);
-
     private static final JsonSerializer<LocalDateTime> LOCAL_DATE_TIME_JSON_SERIALIZER =
-        ((src, typeOfSrc, context) -> new JsonPrimitive(src.format(DateTimeFormatter.ofPattern(JacksonSerializer.DatePatternConstants.localDateTimeFormat))));
+        ((src, typeOfSrc, context) -> new JsonPrimitive(src.format(DateTimeFormatter.ofPattern(DatePatternConstants.localDateTimeFormat))));
     private static final JsonDeserializer<LocalDateTime> LOCAL_DATE_TIME_JSON_DESERIALIZER = (json, type, context) ->
-            LocalDateTime.parse(json.getAsString(), JacksonSerializer.DateFormatParser.INSTANCE.getFormatter(JacksonSerializer.DatePatternConstants.localDateTimeFormat));
+            LocalDateTime.parse(json.getAsString(), DateFormatParser.INSTANCE.getFormatter(DatePatternConstants.localDateTimeFormat));
     private static final JsonSerializer<LocalDate> LOCAL_DATE_JSON_SERIALIZER =
-        ((src, typeOfSrc, context) -> new JsonPrimitive(src.format(DateTimeFormatter.ofPattern(JacksonSerializer.DatePatternConstants.SHORT_DATE_FORMAT))));
+        ((src, typeOfSrc, context) -> new JsonPrimitive(src.format(DateTimeFormatter.ofPattern(DatePatternConstants.SHORT_DATE_FORMAT))));
 
     private static final JsonDeserializer<LocalDate> LOCAL_DATE_JSON_DESERIALIZER = (json, type, context) ->
-            LocalDate.parse(json.getAsString(), JacksonSerializer.DateFormatParser.INSTANCE.getFormatter(JacksonSerializer.DatePatternConstants.SHORT_DATE_FORMAT));
+            LocalDate.parse(json.getAsString(), DateFormatParser.INSTANCE.getFormatter(DatePatternConstants.SHORT_DATE_FORMAT));
 
     private static final JsonSerializer<LocalTime> LOCAL_TIME_JSON_SERIALIZER =
-        ((src, typeOfSrc, context) -> new JsonPrimitive(src.format(DateTimeFormatter.ofPattern(JacksonSerializer.DatePatternConstants.localTimeFormat))));
+        ((src, typeOfSrc, context) -> new JsonPrimitive(src.format(DateTimeFormatter.ofPattern(DatePatternConstants.localTimeFormat))));
 
     private static final JsonDeserializer<LocalTime> LOCAL_TIME_JSON_DESERIALIZER = (json, type, context) ->
-            LocalTime.parse(json.getAsString(), JacksonSerializer.DateFormatParser.INSTANCE.getFormatter(JacksonSerializer.DatePatternConstants.localTimeFormat));
+            LocalTime.parse(json.getAsString(), DateFormatParser.INSTANCE.getFormatter(DatePatternConstants.localTimeFormat));
 
     private static final JsonSerializer<Calendar> CALENDAR_JSON_SERIALIZER =
         (((src, typeOfSrc, context) -> new JsonPrimitive(
-            DateFormatUtils.format(src, JacksonSerializer.DatePatternConstants.SIMPLE_DATE_FORMAT_WITH_TIMEZONE, src.getTimeZone()))));
+            DateFormatUtils.format(src, DatePatternConstants.SIMPLE_DATE_FORMAT_WITH_TIMEZONE, src.getTimeZone()))));
 
     private static final JsonDeserializer<Calendar> CALENDAR_JSON_DESERIALIZER = (json, type, context) ->
-            JacksonSerializer.DateFormatParser.INSTANCE.parseCalendar(json.getAsString());
+            DateFormatParser.INSTANCE.parseCalendar(json.getAsString());
 
     private static final JsonSerializer<GregorianCalendar> GREGORIAN_CALENDAR_JSON_SERIALIZER =
-        (((src, typeOfSrc, context) -> new JsonPrimitive(DateFormatUtils.format(src, JacksonSerializer.DatePatternConstants.SIMPLE_DATE_FORMAT_WITH_TIMEZONE, src.getTimeZone()))));
+        (((src, typeOfSrc, context) -> new JsonPrimitive(DateFormatUtils.format(src, DatePatternConstants.SIMPLE_DATE_FORMAT_WITH_TIMEZONE, src.getTimeZone()))));
 
     private static final JsonDeserializer<GregorianCalendar> GREGORIAN_CALENDAR_JSON_DESERIALIZER = (json, type, context) ->
-            JacksonSerializer.DateFormatParser.INSTANCE.parseGregorianCalendar(json.getAsString());
+            DateFormatParser.INSTANCE.parseGregorianCalendar(json.getAsString());
 
     private static final JsonSerializer<XMLGregorianCalendar> XML_GREGORIAN_CALENDAR_JSON_SERIALIZER =
         (((src, typeOfSrc, context) -> {
             GregorianCalendar calendar = src.toGregorianCalendar();
-            return new JsonPrimitive(DateFormatUtils.format(calendar, JacksonSerializer.DatePatternConstants.SIMPLE_DATE_FORMAT_WITH_TIMEZONE, calendar.getTimeZone()));
+            return new JsonPrimitive(DateFormatUtils.format(calendar, DatePatternConstants.SIMPLE_DATE_FORMAT_WITH_TIMEZONE, calendar.getTimeZone()));
         }));
 
     private static final JsonDeserializer<XMLGregorianCalendar> XML_GREGORIAN_CALENDAR_JSON_DESERIALIZER =
             (json, type, context) -> {
-                GregorianCalendar calendar = JacksonSerializer.DateFormatParser.INSTANCE.parseGregorianCalendar(json.getAsString());
+                GregorianCalendar calendar = DateFormatParser.INSTANCE.parseGregorianCalendar(json.getAsString());
                 XMLGregorianCalendar xmlGregorianCalendar = null;
                 try {
                     xmlGregorianCalendar = DatatypeFactory.newInstance().newXMLGregorianCalendar(calendar);
@@ -79,19 +81,19 @@ public class GsonSerializer implements StringSerializable {
             };
 
     private static final JsonSerializer<Timestamp> TIMESTAMP_JSON_SERIALIZER =
-        (((src, typeOfSrc, context) -> new JsonPrimitive(DateFormatUtils.format(src, JacksonSerializer.DatePatternConstants.SIMPLE_DATE_FORMAT_MILLIS))));
+        (((src, typeOfSrc, context) -> new JsonPrimitive(DateFormatUtils.format(src, DatePatternConstants.SIMPLE_DATE_FORMAT_MILLIS))));
 
     private static final JsonDeserializer<Timestamp> TIMESTAMP_JSON_DESERIALIZER = (json, typeOfT, context) ->
-            Optional.ofNullable(JacksonSerializer.DateFormatParser.INSTANCE.parseDate(json.getAsString()))
+            Optional.ofNullable(DateFormatParser.INSTANCE.parseDate(json.getAsString()))
                     .map(date -> new Timestamp(date.getTime())).orElse(new Timestamp(System.currentTimeMillis()));
 
     private static final JsonSerializer<Date> DATE_JSON_SERIALIZER =
-        (((src, typeOfSrc, context) -> new JsonPrimitive(DateFormatUtils.format(src, JacksonSerializer.DatePatternConstants.SIMPLE_DATE_FORMAT_MILLIS))));
+        (((src, typeOfSrc, context) -> new JsonPrimitive(DateFormatUtils.format(src, DatePatternConstants.SIMPLE_DATE_FORMAT_MILLIS))));
     private static final JsonDeserializer<Date> DATE_JSON_DESERIALIZER = (json, type, context) ->
             new Date(Long.parseLong(json.getAsString()));
 
     private static final JsonSerializer<java.sql.Date> SQL_DATE_JSON_SERIALIZER =
-        (((src, typeOfSrc, context) -> new JsonPrimitive(DateFormatUtils.format(src, JacksonSerializer.DatePatternConstants.SIMPLE_DATE_FORMAT_MILLIS))));
+        (((src, typeOfSrc, context) -> new JsonPrimitive(DateFormatUtils.format(src, DatePatternConstants.SIMPLE_DATE_FORMAT_MILLIS))));
 
     private static final JsonDeserializer<java.sql.Date> SQL_DATE_JSON_DESERIALIZER = (json, type, context) ->{
         Date date = DateFormatParser.INSTANCE.parseDate(json.getAsString());
@@ -99,7 +101,7 @@ public class GsonSerializer implements StringSerializable {
     };
 
     private static final JsonSerializer<Time> TIME_JSON_SERIALIZER =
-        (((src, typeOfSrc, context) -> new JsonPrimitive(DateFormatUtils.format(src, JacksonSerializer.DatePatternConstants.SIMPLE_DATE_FORMAT_MILLIS))));
+        (((src, typeOfSrc, context) -> new JsonPrimitive(DateFormatUtils.format(src, DatePatternConstants.SIMPLE_DATE_FORMAT_MILLIS))));
 
     private static final JsonDeserializer<Time> TIME_JSON_DESERIALIZER = (json, type, context) -> {
         Date date = DateFormatParser.INSTANCE.parseDate(json.getAsString());
@@ -145,9 +147,12 @@ public class GsonSerializer implements StringSerializable {
         }
     };
 
+    public static final GsonSerializer INSTANCE = new GsonSerializer();
+
     private final Gson serializer;
     public GsonSerializer() {
-        serializer = new GsonBuilder().registerTypeAdapterFactory(NumberTypeAdaptor.FACTORY)
+        serializer = new GsonBuilder().
+                registerTypeAdapterFactory(NumberTypeAdaptor.FACTORY)
 //              .registerTypeAdapter(org.joda.time.DateTime.class, DATE_TIME_JSON_SERIALIZER)
 //              .registerTypeAdapter(org.joda.time.DateTime.class, DATE_TIME_JSON_DESERIALIZER)
 //              .registerTypeAdapter(org.joda.time.LocalDateTime.class, JODA_LOCAL_DATE_TIME_JSON_SERIALIZER)

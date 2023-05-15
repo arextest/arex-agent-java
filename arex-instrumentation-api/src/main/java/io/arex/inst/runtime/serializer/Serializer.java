@@ -66,6 +66,13 @@ public class Serializer {
         }
     }
 
+//    private static void initSerializer() {
+//        builder(JacksonSerializer.INSTANCE)
+//                .addSerializer("gson", GsonSerializer.INSTANCE)
+//                .addSerializer("proto", ProtoJsonSerializer.INSTANCE)
+//                .build();
+//    }
+
     public static Serializer getINSTANCE() {
         return INSTANCE;
     }

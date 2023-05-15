@@ -1,44 +1,62 @@
-package io.arex.foundation.serializer;
+package io.arex.inst.serializer;
 
-import io.arex.agent.bootstrap.util.StringUtil;
 import com.fasterxml.jackson.annotation.JsonIgnoreType;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.*;
+import com.fasterxml.jackson.databind.BeanDescription;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.MapperFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationConfig;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
 import com.fasterxml.jackson.databind.ser.BeanSerializerModifier;
-
-import io.arex.foundation.util.JdkUtils;
+import com.google.auto.service.AutoService;
+import io.arex.agent.bootstrap.util.StringUtil;
+//import io.arex.foundation.util.JdkUtils;
 import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.model.SerializeSkipInfo;
 import io.arex.inst.runtime.serializer.StringSerializable;
 import io.arex.inst.runtime.util.TypeUtil;
-
+import java.io.IOException;
+import java.lang.reflect.Type;
 import java.sql.Time;
+import java.sql.Timestamp;
+import java.text.ParseException;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.TimeZone;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.io.IOException;
-import java.lang.reflect.Type;
-import java.sql.Timestamp;
-import java.text.ParseException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
+@AutoService(StringSerializable.class)
 public final class JacksonSerializer implements StringSerializable {
     public static final String EXTENSION = "json";
 
@@ -65,7 +83,7 @@ public final class JacksonSerializer implements StringSerializable {
         return "jackson";
     }
 
-    private JacksonSerializer() {
+    public JacksonSerializer() {
         buildSkipInfoMap();
         configMapper();
         customTimeFormatSerializer(MODULE);
@@ -333,7 +351,7 @@ public final class JacksonSerializer implements StringSerializable {
         public LocalDate deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
             JsonNode node = p.getCodec().readTree(p);
             return LocalDate.parse(node.asText(),
-                    DateFormatParser.INSTANCE.getFormatter(node.asText(), DatePatternConstants.SHORT_DATE_FORMAT));
+                    DateFormatParser.INSTANCE.getFormatter(DatePatternConstants.SHORT_DATE_FORMAT));
         }
     }
 
@@ -480,178 +498,4 @@ public final class JacksonSerializer implements StringSerializable {
     @JsonIgnoreType
     static class IgnoreType {
     }
-
-
-    static final class DatePatternConstants {
-        /**
-         * yyyy-MM-dd HH:mm:ss.SSS/yyyy-MM-dd'T'HH:mm:ss.SSSZZZ
-         */
-        public static final String SIMPLE_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
-        public static final String SIMPLE_DATE_FORMAT_MILLIS = "yyyy-MM-dd HH:mm:ss.SSS";
-        public static final String SIMPLE_DATE_FORMAT_NANOSECOND = "yyyy-MM-dd HH:mm:ss.SSSSSSSSS";
-        /**
-         *  2020-06-09T09:00:00.000+08:00
-         */
-        public static final String SIMPLE_DATE_FORMAT_WITH_TIMEZONE = "yyyy-MM-dd'T'HH:mm:ss.SSSZZZ";
-        /**
-         * yyyy-MM-dd
-         */
-        public static final String SHORT_DATE_FORMAT = "yyyy-MM-dd";
-        /**
-         * HH:mm:ss.SSS
-         */
-        public static final String SHORT_TIME_FORMAT = "HH:mm:ss";
-        public static final String SHORT_TIME_FORMAT_MILLISECOND = "HH:mm:ss.SSS";
-        public static final String SHORT_TIME_FORMAT_NANOSECOND = "HH:mm:ss.SSSSSSSSS";
-
-        public static String localDateTimeFormat = SIMPLE_DATE_FORMAT_MILLIS;
-
-        public static String localTimeFormat = SHORT_TIME_FORMAT_MILLISECOND;
-
-        static {
-            if (JdkUtils.isJdk11()) {
-                localDateTimeFormat = SIMPLE_DATE_FORMAT_NANOSECOND;
-                localTimeFormat = SHORT_TIME_FORMAT_NANOSECOND;
-            }
-        }
-    }
-
-
-    static final class TimezoneParser {
-        public static final TimezoneParser INSTANCE = new TimezoneParser();
-        private static final String DEFAULT_TIME_ZONE_FORMAT = "(([+\\-])\\d{2}:\\d{2})|Z";
-        private static final Pattern DEFAULT_TIME_ZONE_PATTERN = Pattern.compile(DEFAULT_TIME_ZONE_FORMAT);
-        private final ConcurrentHashMap<String, TimeZone> timeZonesMap = new ConcurrentHashMap<>();
-
-        public TimeZone parse(String date) {
-            if (StringUtil.isBlank(date)) {
-                return TimeZone.getDefault();
-            }
-
-            // 2020-06-09T09:00:00.000+08:00 length=29
-            if (date.length() <= DatePatternConstants.SIMPLE_DATE_FORMAT_WITH_TIMEZONE.length()) {
-                return TimeZone.getDefault();
-            }
-
-            // 2020-06-09T09:00:00.000+08:00 substring from index 23, result is +08:00
-            date = date.substring(DatePatternConstants.SIMPLE_DATE_FORMAT_MILLIS.length());
-
-            Matcher matcher = DEFAULT_TIME_ZONE_PATTERN.matcher(date);
-            if (!matcher.matches()) {
-                return TimeZone.getDefault();
-            }
-
-            return getTimeZone(date);
-        }
-
-        private TimeZone getTimeZone(final String zoneId) {
-            return timeZonesMap.computeIfAbsent(zoneId, (id) -> TimeZone.getTimeZone("GMT" + zoneId));
-        }
-    }
-
-
-    static final class DateFormatParser {
-        private static final Map<String, DateTimeFormatter> DEFAULT_FORMATTER_MAP = new ConcurrentHashMap<>();
-        private static final Map<Integer, String> DATE_PATTERN_MAP = new HashMap<>();
-
-        public static final DateFormatParser INSTANCE = new DateFormatParser();
-
-        private DateFormatParser() {
-            initDatePatternMap();
-        }
-
-        public void initDatePatternMap() {
-            DATE_PATTERN_MAP
-                    .put(DatePatternConstants.SIMPLE_DATE_FORMAT.length(), DatePatternConstants.SIMPLE_DATE_FORMAT);
-            DATE_PATTERN_MAP
-                    .put(DatePatternConstants.SHORT_TIME_FORMAT.length(), DatePatternConstants.SHORT_TIME_FORMAT);
-            DATE_PATTERN_MAP.put(DatePatternConstants.SIMPLE_DATE_FORMAT_MILLIS.length(),
-                    DatePatternConstants.SIMPLE_DATE_FORMAT_MILLIS);
-            DATE_PATTERN_MAP.put(DatePatternConstants.SHORT_TIME_FORMAT_MILLISECOND.length(),
-                    DatePatternConstants.SHORT_TIME_FORMAT_MILLISECOND);
-            DATE_PATTERN_MAP.put(DatePatternConstants.SIMPLE_DATE_FORMAT_WITH_TIMEZONE.length() + 1,
-                    DatePatternConstants.SIMPLE_DATE_FORMAT_WITH_TIMEZONE);
-        }
-
-
-        public Calendar parseCalendar(final String source) {
-            TimeZone timeZone = TimezoneParser.INSTANCE.parse(source);
-            Calendar calendar = Calendar.getInstance(timeZone);
-            return Optional.ofNullable(parseDate(source, timeZone)).map(date -> {
-                calendar.setTime(date);
-                return calendar;
-            }).orElse(calendar);
-        }
-
-        public GregorianCalendar parseGregorianCalendar(final String source) {
-            TimeZone timeZone = TimezoneParser.INSTANCE.parse(source);
-            GregorianCalendar gregorianCalendar = new GregorianCalendar(timeZone);
-            return Optional.ofNullable(parseDate(source, timeZone)).map(date -> {
-                gregorianCalendar.setTime(date);
-                return gregorianCalendar;
-            }).orElse(gregorianCalendar);
-        }
-
-        /**
-         * Parse date without timezone
-         *
-         * @param source datetime string
-         * @return Date
-         */
-        public Date parseDate(final String source) {
-            return parseDate(source, null);
-        }
-
-        /**
-         * Parse date with timezone
-         *
-         * @param source datetime string
-         * @return Date
-         */
-        public Date parseDate(String source, TimeZone timeZone) {
-            if (StringUtil.isEmpty(source)) {
-                return null;
-            }
-
-            if (timeZone == null) {
-                timeZone = TimezoneParser.INSTANCE.parse(source);
-            }
-
-            try {
-                if (source.length() >= DatePatternConstants.SIMPLE_DATE_FORMAT_WITH_TIMEZONE.length()) {
-                    source = source.substring(0, DatePatternConstants.SIMPLE_DATE_FORMAT_MILLIS.length()).replace('T', ' ');
-                }
-
-                String pattern =
-                        DATE_PATTERN_MAP.getOrDefault(source.length(), DatePatternConstants.SIMPLE_DATE_FORMAT_MILLIS);
-                return FastDateFormat.getInstance(pattern, timeZone).parse(source);
-            } catch (ParseException e) {
-                LOGGER.error("parseDate", e);
-                return null;
-            }
-        }
-
-        /**
-         * Get datetime formatter
-         *
-         * @param source datetime string
-         * @param defaultPattern default datetime pattern
-         * @return DateTimeFormatter instance
-         */
-        public DateTimeFormatter getFormatter(final String source, final String defaultPattern) {
-            String pattern = DATE_PATTERN_MAP.getOrDefault(source.length(), defaultPattern);
-            return DEFAULT_FORMATTER_MAP.computeIfAbsent(pattern, DateTimeFormatter::ofPattern);
-        }
-
-        /**
-         * Get datetime formatter
-         *
-         * @param pattern datetime pattern
-         * @return DateTimeFormatter instance
-         */
-        public DateTimeFormatter getFormatter(final String pattern) {
-            return DEFAULT_FORMATTER_MAP.computeIfAbsent(pattern, DateTimeFormatter::ofPattern);
-        }
-    }
-
 }

@@ -28,6 +28,11 @@
             <groupId>com.google.auto.service</groupId>
             <artifactId>auto-service</artifactId>
         </dependency>
+<!--        <dependency>-->
+<!--            <groupId>io.arex</groupId>-->
+<!--            <artifactId>arex-serializer</artifactId>-->
+<!--            <version>0.3.0</version>-->
+<!--        </dependency>-->
     </dependencies>
 
 </project>

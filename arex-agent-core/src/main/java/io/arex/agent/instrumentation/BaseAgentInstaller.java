@@ -6,17 +6,19 @@ import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.agent.bootstrap.util.AdviceClassesCollector;
 import io.arex.foundation.config.ConfigManager;
 import io.arex.foundation.healthy.HealthManager;
-import io.arex.foundation.serializer.JacksonSerializer;
+//import io.arex.foundation.serializer.JacksonSerializer;
 import io.arex.foundation.services.ConfigService;
 import io.arex.foundation.services.DataCollectorService;
 import io.arex.foundation.util.NetUtils;
-import io.arex.foundation.util.SPIUtil;
+//import io.arex.foundation.util.SPIUtil;
 import io.arex.inst.runtime.context.RecordLimiter;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.serializer.StringSerializable;
 import io.arex.inst.runtime.service.DataCollector;
 import io.arex.inst.runtime.service.DataService;
 import io.arex.inst.runtime.util.LogUtil;
+import io.arex.inst.runtime.util.SPIUtil;
+
 import java.util.List;
 import net.bytebuddy.agent.builder.ResettableClassFileTransformer;
 
@@ -52,22 +54,22 @@ public abstract class BaseAgentInstaller implements AgentInstaller {
 
     private void init(String agentArgs) {
         TraceContextManager.init(NetUtils.getIpAddress());
-        installSerializer();
+//        installSerializer();
         RecordLimiter.init(HealthManager::acquire);
         ConfigService.INSTANCE.loadAgentConfig(agentArgs);
         initDataCollector();
     }
 
-    private void installSerializer() {
-        AdviceClassesCollector.INSTANCE.addClassToLoaderSearch(JacksonSerializer.class);
-        Serializer.Builder builder = Serializer.builder(JacksonSerializer.INSTANCE);
-        List<StringSerializable> serializableList =
-                SPIUtil.load(StringSerializable.class, getClassLoader());
-        for (StringSerializable serializable : serializableList) {
-            builder.addSerializer(serializable.name(), serializable);
-        }
-        builder.build();
-    }
+//    private void installSerializer() {
+//        AdviceClassesCollector.INSTANCE.addClassToLoaderSearch(JacksonSerializer.class);
+//        Serializer.Builder builder = Serializer.builder(JacksonSerializer.INSTANCE);
+//        List<StringSerializable> serializableList =
+//                SPIUtil.load(StringSerializable.class, getClassLoader());
+//        for (StringSerializable serializable : serializableList) {
+//            builder.addSerializer(serializable.name(), serializable);
+//        }
+//        builder.build();
+//    }
     private void initDataCollector() {
         DataCollector collector = DataCollectorService.INSTANCE;
         if (ConfigManager.INSTANCE.isLocalStorage()) {

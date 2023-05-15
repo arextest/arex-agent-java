@@ -7,11 +7,19 @@ import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.context.RecordLimiter;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.netty.v4.common.NettyHelper;
+import io.arex.inst.runtime.serializer.StringSerializable;
 import io.arex.inst.runtime.util.IgnoreUtils;
+import io.arex.inst.runtime.util.SPIUtil;
+import io.arex.inst.serializer.GsonSerializer;
+import io.arex.inst.serializer.JacksonSerializer;
+import io.arex.inst.serializer.ProtoJsonSerializer;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.*;
 import io.netty.util.Attribute;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -41,6 +49,13 @@ class RequestTracingHandlerTest {
         ctx = Mockito.mock(ChannelHandlerContext.class);
         request = Mockito.mock(HttpRequest.class);
         headers = Mockito.mock(HttpHeaders.class);
+        Mockito.mockStatic(SPIUtil.class);
+
+        List<StringSerializable> list = new ArrayList<>();
+        list.add(JacksonSerializer.INSTANCE);
+        list.add(GsonSerializer.INSTANCE);
+
+        Mockito.when(SPIUtil.load(StringSerializable.class)).thenReturn(list);
         Mockito.when(request.headers()).thenReturn(headers);
         Mockito.mockStatic(ContextManager.class);
         Mockito.mockStatic(IgnoreUtils.class);

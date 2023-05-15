@@ -1,6 +1,5 @@
-package io.arex.foundation.util;
+package io.arex.inst.runtime.util;
 
-import java.util.Iterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,6 +8,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.security.CodeSource;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.ServiceLoader;
 
@@ -23,7 +23,7 @@ public class SPIUtil {
     @SuppressWarnings("ForEachIterable")
     public static <T> List<T> load(Class<T> service, ClassLoader loader) {
         List<T> result = new ArrayList<>();
-        java.util.ServiceLoader<T> services = ServiceLoader.load(service, loader);
+        ServiceLoader<T> services = ServiceLoader.load(service, loader);
         for (Iterator<T> iter = services.iterator(); iter.hasNext(); ) {
             try {
                 result.add(iter.next());

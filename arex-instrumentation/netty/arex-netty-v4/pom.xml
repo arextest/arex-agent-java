@@ -19,6 +19,12 @@
             <version>4.1.78.Final</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>io.arex</groupId>
+            <artifactId>arex-serializer</artifactId>
+            <version>0.3.0</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
 </project>

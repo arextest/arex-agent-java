@@ -8,7 +8,6 @@ import io.arex.foundation.config.ConfigManager;
 import io.arex.foundation.config.ConfigQueryResponse;
 import io.arex.foundation.config.ConfigQueryResponse.ResponseBody;
 import io.arex.foundation.config.ConfigQueryResponse.ServiceCollectConfig;
-import io.arex.foundation.serializer.JacksonSerializer;
 import io.arex.foundation.util.AsyncHttpClientUtil;
 import io.arex.foundation.util.NetUtils;
 import java.time.DayOfWeek;
@@ -72,19 +71,19 @@ class ConfigServiceTest {
             responseBody.setTargetAddress("127.0.0.1");
             responseBody.setServiceCollectConfiguration(serviceCollectConfig);
             configQueryResponse.setBody(responseBody);
-            ahc.when(() -> AsyncHttpClientUtil.post(anyString(), anyString())).thenReturn(JacksonSerializer.INSTANCE.serialize(configQueryResponse));
+            ahc.when(() -> AsyncHttpClientUtil.post(anyString(), anyString())).thenReturn(ConfigService.INSTANCE.serialize(configQueryResponse));
             ConfigService.INSTANCE.loadAgentConfig(null);
             assertTrue(ConfigManager.INSTANCE.valid() && ConfigManager.INSTANCE.inWorkingTime() && ConfigManager.INSTANCE.getRecordRate() > 0);
 
             // valid response request agentStatus=WORKING
             serviceCollectConfig.setAllowDayOfWeeks(0);
-            ahc.when(() -> AsyncHttpClientUtil.post(anyString(), anyString())).thenReturn(JacksonSerializer.INSTANCE.serialize(configQueryResponse));
+            ahc.when(() -> AsyncHttpClientUtil.post(anyString(), anyString())).thenReturn(ConfigService.INSTANCE.serialize(configQueryResponse));
             ConfigService.INSTANCE.loadAgentConfig(null);
             assertFalse(ConfigManager.INSTANCE.inWorkingTime());
 
             // valid response request agentStatus=SLEEPING
             serviceCollectConfig.setAllowDayOfWeeks(127);
-            ahc.when(() -> AsyncHttpClientUtil.post(anyString(), anyString())).thenReturn(JacksonSerializer.INSTANCE.serialize(configQueryResponse));
+            ahc.when(() -> AsyncHttpClientUtil.post(anyString(), anyString())).thenReturn(ConfigService.INSTANCE.serialize(configQueryResponse));
             ConfigService.INSTANCE.loadAgentConfig(null);
             assertTrue(ConfigManager.INSTANCE.valid() && ConfigManager.INSTANCE.inWorkingTime() && ConfigManager.INSTANCE.getRecordRate() > 0);
         }

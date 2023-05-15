@@ -1,5 +1,6 @@
 package io.arex.inst.serializer;
 
+import com.google.auto.service.AutoService;
 import com.google.protobuf.AbstractMessage.Builder;
 import com.google.protobuf.util.JsonFormat;
 import com.google.protobuf.AbstractMessage;
@@ -16,9 +17,10 @@ import java.util.Collection;
 
 import org.slf4j.LoggerFactory;
 
+@AutoService(StringSerializable.class)
 public class ProtoJsonSerializer implements StringSerializable{
     private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(ProtoJsonSerializer.class);
-    private static final ProtoJsonSerializer INSTANCE = new ProtoJsonSerializer();
+    public static final ProtoJsonSerializer INSTANCE = new ProtoJsonSerializer();
     private static final JsonFormat.Printer JSON_PRINTER = JsonFormat.printer().omittingInsignificantWhitespace();
     private static final JsonFormat.Parser JSON_PARSER = JsonFormat.parser().ignoringUnknownFields();
     private static final String GSON_SERIALIZER = "gson";

@@ -7,11 +7,12 @@ import io.arex.foundation.config.ConfigQueryResponse.ResponseBody;
 import io.arex.foundation.config.ConfigQueryResponse.ServiceCollectConfig;
 import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.foundation.util.NetUtils;
-import io.arex.foundation.util.SPIUtil;
 import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.config.ConfigBuilder;
 import io.arex.inst.runtime.config.listener.ConfigListener;
 import io.arex.inst.runtime.model.DynamicClassEntity;
+import io.arex.inst.runtime.util.SPIUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

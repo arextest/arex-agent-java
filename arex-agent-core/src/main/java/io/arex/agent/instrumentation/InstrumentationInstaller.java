@@ -6,7 +6,8 @@ import io.arex.inst.extension.TypeInstrumentation;
 import io.arex.agent.bootstrap.InstrumentationHolder;
 import io.arex.foundation.config.ConfigManager;
 import io.arex.agent.bootstrap.util.CollectionUtil;
-import io.arex.foundation.util.SPIUtil;
+import io.arex.inst.runtime.util.SPIUtil;
+
 import java.io.IOException;
 
 import net.bytebuddy.ByteBuddy;
