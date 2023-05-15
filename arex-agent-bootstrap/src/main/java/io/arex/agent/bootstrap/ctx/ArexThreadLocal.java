@@ -40,6 +40,15 @@ public class ArexThreadLocal<T> extends InheritableThreadLocal<T> {
         super.remove();
     }
 
+    @Override
+    protected T childValue(T parentValue) {
+        // no need to copy arex-record-id, TraceTransmitter will capture and replay
+        if (parentValue instanceof String && ((String) parentValue).startsWith("AREX-")) {
+            return null;
+        }
+        return super.childValue(parentValue);
+    }
+
     public void superRemove() {
         super.remove();
     }
