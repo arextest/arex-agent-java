@@ -1,17 +1,27 @@
 package io.arex.foundation.services;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.MapperFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import io.arex.foundation.config.AgentStatusEnum;
 import io.arex.foundation.config.ConfigManager;
+import io.arex.foundation.config.ConfigQueryRequest;
+import io.arex.foundation.config.ConfigQueryResponse;
 import io.arex.foundation.util.AsyncHttpClientUtil;
 import io.arex.foundation.util.NetUtils;
 import io.arex.agent.bootstrap.util.StringUtil;
-import io.arex.inst.runtime.serializer.Serializer;
-import org.apache.commons.lang3.StringUtils;
+import io.arex.foundation.util.async.ThreadFactoryImpl;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * ConfigService
@@ -20,297 +30,146 @@ import java.util.Set;
  * @date 2022/03/16
  */
 public class ConfigService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConfigService.class);
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     public static final ConfigService INSTANCE = new ConfigService();
-    private static final Logger LOGGER = LoggerFactory.getLogger(ConfigService.class);
     private static final String CONFIG_LOAD_URL =
-        String.format("http://%s/api/config/agent/load",
-            ConfigManager.INSTANCE.getStorageServiceHost());
+        String.format("http://%s/api/config/agent/load", ConfigManager.INSTANCE.getStorageServiceHost());
+    private static final ScheduledThreadPoolExecutor SCHEDULER =
+        new ScheduledThreadPoolExecutor(1, new ThreadFactoryImpl("arex-config-schedule-thread"));
 
-    ConfigService() {
+    private static final AtomicBoolean FIRST_LOAD = new AtomicBoolean(false);
+    private int maxRetry = 3;
+    private ScheduledFuture<?> scheduledFuture = null;
+
+    private ConfigService() {
+        MAPPER.configure(JsonGenerator.Feature.IGNORE_UNKNOWN, true);
+        MAPPER.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+        MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        MAPPER.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
+        MAPPER.configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, false);
+        MAPPER.configure(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL, true);
+        MAPPER.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
     }
 
     public void loadAgentConfig(String agentArgs) {
+        // agentmain
+        if (StringUtil.isNotEmpty(agentArgs)) {
+            ConfigManager.INSTANCE.parseAgentConfig(agentArgs);
+            return;
+        }
+        if (ConfigManager.INSTANCE.isLocalStorage()) {
+            return;
+        }
+        loadAgentConfig();
+        int period = 60 * 2;
+        if (maxRetry < 1) {
+            if (scheduledFuture != null) {
+                scheduledFuture.cancel(false);
+                scheduledFuture = null;
+            }
+            int delay = period * 10;
+            SCHEDULER.schedule(()-> this.loadAgentConfig(null), delay, TimeUnit.SECONDS);
+            LOGGER.info("[arex] Load agent config error, will retry after {} seconds", delay);
+            return;
+        }
+        if (scheduledFuture == null) {
+            scheduledFuture = SCHEDULER.scheduleAtFixedRate(()-> this.loadAgentConfig(null), period, period, TimeUnit.SECONDS);
+        }
+    }
+
+    public void loadAgentConfig() {
         try {
-            // agentmain
-            if (StringUtil.isNotEmpty(agentArgs)) {
-                ConfigManager.INSTANCE.parseAgentConfig(agentArgs);
+            ConfigQueryRequest request = buildConfigQueryRequest();
+            String requestJson = serialize(request);
+
+            String responseJson = AsyncHttpClientUtil.post(CONFIG_LOAD_URL, requestJson);
+            LOGGER.info("[arex] Load agent config\nrequest: {}\nresponse: {}", requestJson, responseJson);
+
+            if (StringUtil.isEmpty(responseJson) || "{}".equals(responseJson)) {
+                LOGGER.warn("[arex] Load agent config, response is null, pause recording");
+                maxRetry--;
+                ConfigManager.INSTANCE.setConfigInvalid();
                 return;
             }
-            ConfigQueryRequest request = new ConfigQueryRequest();
-            request.appId = ConfigManager.INSTANCE.getServiceName();
-            request.host = NetUtils.getIpAddress();
-            request.recordVersion = ConfigManager.INSTANCE.getAgentVersion();
 
-            String postData = Serializer.serialize(request);
-
-            String responseData = AsyncHttpClientUtil.post(CONFIG_LOAD_URL, postData);
-
-            if (StringUtils.isEmpty(responseData) || "{}".equals(responseData)) {
-                LOGGER.warn("Query agent config, response body is null. request: {}", postData);
+            ConfigQueryResponse response = deserialize(responseJson, ConfigQueryResponse.class);
+            if (response == null || response.getBody() == null ||
+                response.getBody().getServiceCollectConfiguration() == null) {
+                maxRetry--;
+                ConfigManager.INSTANCE.setConfigInvalid();
+                LOGGER.warn("[arex] Load agent config, deserialize response is null, pause recording");
                 return;
             }
-            LOGGER.info("Agent config: {}", responseData);
-            ConfigQueryResponse responseModel = Serializer.deserialize(responseData,
-                ConfigQueryResponse.class);
-            if (responseModel != null && responseModel.getBody() != null
-                && responseModel.getBody().getServiceCollectConfiguration() != null) {
-                ConfigManager.INSTANCE.parseServiceConfig(responseModel.getBody());
-            }
+            ConfigManager.INSTANCE.parseServiceConfig(response.getBody());
+            maxRetry = 3;
         } catch (Throwable e) {
-            LOGGER.warn("loadAgentConfig error", e);
+            LOGGER.warn("[arex] Load agent config error", e);
         }
     }
 
-    public static class ConfigQueryResponse {
-
-        private ResponseStatusType responseStatusType;
-        private ResponseBody body;
-
-        public ResponseStatusType getResponseStatusType() {
-            return responseStatusType;
+    public ConfigQueryRequest buildConfigQueryRequest() {
+        ConfigQueryRequest request = new ConfigQueryRequest();
+        request.setAppId(ConfigManager.INSTANCE.getServiceName());
+        request.setHost(NetUtils.getIpAddress());
+        request.setRecordVersion(ConfigManager.INSTANCE.getAgentVersion());
+        AgentStatusEnum agentStatus = getAgentStatus();
+        if (AgentStatusEnum.START == agentStatus) {
+            request.setSystemProperties(getSystemProperties());
+            request.setSystemEnv(new HashMap<>(System.getenv()));
         }
-
-        public void setResponseStatusType(ResponseStatusType responseStatusType) {
-            this.responseStatusType = responseStatusType;
-        }
-
-        public ResponseBody getBody() {
-            return body;
-        }
-
-        public void setBody(ResponseBody body) {
-            this.body = body;
-        }
+        request.setAgentStatus(agentStatus.name());
+        return request;
     }
 
-    public static class ResponseStatusType {
-
-        private int responseCode;
-        private String responseDesc;
-        private long timestamp;
-
-        public int getResponseCode() {
-            return responseCode;
+    private AgentStatusEnum getAgentStatus() {
+        if (FIRST_LOAD.compareAndSet(false, true)) {
+            return AgentStatusEnum.START;
         }
-
-        public void setResponseCode(int responseCode) {
-            this.responseCode = responseCode;
+        if (!ConfigManager.INSTANCE.valid()) {
+            return AgentStatusEnum.UN_START;
         }
-
-        public String getResponseDesc() {
-            return responseDesc;
+        if (ConfigManager.INSTANCE.valid()) {
+            if (ConfigManager.INSTANCE.inWorkingTime() && ConfigManager.INSTANCE.getRecordRate() > 0) {
+                return AgentStatusEnum.WORKING;
+            } else {
+                return AgentStatusEnum.SLEEPING;
+            }
         }
-
-        public void setResponseDesc(String responseDesc) {
-            this.responseDesc = responseDesc;
-        }
-
-        public long getTimestamp() {
-            return timestamp;
-        }
-
-        public void setTimestamp(long timestamp) {
-            this.timestamp = timestamp;
-        }
+        return AgentStatusEnum.NONE;
     }
 
-    public static class ResponseBody {
-
-        private ServiceCollectConfig serviceCollectConfiguration;
-        private int status;
-        private List<DynamicClassConfiguration> dynamicClassConfigurationList;
-        private String targetAddress;
-        private Map<String, String> extendField;
-
-        public ServiceCollectConfig getServiceCollectConfiguration() {
-            return serviceCollectConfiguration;
+    public Map<String, String> getSystemProperties() {
+        Properties properties = System.getProperties();
+        Map<String, String> map = new HashMap<>(properties.size());
+        for (Map.Entry<Object, Object> entry : properties.entrySet()) {
+            map.put(String.valueOf(entry.getKey()), String.valueOf(entry.getValue()));
         }
-
-        public void setServiceCollectConfiguration(
-            ServiceCollectConfig serviceCollectConfiguration) {
-            this.serviceCollectConfiguration = serviceCollectConfiguration;
-        }
-
-        public List<DynamicClassConfiguration> getDynamicClassConfigurationList() {
-            return dynamicClassConfigurationList;
-        }
-
-        public void setDynamicClassConfigurationList(
-            List<DynamicClassConfiguration> dynamicClassConfigurationList) {
-            this.dynamicClassConfigurationList = dynamicClassConfigurationList;
-        }
-
-        public String getTargetAddress() {
-            return targetAddress;
-        }
-
-        public void setTargetAddress(String targetAddress) {
-            this.targetAddress = targetAddress;
-        }
-
-        public Map<String, String> getExtendField() {
-            return extendField;
-        }
-
-        public void setExtendField(Map<String, String> extendField) {
-            this.extendField = extendField;
-        }
+        return map;
     }
 
-    public static class ServiceCollectConfig {
-
-        private String appId;
-        private int sampleRate;
-        private int allowDayOfWeeks;
-        private String allowTimeOfDayFrom;
-        private String allowTimeOfDayTo;
-        private boolean timeMock;
-        private Set<String> excludeServiceOperationSet;
-
-        public String getAppId() {
-            return appId;
+    public String serialize(Object object) {
+        if (object == null) {
+            return null;
         }
-
-        public void setAppId(String appId) {
-            this.appId = appId;
+        try {
+            return MAPPER.writeValueAsString(object);
+        } catch (Exception ex) {
+            LOGGER.warn("serialize exception", ex);
         }
-
-        public int getSampleRate() {
-            return sampleRate;
-        }
-
-        public void setSampleRate(int sampleRate) {
-            this.sampleRate = sampleRate;
-        }
-
-        public int getAllowDayOfWeeks() {
-            return allowDayOfWeeks;
-        }
-
-        public void setAllowDayOfWeeks(int allowDayOfWeeks) {
-            this.allowDayOfWeeks = allowDayOfWeeks;
-        }
-
-        public String getAllowTimeOfDayFrom() {
-            return allowTimeOfDayFrom;
-        }
-
-        public void setAllowTimeOfDayFrom(String allowTimeOfDayFrom) {
-            this.allowTimeOfDayFrom = allowTimeOfDayFrom;
-        }
-
-        public String getAllowTimeOfDayTo() {
-            return allowTimeOfDayTo;
-        }
-
-        public void setAllowTimeOfDayTo(String allowTimeOfDayTo) {
-            this.allowTimeOfDayTo = allowTimeOfDayTo;
-        }
-
-        public boolean isTimeMock() {
-            return timeMock;
-        }
-
-        public void setTimeMock(boolean timeMock) {
-            this.timeMock = timeMock;
-        }
-
-        public Set<String> getExcludeServiceOperationSet() {
-            return excludeServiceOperationSet;
-        }
-
-        public void setExcludeServiceOperationSet(Set<String> excludeServiceOperationSet) {
-            this.excludeServiceOperationSet = excludeServiceOperationSet;
-        }
+        return null;
     }
 
-    public static class DynamicClassConfiguration {
-
-        private String fullClassName;
-        private String methodName;
-        private String parameterTypes;
-        private String keyFormula;
-
-        public String getFullClassName() {
-            return fullClassName;
+    public <T> T deserialize(String json, Class<T> clazz) {
+        if (StringUtil.isEmpty(json) || clazz == null) {
+            return null;
         }
-
-        public void setFullClassName(String fullClassName) {
-            this.fullClassName = fullClassName;
+        try {
+            return MAPPER.readValue(json, clazz);
+        } catch (Exception ex) {
+            LOGGER.warn("deserialize exception", ex);
         }
-
-        public String getMethodName() {
-            return methodName;
-        }
-
-        public void setMethodName(String methodName) {
-            this.methodName = methodName;
-        }
-
-        public String getParameterTypes() {
-            return parameterTypes;
-        }
-
-        public void setParameterTypes(String parameterTypes) {
-            this.parameterTypes = parameterTypes;
-        }
-
-        public String getKeyFormula() {
-            return keyFormula;
-        }
-
-        public void setKeyFormula(String keyFormula) {
-            this.keyFormula = keyFormula;
-        }
-    }
-
-    public static class ConfigQueryRequest {
-
-        private String appId;
-        private String agentExtVersion;
-        private String coreVersion;
-        private String recordVersion;
-        private String host;
-
-        public String getAppId() {
-            return appId;
-        }
-
-        public void setAppId(String appId) {
-            this.appId = appId;
-        }
-
-        public String getAgentExtVersion() {
-            return agentExtVersion;
-        }
-
-        public void setAgentExtVersion(String agentExtVersion) {
-            this.agentExtVersion = agentExtVersion;
-        }
-
-        public String getCoreVersion() {
-            return coreVersion;
-        }
-
-        public void setCoreVersion(String coreVersion) {
-            this.coreVersion = coreVersion;
-        }
-
-        public String getRecordVersion() {
-            return recordVersion;
-        }
-
-        public void setRecordVersion(String recordVersion) {
-            this.recordVersion = recordVersion;
-        }
-
-        public String getHost() {
-            return host;
-        }
-
-        public void setHost(String host) {
-            this.host = host;
-        }
+        return null;
     }
 }

@@ -81,7 +81,8 @@ public class AsyncHttpClientUtil {
         return executeAsync(httpPost).thenApply(response -> response.get("responseBody"));
     }
 
-    public static CompletableFuture<Map<String, String>> executeAsyncIncludeHeader(String urlAddress, HttpEntity httpEntity, Map<String, String> requestHeaders) {
+    public static CompletableFuture<Map<String, String>> executeAsyncIncludeHeader(String urlAddress, String postData, Map<String, String> requestHeaders) {
+        HttpEntity httpEntity = new ByteArrayEntity(postData.getBytes(StandardCharsets.UTF_8));
         HttpPost httpPost = getHttpPost(urlAddress, httpEntity, requestHeaders);
         return executeAsync(httpPost);
     }

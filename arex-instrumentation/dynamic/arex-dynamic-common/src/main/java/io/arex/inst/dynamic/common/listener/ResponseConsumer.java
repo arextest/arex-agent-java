@@ -6,18 +6,18 @@ import io.arex.inst.dynamic.common.DynamicClassExtractor;
 
 public class ResponseConsumer implements BiConsumer<Object, Throwable> {
 
-    private final DynamicClassExtractor dynamicClassExtractor;
+    private final DynamicClassExtractor extractor;
 
-    public ResponseConsumer(DynamicClassExtractor dynamicClassExtractor){
-        this.dynamicClassExtractor = dynamicClassExtractor;
+    public ResponseConsumer(DynamicClassExtractor extractor){
+        this.extractor = extractor;
     }
 
     @Override
     public void accept(Object result, Throwable throwable) {
         if (throwable != null) {
-            dynamicClassExtractor.setResponse(throwable);
-            return;
+            extractor.recordResponse(throwable);
+        } else {
+            extractor.recordResponse(result);
         }
-        dynamicClassExtractor.setResponse(result);
     }
 }

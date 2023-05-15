@@ -31,4 +31,10 @@ public interface StringSerializable {
      * @return T
      */
     <T> T deserialize(String value, Type type);
+
+    /**
+     * regenerate the serializer object and reload the serialization configuration
+     * @return StringSerializable example: jacksonSerializer/GsonSerializer
+     */
+    StringSerializable reCreateSerializer();
 }

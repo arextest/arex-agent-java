@@ -1,5 +1,6 @@
 package io.arex.inst.runtime.serializer;
 
+import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.util.TypeUtil;
 import org.slf4j.Logger;
@@ -17,9 +18,11 @@ public class Serializer {
         return new Builder(defaultSerializer);
     }
 
-    private static final String NULL_LIST_REGEX = "[]";
+    public static final String EMPTY_LIST_JSON = "[]";
     private static final String NESTED_LIST = "java.util.ArrayList-java.util.ArrayList";
-    private static final String SERIALIZE_SEPARATOR = "A@R#E$X";
+    private static final String HASH_MAP_VALUES_CLASS = "java.util.HashMap$Values";
+    private static final String ARRAY_LIST_CLASS = "java.util.ArrayList";
+    public static final String SERIALIZE_SEPARATOR = "A@R#E$X";
     private static final String NULL_STRING = "null";
     private final StringSerializable defaultSerializer;
     private final Map<String, StringSerializable> serializers;
@@ -128,6 +131,10 @@ public class Serializer {
             serializer = "gson";
         }
 
+        if (typeName.startsWith(HASH_MAP_VALUES_CLASS)) {
+            return (T) restoreHashMapValues(value, typeName, serializer);
+        }
+
         if (!typeName.contains(NESTED_LIST)) {
             return deserialize(value, TypeUtil.forName(typeName), serializer);
         }
@@ -142,7 +149,7 @@ public class Serializer {
 
             int elementIndex = 0;
             for (String innerJson : jsonList) {
-                if (NULL_LIST_REGEX.equals(innerJson)) {
+                if (EMPTY_LIST_JSON.equals(innerJson)) {
                     list.add(new ArrayList<>());
                     continue;
                 }
@@ -165,6 +172,25 @@ public class Serializer {
             LOGGER.warn("deserialize-typeName", ex);
             return null;
         }
+    }
+
+    private static Collection<?> restoreHashMapValues(String value, String typeName, String serializer) {
+        String replacedTypeName = StringUtil.replace(typeName, HASH_MAP_VALUES_CLASS, ARRAY_LIST_CLASS);
+        Collection<Object> collections =  deserialize(value, TypeUtil.forName(replacedTypeName), serializer);
+        if (collections == null) {
+            return CollectionUtil.emptyList();
+        }
+        Map<Integer, Object> map = new HashMap<>((int) (collections.size() / 0.75F + 1.0F));
+        int count = 0;
+
+        for (Object element : collections) {
+            map.put(count++, element);
+        }
+        return map.values();
+    }
+
+    public Map<String, StringSerializable> getSerializers() {
+        return serializers;
     }
 
     public StringSerializable getSerializer() {

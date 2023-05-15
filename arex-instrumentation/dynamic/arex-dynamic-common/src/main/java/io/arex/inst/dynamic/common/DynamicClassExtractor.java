@@ -4,20 +4,25 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.agent.bootstrap.model.Mocker;
+import io.arex.agent.bootstrap.util.ArrayUtils;
 import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.inst.serializer.ProtoJsonSerializer;
 import io.arex.inst.dynamic.common.listener.ListenableFutureAdapter;
 import io.arex.inst.dynamic.common.listener.ResponseConsumer;
 import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
+import io.arex.inst.runtime.model.DynamicClassEntity;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.util.IgnoreUtils;
 import io.arex.inst.runtime.util.LogUtil;
 import io.arex.inst.runtime.util.MockUtils;
 import io.arex.inst.runtime.util.TypeUtil;
 import java.lang.reflect.Array;
+import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import org.slf4j.Logger;
@@ -28,109 +33,203 @@ public class DynamicClassExtractor {
     private static final Logger LOGGER = LoggerFactory.getLogger(DynamicClassExtractor.class);
     private static final int RESULT_SIZE_MAX = Integer.parseInt(System.getProperty("arex.dynamic.result.size.limit", "1000"));
     private static final String SERIALIZER = "gson";
+    private static final String PROTOCOL_BUFFERS = "protobuf";
     private static final String LISTENABLE_FUTURE = "com.google.common.util.concurrent.ListenableFuture";
     private static final String COMPLETABLE_FUTURE = "java.util.concurrent.CompletableFuture";
+    private static final String PROTOBUF_PACKAGE_NAME = "com.google.protobuf";
 
     private final String clazzName;
-    private final String operation;
-    private final String operationKey;
-    private String operationResult;
+    private final String methodName;
+    private final String methodKey;
+    private String serializedResult;
     private Object result;
     private String resultClazz;
     private String methodSignatureKey;
     private final String methodReturnType;
     private int methodSignatureKeyHash;
+    private final Class<?> actualType;
+    private final Object[] args;
 
-    public DynamicClassExtractor(String clazzName, String operation, Object[] args, String methodReturnType) {
-        this.clazzName = clazzName;
-        this.operation = operation;
-        this.operationKey = Serializer.serialize(args, SERIALIZER);
-        this.methodReturnType = methodReturnType;
+    public DynamicClassExtractor(Method method, Object[] args, String keyExpression, Class<?> actualType) {
+        this.clazzName = method.getDeclaringClass().getName();
+        this.methodName = method.getName();
+        this.args = args;
+        this.methodKey = buildMethodKey(method, args, keyExpression);
+        this.methodReturnType = TypeUtil.getName(method.getReturnType());
+        this.actualType = actualType;
     }
 
-    public void setFutureResponse(Future<?> result) {
+    public DynamicClassExtractor(Method method, Object[] args) {
+        this.clazzName = method.getDeclaringClass().getName();
+        this.methodName = method.getName();
+        this.args = args;
+        this.methodKey = buildMethodKey(method, args);
+        this.methodReturnType = TypeUtil.getName(method.getReturnType());
+        this.actualType = null;
+    }
+    public void recordResponse(Object response) {
+        if (response instanceof Future<?>) {
+            this.setFutureResponse((Future<?>) response);
+            return;
+        }
+        this.result = response;
+        if (needRecord()) {
+            this.resultClazz = buildResultClazz(TypeUtil.getName(response));
+            Mocker mocker = makeMocker();
+            if (isProtobufObject(response)) {
+                mocker.getTargetResponse().setAttribute("Format", PROTOCOL_BUFFERS);
+                this.serializedResult = ProtoJsonSerializer.getInstance().serialize(this.result);
+            } else {
+                this.serializedResult = Serializer.serialize(this.result, SERIALIZER);
+            }
+            mocker.getTargetResponse().setBody(this.serializedResult);
+            MockUtils.recordMocker(mocker);
+            cacheMethodSignature();
+        }
+    }
+
+
+    private boolean isProtobufObject(Object result) {
+        if (result == null) {
+            return false;
+        }
+        if (result instanceof Collection<?>) {
+            Collection<?> collection = (Collection<?>) result;
+            if (collection.isEmpty()) {
+                return false;
+            }
+            return isProtobufObject(collection.iterator().next());
+        }
+        Class<?> clazz = result.getClass();
+        if (clazz.getSuperclass() == null) {
+            return false;
+        }
+        return PROTOBUF_PACKAGE_NAME.equals(clazz.getSuperclass().getPackage().getName());
+    }
+
+
+    public MockResult replay() {
+        String key = buildCacheKey();
+        Map<String, Object> cachedReplayResultMap = ContextManager.currentContext()
+                .getCachedReplayResultMap();
+        Object replayResult = null;
+        // First get replay result from cache
+        if (key != null) {
+            replayResult = cachedReplayResultMap.get(key);
+        }
+
+        // If not in cache, get replay result from mock server
+        if (replayResult == null) {
+            Mocker replayMocker = MockUtils.replayMocker(makeMocker());
+            if (MockUtils.checkResponseMocker(replayMocker)) {
+                String typeName = replayMocker.getTargetResponse().getType();
+                replayResult = deserializeResult(replayMocker, typeName);
+            }
+            replayResult = restoreResponse(replayResult);
+            // no key no cache, no parameter methods may return different values
+            if (key != null && replayResult != null) {
+                cachedReplayResultMap.put(key, replayResult);
+            }
+        }
+        boolean ignoreMockResult = IgnoreUtils.ignoreMockResult(clazzName, methodName);
+        return MockResult.success(ignoreMockResult, replayResult);
+    }
+
+    private Object deserializeResult(Mocker replayMocker, String typeName) {
+        if (PROTOCOL_BUFFERS.equals(replayMocker.getTargetResponse().getAttribute("Format"))) {
+            return ProtoJsonSerializer.getInstance().deserialize(replayMocker.getTargetResponse().getBody(),
+                    TypeUtil.forName(typeName));
+        }
+        return Serializer.deserialize(replayMocker.getTargetResponse().getBody(),
+                TypeUtil.forName(typeName), SERIALIZER);
+    }
+
+    void setFutureResponse(Future<?> result) {
         if (result instanceof CompletableFuture) {
             ((CompletableFuture<?>) result).whenComplete(new ResponseConsumer(this));
             return;
         }
 
+        // Compatible with not import Guava
         if (LISTENABLE_FUTURE.equals(methodReturnType)) {
             ListenableFutureAdapter.addCallBack((ListenableFuture<?>) result, this);
         }
     }
 
-    public void setResponse(Object response) {
-        this.result = response;
-        this.resultClazz = buildResultClazz(TypeUtil.getName(response));
-        record();
+    String buildResultClazz(String resultClazz) {
+        if (StringUtil.isEmpty(resultClazz) || resultClazz.contains(TypeUtil.HORIZONTAL_LINE_STR)) {
+            return resultClazz;
+        }
+
+        // @ArexMock actualType
+        if (actualType != null && Object.class != actualType) {
+            return resultClazz + TypeUtil.HORIZONTAL_LINE + actualType.getName();
+        }
+
+        if (Config.get() == null || Config.get().getDynamicEntityMap().isEmpty()) {
+            return resultClazz;
+        }
+
+        String signature = getDynamicEntitySignature();
+
+        DynamicClassEntity dynamicEntity = Config.get().getDynamicEntity(signature);
+
+        if (dynamicEntity == null || StringUtil.isEmpty(dynamicEntity.getActualType())) {
+            return resultClazz;
+        }
+
+        return resultClazz + TypeUtil.HORIZONTAL_LINE + dynamicEntity.getActualType();
     }
 
-
-    protected String buildResultClazz(String resultClazz) {
-        if (Config.get() == null || resultClazz == null) {
-            return resultClazz;
+    String buildMethodKey(Method method, Object[] args, String keyExpression) {
+        if (ArrayUtils.isEmpty(args)) {
+            return null;
         }
 
-        if (Config.get().getGenericReturnTypeMapSize() == 0) {
-            return resultClazz;
+        String key = ExpressionParseUtil.generateKey(method, args, keyExpression);
+        if (key != null) {
+            return key;
         }
 
-        if (resultClazz.contains(TypeUtil.HORIZONTAL_LINE_STR)) {
-            return resultClazz;
-        }
-
-        String extractorSignature = clazzName + operation;
-
-        String genericReturnType = Config.get().getGenericReturnType(extractorSignature);
-
-        if (StringUtil.isEmpty(genericReturnType)) {
-            return resultClazz;
-        }
-
-        return resultClazz + TypeUtil.HORIZONTAL_LINE + genericReturnType;
+        return Serializer.serialize(args, SERIALIZER);
     }
 
-    public void record() {
-        if (needRecord()) {
-            this.operationResult = Serializer.serialize(result, SERIALIZER);
-            MockUtils.recordMocker(makeMocker());
-            cacheMethodSignature();
+    String buildMethodKey(Method method, Object[] args) {
+        if (ArrayUtils.isEmpty(args)) {
+            return null;
         }
+
+        if (Config.get() == null || Config.get().getDynamicEntityMap().isEmpty()) {
+            return Serializer.serialize(args, SERIALIZER);
+        }
+        String signature = getDynamicEntitySignature();
+        DynamicClassEntity dynamicEntity = Config.get().getDynamicEntity(signature);
+        if (dynamicEntity == null || StringUtil.isEmpty(dynamicEntity.getAdditionalSignature())) {
+            return Serializer.serialize(args, SERIALIZER);
+        }
+
+        String keyExpression = ExpressionParseUtil.replaceToExpression(method, dynamicEntity.getAdditionalSignature());
+
+        return buildMethodKey(method, args, keyExpression);
+    }
+
+    private String getDynamicEntitySignature() {
+        if (ArrayUtils.isEmpty(this.args)) {
+            return clazzName + methodName;
+        }
+
+        return clazzName + methodName + args.length;
     }
 
     private Mocker makeMocker() {
-        Mocker mocker = MockUtils.createDynamicClass(this.clazzName, this.operation);
-        mocker.getTargetRequest().setBody(this.operationKey);
-        mocker.getTargetResponse().setBody(this.operationResult);
+        Mocker mocker = MockUtils.createDynamicClass(this.clazzName, this.methodName);
+        mocker.getTargetRequest().setBody(this.methodKey);
+        mocker.getTargetResponse().setBody(this.serializedResult);
         mocker.getTargetResponse().setType(this.resultClazz);
         return mocker;
     }
 
-    public MockResult replay() {
-        String key = buildCacheKey();
-        ArexContext context = ContextManager.currentContext();
-        Object replayResult = context.getCachedReplayResultMap().get(key);
-        if (replayResult == null) {
-            Mocker replayMocker = MockUtils.replayMocker(makeMocker());
-            if (MockUtils.checkResponseMocker(replayMocker)) {
-                replayResult = Serializer.deserialize(replayMocker.getTargetResponse().getBody(),
-                    TypeUtil.forName(replayMocker.getTargetResponse().getType()), SERIALIZER);
-            }
-            replayResult = restoreResponse(replayResult);
-            // no key no cache, no parameter methods may return different values
-            if (key != null && replayResult != null) {
-                context.getCachedReplayResultMap().put(key, replayResult);
-            }
-        }
-        boolean ignoreMockResult = IgnoreUtils.ignoreMockResult(clazzName, operation);
-        return MockResult.success(ignoreMockResult, replayResult);
-    }
-
-    protected Object restoreResponse(Object result) {
-        if (this.methodReturnType == null) {
-            return result;
-        }
-
+    Object restoreResponse(Object result) {
         if (LISTENABLE_FUTURE.equals(this.methodReturnType)) {
             if (result instanceof Throwable) {
                 return Futures.immediateFailedFuture((Throwable) result);
@@ -142,9 +241,10 @@ public class DynamicClassExtractor {
             CompletableFuture<Object> completableFuture = new CompletableFuture<>();
             if (result instanceof Throwable) {
                 completableFuture.completeExceptionally((Throwable) result);
-                return completableFuture;
+            } else {
+                completableFuture.complete(result);
             }
-            completableFuture.complete(result);
+
             return completableFuture;
         }
 
@@ -158,7 +258,7 @@ public class DynamicClassExtractor {
          * The nonparametric method may return different results and needs to be recorded
          * */
         ArexContext context = ContextManager.currentContext();
-        if (context != null && operationKey != null) {
+        if (context != null && methodKey != null) {
             this.methodSignatureKey = buildDuplicateMethodKey();
             this.methodSignatureKeyHash = StringUtil.encodeAndHash(methodSignatureKey);
             if (context.getMethodSignatureHashList().contains(methodSignatureKeyHash)) {
@@ -193,10 +293,10 @@ public class DynamicClassExtractor {
     }
 
     private String buildDuplicateMethodKey() {
-        if (StringUtil.isEmpty(operationResult)) {
-            return String.format("%s_%s_%s_no_result", clazzName, operation, operationKey);
+        if (Objects.isNull(result)) {
+            return String.format("%s_%s_%s_no_result", clazzName, methodName, methodKey);
         }
-        return String.format("%s_%s_%s_has_result", clazzName, operation, operationKey);
+        return String.format("%s_%s_%s_has_result_%s", clazzName, methodName, methodKey, result.getClass().getName());
     }
 
     /**
@@ -204,15 +304,19 @@ public class DynamicClassExtractor {
      */
     private void cacheMethodSignature() {
         ArexContext context = ContextManager.currentContext();
-        if (context != null && this.operationKey != null && this.methodSignatureKey != null) {
+        if (context != null && this.methodKey != null && this.methodSignatureKey != null) {
             context.getMethodSignatureHashList().add(this.methodSignatureKeyHash);
         }
     }
 
     private String buildCacheKey() {
-        if (StringUtil.isNotEmpty(this.operationKey)) {
-            return String.format("%s_%s_%s", this.clazzName, this.operation, this.operationKey);
+        if (StringUtil.isNotEmpty(this.methodKey)) {
+            return String.format("%s_%s_%s", this.clazzName, this.methodName, this.methodKey);
         }
-        return StringUtil.EMPTY;
+        return null;
+    }
+
+    public String getSerializedResult() {
+        return serializedResult;
     }
 }

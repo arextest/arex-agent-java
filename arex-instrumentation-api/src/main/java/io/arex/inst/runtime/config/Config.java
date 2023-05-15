@@ -1,6 +1,5 @@
 package io.arex.inst.runtime.config;
 
-import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.context.RecordLimiter;
 import io.arex.inst.runtime.model.DynamicClassEntity;
 
@@ -13,7 +12,7 @@ import java.util.function.Function;
 public class Config {
 
     private static Config INSTANCE = null;
-    private final Map<String, String> genericReturnTypeCacheMap = new HashMap<>();
+    private final Map<String, DynamicClassEntity> dynamicEntityMap = new HashMap<>();
 
     static void update(boolean enableDebug, String serviceName, List<DynamicClassEntity> entities,
         Map<String, String> properties, Set<String> excludeServiceOperations,
@@ -47,20 +46,15 @@ public class Config {
         this.dubboStreamReplayThreshold = dubboStreamReplayThreshold;
         this.recordRate = recordRate;
         this.recordVersion = properties.get("arex.agent.version");
-        buildGenericReturnTypeCacheMap();
+        buildDynamicEntityMap();
     }
 
-    private void buildGenericReturnTypeCacheMap() {
+    private void buildDynamicEntityMap() {
         if (entities == null) {
             return;
         }
         for (DynamicClassEntity entity : entities) {
-            String genericReturnType = entity.getGenericReturnType();
-            if (StringUtil.isEmpty(genericReturnType)) {
-                continue;
-            }
-
-            genericReturnTypeCacheMap.putIfAbsent(entity.getSignature(), genericReturnType);
+            dynamicEntityMap.putIfAbsent(entity.getSignature(), entity);
         }
     }
 
@@ -68,12 +62,12 @@ public class Config {
         return recordVersion;
     }
 
-    public String getGenericReturnType(String methodSignature) {
-        return genericReturnTypeCacheMap.get(methodSignature);
+    public DynamicClassEntity getDynamicEntity(String methodSignature) {
+        return dynamicEntityMap.get(methodSignature);
     }
 
-    public int getGenericReturnTypeMapSize() {
-        return genericReturnTypeCacheMap.size();
+    public Map<String, DynamicClassEntity> getDynamicEntityMap() {
+        return dynamicEntityMap;
     }
 
     public boolean isEnableDebug() {
@@ -146,10 +140,13 @@ public class Config {
     }
 
     /**
-     * Conditions for determining invalid recording configuration(debug mode don't judge): 1. rate <= 0 <br/> 2. not in
-     * working time <br/> 3. exceed rate limit <br/>
+     * Conditions for determining invalid recording configuration(debug mode don't judge):<br/>
+     * 1. rate <= 0 <br/>
+     * 2. not in working time <br/>
+     * 3. exceed rate limit <br/>
+     * 4. local IP match target IP <br/>
      *
-     * @return true: invalid OR false: valid
+     * @return true: invalid, false: valid
      */
     public boolean invalidRecord(String path) {
         if (isEnableDebug()) {
@@ -161,6 +158,10 @@ public class Config {
         if (!getBoolean("arex.during.work", false)) {
             return true;
         }
+        if (!getBoolean("arex.ip.validate", false)) {
+            return true;
+        }
+
         return !RecordLimiter.acquire(path);
     }
 }

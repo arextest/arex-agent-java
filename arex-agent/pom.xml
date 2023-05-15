@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.arex</groupId>
         <artifactId>arex-agent-parent</artifactId>
-        <version>0.1.0</version>
+        <version>${revision}</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -99,7 +99,7 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>arex-spring-cache</artifactId>
+            <artifactId>arex-cache</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
