@@ -64,7 +64,7 @@ class StringUtilTest {
         assertNull(actualResult);
 
         actualResult = StringUtil.join(Collections.emptyList(), ",");
-        assertNull(actualResult);
+        assertEquals(StringUtil.EMPTY, actualResult);
 
         actualResult = StringUtil.join(Collections.singleton("a"), ",");
         assertEquals("a", actualResult);
