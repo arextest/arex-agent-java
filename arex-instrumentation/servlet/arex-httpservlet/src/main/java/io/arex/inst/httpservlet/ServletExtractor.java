@@ -1,8 +1,9 @@
 package io.arex.inst.httpservlet;
 
 import io.arex.agent.bootstrap.model.Mocker;
-import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.httpservlet.adapter.ServletAdapter;
+import io.arex.inst.httpservlet.converter.HttpMessageConvertFactory;
+import io.arex.inst.httpservlet.converter.HttpMessageConverter;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.model.ArexConstants;
@@ -142,11 +143,9 @@ public class ServletExtractor<HttpServletRequest, HttpServletResponse> {
     }
 
     private String getRequest() {
-        if ("GET".equals(adapter.getMethod(httpServletRequest))) {
-            return StringUtil.EMPTY;
-        }
-        // Compatible with custom message converters that include compression
-        return Base64.getEncoder().encodeToString(adapter.getRequestBytes(httpServletRequest));
+        HttpMessageConverter converter = HttpMessageConvertFactory.getSupportedConverter(
+            httpServletRequest, adapter);
+        return Base64.getEncoder().encodeToString(converter.getRequest(httpServletRequest, adapter));
     }
 
     private Object getResponse() {
