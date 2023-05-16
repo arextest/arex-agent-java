@@ -220,4 +220,13 @@ class TypeUtilTest {
 
     }
 
+    @Test
+    public void testNullList() {
+        final List<Object> list = new ArrayList<>();
+        list.add(null);
+        String expectedName = "java.util.ArrayList-";
+        final String actualName = TypeUtil.getName(list);
+        assertEquals(expectedName, actualName);
+    }
+
 }
