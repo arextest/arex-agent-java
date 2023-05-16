@@ -46,7 +46,11 @@ public interface ServletAdapter<HttpServletRequest, HttpServletResponse> {
 
     String getFullUrl(HttpServletRequest httpServletRequest);
 
+    String getRequestPath(HttpServletRequest httpServletRequest);
+
     String getRequestURI(HttpServletRequest httpServletRequest);
+
+    String getPattern(HttpServletRequest httpServletRequest);
 
     String getMethod(HttpServletRequest httpServletRequest);
 
@@ -63,4 +67,6 @@ public interface ServletAdapter<HttpServletRequest, HttpServletResponse> {
     HttpServletResponse asHttpServletResponse(Object servletResponse);
 
     boolean markProcessed(HttpServletRequest httpServletRequest, String mark);
+
+    String getParameter(HttpServletRequest httpServletRequest, String name);
 }

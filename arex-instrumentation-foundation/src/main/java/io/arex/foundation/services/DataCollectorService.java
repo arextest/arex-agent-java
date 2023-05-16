@@ -106,9 +106,6 @@ public class DataCollectorService implements DataCollector {
     }
 
     void saveData(DataEntity entity) {
-        if (ConfigManager.INSTANCE.isEnableDebug()) {
-            LOGGER.info("[arex] save mocker: {}", entity.getPostData());
-        }
         AsyncHttpClientUtil.executeAsync(saveApiUrl, entity.getPostData()).whenComplete(saveMockDataConsumer(entity));
     }
 

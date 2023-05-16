@@ -3,6 +3,7 @@ package io.arex.inst.httpservlet;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.httpservlet.adapter.ServletAdapter;
+import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.serializer.Serializer;
@@ -22,6 +23,8 @@ import java.util.Map;
  * @date 2022/03/03
  */
 public class ServletExtractor<HttpServletRequest, HttpServletResponse> {
+    private static final int HTTP_STATUS_OK = 200;
+    private static final int HTTP_STATUS_FOUND = 302;
     private final HttpServletRequest httpServletRequest;
     private final HttpServletResponse httpServletResponse;
     private final ServletAdapter<HttpServletRequest, HttpServletResponse> adapter;
@@ -34,6 +37,22 @@ public class ServletExtractor<HttpServletRequest, HttpServletResponse> {
     }
 
     public void execute() throws IOException {
+        // Response status is 302, record redirect request
+        if (HTTP_STATUS_FOUND == adapter.getStatus(httpServletResponse)) {
+            ArexContext context = ContextManager.currentContext();
+            context.setAttachment(ArexConstants.REDIRECT_REQUEST_METHOD, adapter.getMethod(httpServletRequest));
+            context.setAttachment(ArexConstants.REDIRECT_REFERER, adapter.getFullUrl(httpServletRequest));
+            context.setAttachment(ArexConstants.REDIRECT_PATTERN, adapter.getPattern(httpServletRequest));
+            adapter.copyBodyToResponse(httpServletResponse);
+            return;
+        }
+
+        // Do not record if response status is not OK
+        if (HTTP_STATUS_OK != adapter.getStatus(httpServletResponse)) {
+            adapter.copyBodyToResponse(httpServletResponse);
+            return;
+        }
+
         if (adapter.getResponseHeader(httpServletResponse, ArexConstants.RECORD_ID) != null ||
                 adapter.getResponseHeader(httpServletResponse, ArexConstants.REPLAY_ID) != null) {
             adapter.copyBodyToResponse(httpServletResponse);
@@ -45,15 +64,11 @@ public class ServletExtractor<HttpServletRequest, HttpServletResponse> {
             return;
         }
 
-        doExecute();
-        executePostProcess();
-    }
-
-    private void executePostProcess() throws IOException {
         setResponseHeader();
         adapter.copyBodyToResponse(httpServletResponse);
+        adapter.removeAttribute(httpServletRequest, ServletAdviceHelper.SERVLET_ASYNC_FLAG);
+        doExecute();
     }
-
 
     private void setResponseHeader() {
         if (ContextManager.needRecord()) {
@@ -68,18 +83,30 @@ public class ServletExtractor<HttpServletRequest, HttpServletResponse> {
     }
 
     private void doExecute() {
-        Mocker mocker = MockUtils.createServlet(getPattern());
+        String pattern;
+        String httpMethod;
+        String requestPath;
+        ArexContext context = ContextManager.currentContext();
+        if (context.isRedirectRequest()) {
+            pattern = String.valueOf(context.getAttachment(ArexConstants.REDIRECT_PATTERN));
+            httpMethod = String.valueOf(context.getAttachment(ArexConstants.REDIRECT_REQUEST_METHOD));
+            requestPath = ServletUtil.getRequestPath(adapter.getRequestHeader(httpServletRequest, "referer"));
+        } else {
+            pattern = adapter.getPattern(httpServletRequest);
+            httpMethod = adapter.getMethod(httpServletRequest);
+            requestPath = adapter.getRequestPath(httpServletRequest);
+        }
 
         Map<String, Object> requestAttributes = new HashMap<>();
-        requestAttributes.put("HttpMethod", adapter.getMethod(httpServletRequest));
-        requestAttributes.put("RequestPath", adapter.getFullUrl(httpServletRequest));
+        requestAttributes.put("HttpMethod", httpMethod);
+        requestAttributes.put("RequestPath", requestPath);
         requestAttributes.put("Headers", getRequestHeaders());
 
-        Map<String, Object> responseAttributes = Collections.singletonMap("Headers", getResponseHeaders());
+        Mocker mocker = MockUtils.createServlet(pattern);
 
         mocker.getTargetRequest().setAttributes(requestAttributes);
         mocker.getTargetRequest().setBody(getRequest());
-        mocker.getTargetResponse().setAttributes(responseAttributes);
+        mocker.getTargetResponse().setAttributes(Collections.singletonMap("Headers", getResponseHeaders()));
 
         Object response = getResponse();
         mocker.getTargetResponse().setBody(Serializer.serialize(response));
@@ -96,6 +123,10 @@ public class ServletExtractor<HttpServletRequest, HttpServletResponse> {
         final Enumeration<String> headerNames = adapter.getRequestHeaderNames(httpServletRequest);
         while (headerNames.hasMoreElements()) {
             final String key = headerNames.nextElement();
+            // ignore referer
+            if ("referer".equals(key)) {
+                continue;
+            }
             headers.put(key, adapter.getRequestHeader(httpServletRequest, key));
         }
         return headers;
@@ -129,9 +160,4 @@ public class ServletExtractor<HttpServletRequest, HttpServletResponse> {
         return adapter.getResponseBytes(httpServletResponse);
     }
 
-    private String getPattern() {
-        Object pattern = adapter
-                .getAttribute(httpServletRequest, "org.springframework.web.servlet.HandlerMapping.bestMatchingPattern");
-        return pattern == null ? adapter.getRequestURI(httpServletRequest) : String.valueOf(pattern);
-    }
 }
