@@ -9,6 +9,7 @@ import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.foundation.util.SPIUtil;
 import java.io.IOException;
 
+import io.arex.inst.extension.matcher.IgnoredTypesMatcher;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.agent.builder.ResettableClassFileTransformer;
@@ -117,7 +118,8 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
         AgentBuilder builder = new AgentBuilder.Default(
                 new ByteBuddy().with(MethodGraph.Compiler.ForDeclaredMethods.INSTANCE))
             .enableNativeMethodPrefix("arex_")
-            .ignore(nameStartsWith("net.bytebuddy.")
+                .ignore(new IgnoredTypesMatcher())
+            /*.ignore(nameStartsWith("net.bytebuddy.")
                 .or(nameContains("javassist"))
                 .or(nameContains(".asm."))
                 .or(nameContains(".reflectasm."))
@@ -126,7 +128,7 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
                 .or(nameStartsWith("shaded."))
                 .or(nameStartsWith("io.arex"))
                 .or(isSynthetic())
-            )
+            )*/
             .with(new TransformListener(agentFile))
             .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
             .with(AgentBuilder.InitializationStrategy.NoOp.INSTANCE)

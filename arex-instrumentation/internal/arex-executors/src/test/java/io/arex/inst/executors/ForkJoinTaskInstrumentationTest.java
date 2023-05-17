@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.arex.agent.bootstrap.ctx.ArexThreadLocal;
 import io.arex.agent.bootstrap.internal.Cache;
-import io.arex.inst.executors.ForkJoinTaskInstrumentation.ConstructorAdvice;
 import io.arex.inst.executors.ForkJoinTaskInstrumentation.ExecAdvice;
 import java.util.concurrent.CountedCompleter;
 import java.util.concurrent.ForkJoinTask;
@@ -52,6 +51,6 @@ class ForkJoinTaskInstrumentationTest {
 
     @Test
     void ConstructorAdvice_onEnter() {
-        assertDoesNotThrow(() -> ConstructorAdvice.onExit(new Object()));
+        assertDoesNotThrow(() -> ForkJoinTaskConstructorInstrumentation.ConstructorAdvice.onExit(new Object()));
     }
 }
