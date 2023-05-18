@@ -18,6 +18,7 @@ import io.arex.inst.runtime.service.DataCollector;
 import io.arex.inst.runtime.service.DataService;
 import io.arex.inst.runtime.util.LogUtil;
 import java.util.List;
+import java.util.concurrent.ForkJoinTask;
 import net.bytebuddy.agent.builder.ResettableClassFileTransformer;
 
 import java.io.File;
@@ -56,6 +57,15 @@ public abstract class BaseAgentInstaller implements AgentInstaller {
         RecordLimiter.init(HealthManager::acquire);
         ConfigService.INSTANCE.loadAgentConfig(agentArgs);
         initDataCollector();
+        loadForkJoinTask();
+    }
+
+    /**
+     * Load the ForkJoinTask inner class in advance for transform
+     * ex: java.util.concurrent.ForkJoinTask$AdaptedCallable
+     */
+    private void loadForkJoinTask() {
+        ForkJoinTask.class.getDeclaredClasses();
     }
 
     private void installSerializer() {
