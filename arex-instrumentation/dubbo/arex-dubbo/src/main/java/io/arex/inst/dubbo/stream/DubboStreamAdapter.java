@@ -3,13 +3,17 @@ package io.arex.inst.dubbo.stream;
 import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.agent.bootstrap.model.MockStrategyEnum;
 import io.arex.agent.bootstrap.model.Mocker;
+import io.arex.inst.dubbo.DubboAdapter;
 import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.util.MockUtils;
+import io.arex.inst.runtime.util.TypeUtil;
 import org.apache.dubbo.rpc.model.MethodDescriptor;
 import org.apache.dubbo.rpc.protocol.tri.stream.Stream;
 
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,16 +22,18 @@ import java.util.List;
  */
 public class DubboStreamAdapter {
     private String streamId;
-    private DubboStreamAdapter(String streamId) {
+    private MethodDescriptor methodDescriptor;
+    private DubboStreamAdapter(String streamId, MethodDescriptor methodDescriptor) {
         this.streamId = streamId;
+        this.methodDescriptor = methodDescriptor;
     }
 
-    public static DubboStreamAdapter of(String streamId) {
-        return new DubboStreamAdapter(streamId);
+    public static DubboStreamAdapter of(String streamId, MethodDescriptor methodDescriptor) {
+        return new DubboStreamAdapter(streamId, methodDescriptor);
     }
 
-    public static DubboStreamAdapter of(Stream stream) {
-        return of(generateStreamId(stream));
+    public static DubboStreamAdapter of(Stream stream, MethodDescriptor methodDescriptor) {
+        return of(generateStreamId(stream), methodDescriptor);
     }
 
     public void saveRequest(byte[] message) {
@@ -77,5 +83,27 @@ public class DubboStreamAdapter {
      */
     public static String generateStreamId(Stream stream) {
         return Integer.toHexString(System.identityHashCode(stream));
+    }
+
+    public String getRequest(Object request) {
+        return DubboAdapter.parseRequest(request, Serializer::serialize);
+    }
+
+    public String getRequestParamType(Object request) {
+        if (methodDescriptor.getMethod() == null) {
+            return DubboAdapter.parseRequest(request, TypeUtil::getName);
+        }
+        Type[] genericParameters = methodDescriptor.getMethod().getGenericParameterTypes();
+        if (genericParameters.length <= 0) {
+            return DubboAdapter.parseRequest(request, TypeUtil::getName);
+        }
+        Type genericType = genericParameters[0];
+        if (genericType instanceof ParameterizedType) {
+            Type[] actualTypes = ((ParameterizedType) genericType).getActualTypeArguments();
+            if (actualTypes != null && actualTypes.length > 0) {
+                return actualTypes[0].getTypeName();
+            }
+        }
+        return DubboAdapter.parseRequest(request, TypeUtil::getName);
     }
 }

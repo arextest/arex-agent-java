@@ -20,6 +20,7 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
@@ -32,10 +33,12 @@ import static org.mockito.ArgumentMatchers.any;
 class DubboStreamAdapterTest {
     static DubboStreamAdapter adapter;
     static MockedStatic<DubboStreamCache> dubboStreamCacheMocker;
+    static MethodDescriptor methodDescriptor;
 
     @BeforeAll
-    static void setUp() {
-        adapter = DubboStreamAdapter.of(Mockito.mock(Stream.class));
+    static void setUp() throws NoSuchMethodException {
+        methodDescriptor = Mockito.mock(MethodDescriptor.class);
+        adapter = DubboStreamAdapter.of(Mockito.mock(Stream.class), methodDescriptor);
         dubboStreamCacheMocker = Mockito.mockStatic(DubboStreamCache.class);
         Mockito.mockStatic(ContextManager.class);
         Mockito.mockStatic(MockUtils.class);
@@ -92,5 +95,63 @@ class DubboStreamAdapterTest {
     void clearRequest() {
         adapter.clearRequest();
         dubboStreamCacheMocker.verify(() -> DubboStreamCache.remove(any()));
+    }
+
+    @Test
+    void getRequest() {
+        assertNull(adapter.getRequest(new Object[]{"mock"}));
+    }
+
+    @ParameterizedTest
+    @MethodSource("getRequestParamTypeCase")
+    void getRequestParamType(Runnable mocker, Predicate<String> predicate) {
+        mocker.run();
+        String result = adapter.getRequestParamType(new Object[]{"mock"});
+        assertTrue(predicate.test(result));
+    }
+
+    static java.util.stream.Stream<Arguments> getRequestParamTypeCase() {
+        Runnable emptyMocker = () -> {};
+        Runnable mocker1 = () -> {
+            Method method = null;
+            try {
+                method = DubboStreamAdapterTest.class.getDeclaredMethod(
+                        "testWithoutParameter");
+            } catch (NoSuchMethodException e) {}
+            Mockito.when(methodDescriptor.getMethod()).thenReturn(method);
+        };
+        Runnable mocker2 = () -> {
+            Method method = null;
+            try {
+                method = DubboStreamAdapterTest.class.getDeclaredMethod(
+                        "testWithGenericParameter", List.class);
+            } catch (NoSuchMethodException e) {}
+            Mockito.when(methodDescriptor.getMethod()).thenReturn(method);
+        };
+        Runnable mocker3 = () -> {
+            Method method = null;
+            try {
+                method = DubboStreamAdapterTest.class.getDeclaredMethod(
+                        "testWithGenericParameter", String.class, List.class);
+            } catch (NoSuchMethodException e) {}
+            Mockito.when(methodDescriptor.getMethod()).thenReturn(method);
+        };
+        Predicate<String> predicate1 = Objects::nonNull;
+        return java.util.stream.Stream.of(
+                arguments(emptyMocker, predicate1),
+                arguments(mocker1, predicate1),
+                arguments(mocker2, predicate1),
+                arguments(mocker3, predicate1)
+        );
+    }
+
+    String testWithoutParameter() {
+        return "mock";
+    }
+    String testWithGenericParameter(List<String> list) {
+        return "mock";
+    }
+    String testWithGenericParameter(String param, List<String> list) {
+        return "mock";
     }
 }

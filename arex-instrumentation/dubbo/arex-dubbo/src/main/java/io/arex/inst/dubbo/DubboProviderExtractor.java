@@ -70,6 +70,7 @@ public class DubboProviderExtractor {
         headerMap.put("protocol", adapter.getProtocol());
         mocker.getTargetRequest().setAttributes(Collections.singletonMap("Headers", Serializer.serialize(headerMap)));
         mocker.getTargetRequest().setBody(adapter.getRequest());
+        mocker.getTargetRequest().setType(adapter.getRequestParamType());
         String responseHeader = Serializer.serialize(RpcContext.getServerAttachment().getObjectAttachments());
         mocker.getTargetResponse().setAttributes(Collections.singletonMap("Headers", responseHeader));
         return mocker;
