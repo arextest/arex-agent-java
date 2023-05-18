@@ -48,7 +48,6 @@ public class ThreadPoolInstrumentation extends TypeInstrumentation {
 
     private List<String> includeExecutors() {
         return asList(
-                "java.util.concurrent.ForkJoinPool",
                 "java.util.concurrent.ThreadPoolExecutor",
                 "java.util.concurrent.AbstractExecutorService",
                 "java.util.concurrent.CompletableFuture$ThreadPerTaskExecutor",
