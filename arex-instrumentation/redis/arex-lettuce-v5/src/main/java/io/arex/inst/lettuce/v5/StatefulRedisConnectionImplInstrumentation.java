@@ -30,14 +30,11 @@ public class StatefulRedisConnectionImplInstrumentation extends TypeInstrumentat
     public List<MethodInstrumentation> methodAdvices() {
         ElementMatcher<MethodDescription> asyncMatcher = isProtected().and(named("newRedisAsyncCommandsImpl"));
 
-        String asyncAdvice = this.getClass().getName() + "$NewRedisAsyncCommandsImplAdvice";
-
         ElementMatcher<MethodDescription> reactiveMatcher = isProtected().and(named("newRedisReactiveCommandsImpl"));
 
-        String reactiveAdvice = this.getClass().getName() + "$NewRedisReactiveCommandsImplAdvice";
-
-        return Arrays.asList(new MethodInstrumentation(asyncMatcher, asyncAdvice),
-            new MethodInstrumentation(reactiveMatcher, reactiveAdvice));
+        return Arrays.asList(
+            new MethodInstrumentation(asyncMatcher, NewRedisAsyncCommandsImplAdvice.class.getName()),
+            new MethodInstrumentation(reactiveMatcher, NewRedisReactiveCommandsImplAdvice.class.getName()));
     }
 
     public static class NewRedisAsyncCommandsImplAdvice {
@@ -52,6 +49,9 @@ public class StatefulRedisConnectionImplInstrumentation extends TypeInstrumentat
             @Advice.Return(readOnly = false) RedisAsyncCommandsImpl<K, V> returnValue) {
             returnValue = new RedisAsyncCommandsImplWrapper<>(connection, codec);
         }
+
+        private NewRedisAsyncCommandsImplAdvice() {
+        }
     }
 
     public static class NewRedisReactiveCommandsImplAdvice {
@@ -65,6 +65,9 @@ public class StatefulRedisConnectionImplInstrumentation extends TypeInstrumentat
             @Advice.FieldValue("codec") RedisCodec<K, V> codec,
             @Advice.Return(readOnly = false) RedisReactiveCommandsImpl<K, V> returnValue) {
             returnValue = new RedisReactiveCommandsImplWrapper<>(connection, codec);
+        }
+
+        private NewRedisReactiveCommandsImplAdvice() {
         }
     }
 }

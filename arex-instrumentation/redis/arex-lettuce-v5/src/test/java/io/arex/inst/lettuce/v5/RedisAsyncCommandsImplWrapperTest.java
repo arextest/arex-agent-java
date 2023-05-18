@@ -1,5 +1,6 @@
 package io.arex.inst.lettuce.v5;
 
+import io.arex.inst.redis.common.RedisConnectionManager;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.inst.redis.common.RedisExtractor;
@@ -44,7 +45,7 @@ class RedisAsyncCommandsImplWrapperTest {
             Mockito.when(mock.replay()).thenReturn(MockResult.success("mock"));
         })) {}
         Mockito.mockStatic(ContextManager.class);
-        Mockito.mockStatic(LettuceHelper.class);
+        Mockito.mockStatic(RedisConnectionManager.class);
         target = new RedisAsyncCommandsImplWrapper(connection, Mockito.mock(RedisCodec.class));
     }
 
@@ -58,11 +59,12 @@ class RedisAsyncCommandsImplWrapperTest {
 
     @ParameterizedTest
     @MethodSource("dispatchCase")
-    void dispatch(Runnable mocker, Predicate<RedisFuture<?>> predicate) {
+    void dispatch(Runnable mocker, Predicate<RedisFuture<?>> predicate, MockResult mockResult) {
         mocker.run();
-        try (MockedConstruction<RedisExtractor> mocked = Mockito.mockConstruction(RedisExtractor.class, (mock, context) -> {
+        try (MockedConstruction<RedisExtractor> mocked = Mockito.mockConstruction(RedisExtractor.class, (extractor, context) -> {
             System.out.println("mock RedisExtractor");
-            Mockito.when(mock.replay()).thenReturn(MockResult.success(null));
+            Mockito.when(extractor.replay()).thenReturn(mockResult);
+            Mockito.doNothing().when(extractor).record(any());
         })) {
             RedisFuture<?> result = target.hget("key", "field");
             assertTrue(predicate.test(result));
@@ -71,7 +73,7 @@ class RedisAsyncCommandsImplWrapperTest {
 
     static Stream<Arguments> dispatchCase() {
         Runnable mocker1 = () -> {
-            Mockito.when(LettuceHelper.getRedisUri(anyInt())).thenReturn("");
+            Mockito.when(RedisConnectionManager.getRedisUri(anyInt())).thenReturn("");
             Mockito.when(ContextManager.needReplay()).thenReturn(true);
             Mockito.when(cmd.getType()).thenReturn(Mockito.mock(ProtocolKeyword.class));
         };
@@ -93,10 +95,11 @@ class RedisAsyncCommandsImplWrapperTest {
         };
         Predicate<RedisFuture<?>> predicate1 = Objects::nonNull;
         return Stream.of(
-                arguments(mocker1, predicate1),
-                arguments(mocker2, predicate1),
-                arguments(mocker3, predicate1),
-                arguments(mocker4, predicate1)
+            arguments(mocker1, predicate1, MockResult.success(null)),
+            arguments(mocker1, predicate1, MockResult.success(new NullPointerException())),
+            arguments(mocker2, predicate1, null),
+            arguments(mocker3, predicate1, null),
+            arguments(mocker4, predicate1, null)
         );
     }
 }

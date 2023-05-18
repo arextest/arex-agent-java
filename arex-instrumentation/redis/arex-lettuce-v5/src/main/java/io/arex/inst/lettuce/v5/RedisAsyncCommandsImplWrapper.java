@@ -2,6 +2,7 @@ package io.arex.inst.lettuce.v5;
 
 import io.arex.agent.bootstrap.ctx.TraceTransmitter;
 import io.arex.agent.bootstrap.model.MockResult;
+import io.arex.inst.redis.common.RedisConnectionManager;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.redis.common.RedisExtractor;
 import io.arex.inst.redis.common.RedisKeyUtil;
@@ -19,8 +20,6 @@ import io.lettuce.core.protocol.AsyncCommand;
 import io.lettuce.core.protocol.Command;
 import io.lettuce.core.protocol.RedisCommand;
 
-import java.time.Duration;
-import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +29,8 @@ import java.util.Set;
  * RedisAsyncCommandsImplWrapper
  */
 public class RedisAsyncCommandsImplWrapper<K, V> extends RedisAsyncCommandsImpl<K, V> {
+    public static final String START = "start";
+    public static final String STOP = "stop";
     private final RedisCommandBuilderImpl<K, V> commandBuilder;
     private String redisUri;
 
@@ -282,14 +283,14 @@ public class RedisAsyncCommandsImplWrapper<K, V> extends RedisAsyncCommandsImpl<
     public RedisFuture<List<V>> lrange(K key, long start, long stop) {
         Command<K, V, List<V>> cmd = commandBuilder.lrange(key, start, stop);
         return dispatch(cmd, String.valueOf(key),
-            RedisKeyUtil.generate("start", String.valueOf(start), "stop", String.valueOf(stop)));
+            RedisKeyUtil.generate(START, String.valueOf(start), STOP, String.valueOf(stop)));
     }
 
     @Override
     public RedisFuture<Long> lrange(ValueStreamingChannel<V> channel, K key, long start, long stop) {
         Command<K, V, Long> cmd = commandBuilder.lrange(channel, key, start, stop);
         return dispatch(cmd, String.valueOf(key),
-            RedisKeyUtil.generate("start", String.valueOf(start), "stop", String.valueOf(stop)));
+            RedisKeyUtil.generate(START, String.valueOf(start), STOP, String.valueOf(stop)));
     }
 
     @Override
@@ -302,7 +303,7 @@ public class RedisAsyncCommandsImplWrapper<K, V> extends RedisAsyncCommandsImpl<
     public RedisFuture<String> ltrim(K key, long start, long stop) {
         Command<K, V, String> cmd = commandBuilder.ltrim(key, start, stop);
         return dispatch(cmd, String.valueOf(key),
-            RedisKeyUtil.generate("start", String.valueOf(start), "stop", String.valueOf(stop)));
+            RedisKeyUtil.generate(START, String.valueOf(start), STOP, String.valueOf(stop)));
     }
 
     @Override
@@ -533,7 +534,7 @@ public class RedisAsyncCommandsImplWrapper<K, V> extends RedisAsyncCommandsImpl<
 
     private <T> AsyncCommand<K, V, T> dispatch(RedisCommand<K, V, T> cmd, String key, String field) {
         if (redisUri == null) {
-            redisUri = LettuceHelper.getRedisUri(this.getStatefulConnection().hashCode());
+            redisUri = RedisConnectionManager.getRedisUri(this.getStatefulConnection().hashCode());
         }
         if (ContextManager.needReplay()) {
             AsyncCommand<K, V, T> asyncCommand = new AsyncCommand<>(cmd);

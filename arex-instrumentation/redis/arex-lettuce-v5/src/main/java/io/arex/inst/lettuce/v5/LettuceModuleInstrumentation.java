@@ -15,7 +15,7 @@ import java.util.List;
 public class LettuceModuleInstrumentation extends ModuleInstrumentation {
     public LettuceModuleInstrumentation() {
         super("lettuce-v5", ModuleDescription.builder()
-                .name("lettuce.core").supportFrom(5, 0).build());
+                .name("lettuce.core").supportFrom(5, 0).supportTo(5, 9).build());
     }
 
     @Override

@@ -57,7 +57,6 @@ import static io.lettuce.core.protocol.CommandType.HVALS;
 import static io.lettuce.core.protocol.CommandType.INCR;
 import static io.lettuce.core.protocol.CommandType.INCRBY;
 import static io.lettuce.core.protocol.CommandType.INCRBYFLOAT;
-import static io.lettuce.core.protocol.CommandType.KEYS;
 import static io.lettuce.core.protocol.CommandType.LINDEX;
 import static io.lettuce.core.protocol.CommandType.LLEN;
 import static io.lettuce.core.protocol.CommandType.LPOP;
@@ -98,6 +97,7 @@ public class RedisCommandBuilderImpl<K, V> extends BaseRedisCommandBuilder<K, V>
     private static final String MUST_NOT_BE_EMPTY = "must not be empty";
 
     private static final String MUST_NOT_BE_NULL = "must not be null";
+    public static final String KEYS = "Keys ";
 
     RedisCommandBuilderImpl(RedisCodec<K, V> codec) {
         super(codec);
@@ -130,7 +130,7 @@ public class RedisCommandBuilderImpl<K, V> extends BaseRedisCommandBuilder<K, V>
     }
 
     Command<K, V, Long> del(Iterable<K> keys) {
-        LettuceAssert.notNull(keys, "Keys " + MUST_NOT_BE_NULL);
+        LettuceAssert.notNull(keys, KEYS + MUST_NOT_BE_NULL);
 
         CommandArgs<K, V> args = new CommandArgs<>(codec).addKeys(keys);
         return createCommand(DEL, new IntegerOutput<>(codec), args);
@@ -143,7 +143,7 @@ public class RedisCommandBuilderImpl<K, V> extends BaseRedisCommandBuilder<K, V>
     }
 
     Command<K, V, Long> exists(Iterable<K> keys) {
-        LettuceAssert.notNull(keys, "Keys " + MUST_NOT_BE_NULL);
+        LettuceAssert.notNull(keys, KEYS + MUST_NOT_BE_NULL);
 
         return createCommand(EXISTS, new IntegerOutput<>(codec), new CommandArgs<>(codec).addKeys(keys));
     }
@@ -174,23 +174,6 @@ public class RedisCommandBuilderImpl<K, V> extends BaseRedisCommandBuilder<K, V>
         CommandArgs<K, V> args = new CommandArgs<>(codec).addKey(key).add(offset);
         return createCommand(GETBIT, new IntegerOutput<>(codec), args);
     }
-
-//    Command<K, V, V> getdel(K key) {
-//        notNullKey(key);
-//
-//        return createCommand(GETDEL, new ValueOutput<>(codec), key);
-//    }
-//
-//    Command<K, V, V> getex(K key, GetExArgs getExArgs) {
-//        notNullKey(key);
-//        LettuceAssert.notNull(getExArgs, "GetExArgs " + MUST_NOT_BE_NULL);
-//
-//        CommandArgs<K, V> args = new CommandArgs<>(codec).addKey(key);
-//
-//        getExArgs.build(args);
-//
-//        return createCommand(GETEX, new ValueOutput<>(codec), args);
-//    }
 
     Command<K, V, V> getrange(K key, long start, long end) {
         notNullKey(key);
@@ -367,14 +350,14 @@ public class RedisCommandBuilderImpl<K, V> extends BaseRedisCommandBuilder<K, V>
     Command<K, V, List<K>> keys(K pattern) {
         LettuceAssert.notNull(pattern, "Pattern " + MUST_NOT_BE_NULL);
 
-        return createCommand(KEYS, new KeyListOutput<>(codec), pattern);
+        return createCommand(CommandType.KEYS, new KeyListOutput<>(codec), pattern);
     }
 
     Command<K, V, Long> keys(KeyStreamingChannel<K> channel, K pattern) {
         LettuceAssert.notNull(pattern, "Pattern " + MUST_NOT_BE_NULL);
         notNull(channel);
 
-        return createCommand(KEYS, new KeyStreamingOutput<>(codec, channel), pattern);
+        return createCommand(CommandType.KEYS, new KeyStreamingOutput<>(codec, channel), pattern);
     }
 
     Command<K, V, V> lindex(K key, long index) {
@@ -440,7 +423,7 @@ public class RedisCommandBuilderImpl<K, V> extends BaseRedisCommandBuilder<K, V>
     }
 
     Command<K, V, Long> mget(KeyValueStreamingChannel<K, V> channel, Iterable<K> keys) {
-        LettuceAssert.notNull(keys, "Keys " + MUST_NOT_BE_NULL);
+        LettuceAssert.notNull(keys, KEYS + MUST_NOT_BE_NULL);
         notNull(channel);
 
         CommandArgs<K, V> args = new CommandArgs<>(codec).addKeys(keys);
@@ -455,7 +438,7 @@ public class RedisCommandBuilderImpl<K, V> extends BaseRedisCommandBuilder<K, V>
     }
 
     Command<K, V, List<KeyValue<K, V>>> mgetKeyValue(Iterable<K> keys) {
-        LettuceAssert.notNull(keys, "Keys " + MUST_NOT_BE_NULL);
+        LettuceAssert.notNull(keys, KEYS + MUST_NOT_BE_NULL);
 
         CommandArgs<K, V> args = new CommandArgs<>(codec).addKeys(keys);
         return createCommand(MGET, new KeyValueListOutput<>(codec, keys), args);
@@ -717,8 +700,8 @@ public class RedisCommandBuilderImpl<K, V> extends BaseRedisCommandBuilder<K, V>
     }
 
     private static void notEmpty(Object[] keys) {
-        LettuceAssert.notNull(keys, "Keys " + MUST_NOT_BE_NULL);
-        LettuceAssert.notEmpty(keys, "Keys " + MUST_NOT_BE_EMPTY);
+        LettuceAssert.notNull(keys, KEYS + MUST_NOT_BE_NULL);
+        LettuceAssert.notEmpty(keys, KEYS + MUST_NOT_BE_EMPTY);
     }
 
     private static void notNullKey(Object key) {

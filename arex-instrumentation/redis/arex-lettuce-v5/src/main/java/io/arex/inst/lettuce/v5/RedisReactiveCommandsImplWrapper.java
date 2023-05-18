@@ -1,6 +1,7 @@
 package io.arex.inst.lettuce.v5;
 
 import io.arex.agent.bootstrap.model.MockResult;
+import io.arex.inst.redis.common.RedisConnectionManager;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.redis.common.RedisExtractor;
 import io.arex.inst.redis.common.RedisKeyUtil;
@@ -28,6 +29,9 @@ import java.util.function.Supplier;
  * RedisReactiveCommandsImplWrapper
  */
 public class RedisReactiveCommandsImplWrapper<K, V> extends RedisReactiveCommandsImpl<K, V> {
+
+    public static final String START = "start";
+    public static final String STOP = "stop";
     private final RedisCommandBuilderImpl<K, V> commandBuilder;
     private String redisUri;
 
@@ -287,14 +291,14 @@ public class RedisReactiveCommandsImplWrapper<K, V> extends RedisReactiveCommand
     public Flux<V> lrange(K key, long start, long stop) {
         Command<K, V, List<V>> cmd = commandBuilder.lrange(key, start, stop);
         return createDissolvingFlux(() -> cmd, String.valueOf(key),
-                RedisKeyUtil.generate("start", String.valueOf(start), "stop", String.valueOf(stop)));
+                RedisKeyUtil.generate(START, String.valueOf(start), STOP, String.valueOf(stop)));
     }
 
     @Override
     public Mono<Long> lrange(ValueStreamingChannel<V> channel, K key, long start, long stop) {
         Command<K, V, Long> cmd = commandBuilder.lrange(channel, key, start, stop);
         return createMono(() -> cmd, String.valueOf(key),
-                RedisKeyUtil.generate("start", String.valueOf(start), "stop", String.valueOf(stop)));
+                RedisKeyUtil.generate(START, String.valueOf(start), STOP, String.valueOf(stop)));
     }
 
     @Override
@@ -307,7 +311,7 @@ public class RedisReactiveCommandsImplWrapper<K, V> extends RedisReactiveCommand
     public Mono<String> ltrim(K key, long start, long stop) {
         Command<K, V, String> cmd = commandBuilder.ltrim(key, start, stop);
         return createMono(() -> cmd, String.valueOf(key),
-                RedisKeyUtil.generate("start", String.valueOf(start), "stop", String.valueOf(stop)));
+                RedisKeyUtil.generate(START, String.valueOf(start), STOP, String.valueOf(stop)));
     }
 
     @Override
@@ -538,7 +542,7 @@ public class RedisReactiveCommandsImplWrapper<K, V> extends RedisReactiveCommand
 
     public <T> Mono<T> createMono(Supplier<RedisCommand<K, V, T>> commandSupplier, String key, String field) {
         if (redisUri == null) {
-            redisUri = LettuceHelper.getRedisUri(this.getStatefulConnection().hashCode());
+            redisUri = RedisConnectionManager.getRedisUri(this.getStatefulConnection().hashCode());
         }
 
         if (ContextManager.needReplay()) {
@@ -576,7 +580,7 @@ public class RedisReactiveCommandsImplWrapper<K, V> extends RedisReactiveCommand
     public <T, R> Flux<R> createDissolvingFlux(Supplier<RedisCommand<K, V, T>> commandSupplier, String key,
                                                String field) {
         if (redisUri == null) {
-            redisUri = LettuceHelper.getRedisUri(this.getStatefulConnection().hashCode());
+            redisUri = RedisConnectionManager.getRedisUri(this.getStatefulConnection().hashCode());
         }
 
         if (ContextManager.needReplay()) {
