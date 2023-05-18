@@ -73,13 +73,15 @@ public class DubboCodecExtractor {
         if (versions.length < VALID_VERSION_LENGTH_3) {
             return true;
         }
-        int majorVersion = NumberUtil.toInt(versions[0] + versions[1]); // e.g 2.6.3 -> 2.6
-        if (majorVersion < MAJOR_VERSION_26) { // before 2.6 dubbo not support return attachments, need to add attachments
+        // e.g 2.6.3 -> 2.6
+        int majorVersion = NumberUtil.toInt(versions[0] + versions[1]);
+        // before 2.6 dubbo not support return attachments, need to add attachments
+        if (majorVersion < MAJOR_VERSION_26) {
             return true;
         }
         int subVersion = NumberUtil.toInt(versions[2]);
+        // after 2.6.3 already support return attachments to consumer-side, no need to add attachments
         if (subVersion >= SUB_VERSION_3) {
-            // after 2.6.3 already support return attachments to consumer-side, no need to add attachments
             return false;
         }
         return true;
