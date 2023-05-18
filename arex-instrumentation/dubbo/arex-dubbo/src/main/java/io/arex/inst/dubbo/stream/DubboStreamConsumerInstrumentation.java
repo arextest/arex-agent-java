@@ -70,7 +70,7 @@ public class DubboStreamConsumerInstrumentation extends TypeInstrumentation {
                                       @Advice.Local("mockResult") List<MockResult> mockResults) {
             if (ContextManager.needRecordOrReplay()) {
                 RepeatedCollectManager.enter();
-                extractor = new DubboStreamConsumerExtractor(DubboStreamAdapter.of(stream));
+                extractor = new DubboStreamConsumerExtractor(DubboStreamAdapter.of(stream, requestMetadata.method));
                 if (ContextManager.needReplay()) {
                     mockResults = extractor.replay(message, requestMetadata);
                 }
@@ -113,7 +113,8 @@ public class DubboStreamConsumerInstrumentation extends TypeInstrumentation {
                                   @Advice.FieldValue("stream") ClientStream stream,
                                   @Advice.FieldValue("requestMetadata") RequestMetadata requestMetadata) {
             if (ContextManager.needRecord()) {
-                DubboStreamConsumerExtractor extractor = new DubboStreamConsumerExtractor(DubboStreamAdapter.of(stream));
+                DubboStreamConsumerExtractor extractor = new DubboStreamConsumerExtractor(
+                        DubboStreamAdapter.of(stream, requestMetadata.method));
                 extractor.record(requestMetadata, message, null);
             }
         }
@@ -125,7 +126,8 @@ public class DubboStreamConsumerInstrumentation extends TypeInstrumentation {
                                    @Advice.FieldValue("stream") ClientStream stream,
                                    @Advice.FieldValue("requestMetadata") RequestMetadata requestMetadata) {
             if (ContextManager.needRecord()) {
-                DubboStreamConsumerExtractor extractor = new DubboStreamConsumerExtractor(DubboStreamAdapter.of(stream));
+                DubboStreamConsumerExtractor extractor = new DubboStreamConsumerExtractor(
+                        DubboStreamAdapter.of(stream, requestMetadata.method));
                 extractor.complete(status, requestMetadata);
             }
         }

@@ -1,5 +1,9 @@
 package io.arex.inst.httpservlet.wrapper;
 
+import io.arex.inst.httpservlet.ServletUtil;
+import io.arex.inst.runtime.context.ArexContext;
+import io.arex.inst.runtime.context.ContextManager;
+import io.arex.inst.runtime.model.ArexConstants;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.WriteListener;
 import jakarta.servlet.http.HttpServletResponse;
@@ -60,6 +64,10 @@ public class CachedBodyResponseWrapperV5 extends HttpServletResponseWrapper {
 
     @Override
     public void sendRedirect(String location) throws IOException {
+        ArexContext context = ContextManager.currentContext();
+        if (context != null) {
+            location = ServletUtil.appendUri(location, ArexConstants.RECORD_ID, context.getCaseId());
+        }
         copyBodyToResponse(false);
         super.sendRedirect(location);
     }

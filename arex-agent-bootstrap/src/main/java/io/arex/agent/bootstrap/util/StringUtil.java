@@ -43,7 +43,7 @@ public class StringUtil {
         Iterator<?> iterator = iterable.iterator();
 
         if (!iterator.hasNext()) {
-            return null;
+            return EMPTY;
         }
 
         final Object first = iterator.next();

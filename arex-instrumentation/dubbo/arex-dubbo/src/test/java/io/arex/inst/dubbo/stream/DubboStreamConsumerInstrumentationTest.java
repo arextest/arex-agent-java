@@ -31,6 +31,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 class DubboStreamConsumerInstrumentationTest {
     static DubboStreamConsumerInstrumentation target;
     static DubboStreamConsumerExtractor extractor;
+    static RequestMetadata requestMetadata;
 
     @BeforeAll
     static void setUp() {
@@ -41,6 +42,7 @@ class DubboStreamConsumerInstrumentationTest {
         Mockito.when(ContextManager.needRecord()).thenReturn(true);
         Mockito.mockStatic(RepeatedCollectManager.class);
         extractor = Mockito.mock(DubboStreamConsumerExtractor.class);
+        requestMetadata = Mockito.mock(RequestMetadata.class);
     }
 
     @AfterAll
@@ -65,7 +67,7 @@ class DubboStreamConsumerInstrumentationTest {
         try (MockedConstruction<DubboStreamConsumerExtractor> mocked = Mockito.mockConstruction(DubboStreamConsumerExtractor.class, (mock, context) -> {
             Mockito.when(mock.replay(any(), any())).thenReturn(Collections.singletonList(MockResult.success("mock")));
         })) {
-            assertTrue(DubboStreamConsumerInstrumentation.SendMessageAdvice.onEnter(null, null, null, null, null));
+            assertTrue(DubboStreamConsumerInstrumentation.SendMessageAdvice.onEnter(null, null, requestMetadata, null, null));
         }
     }
 
@@ -114,7 +116,7 @@ class DubboStreamConsumerInstrumentationTest {
     void onMessageOnExit() {
         try (MockedConstruction<DubboStreamConsumerExtractor> mocked = Mockito.mockConstruction(DubboStreamConsumerExtractor.class, (mock, context) -> {
         })) {
-            DubboStreamConsumerInstrumentation.OnMessageAdvice.onExit(null, null, null);
+            DubboStreamConsumerInstrumentation.OnMessageAdvice.onExit(null, null, requestMetadata);
             DubboStreamConsumerExtractor consumerExtractor = mocked.constructed().get(0);
             verify(consumerExtractor).record(any(), any(), any());
         }
@@ -124,7 +126,7 @@ class DubboStreamConsumerInstrumentationTest {
     void onCompleteOnEnter() {
         try (MockedConstruction<DubboStreamConsumerExtractor> mocked = Mockito.mockConstruction(DubboStreamConsumerExtractor.class, (mock, context) -> {
         })) {
-            DubboStreamConsumerInstrumentation.OnCompleteAdvice.onEnter(null, null, null);
+            DubboStreamConsumerInstrumentation.OnCompleteAdvice.onEnter(null, null, requestMetadata);
             DubboStreamConsumerExtractor consumerExtractor = mocked.constructed().get(0);
             verify(consumerExtractor).complete(any(), any());
         }

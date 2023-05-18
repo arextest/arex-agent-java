@@ -21,6 +21,7 @@ import java.lang.reflect.Type;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 import static io.arex.inst.runtime.model.ArexConstants.DUBBO_STREAM_NAME;
 import static io.arex.inst.runtime.model.ArexConstants.DUBBO_STREAM_PROTOCOL;
@@ -59,11 +60,24 @@ public class DubboAdapter {
         return getPath() + "." + getOperationName();
     }
     public String getRequest() {
-        Object request = null;
-        if (invocation.getArguments() != null && invocation.getArguments().length > 0) {
-            request = invocation.getArguments()[0];
+        return parseRequest(invocation.getArguments(), Serializer::serialize);
+    }
+    public String getRequestParamType() {
+        Class<?>[] parameterTypes = invocation.getParameterTypes();
+        if (parameterTypes != null && parameterTypes.length > 0) {
+            return parameterTypes[0].getName();
         }
-        return Serializer.serialize(request);
+        return parseRequest(invocation.getArguments(), TypeUtil::getName);
+    }
+    public static String parseRequest(Object request, Function<Object, String> parser) {
+        if (request instanceof Object[]) {
+            Object[] requests = (Object[]) request;
+            if (requests.length > 0) {
+                // take only the first request parameter, and in most cases will be packed as one object
+                return parser.apply(requests[0]);
+            }
+        }
+        return parser.apply(request);
     }
     public String getReturnType() {
         Type returnType = null;

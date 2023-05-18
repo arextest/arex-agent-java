@@ -1,5 +1,6 @@
 package io.arex.agent.bootstrap.model;
 
+import io.arex.agent.bootstrap.util.StringUtil;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -89,5 +90,22 @@ public interface Mocker extends Serializable {
         public void setType(String type) {
             this.type = type;
         }
+    }
+
+    default StringBuilder logBuilder() {
+        StringBuilder builder = new StringBuilder("[arex]");
+        boolean isReplay = StringUtil.isNotEmpty(getReplayId());
+        if (isReplay) {
+            builder.append("replay");
+        } else {
+            builder.append("record");
+        }
+        builder.append(" category: ").append(getCategoryType().getName());
+        builder.append(", operation: ").append(getOperationName());
+        builder.append(", recordId: ").append(getRecordId());
+        if (isReplay) {
+            builder.append(", replayId: ").append(getReplayId());
+        }
+        return builder;
     }
 }

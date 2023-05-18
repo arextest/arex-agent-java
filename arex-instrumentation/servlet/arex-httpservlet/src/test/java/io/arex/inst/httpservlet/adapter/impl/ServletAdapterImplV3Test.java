@@ -2,6 +2,7 @@ package io.arex.inst.httpservlet.adapter.impl;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import io.arex.inst.httpservlet.wrapper.CachedBodyRequestWrapperV3;
@@ -51,12 +52,12 @@ class ServletAdapterImplV3Test {
 
     @Test
     void wrapRequest() {
-        assertInstanceOf(CachedBodyRequestWrapperV3.class, instance.wrapRequest(mockRequest));
+        assertInstanceOf(CachedBodyRequestWrapperV3.class, instance.wrapRequest(instance.wrapRequest(mockRequest)));
     }
 
     @Test
     void wrapResponse() {
-        assertInstanceOf(CachedBodyResponseWrapperV3.class, instance.wrapResponse(mockResponse));
+        assertInstanceOf(CachedBodyResponseWrapperV3.class, instance.wrapResponse(instance.wrapResponse(mockResponse)));
     }
 
     @Test
@@ -120,17 +121,36 @@ class ServletAdapterImplV3Test {
 
     @Test
     void getFullUrl() {
-        when(mockRequest.getRequestURI()).thenReturn("/commutity/httpClientTest/okHttp");
-        assertEquals("/commutity/httpClientTest/okHttp", instance.getFullUrl(mockRequest));
+        when(mockRequest.getRequestURL()).thenReturn(new StringBuffer("http://arextest.com/servletpath/controll/action"));
+        assertEquals("http://arextest.com/servletpath/controll/action", instance.getFullUrl(mockRequest));
 
         when(mockRequest.getQueryString()).thenReturn("k1=v1&k2=v2");
-        assertEquals("/commutity/httpClientTest/okHttp?k1=v1&k2=v2", instance.getFullUrl(mockRequest));
+        assertEquals("http://arextest.com/servletpath/controll/action?k1=v1&k2=v2", instance.getFullUrl(mockRequest));
+    }
+
+    @Test
+    void getRequestPath() {
+        when(mockRequest.getRequestURI()).thenReturn("/commutity/httpClientTest/okHttp");
+        assertEquals("/commutity/httpClientTest/okHttp", instance.getRequestPath(mockRequest));
+
+        when(mockRequest.getQueryString()).thenReturn("k1=v1&k2=v2");
+        assertEquals("/commutity/httpClientTest/okHttp?k1=v1&k2=v2", instance.getRequestPath(mockRequest));
     }
 
     @Test
     void getRequestURI() {
         when(mockRequest.getRequestURI()).thenReturn("/commutity/httpClientTest/okHttp");
         assertEquals("/commutity/httpClientTest/okHttp", instance.getRequestURI(mockRequest));
+    }
+
+    @Test
+    void getPattern() {
+        when(mockRequest.getAttribute(eq("org.springframework.web.servlet.HandlerMapping.bestMatchingPattern"))).thenReturn("/book/{id}");
+        assertEquals("/book/{id}", instance.getPattern(mockRequest));
+
+        when(mockRequest.getAttribute(eq("org.springframework.web.servlet.HandlerMapping.bestMatchingPattern"))).thenReturn(null);
+        when(mockRequest.getRequestURI()).thenReturn("/commutity/httpClientTest/okHttp");
+        assertEquals("/commutity/httpClientTest/okHttp", instance.getPattern(mockRequest));
     }
 
     @Test
@@ -197,5 +217,11 @@ class ServletAdapterImplV3Test {
         assertTrue(instance.markProcessed(mockRequest, "mock"));
         when(mockRequest.getAttribute(any())).thenReturn(null);
         assertFalse(instance.markProcessed(mockRequest, "mock"));
+    }
+
+    @Test
+    void getParameter() {
+        when(mockRequest.getParameter(any())).thenReturn("mock-parameter");
+        assertEquals("mock-parameter", instance.getParameter(mockRequest, "arex-parameter"));
     }
 }
