@@ -67,7 +67,8 @@ public class DubboStreamConsumerExtractor {
             StreamModel.DataModel requestModel = getUnRecordRequest(dataModels);
             if (requestModel.getData() != null) {
                 Object request = requestMetadata.packableMethod.parseRequest(requestModel.getData());
-                mocker.getTargetRequest().setBody(Serializer.serialize(request));
+                mocker.getTargetRequest().setBody(adapter.getRequest(request));
+                mocker.getTargetRequest().setType(adapter.getRequestParamType(request));
             }
             if (throwable != null) {
                 mocker.getTargetResponse().setBody(Serializer.serialize(throwable));
