@@ -1,29 +1,28 @@
 package io.arex.inst.extension.matcher;
 
-import io.arex.agent.bootstrap.internal.Cache;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
 
+import java.util.Arrays;
+import java.util.List;
+
 public class IgnoredTypesMatcher extends ElementMatcher.Junction.AbstractBase<TypeDescription> {
-    private final Cache ignoredTypesCache = Cache.trieCache();
+
+    private static final List<String> IGNORED_TYPES = Arrays.asList(
+            "net.bytebuddy.",
+            "io.arex.",
+            "sun.reflect.",
+            "com.intellij.",
+            "shaded.");
 
     @Override
     public boolean matches(TypeDescription target) {
         String name = target.getActualName();
-        return nameStartsWith(name, "net.bytebuddy.") || nameStartsWith(name, "io.arex.")
-                || nameStartsWith(name, "sun.reflect.") || nameStartsWith(name, "com.intellij.")
-                || nameStartsWith(name, "shaded.");
-    }
-
-    private static boolean nameStartsWith(String value, String prefix) {
-        /*if (needLog(value)) {
-            System.out.println("[AREX][debug] value: " + value + ". prefix: " + prefix);
-        }*/
-        return value.startsWith(prefix);
-    }
-
-    private static boolean needLog(String value) {
-        return value.contains("bytebuddy") || value.contains("arex") ||
-                value.contains("reflect") || value.contains("intellij") || value.contains("shaded");
+        for (String ignoredType : IGNORED_TYPES) {
+            if (name.startsWith(ignoredType)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

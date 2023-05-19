@@ -118,17 +118,7 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
         AgentBuilder builder = new AgentBuilder.Default(
                 new ByteBuddy().with(MethodGraph.Compiler.ForDeclaredMethods.INSTANCE))
             .enableNativeMethodPrefix("arex_")
-                .ignore(new IgnoredTypesMatcher())
-            /*.ignore(nameStartsWith("net.bytebuddy.")
-                .or(nameContains("javassist"))
-                .or(nameContains(".asm."))
-                .or(nameContains(".reflectasm."))
-                .or(nameStartsWith("sun.reflect"))
-                .or(nameStartsWith("com.intellij."))
-                .or(nameStartsWith("shaded."))
-                .or(nameStartsWith("io.arex"))
-                .or(isSynthetic())
-            )*/
+            .ignore(new IgnoredTypesMatcher())
             .with(new TransformListener(agentFile))
             .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
             .with(AgentBuilder.InitializationStrategy.NoOp.INSTANCE)

@@ -34,14 +34,12 @@ public class ForkJoinTaskInstrumentation extends TypeInstrumentation {
                 @Advice.This Object task,
                 @Advice.Local("backup") Object backup) {
             final Object captured = Cache.CAPTURED_CACHE.get(task);
-            backup = captured == null ? null : ArexThreadLocal.Transmitter.replay(captured);
+            backup = ArexThreadLocal.Transmitter.replay(captured);
         }
 
         @Advice.OnMethodExit(suppress = Throwable.class)
         public static void onExit(@Advice.Local("backup") Object backup) {
-            if (backup != null) {
-                ArexThreadLocal.Transmitter.restore(backup);
-            }
+            ArexThreadLocal.Transmitter.restore(backup);
         }
     }
 }

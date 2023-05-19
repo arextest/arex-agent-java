@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.arex.agent.bootstrap.ctx.ArexThreadLocal;
-import io.arex.agent.bootstrap.internal.Cache;
 import io.arex.inst.executors.ForkJoinTaskInstrumentation.ExecAdvice;
 import java.util.concurrent.CountedCompleter;
 import java.util.concurrent.ForkJoinTask;
@@ -35,12 +34,11 @@ class ForkJoinTaskInstrumentationTest {
 
     @Test
     void methodAdvices() {
-        assertEquals(2, inst.methodAdvices().size());
+        assertEquals(1, inst.methodAdvices().size());
     }
 
     @Test
     void ExecAdvice_onEnter() {
-        Cache.CAPTURED_CACHE.put("fork-test", ArexThreadLocal.Transmitter.capture());
         assertDoesNotThrow(() -> ExecAdvice.onEnter("fork-test", new Object()));
     }
 
