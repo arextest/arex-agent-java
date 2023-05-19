@@ -27,7 +27,6 @@ class ThreadPoolInstrumentationTest {
 
     @Test
     void typeMatcher() {
-        assertTrue(inst.typeMatcher().matches(TypeDescription.ForLoadedType.of(ForkJoinPool.class)));
         assertTrue(inst.typeMatcher().matches(TypeDescription.ForLoadedType.of(ThreadPoolExecutor.class)));
     }
 

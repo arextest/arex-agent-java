@@ -19,6 +19,7 @@ public class ExecutorsModuleInstrumentation extends ModuleInstrumentation {
     public List<TypeInstrumentation> instrumentationTypes() {
         return asList(new ThreadPoolInstrumentation(),
                 new ForkJoinTaskInstrumentation(),
-                new FutureTaskInstrumentation());
+                new FutureTaskInstrumentation(),
+                new ForkJoinTaskConstructorInstrumentation());
     }
 }
