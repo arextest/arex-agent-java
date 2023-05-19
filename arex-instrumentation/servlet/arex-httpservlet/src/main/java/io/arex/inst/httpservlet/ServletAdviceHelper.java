@@ -101,9 +101,7 @@ public class ServletAdviceHelper {
         String redirectRecordId = getRedirectRecordId(adapter, httpServletRequest);
         if (StringUtil.isNotEmpty(redirectRecordId)) {
             TraceContextManager.set(redirectRecordId);
-        }
-
-        if (ContextManager.currentContext() == null) {
+        } else {
             CaseEventDispatcher.onEvent(CaseEvent.ofEnterEvent());
             String caseId = adapter.getRequestHeader(httpServletRequest, ArexConstants.RECORD_ID);
             String excludeMockTemplate = adapter.getRequestHeader(httpServletRequest, ArexConstants.HEADER_EXCLUDE_MOCK);
