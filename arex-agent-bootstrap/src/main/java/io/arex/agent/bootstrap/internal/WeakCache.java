@@ -23,17 +23,15 @@ class WeakCache<K, V> extends ReferenceQueue<K> implements Cache<K, V> {
 
     public boolean contains(K key) {
         check();
-        return target.containsKey(key);
+        return target.containsKey(new WeakReferenceKey<>(key, this));
     }
 
     public void put(K key, V value) {
         check();
+        if (value == null) {
+            return;
+        }
         target.put(new WeakReferenceKey<>(key, this), value);
-    }
-
-    public V remove(K key) {
-        check();
-        return target.remove(key);
     }
 
     public void clear() {
@@ -45,11 +43,6 @@ class WeakCache<K, V> extends ReferenceQueue<K> implements Cache<K, V> {
         while ((reference = poll()) != null) {
             target.remove(reference);
         }
-    }
-
-    public int size() {
-        check();
-        return target.size();
     }
 
     static final class WeakReferenceKey<K> extends WeakReference<K> {
