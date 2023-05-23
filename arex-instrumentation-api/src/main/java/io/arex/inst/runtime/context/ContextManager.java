@@ -51,6 +51,10 @@ public class ContextManager {
         return RECORD_MAP.get(traceId);
     }
 
+    public static ArexContext getRecordContext(String recordId) {
+        return RECORD_MAP.get(recordId);
+    }
+
     public static boolean needRecord() {
         ArexContext context = currentContext();
         return context != null && !context.isReplay();

@@ -19,6 +19,6 @@ class ExecutorsModuleInstrumentationTest {
 
     @Test
     void instrumentationTypes() {
-        assertEquals(3, module.instrumentationTypes().size());
+        assertEquals(4, module.instrumentationTypes().size());
     }
 }

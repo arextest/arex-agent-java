@@ -113,7 +113,8 @@ public class DubboStreamConsumerInstrumentation extends TypeInstrumentation {
                                   @Advice.FieldValue("stream") ClientStream stream,
                                   @Advice.FieldValue("requestMetadata") RequestMetadata requestMetadata) {
             if (ContextManager.needRecord()) {
-                DubboStreamConsumerExtractor extractor = new DubboStreamConsumerExtractor(DubboStreamAdapter.of(stream, requestMetadata.method));
+                DubboStreamConsumerExtractor extractor = new DubboStreamConsumerExtractor(
+                        DubboStreamAdapter.of(stream, requestMetadata.method));
                 extractor.record(requestMetadata, message, null);
             }
         }
@@ -125,7 +126,8 @@ public class DubboStreamConsumerInstrumentation extends TypeInstrumentation {
                                    @Advice.FieldValue("stream") ClientStream stream,
                                    @Advice.FieldValue("requestMetadata") RequestMetadata requestMetadata) {
             if (ContextManager.needRecord()) {
-                DubboStreamConsumerExtractor extractor = new DubboStreamConsumerExtractor(DubboStreamAdapter.of(stream, requestMetadata.method));
+                DubboStreamConsumerExtractor extractor = new DubboStreamConsumerExtractor(
+                        DubboStreamAdapter.of(stream, requestMetadata.method));
                 extractor.complete(status, requestMetadata);
             }
         }

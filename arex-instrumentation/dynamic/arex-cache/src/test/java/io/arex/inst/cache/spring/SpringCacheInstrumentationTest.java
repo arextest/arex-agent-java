@@ -1,6 +1,8 @@
 package io.arex.inst.cache.spring;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+
 import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.inst.cache.TestArexMock;
 import io.arex.inst.dynamic.common.DynamicClassExtractor;
@@ -29,6 +31,7 @@ class SpringCacheInstrumentationTest {
         Mockito.mockStatic(ContextManager.class);
         Mockito.mockStatic(MockUtils.class);
         Mockito.mockStatic(RepeatedCollectManager.class);
+        Mockito.mockStatic(SpringCacheAdviceHelper.class);
     }
 
     @AfterAll
@@ -59,8 +62,13 @@ class SpringCacheInstrumentationTest {
             boolean actualResult = SpringCacheInstrumentation.SpringCacheAdvice.onEnter(testReturnVoid, null, null, null);
             assertFalse(actualResult);
 
+            // not record
+            Mockito.when(SpringCacheAdviceHelper.needRecordOrReplay(any())).thenReturn(false);
+            actualResult = SpringCacheInstrumentation.SpringCacheAdvice.onEnter(test1, new Object[]{ "name", 18 }, null, null);
+            assertFalse(actualResult);
+
             // record
-            Mockito.when(ContextManager.needRecordOrReplay()).thenReturn(true);
+            Mockito.when(SpringCacheAdviceHelper.needRecordOrReplay(any())).thenReturn(true);
             Mockito.when(ContextManager.needRecord()).thenReturn(true);
             DynamicClassExtractor extractor = new DynamicClassExtractor(test1, new Object[]{"mock"}, "#val", null);
             actualResult = SpringCacheInstrumentation.SpringCacheAdvice.onEnter(test1, new Object[]{ "name", 18 }, extractor, null);

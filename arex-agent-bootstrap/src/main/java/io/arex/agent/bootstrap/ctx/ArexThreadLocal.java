@@ -12,7 +12,7 @@ import java.util.WeakHashMap;
  * 3. transmittable-thread-local not work in nio.reactor.Worker（@see AbstractMultiworkerIOReactor）
  * 4. Change from InheritableThreadLocal to ThreadLocal，avoid collect unexpected data
  */
-public class ArexThreadLocal<T> extends InheritableThreadLocal<T> {
+public class ArexThreadLocal<T> extends ThreadLocal<T> {
 
     public ArexThreadLocal() {
     }
@@ -75,28 +75,34 @@ public class ArexThreadLocal<T> extends InheritableThreadLocal<T> {
     public static class Transmitter {
 
         public static Object capture() {
-            return new Snapshot(captureValues());
+            HashMap<ArexThreadLocal<Object>, Object> values = captureValues();
+            return values == null ? null : new Snapshot(captureValues());
         }
 
         private static HashMap<ArexThreadLocal<Object>, Object> captureValues() {
-            HashMap<ArexThreadLocal<Object>, Object> values = new HashMap<>();
+            HashMap<ArexThreadLocal<Object>, Object> values = null;
             for (ArexThreadLocal<Object> threadLocal : holder.get().keySet()) {
+                if (null == values) {
+                    values = new HashMap<>();
+                }
                 values.put(threadLocal, threadLocal.copyValue());
             }
             return values;
         }
 
         public static Object replay(Object captured) {
+            if (captured == null) {
+                return null;
+            }
+
             final Snapshot capturedSnapshot = (Snapshot) captured;
             return new Snapshot(replayValues(capturedSnapshot.values));
         }
 
         private static HashMap<ArexThreadLocal<Object>, Object> replayValues(HashMap<ArexThreadLocal<Object>, Object> captured) {
             HashMap<ArexThreadLocal<Object>, Object> backup = new HashMap<>();
-
             for (final Iterator<ArexThreadLocal<Object>> iterator = holder.get().keySet().iterator(); iterator.hasNext(); ) {
                 ArexThreadLocal<Object> threadLocal = iterator.next();
-
                 backup.put(threadLocal, threadLocal.get());
                 if (!captured.containsKey(threadLocal)) {
                     iterator.remove();
@@ -109,6 +115,10 @@ public class ArexThreadLocal<T> extends InheritableThreadLocal<T> {
         }
 
         public static void restore(Object backup) {
+            if (backup == null) {
+                return;
+            }
+
             final Snapshot backupSnapshot = (Snapshot) backup;
             restoreValues(backupSnapshot.values);
         }
@@ -116,7 +126,6 @@ public class ArexThreadLocal<T> extends InheritableThreadLocal<T> {
         private static void restoreValues(HashMap<ArexThreadLocal<Object>, Object> backup) {
             for (final Iterator<ArexThreadLocal<Object>> iterator = holder.get().keySet().iterator(); iterator.hasNext(); ) {
                 ArexThreadLocal<Object> threadLocal = iterator.next();
-
                 if (!backup.containsKey(threadLocal)) {
                     iterator.remove();
                     threadLocal.superRemove();

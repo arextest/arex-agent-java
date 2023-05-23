@@ -1,0 +1,2 @@
+io.arex.inst.httpservlet.converter.impl.JsonHttpMessageConverter
+io.arex.inst.httpservlet.converter.impl.XmlHttpMessageConverter

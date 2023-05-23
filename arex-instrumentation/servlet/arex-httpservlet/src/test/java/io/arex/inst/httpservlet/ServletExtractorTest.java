@@ -12,6 +12,7 @@ import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.util.MockUtils;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.stream.Stream;
 import javax.servlet.http.HttpServletRequest;
@@ -56,9 +57,21 @@ class ServletExtractorTest {
 
 
     static Stream<Arguments> executeCase() {
-        Runnable mock1 = () -> Mockito.when(adapter.getResponseHeader(response, ArexConstants.REPLAY_ID)).thenReturn("mock-replay-id");
+        Runnable mockResponseStatus302 = () -> {
+            Mockito.when(adapter.getStatus(response)).thenReturn(302);
+            Mockito.when(ContextManager.currentContext()).thenReturn(ArexContext.of("mock-trace-id"));
+        };
 
-        Runnable verify1 = () -> {
+        Runnable mockResponseStatus100 = () -> {
+            Mockito.when(adapter.getStatus(response)).thenReturn(100);
+        };
+
+        Runnable mockResponseHeaderContainsReplayId = () -> {
+            Mockito.when(adapter.getStatus(response)).thenReturn(200);
+            Mockito.when(adapter.getResponseHeader(response, ArexConstants.REPLAY_ID)).thenReturn("mock-replay-id");
+        };
+
+        Runnable verifyCopyToResponse = () -> {
             try {
                 Mockito.verify(adapter, Mockito.atLeastOnce()).copyBodyToResponse(response);
             } catch (IOException e) {
@@ -66,13 +79,12 @@ class ServletExtractorTest {
             }
         };
 
-        Runnable mock2 = () -> {
+        Runnable mockNeedRecordOrReplayIsFalse = () -> {
             Mockito.when(adapter.getResponseHeader(response, ArexConstants.REPLAY_ID)).thenReturn(null);
             Mockito.when(ContextManager.needRecordOrReplay()).thenReturn(false);
         };
 
-        Runnable mock3 = () -> {
-            Mockito.when(adapter.getResponseHeader(response, ArexConstants.REPLAY_ID)).thenReturn(null);
+        Runnable mockNotRedirectRequest = () -> {
             Mockito.when(ContextManager.needRecordOrReplay()).thenReturn(true);
 
             ArexMocker mocker = new ArexMocker();
@@ -80,41 +92,50 @@ class ServletExtractorTest {
             mocker.setTargetResponse(new Target());
             Mockito.when(MockUtils.createServlet(any())).thenReturn(mocker);
 
-            Mockito.when(adapter.getRequestHeaderNames(request)).thenReturn(Collections.enumeration(Collections.singleton("mock-header-name")));
+            Mockito.when(adapter.getRequestHeaderNames(request)).thenReturn(Collections.enumeration(Arrays.asList("mock-header-name", "referer")));
             Mockito.when(adapter.getResponseHeaderNames(response)).thenReturn(Collections.singleton("mock-header-name"));
             Mockito.when(adapter.getRequestBytes(request)).thenReturn(new byte[0]);
             Mockito.when(adapter.getAttribute(request, ServletAdviceHelper.SERVLET_RESPONSE)).thenReturn(new Object());
             Mockito.when(ContextManager.needRecord()).thenReturn(true);
             Mockito.when(ContextManager.currentContext()).thenReturn(ArexContext.of("mock-trace-id"));
         };
-        Runnable verify2 = () -> {
-            Mockito.verify(adapter).setResponseHeader(response, ArexConstants.RECORD_ID, "mock-trace-id");
+        Runnable mockRedirectRequest = () -> {
+            ArexContext context = ArexContext.of("mock-trace-id");
+            context.setRedirectRequest(true);
+            Mockito.when(ContextManager.currentContext()).thenReturn(context);
         };
 
-        Runnable mock4 = () -> {
+        Runnable verifyResponseHeaderContainsTrace = () -> {
+            Mockito.verify(adapter, Mockito.atLeastOnce()).setResponseHeader(response, ArexConstants.RECORD_ID, "mock-trace-id");
+        };
+
+        Runnable mockNeedRecord = () -> {
             Mockito.when(ContextManager.needRecord()).thenReturn(false);
             Mockito.when(ContextManager.needReplay()).thenReturn(true);
         };
 
-        Runnable verify3 = () -> {
+        Runnable verifySetResponseHeader = () -> {
             Mockito.verify(adapter).setResponseHeader(response, ArexConstants.REPLAY_ID, null);
         };
 
-        Runnable mock5 = () -> {
+        Runnable mockRequestMethodIsGet = () -> {
             Mockito.when(adapter.getMethod(request)).thenReturn("GET");
             Mockito.when(adapter.getAttribute(request, ServletAdviceHelper.SERVLET_RESPONSE)).thenReturn(null);
         };
 
-        Runnable verify4 = () -> {
+        Runnable verifyGetResponseBytes = () -> {
             Mockito.verify(adapter).getResponseBytes(response);
         };
 
         return Stream.of(
-            arguments("response header contains arex trace", mock1, verify1),
-            arguments("no need record or replay", mock2, verify1),
-            arguments("record execute", mock3, verify2),
-            arguments("replay execute", mock4, verify3),
-            arguments("get method", mock5, verify4)
+            arguments("response status is 302", mockResponseStatus302, verifyCopyToResponse),
+            arguments("response status is 200", mockResponseStatus100, verifyCopyToResponse),
+            arguments("response header contains arex trace", mockResponseHeaderContainsReplayId, verifyCopyToResponse),
+            arguments("no need record or replay", mockNeedRecordOrReplayIsFalse, verifyCopyToResponse),
+            arguments("record execute not redirect request", mockNotRedirectRequest, verifyResponseHeaderContainsTrace),
+            arguments("record execute redirect request", mockRedirectRequest, verifyResponseHeaderContainsTrace),
+            arguments("replay execute", mockNeedRecord, verifySetResponseHeader),
+            arguments("get method", mockRequestMethodIsGet, verifyGetResponseBytes)
         );
     }
 }

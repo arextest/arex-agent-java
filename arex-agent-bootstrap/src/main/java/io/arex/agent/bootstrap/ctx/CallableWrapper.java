@@ -3,6 +3,7 @@ package io.arex.agent.bootstrap.ctx;
 import io.arex.agent.bootstrap.TraceContextManager;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.ForkJoinTask;
 
 
 public class CallableWrapper<V> implements Callable<V> {
@@ -47,8 +48,8 @@ public class CallableWrapper<V> implements Callable<V> {
             return callable;
         }
 
-        if (callable instanceof CallableWrapper) {
-            return (CallableWrapper<T>) callable;
+        if (callable instanceof CallableWrapper || callable instanceof ForkJoinTask) {
+            return callable;
         }
         return new CallableWrapper<T>(callable);
     }

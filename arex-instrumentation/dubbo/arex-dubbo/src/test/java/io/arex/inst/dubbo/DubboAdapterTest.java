@@ -84,6 +84,15 @@ class DubboAdapterTest {
     }
 
     @Test
+    void getRequestParamType() {
+        Mockito.when(invocation.getParameterTypes()).thenReturn(new Class<?>[]{String.class});
+        assertNotNull(adapter.getRequestParamType());
+        Mockito.when(invocation.getParameterTypes()).thenReturn(new Class<?>[]{});
+        Mockito.when(invocation.getArguments()).thenReturn(new Object[]{});
+        assertNotNull(adapter.getRequestParamType());
+    }
+
+    @Test
     void getReturnType() {
         Type type1 = Mockito.mock(Type.class);
         Type type2 = Mockito.mock(Type.class);

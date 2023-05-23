@@ -8,7 +8,12 @@ public class TraceTransmitter implements AutoCloseable {
     private AtomicReference<Object> backupRef;
 
     private TraceTransmitter() {
-        this.captureRef = new AtomicReference<>(ArexThreadLocal.Transmitter.capture());
+        this.captureRef = null;
+        this.backupRef = null;
+    }
+
+    private TraceTransmitter(Object capture) {
+        this.captureRef = new AtomicReference<>(capture);
         this.backupRef = new AtomicReference<>();
     }
 
@@ -29,6 +34,23 @@ public class TraceTransmitter implements AutoCloseable {
     }
 
     public static TraceTransmitter create() {
-        return new TraceTransmitter();
+        Object capture = ArexThreadLocal.Transmitter.capture();
+        if (capture == null) {
+            return DoNothingTransmitter.INSTANCE;
+        }
+        return new TraceTransmitter(capture);
+    }
+
+    static class DoNothingTransmitter extends TraceTransmitter {
+        static final TraceTransmitter INSTANCE = new DoNothingTransmitter();
+
+        @Override
+        public TraceTransmitter transmit() {
+            return this;
+        }
+
+        @Override
+        public void close() {
+        }
     }
  }

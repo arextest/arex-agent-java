@@ -2,6 +2,8 @@ package io.arex.agent.bootstrap.ctx;
 
 import io.arex.agent.bootstrap.TraceContextManager;
 
+import java.util.concurrent.ForkJoinTask;
+
 
 public class RunnableWrapper implements Runnable {
     private final Runnable runnable;
@@ -43,7 +45,7 @@ public class RunnableWrapper implements Runnable {
             return runnable;
         }
 
-        if (runnable instanceof RunnableWrapper) {
+        if (runnable instanceof RunnableWrapper || runnable instanceof ForkJoinTask) {
             return runnable;
         }
         return new RunnableWrapper(runnable);

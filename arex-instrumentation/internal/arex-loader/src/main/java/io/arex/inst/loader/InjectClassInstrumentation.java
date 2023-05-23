@@ -43,12 +43,7 @@ public class InjectClassInstrumentation extends TypeInstrumentation {
         @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class, suppress = Throwable.class)
         public static Class<?> onEnter(
                 @Advice.This ClassLoader classLoader, @Advice.Argument(0) String name) {
-            Class<?> adviceClass = AdviceInjectorCache.getAdviceClass(name, classLoader);
-            if (adviceClass != null) {
-                return adviceClass;
-            }
-
-            return null;
+            return AdviceInjectorCache.getAdviceClass(name, classLoader);
         }
 
         @Advice.OnMethodExit(onThrowable = Throwable.class, suppress = Throwable.class)

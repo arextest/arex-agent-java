@@ -90,7 +90,7 @@ public class DubboStreamAdapter {
     }
 
     public String getRequestParamType(Object request) {
-        if (methodDescriptor == null) {
+        if (methodDescriptor.getMethod() == null) {
             return DubboAdapter.parseRequest(request, TypeUtil::getName);
         }
         Type[] genericParameters = methodDescriptor.getMethod().getGenericParameterTypes();

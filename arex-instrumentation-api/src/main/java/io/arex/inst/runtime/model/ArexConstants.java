@@ -7,6 +7,9 @@ public class ArexConstants {
     public static final String REPLAY_ID = "arex-replay-id";
     public static final String REPLAY_WARM_UP = "arex-replay-warm-up";
     public static final String FORCE_RECORD = "arex-force-record";
+    public static final String REDIRECT_REQUEST_METHOD = "arex-redirect-request-method";
+    public static final String REDIRECT_REFERER = "arex-redirect-referer";
+    public static final String REDIRECT_PATTERN = "arex-redirect-pattern";
     /**
      * mock template
      */
