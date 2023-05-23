@@ -94,6 +94,7 @@ public class ServletAdviceHelper {
         }
 
         if (shouldSkip(adapter, httpServletRequest)) {
+            CaseEventDispatcher.onEvent(CaseEvent.ofEnterEvent());
             return null;
         }
 
