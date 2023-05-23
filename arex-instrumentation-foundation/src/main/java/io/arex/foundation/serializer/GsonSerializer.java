@@ -198,7 +198,7 @@ public class GsonSerializer implements StringSerializable {
         }
         try {
             return serializer.toJson(object);
-        } catch (Exception ex) {
+        } catch (Throwable ex) {
             LOGGER.warn("serialize", ex);
             return null;
         }
@@ -211,7 +211,7 @@ public class GsonSerializer implements StringSerializable {
         }
         try {
             return serializer.fromJson(json, clazz);
-        } catch (Exception ex) {
+        } catch (Throwable ex) {
             LOGGER.warn("gson-deserialize-clazz", ex);
             return null;
         }
@@ -224,7 +224,7 @@ public class GsonSerializer implements StringSerializable {
         }
         try {
             return serializer.fromJson(json, type);
-        } catch (Exception ex) {
+        } catch (Throwable ex) {
             LOGGER.warn("gson-deserialize-type", ex);
             return null;
         }

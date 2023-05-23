@@ -1,6 +1,7 @@
 package io.arex.foundation.util;
 
 import io.arex.agent.bootstrap.model.MockStrategyEnum;
+import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.foundation.config.ConfigManager;
 import io.arex.foundation.util.async.AutoCleanedPoolingNHttpClientConnectionManager;
 import io.arex.foundation.util.async.ThreadFactoryImpl;
@@ -38,8 +39,12 @@ import java.util.function.Function;
 public class AsyncHttpClientUtil {
     private static final Logger LOGGER = LoggerFactory.getLogger(AsyncHttpClientUtil.class);
     private static final String USER_AGENT = String.format("arex-async-http-client-%s", ConfigManager.INSTANCE.getAgentVersion());
-
+    /**
+     *  the compressed size of the sent httpEntity is limited to less than 5MB
+     */
+    private static final long AREX_RECORD_BODY_SIZE_LIMIT = 5 * 1024 * 1024L;
     private static CloseableHttpAsyncClient asyncClient;
+    private static final CompletableFuture<String> OVER_LIMIT_FUTURE = CompletableFuture.completedFuture(StringUtil.EMPTY);
 
     static {
         try {
@@ -77,6 +82,10 @@ public class AsyncHttpClientUtil {
     }
 
     public static CompletableFuture<String> executeAsync(String urlAddress, HttpEntity httpEntity, Map<String, String> requestHeaders) {
+        if (AREX_RECORD_BODY_SIZE_LIMIT < httpEntity.getContentLength() || httpEntity.getContentLength() < 0) {
+            LOGGER.warn("[arex] do not record, the size is larger than 5MB.");
+            return OVER_LIMIT_FUTURE;
+        }
         HttpPost httpPost = getHttpPost(urlAddress, httpEntity, requestHeaders);
         return executeAsync(httpPost).thenApply(response -> response.get("responseBody"));
     }
