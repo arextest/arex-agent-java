@@ -12,13 +12,9 @@ import io.arex.foundation.config.ConfigQueryResponse;
 import io.arex.foundation.util.AsyncHttpClientUtil;
 import io.arex.foundation.util.NetUtils;
 import io.arex.agent.bootstrap.util.StringUtil;
-import io.arex.foundation.util.async.ThreadFactoryImpl;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,12 +32,10 @@ public class ConfigService {
     public static final ConfigService INSTANCE = new ConfigService();
     private static final String CONFIG_LOAD_URL =
         String.format("http://%s/api/config/agent/load", ConfigManager.INSTANCE.getStorageServiceHost());
-    private static final ScheduledThreadPoolExecutor SCHEDULER =
-        new ScheduledThreadPoolExecutor(1, new ThreadFactoryImpl("arex-config-schedule-thread"));
-
     private static final AtomicBoolean FIRST_LOAD = new AtomicBoolean(false);
     private int maxRetry = 3;
-    private ScheduledFuture<?> scheduledFuture = null;
+    private static final int NORMAL_DELAY_SECONDS = 60 * 2;
+    private static final int ERROR_DELAY_SECONDS = NORMAL_DELAY_SECONDS * 10;
 
     private ConfigService() {
         MAPPER.configure(JsonGenerator.Feature.IGNORE_UNKNOWN, true);
@@ -53,30 +47,21 @@ public class ConfigService {
         MAPPER.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
     }
 
-    public void loadAgentConfig(String agentArgs) {
-        // agentmain
+    public int loadAgentConfig(String agentArgs) {
+        // AREX cli may pass arguments to agent
         if (StringUtil.isNotEmpty(agentArgs)) {
             ConfigManager.INSTANCE.parseAgentConfig(agentArgs);
-            return;
+            return -1;
         }
         if (ConfigManager.INSTANCE.isLocalStorage()) {
-            return;
+            return -1;
         }
         loadAgentConfig();
-        int period = 60 * 2;
         if (maxRetry < 1) {
-            if (scheduledFuture != null) {
-                scheduledFuture.cancel(false);
-                scheduledFuture = null;
-            }
-            int delay = period * 10;
-            SCHEDULER.schedule(()-> this.loadAgentConfig(null), delay, TimeUnit.SECONDS);
-            LOGGER.info("[arex] Load agent config error, will retry after {} seconds", delay);
-            return;
+            LOGGER.info("[arex] Load agent config error, will retry after {} seconds", ERROR_DELAY_SECONDS);
+            return ERROR_DELAY_SECONDS;
         }
-        if (scheduledFuture == null) {
-            scheduledFuture = SCHEDULER.scheduleAtFixedRate(()-> this.loadAgentConfig(null), period, period, TimeUnit.SECONDS);
-        }
+        return NORMAL_DELAY_SECONDS;
     }
 
     public void loadAgentConfig() {

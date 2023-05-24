@@ -9,6 +9,7 @@ import java.util.jar.JarFile;
 
 @SuppressWarnings("SystemOut")
 public class ArexJavaAgent {
+    private static final String AGENT_VERSION = "arex.agent.version";
     public static void premain(String agentArgs, Instrumentation inst) {
         agentmain(agentArgs, inst);
     }
@@ -19,15 +20,11 @@ public class ArexJavaAgent {
 
     private static void init(Instrumentation inst, String agentArgs) {
         try {
+            printAgentInfo();
             installBootstrapJar(inst);
-
-            // those services must load by app class loader
-            //ServiceInitializer.start(agentArgs);
             AgentInitializer.initialize(inst, getJarFile(ArexJavaAgent.class), agentArgs);
-            System.out.println("ArexJavaAgent installed.");
         } catch (Exception ex) {
-            System.out.println("ArexJavaAgent start failed.");
-            ex.printStackTrace();
+            System.out.printf("[AREX] Agent initialize error, stacktrace: %s%n", ex);
         }
     }
 
@@ -48,13 +45,20 @@ public class ArexJavaAgent {
 
     public static void init(Instrumentation inst, File agent, File bootstrap) {
         try {
+            printAgentInfo();
             JarFile agentJar = new JarFile(bootstrap, false);
             inst.appendToBootstrapClassLoaderSearch(agentJar);
             AgentInitializer.initialize(inst, agent, "");
-            System.out.println("ArexJavaAgent installed.");
         } catch (Exception ex) {
-            System.out.println("ArexJavaAgent start failed.");
-            ex.printStackTrace();
+            System.out.printf("[AREX] Agent initialize error, stacktrace: %s%n", ex);
+        }
+    }
+
+    private static void printAgentInfo() {
+        String agentVersion = ArexJavaAgent.class.getPackage().getImplementationVersion();
+        System.out.printf("[AREX] Agent-v%s starts initialization...%n", agentVersion);
+        if (agentVersion != null) {
+            System.setProperty(AGENT_VERSION, agentVersion);
         }
     }
 }
