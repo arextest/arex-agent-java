@@ -66,9 +66,9 @@ public class ServletExtractor<HttpServletRequest, HttpServletResponse> {
         }
 
         setResponseHeader();
-        adapter.copyBodyToResponse(httpServletResponse);
-        adapter.removeAttribute(httpServletRequest, ServletAdviceHelper.SERVLET_ASYNC_FLAG);
         doExecute();
+        adapter.removeAttribute(httpServletRequest, ServletAdviceHelper.SERVLET_ASYNC_FLAG);
+        adapter.copyBodyToResponse(httpServletResponse);
     }
 
     private void setResponseHeader() {
