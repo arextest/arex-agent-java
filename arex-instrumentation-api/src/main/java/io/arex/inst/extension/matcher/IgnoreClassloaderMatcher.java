@@ -5,7 +5,7 @@ import net.bytebuddy.matcher.ElementMatcher;
 
 public class IgnoreClassloaderMatcher extends ElementMatcher.Junction.AbstractBase<ClassLoader> {
 
-    private static final String BYTE_BUDDY_PREFIX = StringUtil.removeShadePrefix("net.bytebuddy.");
+    static final String BYTE_BUDDY_PREFIX = StringUtil.removeShadePrefix("net.bytebuddy.");
     private final ElementMatcher<ClassLoader> matcher;
 
     public IgnoreClassloaderMatcher(ElementMatcher<ClassLoader> matcher) {

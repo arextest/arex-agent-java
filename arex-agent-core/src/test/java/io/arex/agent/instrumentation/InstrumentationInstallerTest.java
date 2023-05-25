@@ -21,7 +21,6 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -32,7 +31,6 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class InstrumentationInstallerTest {
@@ -70,23 +68,21 @@ class InstrumentationInstallerTest {
 
     static Stream<Arguments> transformCase() {
         Runnable mocker1 = () -> {
-            config.setTargetAddress("mock");
-        };
-        Runnable mocker2 = () -> {
+            config.setEnableDebug("true");
             config.setStorageServiceMode("local");
             config.setDisabledInstrumentationModules("mock");
             Mockito.when(module.name()).thenReturn("mock");
             Mockito.when(SPIUtil.load(any())).thenReturn(Collections.singletonList(module));
         };
-        Runnable mocker3 = () -> {
+        Runnable mocker2 = () -> {
             config.setDisabledInstrumentationModules("mock1");
         };
-        Runnable mocker4 = () -> {
+        Runnable mocker3 = () -> {
             Mockito.when(module.instrumentationTypes()).thenReturn(Collections.singletonList(inst));
             AgentBuilder.Transformer transformer = Mockito.mock(AgentBuilder.Transformer.class);
             Mockito.when(inst.transformer()).thenReturn(transformer);
         };
-        Runnable mocker5 = () -> {
+        Runnable mocker4 = () -> {
             List<MethodInstrumentation> methodInstList = new ArrayList<>();
             MethodInstrumentation methodInst1 = Mockito.mock(MethodInstrumentation.class);
             methodInstList.add(methodInst1);
@@ -94,30 +90,21 @@ class InstrumentationInstallerTest {
             methodInstList.add(methodInst2);
             Mockito.when(inst.methodAdvices()).thenReturn(methodInstList);
         };
-        Predicate<ResettableClassFileTransformer> predicate1 = Objects::isNull;
-        Predicate<ResettableClassFileTransformer> predicate2 = Objects::nonNull;
+        Predicate<ResettableClassFileTransformer> predicate_nonNull = Objects::nonNull;
         return Stream.of(
-                arguments(mocker1, predicate1),
-                arguments(mocker2, predicate2),
-                arguments(mocker3, predicate2),
-                arguments(mocker4, predicate2),
-                arguments(mocker5, predicate2)
+                arguments(mocker1, predicate_nonNull),
+                arguments(mocker2, predicate_nonNull),
+                arguments(mocker3, predicate_nonNull),
+                arguments(mocker4, predicate_nonNull)
         );
     }
 
     @Test
-    void disabledModule() {
-        assertFalse(target.disabledModule("mock"));
-    }
-
-    @Test
-    void onTransformation() throws IOException {
-        InstrumentationInstaller.TransformListener listener = new InstrumentationInstaller.TransformListener(agentFile);
+    void onTransformation() {
         config.setEnableDebug("true");
-        listener = new InstrumentationInstaller.TransformListener(agentFile);
+        InstrumentationInstaller.TransformListener listener = new InstrumentationInstaller.TransformListener();
         TypeDescription typeDescription = Mockito.mock(TypeDescription.class);
         DynamicType dynamicType = Mockito.mock(DynamicType.class);
         listener.onTransformation(typeDescription, null, null, false, dynamicType);
-        verify(dynamicType).saveIn(any());
     }
 }

@@ -9,6 +9,37 @@
     <packaging>pom</packaging>
     <version>${revision}</version>
 
+    <name>arex-agent-java</name>
+    <url>https://github.com/arextest/arex-agent-java</url>
+
+    <scm>
+        <url>https://github.com/arextest/arex-agent-java</url>
+        <connection>scm:git:https://github.com/arextest/arex-agent-java.git</connection>
+        <developerConnection>scm:git:https://github.com/arextest/arex-agent-java.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+
+    <issueManagement>
+        <system>GitHub</system>
+        <url>https://github.com/arextest/arex-agent-java/issues</url>
+    </issueManagement>
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>AREX</name>
+            <email>arex.test.com@gmail.com</email>
+            <organization>AREX group</organization>
+            <organizationUrl>http://www.arextest.com</organizationUrl>
+        </developer>
+    </developers>
+
     <modules>
         <module>arex-agent</module>
         <module>arex-agent-bootstrap</module>
@@ -22,7 +53,7 @@
 
     <properties>
         <!-- Maven CI Friendly Versions https://maven.apache.org/maven-ci-friendly.html -->
-        <revision>0.3.0</revision>
+        <revision>0.3.4</revision>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 

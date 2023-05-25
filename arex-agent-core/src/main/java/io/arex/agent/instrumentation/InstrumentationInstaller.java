@@ -7,8 +7,8 @@ import io.arex.agent.bootstrap.InstrumentationHolder;
 import io.arex.foundation.config.ConfigManager;
 import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.foundation.util.SPIUtil;
-import java.io.IOException;
 
+import io.arex.inst.extension.matcher.IgnoredTypesMatcher;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.agent.builder.ResettableClassFileTransformer;
@@ -17,6 +17,7 @@ import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.dynamic.ClassFileLocator;
 import net.bytebuddy.dynamic.DynamicType;
 import net.bytebuddy.dynamic.scaffold.MethodGraph;
+import net.bytebuddy.dynamic.scaffold.TypeWriter;
 import net.bytebuddy.matcher.ElementMatcher;
 import net.bytebuddy.utility.JavaModule;
 import org.slf4j.Logger;
@@ -26,12 +27,10 @@ import java.io.File;
 import java.lang.instrument.Instrumentation;
 import java.util.*;
 
-import static net.bytebuddy.matcher.ElementMatchers.*;
-
 @SuppressWarnings("unused")
 public class InstrumentationInstaller extends BaseAgentInstaller {
-
     private static final Logger LOGGER = LoggerFactory.getLogger(InstrumentationInstaller.class);
+    private static final String BYTECODE_DUMP_DIR = "/bytecode-dump";
 
     public InstrumentationInstaller(Instrumentation inst, File agentFile, String agentArgs) {
         super(inst, agentFile, agentArgs);
@@ -39,10 +38,7 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
 
     @Override
     protected ResettableClassFileTransformer transform() {
-        if (!ConfigManager.INSTANCE.valid()) {
-            LOGGER.warn("[arex] config is invalid and stop instrument");
-            return null;
-        }
+        createDumpDirectory();
         return install(getAgentBuilder());
     }
 
@@ -117,17 +113,9 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
         AgentBuilder builder = new AgentBuilder.Default(
                 new ByteBuddy().with(MethodGraph.Compiler.ForDeclaredMethods.INSTANCE))
             .enableNativeMethodPrefix("arex_")
-            .ignore(nameStartsWith("net.bytebuddy.")
-                .or(nameContains("javassist"))
-                .or(nameContains(".asm."))
-                .or(nameContains(".reflectasm."))
-                .or(nameStartsWith("sun.reflect"))
-                .or(nameStartsWith("com.intellij."))
-                .or(nameStartsWith("shaded."))
-                .or(nameStartsWith("io.arex"))
-                .or(isSynthetic())
-            )
-            .with(new TransformListener(agentFile))
+            .disableClassFormatChanges()
+            .ignore(new IgnoredTypesMatcher())
+            .with(new TransformListener())
             .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
             .with(AgentBuilder.InitializationStrategy.NoOp.INSTANCE)
             .with(AgentBuilder.TypeStrategy.Default.REBASE)
@@ -138,45 +126,44 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
     }
 
     static class TransformListener extends AgentBuilder.Listener.Adapter {
-        private File debugDumpPath;
-        public TransformListener(File agentFile) {
-            if (!ConfigManager.INSTANCE.isEnableDebug()) {
-                return;
-            }
-
-            debugDumpPath = new File(agentFile.getParent(), "/debugDump");
-            if (!debugDumpPath.exists()) {
-                debugDumpPath.mkdir();
-            }
-        }
-
         @Override
         public void onTransformation(TypeDescription typeDescription, ClassLoader classLoader, JavaModule module,
-                                     boolean loaded, DynamicType dynamicType) {
+            boolean loaded, DynamicType dynamicType) {
             LOGGER.info("[arex] onTransformation: {} loaded: {} from classLoader {}", typeDescription.getName(), loaded, classLoader);
-            saveDebugDump(dynamicType);
         }
 
         @Override
         public void onError(String typeName, ClassLoader classLoader, JavaModule module, boolean loaded,
-                            Throwable throwable) {
-            LOGGER.error("[arex] onError: {} loaded: {} from classLoader {}, throwable: {}", typeName, loaded, classLoader, throwable);
-        }
-
-        private void saveDebugDump(DynamicType dynamicType) {
-            if (debugDumpPath == null) {
-                return;
+            Throwable throwable) {
+            String message = null;
+            if (throwable != null) {
+                if (ConfigManager.INSTANCE.isEnableDebug()) {
+                    message = throwable.toString();
+                } else {
+                    message = throwable.getMessage();
+                }
             }
-
-            try {
-                dynamicType.saveIn(debugDumpPath);
-            } catch (IOException e) {
-                LOGGER.error("save class: {} failed, exception: {}", dynamicType.getTypeDescription().getActualName(), e.getMessage());
-            }
+            LOGGER.error("[arex] onError: {} loaded: {} from classLoader {}, throwable: {}", typeName, loaded, classLoader, message);
         }
     }
 
-    public boolean disabledModule(String moduleName) {
+    private boolean disabledModule(String moduleName) {
         return ConfigManager.INSTANCE.getDisabledInstrumentationModules().contains(moduleName);
+    }
+
+    private void createDumpDirectory() {
+        if (!ConfigManager.INSTANCE.isEnableDebug()) {
+            return;
+        }
+
+        try {
+            File bytecodeDumpPath = new File(agentFile.getParent(), BYTECODE_DUMP_DIR);
+            if (!bytecodeDumpPath.exists()) {
+                bytecodeDumpPath.mkdir();
+            }
+            System.setProperty(TypeWriter.DUMP_PROPERTY, bytecodeDumpPath.getPath());
+        } catch (Exception e) {
+            LOGGER.info("[arex] Failed to create directory to instrumented bytecode: {}", e.getMessage());
+        }
     }
 }

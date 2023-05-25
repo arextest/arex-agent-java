@@ -147,7 +147,7 @@ public class ConfigManager {
 
     @VisibleForTesting
     void init() {
-        agentVersion = System.getProperty(AGENT_VERSION, "0.3.0");
+        agentVersion = System.getProperty(AGENT_VERSION);
         setEnableDebug(System.getProperty(ENABLE_DEBUG));
         setServiceName(StringUtils.strip(System.getProperty(SERVICE_NAME)));
         setStorageServiceHost(StringUtils.strip(System.getProperty(STORAGE_SERVICE_HOST)));
@@ -350,7 +350,7 @@ public class ConfigManager {
         if (isLocalStorage()) {
             return true;
         }
-        return checkTargetAddress();
+        return checkTargetAddress() && inWorkingTime();
     }
 
     public boolean inWorkingTime() {

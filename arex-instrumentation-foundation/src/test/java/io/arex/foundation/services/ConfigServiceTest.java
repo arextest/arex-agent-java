@@ -29,32 +29,32 @@ class ConfigServiceTest {
     }
 
     @Test
-    void loadAgentConfig() throws InterruptedException {
+    void loadAgentConfig() {
         // local
-        ConfigService.INSTANCE.loadAgentConfig("arex.service.name=unit-test-service;arex.enable.debug=true;arex.storage.mode=local");
-        assertTrue(ConfigManager.INSTANCE.isLocalStorage());
+        int actualResult = ConfigService.INSTANCE.loadAgentConfig("arex.service.name=unit-test-service;arex.enable.debug=true;arex.storage.mode=local");
+        assertEquals(-1, actualResult);
 
         // not local
-        ConfigManager.INSTANCE.setStorageServiceMode("mock-not-local");
-        assertFalse(ConfigManager.INSTANCE.isLocalStorage());
+        ConfigManager.INSTANCE.setStorageServiceMode("local");
+        assertEquals(-1, ConfigService.INSTANCE.loadAgentConfig(null));
 
         ConfigManager.INSTANCE.setServiceName("config-test");
-        ConfigManager.INSTANCE.setStorageServiceMode(null);
+        ConfigManager.INSTANCE.setStorageServiceMode("mock-not-local");
         try (MockedStatic<AsyncHttpClientUtil> ahc = mockStatic(AsyncHttpClientUtil.class);
             MockedStatic<NetUtils> netUtils = mockStatic(NetUtils.class)){
             // responseJson = {}
             ahc.when(() -> AsyncHttpClientUtil.post(anyString(), anyString())).thenReturn("{}");
-            ConfigService.INSTANCE.loadAgentConfig(null);
+            assertEquals(60 * 2, ConfigService.INSTANCE.loadAgentConfig(null));
             assertEquals(0, ConfigManager.INSTANCE.getRecordRate());
             assertEquals(EnumSet.noneOf(DayOfWeek.class), ConfigManager.INSTANCE.getAllowDayOfWeeks());
 
             // response body serviceCollectConfiguration is null
             netUtils.when(NetUtils::getIpAddress).thenReturn("127.0.0.3");
             ahc.when(() -> AsyncHttpClientUtil.post(anyString(), anyString())).thenReturn("{\"body\":{}}");
-            ConfigService.INSTANCE.loadAgentConfig(null);
+            assertEquals(60 * 2, ConfigService.INSTANCE.loadAgentConfig(null));
 
-            ConfigService.INSTANCE.loadAgentConfig(null);
-            ConfigService.INSTANCE.loadAgentConfig(null);
+            assertEquals(60 * 2 * 10, ConfigService.INSTANCE.loadAgentConfig(null));
+            assertEquals(60 * 2 * 10, ConfigService.INSTANCE.loadAgentConfig(null));
             assertEquals(0, ConfigManager.INSTANCE.getRecordRate());
             assertEquals(EnumSet.noneOf(DayOfWeek.class), ConfigManager.INSTANCE.getAllowDayOfWeeks());
 
@@ -73,19 +73,19 @@ class ConfigServiceTest {
             responseBody.setServiceCollectConfiguration(serviceCollectConfig);
             configQueryResponse.setBody(responseBody);
             ahc.when(() -> AsyncHttpClientUtil.post(anyString(), anyString())).thenReturn(JacksonSerializer.INSTANCE.serialize(configQueryResponse));
-            ConfigService.INSTANCE.loadAgentConfig(null);
+            assertEquals(60 * 2, ConfigService.INSTANCE.loadAgentConfig(null));
             assertTrue(ConfigManager.INSTANCE.valid() && ConfigManager.INSTANCE.inWorkingTime() && ConfigManager.INSTANCE.getRecordRate() > 0);
 
             // valid response request agentStatus=WORKING
             serviceCollectConfig.setAllowDayOfWeeks(0);
             ahc.when(() -> AsyncHttpClientUtil.post(anyString(), anyString())).thenReturn(JacksonSerializer.INSTANCE.serialize(configQueryResponse));
-            ConfigService.INSTANCE.loadAgentConfig(null);
+            assertEquals(60 * 2, ConfigService.INSTANCE.loadAgentConfig(null));
             assertFalse(ConfigManager.INSTANCE.inWorkingTime());
 
             // valid response request agentStatus=SLEEPING
             serviceCollectConfig.setAllowDayOfWeeks(127);
             ahc.when(() -> AsyncHttpClientUtil.post(anyString(), anyString())).thenReturn(JacksonSerializer.INSTANCE.serialize(configQueryResponse));
-            ConfigService.INSTANCE.loadAgentConfig(null);
+            assertEquals(60 * 2, ConfigService.INSTANCE.loadAgentConfig(null));
             assertTrue(ConfigManager.INSTANCE.valid() && ConfigManager.INSTANCE.inWorkingTime() && ConfigManager.INSTANCE.getRecordRate() > 0);
         }
     }
