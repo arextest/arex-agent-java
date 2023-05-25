@@ -3,9 +3,12 @@ package io.arex.foundation.serializer;
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.arex.inst.runtime.util.TypeUtil;
+import java.sql.Time;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 
 class JacksonSerializerTest {
@@ -35,6 +38,65 @@ class JacksonSerializerTest {
         assert result != null;
         assertEquals(list.size(), result.size());
         assertNull(result.get(0));
+    }
+
+    @Test
+    public void testSqlDate() throws InterruptedException {
+        java.sql.Date expectedSqlDate = new java.sql.Date(System.currentTimeMillis());
+        String expectedJson = JacksonSerializer.INSTANCE.serialize(expectedSqlDate);
+        Thread.sleep(10);
+        System.out.println(expectedJson);
+        java.util.Date actualSqlDate = JacksonSerializer.INSTANCE.deserialize(expectedJson, java.sql.Date.class);
+        String actualJson = JacksonSerializer.INSTANCE.serialize(actualSqlDate);
+        assertEquals(expectedSqlDate, actualSqlDate);
+        assertEquals(expectedJson, actualJson);
+    }
+
+    @Test
+    public void testSqlTime() throws InterruptedException {
+        Time expectedTime = new Time(System.currentTimeMillis());
+        String expectedJson = JacksonSerializer.INSTANCE.serialize(expectedTime);
+        Thread.sleep(10);
+        System.out.println(expectedJson);
+        java.util.Date actualTime = JacksonSerializer.INSTANCE.deserialize(expectedJson, Time.class);
+        String actualJson = JacksonSerializer.INSTANCE.serialize(actualTime);
+        assertEquals(expectedTime, actualTime);
+        assertEquals(expectedJson, actualJson);
+    }
+
+    @Test
+    public void testTimeSerializeAndDeserialize() throws Exception {
+        TimeTestInfo expectedTimeTest = new TimeTestInfo(LocalDateTime.now());
+        String expectedJson = JacksonSerializer.INSTANCE.serialize(expectedTimeTest);
+        System.out.println(expectedJson);
+
+        String expectedBytesToJson = JacksonSerializer.INSTANCE.serialize(expectedTimeTest);
+        System.out.println(expectedBytesToJson);
+
+        assert expectedJson.equals(expectedBytesToJson);
+
+        TimeUnit.SECONDS.sleep(1);
+
+        TimeTestInfo deserializedTimeTest = JacksonSerializer.INSTANCE.deserialize(expectedJson, TimeTestInfo.class);
+        assert deserializedTimeTest != null;
+        assert expectedTimeTest.getCalendar().equals(deserializedTimeTest.getCalendar());
+        assert expectedTimeTest.getGregorianCalendar().equals(deserializedTimeTest.getGregorianCalendar());
+        assert expectedTimeTest.getGregorianCalendar().equals(deserializedTimeTest.getGregorianCalendar());
+        assert expectedTimeTest.getXmlGregorianCalendar().equals(deserializedTimeTest.getXmlGregorianCalendar());
+
+        assert expectedTimeTest.getLocalDate().equals(deserializedTimeTest.getLocalDate());
+        assert expectedTimeTest.getLocalTime().equals(deserializedTimeTest.getLocalTime());
+        assert expectedTimeTest.getLocalDateTime().equals(deserializedTimeTest.getLocalDateTime());
+
+        assert expectedTimeTest.getTimestamp().equals(deserializedTimeTest.getTimestamp());
+        assert expectedTimeTest.getDate().equals(deserializedTimeTest.getDate());
+
+        assert expectedTimeTest.getInstant().equals(deserializedTimeTest.getInstant());
+
+        String deserializedJson = JacksonSerializer.INSTANCE.serialize(deserializedTimeTest);
+        System.out.println(deserializedJson);
+
+        assert expectedJson.equals(deserializedJson);
     }
 
 }
