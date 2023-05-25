@@ -88,7 +88,7 @@ public class GsonSerializer implements StringSerializable {
     private static final JsonSerializer<Date> DATE_JSON_SERIALIZER =
         (((src, typeOfSrc, context) -> new JsonPrimitive(DateFormatUtils.format(src, JacksonSerializer.DatePatternConstants.SIMPLE_DATE_FORMAT_MILLIS))));
     private static final JsonDeserializer<Date> DATE_JSON_DESERIALIZER = (json, type, context) ->
-            new Date(Long.parseLong(json.getAsString()));
+            DateFormatParser.INSTANCE.parseDate(json.getAsString());
 
     private static final JsonSerializer<java.sql.Date> SQL_DATE_JSON_SERIALIZER =
         (((src, typeOfSrc, context) -> new JsonPrimitive(DateFormatUtils.format(src, JacksonSerializer.DatePatternConstants.SIMPLE_DATE_FORMAT_MILLIS))));
@@ -144,7 +144,7 @@ public class GsonSerializer implements StringSerializable {
             return false;
         }
     };
-
+    public static final GsonSerializer INSTANCE = new GsonSerializer();
     private final Gson serializer;
     public GsonSerializer() {
         serializer = new GsonBuilder().registerTypeAdapterFactory(NumberTypeAdaptor.FACTORY)
