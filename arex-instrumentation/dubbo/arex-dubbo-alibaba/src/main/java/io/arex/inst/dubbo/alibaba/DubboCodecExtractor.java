@@ -2,6 +2,7 @@ package io.arex.inst.dubbo.alibaba;
 
 import com.alibaba.dubbo.common.serialize.ObjectOutput;
 import com.alibaba.dubbo.rpc.*;
+import com.alibaba.dubbo.rpc.protocol.dubbo.DecodeableRpcResult;
 import io.arex.agent.bootstrap.util.NumberUtil;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.context.ContextManager;
@@ -20,6 +21,7 @@ public class DubboCodecExtractor {
     private static final Logger LOGGER = LoggerFactory.getLogger(DubboCodecExtractor.class);
     private static final int VALID_VERSION_LENGTH_3 = 3;
     private static final int MAJOR_VERSION_26 = 26;
+    private static final int MAJOR_VERSION_28 = 28;
     private static final int SUB_VERSION_3 = 3;
     private static final byte RESPONSE_WITH_EXCEPTION_WITH_ATTACHMENTS = 3;
     private static final byte RESPONSE_VALUE_WITH_ATTACHMENTS = 4;
@@ -76,7 +78,7 @@ public class DubboCodecExtractor {
         // e.g 2.6.3 -> 2.6
         int majorVersion = NumberUtil.toInt(versions[0] + versions[1]);
         // before 2.6 dubbo not support return attachments, need to add attachments
-        if (majorVersion < MAJOR_VERSION_26) {
+        if (majorVersion < MAJOR_VERSION_26 || majorVersion == MAJOR_VERSION_28) {
             return true;
         }
         int subVersion = NumberUtil.toInt(versions[2]);
