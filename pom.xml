@@ -22,7 +22,7 @@
 
     <properties>
         <!-- Maven CI Friendly Versions https://maven.apache.org/maven-ci-friendly.html -->
-        <revision>0.3.0</revision>
+        <revision>0.3.0.1</revision>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
