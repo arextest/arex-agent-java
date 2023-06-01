@@ -1,36 +1,27 @@
-package io.arex.inst.dubbo.alibaba;
+package io.arex.inst.dubbo.apache.v3;
 
-import com.alibaba.dubbo.remoting.exchange.ResponseCallback;
-import com.alibaba.dubbo.remoting.exchange.ResponseFuture;
-import com.alibaba.dubbo.rpc.*;
-import com.alibaba.dubbo.rpc.protocol.dubbo.FutureAdapter;
 import io.arex.agent.bootstrap.ctx.TraceTransmitter;
 import io.arex.agent.bootstrap.model.Mocker;
-import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.dubbo.common.AbstractAdapter;
-import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.util.LogUtil;
-import io.arex.inst.runtime.util.MockUtils;
 import io.arex.inst.runtime.util.TypeUtil;
-import com.alibaba.dubbo.common.URL;
-import com.alibaba.dubbo.rpc.support.ProtocolUtils;
+import org.apache.dubbo.common.URL;
+import org.apache.dubbo.rpc.Invocation;
+import org.apache.dubbo.rpc.Invoker;
+import org.apache.dubbo.rpc.Result;
+import org.apache.dubbo.rpc.support.ProtocolUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.Future;
-import java.util.function.Function;
+import static io.arex.inst.runtime.model.ArexConstants.*;
 
 public class DubboAdapter extends AbstractAdapter {
     private static final Logger LOGGER = LoggerFactory.getLogger(DubboAdapter.class);
     private final Invoker<?> invoker;
     private final Invocation invocation;
     private final TraceTransmitter traceTransmitter;
-
     private DubboAdapter(Invoker<?> invoker, Invocation invocation) {
         this.invoker = invoker;
         this.invocation = invocation;
@@ -40,11 +31,7 @@ public class DubboAdapter extends AbstractAdapter {
         return new DubboAdapter(invoker, invocation);
     }
     public String getServiceName() {
-        String serviceName = invoker.getInterface() != null ? invoker.getInterface().getName() : null;
-        if (StringUtil.isNotEmpty(serviceName)) {
-            return serviceName;
-        }
-        return invoker.getUrl().getServiceInterface();
+        return invocation.getTargetServiceUniqueName();
     }
     public String getPath() {
         String path = invocation.getAttachment("path");
@@ -91,48 +78,34 @@ public class DubboAdapter extends AbstractAdapter {
     public boolean replayWarmUp() {
         return Boolean.parseBoolean(invocation.getAttachment(ArexConstants.REPLAY_WARM_UP));
     }
-    public void execute(Result result, Mocker mocker) {
-        Future<?> future = RpcContext.getContext().getFuture();
-        if (future instanceof FutureAdapter) {
-            ResponseFuture responseFuture = ((FutureAdapter<?>)future).getFuture();
-            responseFuture.setCallback(new ResponseCallback() {
-                public void done(Object rpcResult) {
-                    try (TraceTransmitter tm = traceTransmitter.transmit()) {
-                        doExecute(mocker, rpcResult);
+    public Result execute(Result result, Mocker mocker) {
+        return result.whenCompleteWithContext((response, throwable) -> {
+            try (TraceTransmitter tm = traceTransmitter.transmit()) {
+                Object value = null;
+                try {
+                    if (response != null) {
+                        if (response.getValue() == null) {
+                            value = response.getException();
+                        } else {
+                            value = normalizeResponse(response.getValue(), ProtocolUtils.isGeneric(getGeneric()));
+                        }
+                    } else if (throwable != null) {
+                        value = throwable;
                     }
-                }
-                public void caught(Throwable throwable) {
-                    try (TraceTransmitter tm = traceTransmitter.transmit()) {
-                        doExecute(mocker, throwable);
-                    }
-                }
-            });
-        } else {
-            // sync
-            doExecute(mocker, result);
-        }
-    }
-
-    private void doExecute(Mocker mocker, Object result) {
-        // maybe throwable
-        Object value = result;
-        try {
-            if (result instanceof RpcResult) {
-                RpcResult rpcResult = (RpcResult) result;
-                if (rpcResult.hasException()) {
-                    value = rpcResult.getException();
-                } else {
-                    value = normalizeResponse(rpcResult.getValue(), ProtocolUtils.isGeneric(getGeneric()));
+                } catch (Throwable e) {
+                    LOGGER.warn(LogUtil.buildTitle("DubboResponseConsumer"), e);
+                } finally {
+                    doExecute(value, mocker);
                 }
             }
-        } catch (Throwable e) {
-            LOGGER.warn(LogUtil.buildTitle("[arex] alibaba dubbo doExecute error"), e);
-        } finally {
-            super.doExecute(value, mocker);
-        }
+        });
     }
 
     public String getProtocol() {
-        return getUrl().getProtocol();
+        if (invocation.getProtocolServiceKey() != null && invocation.getProtocolServiceKey().contains(DUBBO_STREAM_PROTOCOL)) {
+            // in dubbo server-stream mode, AREX context init in the DubboStreamProviderInstrumentation (before this)
+            return DUBBO_STREAM_NAME;
+        }
+        return "";
     }
 }

@@ -43,7 +43,16 @@ public class ResourceManager {
                 URL url = files.nextElement();
                 try (InputStream stream = url.openStream()) {
                     Manifest mf = new Manifest(stream);
-                    String packageName = getManifestAttr(mf, "Bundle-Name", "Automatic-Module-Name");
+
+                    mf.getMainAttributes().forEach((k, v) -> {
+                        if (v != null) {
+                            if (v.toString().contains("dubbo")) {
+                                System.out.println("MANIFEST:" + k + " = " + v);
+                            }
+                        }
+                    });
+
+                    String packageName = getManifestAttr(mf, "Bundle-Name", "Automatic-Module-Name", "Implementation-Title");
                     if (StringUtil.isEmpty(packageName)) {
                         continue;
                     }

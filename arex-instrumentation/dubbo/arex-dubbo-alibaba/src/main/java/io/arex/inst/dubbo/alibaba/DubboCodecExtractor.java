@@ -19,7 +19,8 @@ import java.util.*;
 public class DubboCodecExtractor {
     private static final Logger LOGGER = LoggerFactory.getLogger(DubboCodecExtractor.class);
     private static final int VALID_VERSION_LENGTH_3 = 3;
-    private static final int MAJOR_VERSION_26 = 26;
+    private static final int DUBBO_MAJOR_VERSION_26 = 26;
+    private static final int DUBBOX_MAJOR_VERSION_28 = 28;
     private static final int SUB_VERSION_3 = 3;
     private static final byte RESPONSE_WITH_EXCEPTION_WITH_ATTACHMENTS = 3;
     private static final byte RESPONSE_VALUE_WITH_ATTACHMENTS = 4;
@@ -76,7 +77,8 @@ public class DubboCodecExtractor {
         // e.g 2.6.3 -> 2.6
         int majorVersion = NumberUtil.toInt(versions[0] + versions[1]);
         // before 2.6 dubbo not support return attachments, need to add attachments
-        if (majorVersion < MAJOR_VERSION_26) {
+        // dubbox(https://github.com/dangdangdotcom/dubbox) also not support return attachments
+        if (majorVersion < DUBBO_MAJOR_VERSION_26 || majorVersion >= DUBBOX_MAJOR_VERSION_28) {
             return true;
         }
         int subVersion = NumberUtil.toInt(versions[2]);

@@ -124,7 +124,22 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>arex-dubbo</artifactId>
+            <artifactId>arex-dubbo-apache-v2</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>arex-dubbo-apache-v3</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>arex-dubbo-alibaba</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>arex-dubbo-common</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -145,11 +160,6 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>arex-jcasbin</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>arex-dubbo-alibaba</artifactId>
             <version>${project.version}</version>
         </dependency>
         <!--Agent instrumentation end-->

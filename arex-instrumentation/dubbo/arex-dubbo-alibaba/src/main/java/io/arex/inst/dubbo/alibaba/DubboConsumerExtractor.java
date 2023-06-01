@@ -1,13 +1,19 @@
 package io.arex.inst.dubbo.alibaba;
 
+import com.alibaba.dubbo.remoting.exchange.ResponseFuture;
+import com.alibaba.dubbo.remoting.exchange.support.SimpleFuture;
 import com.alibaba.dubbo.rpc.Result;
+import com.alibaba.dubbo.rpc.RpcContext;
 import com.alibaba.dubbo.rpc.RpcResult;
+import com.alibaba.dubbo.rpc.protocol.dubbo.FutureAdapter;
+import com.alibaba.dubbo.rpc.support.RpcUtils;
 import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.agent.bootstrap.model.Mocker;
+import io.arex.inst.dubbo.common.DubboExtractor;
 import io.arex.inst.runtime.util.IgnoreUtils;
 import io.arex.inst.runtime.util.MockUtils;
 
-public class DubboConsumerExtractor {
+public class DubboConsumerExtractor extends DubboExtractor {
     private final DubboAdapter adapter;
 
     public DubboConsumerExtractor(DubboAdapter adapter) {
@@ -19,9 +25,7 @@ public class DubboConsumerExtractor {
     }
     private Mocker makeMocker() {
         Mocker mocker = MockUtils.createDubboConsumer(adapter.getServiceOperation());
-        mocker.getTargetRequest().setBody(adapter.getRequest());
-        mocker.getTargetRequest().setType(adapter.getRequestParamType());
-        return mocker;
+        return buildMocker(mocker, adapter, null, null);
     }
     public MockResult replay() {
         MockResult mockResult = null;
@@ -29,10 +33,16 @@ public class DubboConsumerExtractor {
         boolean ignoreMockResult = IgnoreUtils.ignoreMockResult(adapter.getPath(), adapter.getOperationName());
         if (result != null && !ignoreMockResult) {
             RpcResult rpcResult = new RpcResult();
-            if (result instanceof Throwable) {
-                rpcResult.setException((Throwable) result);
+            boolean isAsync = RpcUtils.isAsync(adapter.getUrl(), adapter.getInvocation());
+            if (isAsync) {
+                ResponseFuture future = new SimpleFuture(result);
+                RpcContext.getContext().setFuture(new FutureAdapter<>(future));
             } else {
-                rpcResult.setValue(result);
+                if (result instanceof Throwable) {
+                    rpcResult.setException((Throwable) result);
+                } else {
+                    rpcResult.setValue(result);
+                }
             }
             mockResult = MockResult.success(ignoreMockResult, rpcResult);
         }

@@ -1,6 +1,5 @@
-package io.arex.inst.dubbo.alibaba;
+package io.arex.inst.dubbo.apache.v3;
 
-import com.alibaba.dubbo.rpc.*;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.inst.dubbo.common.DubboExtractor;
 import io.arex.inst.runtime.context.ContextManager;
@@ -9,6 +8,7 @@ import io.arex.inst.runtime.listener.CaseEventDispatcher;
 import io.arex.inst.runtime.listener.EventSource;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.util.MockUtils;
+import org.apache.dubbo.rpc.*;
 
 import java.util.Map;
 
@@ -33,16 +33,19 @@ public class DubboProviderExtractor extends DubboExtractor {
     }
     private static Mocker makeMocker(DubboAdapter adapter) {
         Mocker mocker = MockUtils.createDubboProvider(adapter.getServiceOperation());
-        Map<String, String> headerMap = RpcContext.getContext().getAttachments();
+        Map<String, Object> headerMap = RpcContext.getClientAttachment().getObjectAttachments();
         headerMap.put("protocol", adapter.getProtocol());
         String requestHeader = Serializer.serialize(headerMap);
-        return buildMocker(mocker, adapter, requestHeader, null);
+        String responseHeader = Serializer.serialize(RpcContext.getServerAttachment().getObjectAttachments());
+        return buildMocker(mocker, adapter, requestHeader, responseHeader);
     }
+
     private static void setAttachment(Invocation invocation, String key, String value) {
-        RpcContext.getContext().setAttachment(key, value);
+        RpcContext.getServerContext().setAttachment(key, value);
         if (invocation instanceof RpcInvocation) {
             RpcInvocation rpcInvocation = (RpcInvocation) invocation;
             rpcInvocation.setAttachment(key, value);
+            rpcInvocation.getInvoker().getUrl().addParameter(key, value);
         }
     }
 }
