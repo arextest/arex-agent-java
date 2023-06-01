@@ -262,8 +262,10 @@ public class DynamicClassExtractor {
             this.methodSignatureKey = buildDuplicateMethodKey();
             this.methodSignatureKeyHash = StringUtil.encodeAndHash(methodSignatureKey);
             if (context.getMethodSignatureHashList().contains(methodSignatureKeyHash)) {
-                LOGGER.warn("{}do not record method, cuz exist same method signature:{}",
-                        logTitle, methodSignatureKey);
+                if (Config.get().isEnableDebug()) {
+                    LOGGER.warn("{}do not record method, cuz exist same method signature:{}",
+                            logTitle, methodSignatureKey);
+                }
                 return false;
             }
         }

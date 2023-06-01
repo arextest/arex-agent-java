@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.ServiceLoader;
 
 public class SPIUtil {
-    private final static Logger LOGGER = LoggerFactory.getLogger(SPIUtil.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SPIUtil.class);
 
     public static <T> List<T> load(Class<T> service) {
         ClassLoader cl = Thread.currentThread().getContextClassLoader();

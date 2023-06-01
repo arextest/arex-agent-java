@@ -115,7 +115,7 @@ public final class JacksonSerializer implements StringSerializable {
         }
         try {
             return MAPPER.writeValueAsString(object);
-        } catch (Exception ex) {
+        } catch (Throwable ex) {
             LOGGER.warn("jackson-serialize", ex);
         }
         return null;
@@ -128,7 +128,7 @@ public final class JacksonSerializer implements StringSerializable {
         }
         try {
             return MAPPER.readValue(json, clazz);
-        } catch (Exception ex) {
+        } catch (Throwable ex) {
             LOGGER.warn("jackson-deserialize-clazz", ex);
         }
         return null;
@@ -153,7 +153,7 @@ public final class JacksonSerializer implements StringSerializable {
     public <T> T deserialize(String json, JavaType javaType) {
         try {
             return MAPPER.readValue(json, javaType);
-        } catch (Exception ex) {
+        } catch (Throwable ex) {
             LOGGER.warn("jackson-deserialize-type", ex);
         }
         return null;

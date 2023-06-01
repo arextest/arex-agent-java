@@ -186,6 +186,8 @@
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
                         </manifest>
                         <manifestEntries>
                             <Premain-Class>io.arex.agent.ArexJavaAgent</Premain-Class>
@@ -193,6 +195,8 @@
                             <Can-Redefine-Classes>true</Can-Redefine-Classes>
                             <Can-Retransform-Classes>true</Can-Retransform-Classes>
                             <Can-Set-Native-Method-Prefix>true</Can-Set-Native-Method-Prefix>
+                            <Build-Time>${maven.build.timestamp}</Build-Time>
+                            <Built-By>arextest.com</Built-By>
                         </manifestEntries>
                     </archive>
                 </configuration>

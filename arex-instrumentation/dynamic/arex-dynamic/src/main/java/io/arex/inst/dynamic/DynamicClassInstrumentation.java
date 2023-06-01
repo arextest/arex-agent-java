@@ -138,7 +138,7 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
         return matcher;
     }
 
-    public final static class MethodAdvice {
+    public static final class MethodAdvice {
 
         @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class, suppress = Throwable.class)
         public static boolean onEnter(@Advice.Origin Method method,
