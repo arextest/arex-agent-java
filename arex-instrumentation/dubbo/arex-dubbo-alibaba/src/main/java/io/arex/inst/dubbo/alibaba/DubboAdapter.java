@@ -8,22 +8,16 @@ import io.arex.agent.bootstrap.ctx.TraceTransmitter;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.dubbo.common.AbstractAdapter;
-import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.util.LogUtil;
-import io.arex.inst.runtime.util.MockUtils;
 import io.arex.inst.runtime.util.TypeUtil;
 import com.alibaba.dubbo.common.URL;
 import com.alibaba.dubbo.rpc.support.ProtocolUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.Future;
-import java.util.function.Function;
 
 public class DubboAdapter extends AbstractAdapter {
     private static final Logger LOGGER = LoggerFactory.getLogger(DubboAdapter.class);

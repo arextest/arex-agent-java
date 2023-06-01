@@ -12,7 +12,6 @@ import org.apache.dubbo.rpc.Result;
 
 import java.util.List;
 
-import static io.arex.inst.runtime.model.ArexConstants.DUBBO_STREAM_PROTOCOL;
 import static java.util.Collections.singletonList;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 import static net.bytebuddy.matcher.ElementMatchers.takesArgument;
