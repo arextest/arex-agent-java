@@ -45,7 +45,6 @@ public class DubboProviderExtractor extends DubboExtractor {
         if (invocation instanceof RpcInvocation) {
             RpcInvocation rpcInvocation = (RpcInvocation) invocation;
             rpcInvocation.setAttachment(key, value);
-            rpcInvocation.getInvoker().getUrl().addParameter(key, value);
         }
     }
 }

@@ -27,7 +27,7 @@ public class DubboAdapter extends AbstractAdapter {
     public static DubboAdapter of(Invoker<?> invoker, Invocation invocation) {
         return new DubboAdapter(invoker, invocation);
     }
-    private String getServiceName() {
+    public String getServiceName() {
         String serviceName = invoker.getInterface() != null ? invoker.getInterface().getName() : null;
         if (StringUtil.isNotEmpty(serviceName)) {
             return serviceName;
