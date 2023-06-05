@@ -1,6 +1,7 @@
 package io.arex.inst.dubbo.alibaba;
 
 import com.alibaba.dubbo.common.serialize.ObjectOutput;
+import com.alibaba.dubbo.remoting.Channel;
 import com.alibaba.dubbo.rpc.Result;
 import com.alibaba.dubbo.rpc.RpcContext;
 import com.alibaba.dubbo.rpc.RpcInvocation;
@@ -30,16 +31,18 @@ import static org.mockito.ArgumentMatchers.any;
 
 @ExtendWith(MockitoExtension.class)
 class DubboCodecExtractorTest {
-
+    static Channel channel;
     static ObjectOutput out;
 
     @BeforeAll
     static void setUp() {
+        channel = Mockito.mock(Channel.class);
         out = Mockito.mock(ObjectOutput.class);
     }
 
     @AfterAll
     static void tearDown() {
+        channel = null;
         out = null;
         Mockito.clearAllCaches();
     }
@@ -48,7 +51,7 @@ class DubboCodecExtractorTest {
     @MethodSource("writeAttachmentsCase")
     void writeAttachments(Result result, Runnable mocker, Predicate<Boolean> predicate) {
         mocker.run();
-        assertTrue(predicate.test(DubboCodecExtractor.writeAttachments(out, result, "2.0.0")));
+        assertTrue(predicate.test(DubboCodecExtractor.writeAttachments(channel, out, result)));
     }
 
     static Stream<Arguments> writeAttachmentsCase() {

@@ -1,6 +1,7 @@
 package io.arex.inst.dubbo.alibaba;
 
 import com.alibaba.dubbo.common.serialize.ObjectOutput;
+import com.alibaba.dubbo.remoting.Channel;
 import io.arex.inst.extension.MethodInstrumentation;
 import io.arex.inst.extension.TypeInstrumentation;
 import net.bytebuddy.asm.Advice;
@@ -36,10 +37,10 @@ public class DubboCodecInstrumentation extends TypeInstrumentation {
 
     public static class InvokeAdvice {
         @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class, suppress = Throwable.class)
-        public static boolean onEnter(@Advice.Argument(1) ObjectOutput out,
-                                      @Advice.Argument(2) Object data,
-                                      @Advice.FieldValue("DUBBO_VERSION") String version) {
-            return DubboCodecExtractor.writeAttachments(out, data, version);
+        public static boolean onEnter(@Advice.Argument(0) Channel channel,
+                                      @Advice.Argument(1) ObjectOutput out,
+                                      @Advice.Argument(2) Object data) { // @Advice.FieldValue("DUBBO_VERSION") String version
+            return DubboCodecExtractor.writeAttachments(channel, out, data);
         }
     }
 }

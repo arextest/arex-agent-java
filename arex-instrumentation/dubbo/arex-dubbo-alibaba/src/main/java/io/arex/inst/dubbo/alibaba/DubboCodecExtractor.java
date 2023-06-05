@@ -1,6 +1,8 @@
 package io.arex.inst.dubbo.alibaba;
 
 import com.alibaba.dubbo.common.serialize.ObjectOutput;
+import com.alibaba.dubbo.remoting.Channel;
+import com.alibaba.dubbo.remoting.exchange.ResponseData;
 import com.alibaba.dubbo.rpc.*;
 import io.arex.agent.bootstrap.util.NumberUtil;
 import io.arex.agent.bootstrap.util.StringUtil;
@@ -29,33 +31,59 @@ public class DubboCodecExtractor {
     /**
      * fix dubbo not support return attachments to consumer-side before 2.6.3 version
      */
-    public static boolean writeAttachments(ObjectOutput out, Object data, String version) {
+    public static boolean writeAttachments(Channel channel, ObjectOutput out, Object data) {
         try {
             if (!ContextManager.needReplay()) {
                 return false;
             }
 
-            Result result = (Result) data;
+            RpcResult result = (RpcResult) data;
             Map<String, String> attachments = new HashMap<>(result.getAttachments());
+            String version = channel.getUrl().getParameter("version", "");
             boolean attach = isNeedAttach(version, attachments);
             if (!attach) {
                 return false;
             }
 
-            Throwable throwable = result.getException();
-            if (throwable == null) {
-                Object bizResult = result.getValue();
-                if (bizResult == null) {
-                    out.writeByte(RESPONSE_NULL_VALUE_WITH_ATTACHMENTS);
-                } else {
-                    out.writeByte(RESPONSE_VALUE_WITH_ATTACHMENTS);
-                    out.writeObject(bizResult);
-                }
-            } else {
-                out.writeByte(RESPONSE_WITH_EXCEPTION_WITH_ATTACHMENTS);
-                out.writeObject(throwable);
+            ResponseData responseData = new ResponseData();
+            responseData.setService(result.getAttachment("interface", channel.getUrl().getServiceInterface()));
+            responseData.setMethod(result.getAttachment("method", ""));
+            responseData.setVersion(result.getAttachment("version", channel.getUrl().getParameter("version", "")));
+            responseData.setGroup(result.getAttachment("group", channel.getUrl().getParameter("group", "")));
+            responseData.setEnvironment(result.getAttachment("environment", ""));
+            String transferFqlProtoclFlag = result.getAttachment("TransferFqlProtocol.lsf");
+            if (Boolean.TRUE.toString().equalsIgnoreCase(transferFqlProtoclFlag)) {
+                result.setException(null);
             }
-            out.writeObject(result.getAttachments());
+
+            Throwable th = result.getException();
+            if (th != null) {
+                responseData.setErrcode(52002601);
+                responseData.setResult(th);
+            } else {
+                responseData.setResult(result.getValue());
+            }
+
+            responseData.setTracecontext(result.getAttachment(ArexConstants.REPLAY_ID));
+
+            out.writeObject(responseData);
+
+
+// **************************************************************
+//            Throwable throwable = result.getException();
+//            if (throwable == null) {
+//                Object bizResult = result.getValue();
+//                if (bizResult == null) {
+//                    out.writeByte(RESPONSE_NULL_VALUE_WITH_ATTACHMENTS);
+//                } else {
+//                    out.writeByte(RESPONSE_VALUE_WITH_ATTACHMENTS);
+//                    out.writeObject(bizResult);
+//                }
+//            } else {
+//                out.writeByte(RESPONSE_WITH_EXCEPTION_WITH_ATTACHMENTS);
+//                out.writeObject(throwable);
+//            }
+//            out.writeObject(result.getAttachments());
             return true;
         } catch (Throwable e) {
             LOGGER.warn(LogUtil.buildTitle("[arex] alibaba dubbo writeAttachments error"), e);
@@ -64,9 +92,9 @@ public class DubboCodecExtractor {
     }
 
     private static boolean isNeedAttach(String version, Map<String, String> attachments) {
-        if (!Boolean.TRUE.toString().equals(attachments.get(ArexConstants.SCHEDULE_REPLAY_FLAG))) {
-            return false;
-        }
+//        if (!Boolean.TRUE.toString().equals(attachments.get(ArexConstants.SCHEDULE_REPLAY_FLAG))) {
+//            return false;
+//        }
         if (StringUtil.isEmpty(version)) {
             return true;
         }

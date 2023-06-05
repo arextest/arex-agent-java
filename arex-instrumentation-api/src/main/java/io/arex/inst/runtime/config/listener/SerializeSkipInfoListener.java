@@ -31,6 +31,9 @@ public class SerializeSkipInfoListener implements ConfigListener {
 
     public void reBuildSerializer() {
         Serializer instance = Serializer.getINSTANCE();
+        if (instance == null || instance.getSerializer() == null) {
+            return;
+        }
         StringSerializable refreshDefaultSerializer = instance.getSerializer().reCreateSerializer();
         Builder builder = Serializer.builder(refreshDefaultSerializer);
         for (Map.Entry<String, StringSerializable> entry : instance.getSerializers().entrySet()) {

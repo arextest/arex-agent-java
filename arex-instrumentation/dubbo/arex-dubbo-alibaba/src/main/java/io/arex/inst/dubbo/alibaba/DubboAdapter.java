@@ -17,6 +17,8 @@ import com.alibaba.dubbo.rpc.support.ProtocolUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.Future;
 
 public class DubboAdapter extends AbstractAdapter {
@@ -71,6 +73,23 @@ public class DubboAdapter extends AbstractAdapter {
         return generic;
     }
     public String getCaseId() {
+        // TODO lexin dubbox tracecontext (temporary solution)
+        String context = invocation.getAttachment("tracecontext");
+        if (StringUtil.isNotEmpty(context)) {
+            Map<String, Object> tracecontextMap = Serializer.deserialize(context, Map.class);
+            if (tracecontextMap != null) {
+                Object logObj = tracecontextMap.get("log_params");
+                if (logObj instanceof LinkedHashMap) {
+                    LinkedHashMap<String, String> logMap = (LinkedHashMap) logObj;
+                    String userObj = logMap.get("userDefineTag");
+
+                    if (userObj != null) {
+                        Map<String, String> userMap = Serializer.deserialize(userObj, Map.class);
+                        return userMap.get(ArexConstants.RECORD_ID);
+                    }
+                }
+            }
+        }
         return invocation.getAttachment(ArexConstants.RECORD_ID);
     }
     public String getExcludeMockTemplate() {
