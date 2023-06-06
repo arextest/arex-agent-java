@@ -35,6 +35,12 @@ public class ReplaceMethodHelper {
         return mocker;
     }
 
+    private static boolean replayResultIsNull(Mocker replayMocker) {
+        return replayMocker == null ||
+                replayMocker.getTargetResponse() == null ||
+                StringUtil.isEmpty(replayMocker.getTargetResponse().getBody());
+    }
+
     // region replace method
     public static long currentTimeMillis() {
         if (ContextManager.needReplay()) {
@@ -48,12 +54,15 @@ public class ReplaceMethodHelper {
     }
 
     public static UUID uuid() {
+        UUID realUuid = UUID.randomUUID();
         if (ContextManager.needReplay()) {
             Mocker mocker = createMocker();
             Mocker replayMocker = MockUtils.replayMocker(mocker);
+            if (replayResultIsNull(replayMocker)) {
+                return realUuid;
+            }
             return UUID.fromString(replayMocker.getTargetResponse().getBody());
         }
-        UUID realUuid = UUID.randomUUID();
         try {
             if (ContextManager.needRecord()) {
                 Mocker mocker = createMocker();
@@ -68,12 +77,15 @@ public class ReplaceMethodHelper {
     }
 
     public static int nextInt(Object random, int bound) {
+        int realNextInt = ((Random)random).nextInt(bound);
         if (ContextManager.needReplay()) {
             Mocker mocker = createNextIntMocker(bound);
             Mocker replayMocker = MockUtils.replayMocker(mocker);
+            if (replayResultIsNull(replayMocker)) {
+                return realNextInt;
+            }
             return Integer.parseInt(replayMocker.getTargetResponse().getBody());
         }
-        int realNextInt = ((Random)random).nextInt(bound);
         try {
             if (ContextManager.needRecord()) {
                 Mocker mocker = createNextIntMocker(bound);

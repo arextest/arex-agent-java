@@ -50,11 +50,41 @@ class ReplaceMethodHelperTest {
     }
 
     @Test
+    void testUuidReplayNull() {
+        Mockito.when(ContextManager.needReplay()).thenReturn(true);
+        Mockito.when(MockUtils.createDynamicClass(any(), any())).thenReturn(mocker);
+        // null
+        Mockito.when(MockUtils.replayMocker(any())).thenReturn(null);
+        UUID uuid1 = ReplaceMethodHelper.uuid();
+        Assertions.assertNotNull(uuid1);
+
+        mocker.getTargetResponse().setBody(null);
+        Mockito.when(MockUtils.replayMocker(any())).thenReturn(mocker);
+        UUID uuid = ReplaceMethodHelper.uuid();
+        Assertions.assertNotNull(uuid1);
+    }
+
+    @Test
     void testUuidRecord() {
         Mockito.when(ContextManager.needReplay()).thenReturn(false);
         Mockito.when(ContextManager.needRecord()).thenReturn(true);
         Mockito.when(MockUtils.createDynamicClass(any(), any())).thenReturn(mocker);
         Assertions.assertDoesNotThrow(ReplaceMethodHelper::uuid);
+    }
+
+    @Test
+    void testNextIntReplayNull() {
+        Mockito.when(ContextManager.needReplay()).thenReturn(true);
+        Mockito.when(MockUtils.createDynamicClass(any(), any())).thenReturn(mocker);
+        // null
+        Mockito.when(MockUtils.replayMocker(any())).thenReturn(null);
+        final int nextInt = ReplaceMethodHelper.nextInt(new Random(), 10);
+        Assertions.assertNotNull(nextInt);
+
+        mocker.getTargetResponse().setBody(null);
+        Mockito.when(MockUtils.replayMocker(any())).thenReturn(mocker);
+        final int nextInt1 = ReplaceMethodHelper.nextInt(new Random(), 10);
+        Assertions.assertNotNull(nextInt1);
     }
 
     @Test
