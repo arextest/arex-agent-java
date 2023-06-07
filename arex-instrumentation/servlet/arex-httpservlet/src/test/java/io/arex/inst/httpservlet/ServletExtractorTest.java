@@ -90,7 +90,7 @@ class ServletExtractorTest {
             ArexMocker mocker = new ArexMocker();
             mocker.setTargetRequest(new Target());
             mocker.setTargetResponse(new Target());
-            Mockito.when(MockUtils.createServlet(any())).thenReturn(mocker);
+            Mockito.when(MockUtils.create(any(),any())).thenReturn(mocker);
 
             Mockito.when(adapter.getRequestHeaderNames(request)).thenReturn(Collections.enumeration(Arrays.asList("mock-header-name", "referer")));
             Mockito.when(adapter.getResponseHeaderNames(response)).thenReturn(Collections.singleton("mock-header-name"));
