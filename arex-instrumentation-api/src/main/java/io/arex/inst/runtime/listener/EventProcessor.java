@@ -1,6 +1,5 @@
 package io.arex.inst.runtime.listener;
 
-import io.arex.agent.bootstrap.TraceContextManager;
 import io.arex.agent.bootstrap.cache.TimeCache;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.StringUtil;
@@ -66,8 +65,7 @@ public class EventProcessor {
         try {
             if (ContextManager.needReplay() && Config.get().getBoolean("arex.time.machine", false)) {
                 Mocker mocker = MockUtils.createDynamicClass(CLOCK_CLASS, CLOCK_METHOD);
-                String result = String.valueOf(MockUtils.replayBody(mocker));
-                long millis = parseLong(result);
+                long millis = parseLong(MockUtils.replayBody(mocker));
                 if (millis > 0) {
                     TimeCache.put(millis);
                 }
@@ -95,8 +93,7 @@ public class EventProcessor {
             RequestHandlerManager.init();
         }
         TimeCache.remove();
-        TraceContextManager.remove();
-        ContextManager.overdueCleanUp();
+        ContextManager.remove();
     }
 
     private static void initLog() {
@@ -104,18 +101,20 @@ public class EventProcessor {
         LogManager.build(extensionLoggerList);
     }
 
-    private static long parseLong(String value) {
-        if (StringUtil.isEmpty(value) || "null".equals(value)) {
+    private static long parseLong(Object value) {
+        if (value == null) {
             return 0;
         }
 
-        long result;
-        try {
-            result = Long.parseLong(value);
-        } catch (NumberFormatException e) {
-            result = 0;
+        String valueStr = String.valueOf(value);
+        if (StringUtil.isEmpty(valueStr)) {
+            return 0;
         }
 
-        return result;
+        try {
+            return Long.parseLong(valueStr);
+        } catch (NumberFormatException e) {
+            return 0;
+        }
     }
 }
