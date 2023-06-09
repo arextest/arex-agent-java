@@ -1,5 +1,6 @@
 package io.arex.inst.dynamic;
 
+import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.config.ConfigBuilder;
 import io.arex.inst.runtime.model.DynamicClassEntity;
 import io.arex.inst.runtime.model.DynamicClassStatusEnum;
@@ -48,5 +49,6 @@ class DynamicClassModuleInstrumentationTest {
             .addProperties(new HashMap<>())
             .build();
         assertEquals(1, target.instrumentationTypes().size());
+        assertTrue(Config.get().getDynamicClassList().stream().allMatch(item -> DynamicClassStatusEnum.UNCHANGED == item.getStatus()));
     }
 }

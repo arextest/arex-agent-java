@@ -44,7 +44,7 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
         if (ConfigManager.FIRST_TRANSFORM.compareAndSet(false, true)) {
             createDumpDirectory();
             resettableClassFileTransformer = install(getAgentBuilder(), false);
-            LOGGER.info("[AREX] Agent install successfully.");
+            LOGGER.info("[AREX] Agent first install successfully.");
             return resettableClassFileTransformer;
         }
 
@@ -57,17 +57,13 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
         List<DynamicClassEntity> retransformList = ConfigManager.INSTANCE.getDynamicClassList().stream()
             .filter(item -> DynamicClassStatusEnum.RETRANSFORM == item.getStatus()).collect(Collectors.toList());
         if (CollectionUtil.isEmpty(retransformList)) {
+            LOGGER.info("[AREX] No Change in dynamic class config, no need to retransform.");
             return resettableClassFileTransformer;
         }
 
         instrumentation.removeTransformer(resettableClassFileTransformer);
         resettableClassFileTransformer = install(getAgentBuilder(), true);
         LOGGER.info("[AREX] Agent retransform successfully.");
-
-        for (DynamicClassEntity item : retransformList) {
-            LOGGER.info("[AREX] Agent retransform class: {}.", item.getClazzName());
-            item.setStatus(DynamicClassStatusEnum.UNCHANGED);
-        }
         return resettableClassFileTransformer;
     }
 
@@ -98,8 +94,6 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
                 }
             }
         }
-
-
     }
 
     private ResettableClassFileTransformer install(AgentBuilder builder, boolean retransform) {
