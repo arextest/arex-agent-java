@@ -39,8 +39,14 @@ public class DynamicClassModuleInstrumentation extends ModuleInstrumentation {
         Map<String, List<DynamicClassEntity>> dynamicMap = dynamicClassList.stream()
             .filter(item -> item.getStatus() == DynamicClassStatusEnum.RETRANSFORM)
             .collect(Collectors.groupingBy(DynamicClassEntity::getClazzName));
+
         for (Map.Entry<String, List<DynamicClassEntity>> entry : dynamicMap.entrySet()) {
-            typeInstList.add(new DynamicClassInstrumentation(entry.getValue()));
+            List<DynamicClassEntity> retransformList = entry.getValue();
+            for (DynamicClassEntity item : retransformList) {
+                item.setStatus(DynamicClassStatusEnum.UNCHANGED);
+            }
+
+            typeInstList.add(new DynamicClassInstrumentation(retransformList));
         }
 
         return typeInstList;
