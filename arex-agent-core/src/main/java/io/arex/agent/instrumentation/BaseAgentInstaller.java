@@ -50,12 +50,12 @@ public abstract class BaseAgentInstaller implements AgentInstaller {
         try {
             Thread.currentThread().setContextClassLoader(getClassLoader());
             // Timed load config for agent delay start and dynamic retransform
-            int delaySeconds = ConfigService.INSTANCE.loadAgentConfig(agentArgs);
-            if (delaySeconds > 0) {
+            long delayMinutes = ConfigService.INSTANCE.loadAgentConfig(agentArgs);
+            if (delayMinutes > 0) {
                 if (scheduler == null) {
                     scheduler = new ScheduledThreadPoolExecutor(1, new ThreadFactoryImpl("arex-install-thread"));
                 }
-                scheduler.schedule(this::install, delaySeconds, TimeUnit.SECONDS);
+                scheduler.schedule(this::install, delayMinutes, TimeUnit.MINUTES);
             }
             if (!ConfigManager.INSTANCE.valid()) {
                 if (!ConfigManager.FIRST_TRANSFORM.get()) {
