@@ -1,8 +1,13 @@
 package io.arex.foundation.config;
 
+import io.arex.foundation.config.ConfigQueryResponse.DynamicClassConfiguration;
+import io.arex.inst.runtime.model.DynamicClassEntity;
+import io.arex.inst.runtime.model.DynamicClassStatusEnum;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -53,6 +58,7 @@ class ConfigManagerTest {
         URL configPathResource = ConfigManagerTest.class.getClassLoader().getResource("arex.agent.conf");
 
         configManager.readConfigFromFile(new File(configPathResource.toURI()).getAbsolutePath());
+        configManager.setRecordRate(-1);
 
         assertEquals("test-your-service-config-path", configManager.getServiceName());
         assertEquals("test-storage-service.host-config-path", configManager.getStorageServiceHost());
@@ -60,10 +66,10 @@ class ConfigManagerTest {
 
     @Test
     void setDisabledInstrumentationModules() {
-        configManager.setDisabledInstrumentationModules(null);
-        assertTrue(configManager.getDisabledInstrumentationModules().isEmpty());
-        configManager.setDisabledInstrumentationModules("mock");
-        assertTrue(!configManager.getDisabledInstrumentationModules().isEmpty());
+        configManager.setDisabledModules(null);
+        assertTrue(configManager.getDisabledModules().isEmpty());
+        configManager.setDisabledModules("mock");
+        assertFalse(configManager.getDisabledModules().isEmpty());
     }
 
     @Test
@@ -71,12 +77,12 @@ class ConfigManagerTest {
         configManager.setExcludeServiceOperations("");
         assertTrue(configManager.getExcludeServiceOperations().isEmpty());
         configManager.setExcludeServiceOperations("mock");
-        assertTrue(!configManager.getExcludeServiceOperations().isEmpty());
+        assertFalse(configManager.getExcludeServiceOperations().isEmpty());
         Set<String> excludeOperations = new HashSet<>();
         configManager.setExcludeServiceOperations(excludeOperations);
         excludeOperations.add("mock");
         configManager.setExcludeServiceOperations(excludeOperations);
-        assertTrue(!configManager.getExcludeServiceOperations().isEmpty());
+        assertFalse(configManager.getExcludeServiceOperations().isEmpty());
     }
 
     @ParameterizedTest
@@ -107,14 +113,14 @@ class ConfigManagerTest {
     }
 
     @Test
-    void parseServiceConfig() {
+    void replaceConfigFromService() {
         ConfigQueryResponse.ResponseBody serviceConfig = new ConfigQueryResponse.ResponseBody();
         ConfigQueryResponse.ServiceCollectConfig serviceCollect = new ConfigQueryResponse.ServiceCollectConfig();
         serviceConfig.setServiceCollectConfiguration(serviceCollect);
         Map<String, String> extendField = new HashMap<>();
         extendField.put("key", "val");
         serviceConfig.setExtendField(extendField);
-        configManager.parseServiceConfig(serviceConfig);
+        configManager.updateConfigFromService(serviceConfig);
         assertNull(serviceConfig.getDynamicClassConfigurationList());
     }
 
@@ -155,5 +161,97 @@ class ConfigManagerTest {
             actualResult = configManager.inWorkingTime();
             assertFalse(actualResult);
         }
+    }
+
+    @Test
+    void setDynamicClassList() {
+        // new list is null
+        configManager.setDynamicClassList(null);
+        assertEquals(0, configManager.getDynamicClassList().size());
+
+        // new list is empty
+        configManager.getDynamicClassList().add(new DynamicClassEntity("mock1", null, null, null));
+        configManager.getDynamicClassList().add(new DynamicClassEntity("mock2", null, null, null));
+        configManager.setDynamicClassList(new ArrayList<>());
+        assertTrue(configManager.getDynamicClassList().stream().allMatch(item -> item.getStatus().equals(DynamicClassStatusEnum.RESET)));
+
+        // new list is not empty
+        List<DynamicClassConfiguration> newList = new ArrayList<>();
+        DynamicClassConfiguration classAMethodA = new DynamicClassConfiguration();
+        classAMethodA.setFullClassName("ClassA");
+        classAMethodA.setMethodName("MethodA");
+
+        DynamicClassConfiguration classAMethodB = new DynamicClassConfiguration();
+        classAMethodB.setFullClassName("ClassA");
+        classAMethodB.setMethodName("MethodB");
+
+        DynamicClassConfiguration classAmethodC = new DynamicClassConfiguration();
+        classAmethodC.setFullClassName("ClassA");
+        classAmethodC.setMethodName("MethodC");
+
+        DynamicClassConfiguration classBmethodA = new DynamicClassConfiguration();
+        classBmethodA.setFullClassName("ClassB");
+        classBmethodA.setMethodName("MethodA");
+
+        DynamicClassConfiguration classCmethodA = new DynamicClassConfiguration();
+        classCmethodA.setFullClassName("ClassC");
+        classCmethodA.setMethodName("MethodA");
+
+        newList.add(classAMethodA);
+        newList.add(classAMethodB);
+        newList.add(classAmethodC);
+        newList.add(classBmethodA);
+        newList.add(classCmethodA);
+        configManager.getDynamicClassList().clear();
+        configManager.setDynamicClassList(newList);
+        for (DynamicClassEntity entity : configManager.getDynamicClassList()) {
+            assertEquals(DynamicClassStatusEnum.RETRANSFORM, entity.getStatus());
+            entity.setStatus(DynamicClassStatusEnum.UNCHANGED);
+        }
+
+        // old list equals new list
+        configManager.setDynamicClassList(newList);
+        for (DynamicClassEntity entity : configManager.getDynamicClassList()) {
+            assertEquals(DynamicClassStatusEnum.UNCHANGED, entity.getStatus());
+        }
+
+        //　new list is not empty and old list is not empty
+        newList.clear();
+
+        DynamicClassConfiguration classAmethodD = new DynamicClassConfiguration();
+        classAmethodD.setFullClassName("ClassA");
+        classAmethodD.setMethodName("MethodD");
+
+        DynamicClassConfiguration classDmethodA = new DynamicClassConfiguration();
+        classDmethodA.setFullClassName("ClassD");
+        classDmethodA.setMethodName("MethodA");
+
+        newList.add(classAMethodB);
+        newList.add(classAmethodC);
+        newList.add(classAmethodD);
+        newList.add(classCmethodA);
+        newList.add(classDmethodA);
+
+        System.out.println("current dynamic class as follows: ");
+        for (DynamicClassEntity entity : configManager.getDynamicClassList()) {
+            System.out.printf("clazzName: %s, methodName: %s\n", entity.getClazzName(), entity.getOperation());
+        }
+
+        System.out.println("new dynamic class as follows: ");
+        for (DynamicClassConfiguration entity : newList) {
+            System.out.printf("clazzName: %s, methodName: %s\n", entity.getFullClassName(), entity.getMethodName());
+        }
+        configManager.setDynamicClassList(newList);
+
+        System.out.println("after set current dynamic class status as follows: ");
+        for (DynamicClassEntity entity : configManager.getDynamicClassList()) {
+            System.out.printf("clazzName: %s, methodName: %s, status: %s\n", entity.getClazzName(), entity.getOperation(), entity.getStatus());
+        }
+        assertEquals(7, configManager.getDynamicClassList().size());
+        assertEquals(2, configManager.getDynamicClassList().stream().filter(item-> DynamicClassStatusEnum.RESET == item.getStatus()).count());
+        assertEquals(1, configManager.getDynamicClassList().stream().filter(item-> DynamicClassStatusEnum.UNCHANGED == item.getStatus()).count());
+        assertEquals(4, configManager.getDynamicClassList().stream().filter(item-> DynamicClassStatusEnum.RETRANSFORM == item.getStatus()).count());
+
+        assertNotNull(ConfigManager.INSTANCE.toString());
     }
 }

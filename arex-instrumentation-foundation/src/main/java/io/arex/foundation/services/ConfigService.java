@@ -87,7 +87,7 @@ public class ConfigService {
                 LOGGER.warn("[arex] Load agent config, deserialize response is null, pause recording");
                 return;
             }
-            ConfigManager.INSTANCE.parseServiceConfig(response.getBody());
+            ConfigManager.INSTANCE.updateConfigFromService(response.getBody());
             maxRetry = 3;
         } catch (Throwable e) {
             LOGGER.warn("[arex] Load agent config error", e);
@@ -112,15 +112,15 @@ public class ConfigService {
         if (FIRST_LOAD.compareAndSet(false, true)) {
             return AgentStatusEnum.START;
         }
-        if (!ConfigManager.INSTANCE.valid()) {
-            return AgentStatusEnum.UN_START;
-        }
-        if (ConfigManager.INSTANCE.valid()) {
-            if (ConfigManager.INSTANCE.inWorkingTime() && ConfigManager.INSTANCE.getRecordRate() > 0) {
+        if (ConfigManager.FIRST_TRANSFORM.get()) {
+            if (ConfigManager.INSTANCE.valid() && ConfigManager.INSTANCE.getRecordRate() > 0) {
                 return AgentStatusEnum.WORKING;
             } else {
                 return AgentStatusEnum.SLEEPING;
             }
+        }
+        if (!ConfigManager.INSTANCE.valid()) {
+            return AgentStatusEnum.UN_START;
         }
         return AgentStatusEnum.NONE;
     }

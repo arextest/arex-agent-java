@@ -76,6 +76,7 @@ class ConfigServiceTest {
             assertEquals(60 * 2, ConfigService.INSTANCE.loadAgentConfig(null));
             assertTrue(ConfigManager.INSTANCE.valid() && ConfigManager.INSTANCE.inWorkingTime() && ConfigManager.INSTANCE.getRecordRate() > 0);
 
+            ConfigManager.FIRST_TRANSFORM.compareAndSet(false, true);
             // valid response request agentStatus=WORKING
             serviceCollectConfig.setAllowDayOfWeeks(0);
             ahc.when(() -> AsyncHttpClientUtil.post(anyString(), anyString())).thenReturn(JacksonSerializer.INSTANCE.serialize(configQueryResponse));

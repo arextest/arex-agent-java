@@ -258,19 +258,19 @@ class DynamicClassExtractorTest {
     @Test
     void testBuildMethodKey() throws NoSuchMethodException {
         Method testWithArexMock = DynamicClassExtractorTest.class.getDeclaredMethod("testWithArexMock", String.class);
-        DynamicClassExtractor extractor = new DynamicClassExtractor(testWithArexMock, new Object[]{"mock"}, "#val", String.class);
+        DynamicClassExtractor extractor = new DynamicClassExtractor(testWithArexMock, null, "#val", String.class);
 
         // args is empty
         String actualResult = extractor.buildMethodKey(testWithArexMock, new Object[0]);
         assertNull(actualResult);
 
-        // DynamicEntityMap is empty
+        // getDynamicClassSignatureMap is empty
         ConfigBuilder.create("mock-service").build();
         Mockito.when(Serializer.serialize(any(), anyString())).thenReturn("mock Serializer.serialize");
         actualResult = extractor.buildMethodKey(testWithArexMock, new Object[]{"mock"});
         assertEquals("mock Serializer.serialize", actualResult);
 
-        // DynamicEntityMap is not empty, additionalSignature is empty
+        // getDynamicClassSignatureMap is not empty, additionalSignature is empty
         List<DynamicClassEntity> list = new ArrayList<>();
         list.add(new DynamicClassEntity("io.arex.inst.dynamic.common.DynamicClassExtractorTest", "testWithArexMock", "mock", ""));
         ConfigBuilder.create("mock-service").dynamicClassList(list).build();
@@ -278,6 +278,14 @@ class DynamicClassExtractorTest {
         assertEquals("mock Serializer.serialize", actualResult);
 
         // additionalSignature is not empty
+        list.clear();
+        list.add(new DynamicClassEntity("io.arex.inst.dynamic.common.DynamicClassExtractorTest", "testWithArexMock", "", "$1"));
+        ConfigBuilder.create("mock-service").dynamicClassList(list).build();
+        actualResult = extractor.buildMethodKey(testWithArexMock, new Object[]{"mock-method-key"});
+        assertEquals("mock-method-key", actualResult);
+
+        // additionalSignature is not empty
+        extractor = new DynamicClassExtractor(testWithArexMock, new Object[]{"mock"}, "#val", String.class);
         list.clear();
         list.add(new DynamicClassEntity("io.arex.inst.dynamic.common.DynamicClassExtractorTest", "testWithArexMock", "mock", "$1"));
         ConfigBuilder.create("mock-service").dynamicClassList(list).build();

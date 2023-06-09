@@ -1,9 +1,9 @@
 package io.arex.inst.runtime.model;
 
-
 import io.arex.agent.bootstrap.util.CollectionUtil;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import io.arex.agent.bootstrap.util.StringUtil;
 
@@ -12,12 +12,14 @@ import io.arex.agent.bootstrap.util.StringUtil;
  */
 public class DynamicClassEntity {
     private static final String ACTUAL_TYPE_SIGNATURE = "T:";
+    public static final String ABSTRACT_CLASS_PREFIX = "ac:";
     private final String clazzName;
     private final String operation;
     private final String parameterTypes;
     private String additionalSignature;
     private String actualType;
     private List<String> parameters;
+    private DynamicClassStatusEnum status;
     public DynamicClassEntity(String clazzName, String operation, String parameterTypes, String additionalSignature) {
         this.clazzName = clazzName;
         this.operation = operation;
@@ -96,6 +98,22 @@ public class DynamicClassEntity {
         return this.parameters;
     }
 
+    public boolean isAbstractClass() {
+        return clazzName != null && clazzName.startsWith(ABSTRACT_CLASS_PREFIX);
+    }
+
+    public String removedAbstractClassPrefix() {
+        return clazzName.substring(ABSTRACT_CLASS_PREFIX.length());
+    }
+
+    public DynamicClassStatusEnum getStatus() {
+        return status;
+    }
+
+    public void setStatus(DynamicClassStatusEnum status) {
+        this.status = status;
+    }
+
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder("{");
@@ -106,5 +124,22 @@ public class DynamicClassEntity {
         builder.append(", actualType=").append(actualType);
         builder.append('}');
         return builder.toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DynamicClassEntity entity = (DynamicClassEntity) o;
+        return Objects.equals(clazzName, entity.clazzName) && Objects.equals(operation, entity.operation) && Objects.equals(parameterTypes, entity.parameterTypes) && Objects.equals(additionalSignature, entity.additionalSignature);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(clazzName, operation, parameterTypes, additionalSignature);
     }
 }
