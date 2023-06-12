@@ -3,8 +3,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.sql.Time;
 import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
+
+import javax.xml.datatype.DatatypeConfigurationException;
 
 class GsonSerializerTest {
 
@@ -58,6 +62,11 @@ class GsonSerializerTest {
         assert expectedTimeTest.getDate().equals(deserializedTimeTest.getDate());
 
         assert expectedTimeTest.getInstant().equals(deserializedTimeTest.getInstant());
+
+        assert expectedTimeTest.getJodaLocalDate().equals(deserializedTimeTest.getJodaLocalDate());
+        assert expectedTimeTest.getJodaLocalTime().equals(deserializedTimeTest.getJodaLocalTime());
+        assert expectedTimeTest.getJodaLocalDateTime().equals(deserializedTimeTest.getJodaLocalDateTime());
+        assert expectedTimeTest.getDateTime().equals(deserializedTimeTest.getDateTime());
 
         String deserializedJson = GsonSerializer.INSTANCE.serialize(deserializedTimeTest);
         System.out.println(deserializedJson);

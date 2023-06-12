@@ -1,5 +1,8 @@
 package io.arex.foundation.serializer;
 
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -17,6 +20,11 @@ public class TimeTestInfo {
     private LocalDateTime localDateTime = LocalDateTime.now();
     private LocalDate localDate = LocalDate.now();
     private LocalTime localTime = LocalTime.now();
+
+    private org.joda.time.LocalDateTime jodaLocalDateTime = org.joda.time.LocalDateTime.now();
+    private org.joda.time.LocalDate jodaLocalDate = org.joda.time.LocalDate.now();
+    private org.joda.time.LocalTime jodaLocalTime = org.joda.time.LocalTime.now();
+    private DateTime dateTime = new DateTime(DateTimeZone.forTimeZone(TimeZone.getTimeZone("GMT-01:00")));
 
     private GregorianCalendar gregorianCalendar = new GregorianCalendar(TimeZone.getTimeZone("GMT-01:00"));
     private Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("GMT-01:00"));
@@ -115,4 +123,35 @@ public class TimeTestInfo {
         this.date = date;
     }
 
+    public org.joda.time.LocalDateTime getJodaLocalDateTime() {
+        return jodaLocalDateTime;
+    }
+
+    public void setJodaLocalDateTime(org.joda.time.LocalDateTime jodaLocalDateTime) {
+        this.jodaLocalDateTime = jodaLocalDateTime;
+    }
+
+    public org.joda.time.LocalDate getJodaLocalDate() {
+        return jodaLocalDate;
+    }
+
+    public void setJodaLocalDate(org.joda.time.LocalDate jodaLocalDate) {
+        this.jodaLocalDate = jodaLocalDate;
+    }
+
+    public org.joda.time.LocalTime getJodaLocalTime() {
+        return jodaLocalTime;
+    }
+
+    public void setJodaLocalTime(org.joda.time.LocalTime jodaLocalTime) {
+        this.jodaLocalTime = jodaLocalTime;
+    }
+
+    public DateTime getDateTime() {
+        return dateTime;
+    }
+
+    public void setDateTime(DateTime dateTime) {
+        this.dateTime = dateTime;
+    }
 }

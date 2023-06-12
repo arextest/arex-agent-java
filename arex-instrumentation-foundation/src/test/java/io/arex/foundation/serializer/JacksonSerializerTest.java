@@ -93,6 +93,11 @@ class JacksonSerializerTest {
 
         assert expectedTimeTest.getInstant().equals(deserializedTimeTest.getInstant());
 
+        assert expectedTimeTest.getJodaLocalDate().equals(deserializedTimeTest.getJodaLocalDate());
+        assert expectedTimeTest.getJodaLocalTime().equals(deserializedTimeTest.getJodaLocalTime());
+        assert expectedTimeTest.getJodaLocalDateTime().equals(deserializedTimeTest.getJodaLocalDateTime());
+        assert expectedTimeTest.getDateTime().equals(deserializedTimeTest.getDateTime());
+
         String deserializedJson = JacksonSerializer.INSTANCE.serialize(deserializedTimeTest);
         System.out.println(deserializedJson);
 

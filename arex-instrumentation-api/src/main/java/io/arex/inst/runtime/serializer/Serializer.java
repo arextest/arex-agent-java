@@ -18,6 +18,10 @@ public class Serializer {
         return new Builder(defaultSerializer);
     }
 
+    public static Builder builder(List<StringSerializable> serializableList) {
+        return new Builder(serializableList);
+    }
+
     public static final String EMPTY_LIST_JSON = "[]";
     private static final String NESTED_LIST = "java.util.ArrayList-java.util.ArrayList";
     private static final String HASH_MAP_VALUES_CLASS = "java.util.HashMap$Values";
@@ -215,6 +219,16 @@ public class Serializer {
 
         public Builder(StringSerializable defaultSerializer) {
             this.defaultSerializer = defaultSerializer;
+        }
+
+        public Builder(List<StringSerializable> serializableList) {
+            for (StringSerializable serializable : serializableList) {
+                if (serializable.isDefault()) {
+                    this.defaultSerializer = serializable;
+                    continue;
+                }
+                this.serializers.put(serializable.name(), serializable);
+            }
         }
 
         public Builder addSerializer(String name, StringSerializable serializable) {
