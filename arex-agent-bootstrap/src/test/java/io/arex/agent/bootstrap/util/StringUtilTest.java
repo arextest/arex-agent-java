@@ -2,11 +2,12 @@ package io.arex.agent.bootstrap.util;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 class StringUtilTest {
     @Test
@@ -159,8 +160,18 @@ class StringUtilTest {
         assertTrue(actualResult);
     }
 
-    @Test
-    void regionMatches() {
+    @ParameterizedTest
+    @CsvSource({
+            "false, 1, a, 1, false",
+            "true,  1, a, 1, false",
+            "true,  1, d, 1, false",
+            "true,  3, d, 1, false",
+            "true,  1, d, -1, false"
+    })
+    void regionMatches(boolean ignoreCase, int thisStart, String substring, int length, boolean expect) {
+        StringBuilder source = new StringBuilder("abc");
+        boolean result = StringUtil.regionMatches(source, ignoreCase, thisStart, substring, 0, length);
+        assertEquals(expect, result);
     }
 
     @Test
@@ -175,5 +186,46 @@ class StringUtilTest {
         String val = "x,,y,z,";
         actualResult = StringUtil.splitByFirstSeparator(val, ',');
         assertArrayEquals(new String[] {"x", ",y,z,"}, actualResult);
+    }
+
+    @Test
+    void strip() {
+        assertEquals("", StringUtil.strip(""));
+        assertEquals("mock", StringUtil.strip(" mock "));
+    }
+
+    @ParameterizedTest
+    @CsvSource(value ={
+            "null, null, null",
+            "' mock', null, mock",
+            "'mock', '', mock",
+            "mock, mo, ck",
+
+    }, nullValues={"null"})
+    void stripStart(String source, String strip, String expect) {
+        assertEquals(expect, StringUtil.stripStart(source, strip));
+    }
+
+    @ParameterizedTest
+    @CsvSource(value ={
+            "null, null, null",
+            "'mock ', null, mock",
+            "'mock', '', mock",
+            "mock, ck, mo",
+
+    }, nullValues={"null"})
+    void stripEnd(String source, String strip, String expect) {
+        assertEquals(expect, StringUtil.stripEnd(source, strip));
+    }
+
+    @ParameterizedTest
+    @CsvSource(value ={
+            "null, null, true",
+            "mock, null, false",
+            "mock, moc, false",
+            "mock, mock, true"
+    }, nullValues={"null"})
+    void equals(String source, String target, boolean expect) {
+        assertEquals(expect, StringUtil.equals(source, target));
     }
 }

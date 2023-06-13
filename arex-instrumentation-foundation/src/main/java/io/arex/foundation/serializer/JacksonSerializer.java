@@ -9,6 +9,8 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
 import com.fasterxml.jackson.databind.ser.BeanSerializerModifier;
 
+import io.arex.agent.thirdparty.util.time.DateFormatUtils;
+import io.arex.agent.thirdparty.util.time.FastDateFormat;
 import io.arex.foundation.util.JdkUtils;
 import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.model.ArexConstants;
@@ -18,9 +20,6 @@ import io.arex.inst.runtime.util.TypeUtil;
 
 import java.sql.Time;
 import java.time.Instant;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.time.DateFormatUtils;
-import org.apache.commons.lang3.time.FastDateFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,7 +81,7 @@ public final class JacksonSerializer implements StringSerializable {
             }
             String skipInfoString = config
                     .getString(ArexConstants.SERIALIZE_SKIP_INFO_CONFIG_KEY, StringUtil.EMPTY);
-            if (StringUtils.isBlank(skipInfoString)) {
+            if (StringUtil.isBlank(skipInfoString)) {
                 return;
             }
             JavaType javaType = MAPPER.getTypeFactory().constructType(TypeUtil.forName(SKIP_INFO_LIST_TYPE));
@@ -94,7 +93,7 @@ public final class JacksonSerializer implements StringSerializable {
             for (SerializeSkipInfo skipInfo : serializeSkipInfos) {
                 String className = skipInfo.getFullClassName();
                 List<String> fieldNameList = skipInfo.getFieldNameList();
-                if (StringUtils.isBlank(className) || fieldNameList == null) {
+                if (StringUtil.isBlank(className) || fieldNameList == null) {
                     continue;
                 }
                 skipInfoMap.put(className, fieldNameList);
@@ -226,10 +225,10 @@ public final class JacksonSerializer implements StringSerializable {
             String className = beanDesc.getBeanClass().getName();
             // Special treatment MybatisPlus, only serializes the paramNameValuePairs field of QueryWrapper or UpdateWrapper.
             if (MYBATIS_PLUS_CLASS_LIST.contains(className)) {
-                beanProperties.removeIf(beanPropertyWriter -> !StringUtils.equals(beanPropertyWriter.getName(), "paramNameValuePairs"));
+                beanProperties.removeIf(beanPropertyWriter -> !StringUtil.equals(beanPropertyWriter.getName(), "paramNameValuePairs"));
             }
             if (TK_MYBATIS_PLUS_CLASS_LIST.contains(className)){
-                beanProperties.removeIf(beanPropertyWriter -> StringUtils.equals(beanPropertyWriter.getName(),"table"));
+                beanProperties.removeIf(beanPropertyWriter -> StringUtil.equals(beanPropertyWriter.getName(),"table"));
             }
 
             List<String> fieldNameList = JacksonSerializer.INSTANCE.getSkipFieldNameList(className);

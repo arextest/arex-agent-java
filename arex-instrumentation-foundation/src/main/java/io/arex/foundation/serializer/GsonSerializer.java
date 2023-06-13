@@ -2,6 +2,7 @@ package io.arex.foundation.serializer;
 
 import com.google.auto.service.AutoService;
 
+import io.arex.agent.thirdparty.util.time.DateFormatUtils;
 import io.arex.foundation.serializer.JacksonSerializer.DateFormatParser;
 import io.arex.foundation.util.NumberTypeAdaptor;
 import io.arex.agent.bootstrap.util.StringUtil;
@@ -13,7 +14,6 @@ import io.arex.inst.runtime.util.TypeUtil;
 import java.sql.Time;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
-import org.apache.commons.lang3.time.DateFormatUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.google.gson.*;

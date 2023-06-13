@@ -1,5 +1,7 @@
 package io.arex.agent.bootstrap.util;
 
+import io.arex.agent.thirdparty.util.CharSequenceUtils;
+
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
@@ -396,5 +398,76 @@ public class StringUtil {
                 return false;
             }
         }
+    }
+
+    /**
+     * refer: org.apache.commons.lang3.StringUtils#strip
+     */
+    public static String strip(final String str) {
+        return strip(str, null);
+    }
+
+    public static String strip(String str, final String stripChars) {
+        if (isEmpty(str)) {
+            return str;
+        }
+        str = stripStart(str, stripChars);
+        return stripEnd(str, stripChars);
+    }
+
+    public static String stripStart(final String str, final String stripChars) {
+        int strLen;
+        if (str == null || (strLen = str.length()) == 0) {
+            return str;
+        }
+        int start = 0;
+        if (stripChars == null) {
+            while (start != strLen && Character.isWhitespace(str.charAt(start))) {
+                start++;
+            }
+        } else if (stripChars.isEmpty()) {
+            return str;
+        } else {
+            while (start != strLen && stripChars.indexOf(str.charAt(start)) != INDEX_NOT_FOUND) {
+                start++;
+            }
+        }
+        return str.substring(start);
+    }
+
+    public static String stripEnd(final String str, final String stripChars) {
+        int end;
+        if (str == null || (end = str.length()) == 0) {
+            return str;
+        }
+
+        if (stripChars == null) {
+            while (end != 0 && Character.isWhitespace(str.charAt(end - 1))) {
+                end--;
+            }
+        } else if (stripChars.isEmpty()) {
+            return str;
+        } else {
+            while (end != 0 && stripChars.indexOf(str.charAt(end - 1)) != INDEX_NOT_FOUND) {
+                end--;
+            }
+        }
+        return str.substring(0, end);
+    }
+
+    public static boolean equals(final CharSequence cs1, final CharSequence cs2) {
+        if (cs1 == cs2) {
+            return true;
+        }
+        if (cs1 == null || cs2 == null) {
+            return false;
+        }
+        if (cs1.length() != cs2.length()) {
+            return false;
+        }
+        if (cs1 instanceof String && cs2 instanceof String) {
+            return cs1.equals(cs2);
+        }
+        return CharSequenceUtils.regionMatches(cs1, false, 0, cs2, 0, cs1.length());
     }
 }

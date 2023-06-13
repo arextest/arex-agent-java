@@ -29,6 +29,10 @@
             <groupId>${project.groupId}</groupId>
             <artifactId>arex-instrumentation-api</artifactId>
         </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>arex-third-party</artifactId>
+        </dependency>
 
         <!--Agent instrumentation start-->
         <dependency>
@@ -124,7 +128,22 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>arex-dubbo</artifactId>
+            <artifactId>arex-dubbo-apache-v2</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>arex-dubbo-apache-v3</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>arex-dubbo-alibaba</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>arex-dubbo-common</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

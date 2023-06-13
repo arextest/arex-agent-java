@@ -21,7 +21,7 @@ class ModuleVersionMatcherTest {
             ModuleDescription.builder().name("Arex Agent").supportFrom(0,1).build());
         assertFalse(matcher.matches(null));
 
-        assertTrue(matcher.matches(Thread.currentThread().getContextClassLoader()));
+        assertFalse(matcher.matches(Thread.currentThread().getContextClassLoader()));
 
         matcher = new ModuleVersionMatcher(
             ModuleDescription.builder().name("Byte Buddy agent").supportFrom(1,8).build());

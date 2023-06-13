@@ -6,7 +6,6 @@ import io.arex.foundation.config.ConfigManager;
 import io.arex.foundation.util.async.AutoCleanedPoolingNHttpClientConnectionManager;
 import io.arex.foundation.util.async.ThreadFactoryImpl;
 import io.arex.inst.runtime.util.LogUtil;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
@@ -198,7 +197,7 @@ public class AsyncHttpClientUtil {
                     byte[] responseBytes = EntityUtils.toByteArray(response.getEntity());
                     if (responseBytes != null) {
                         responseContent = byteParser.apply(responseBytes);
-                        if (StringUtils.isEmpty(responseContent)) {
+                        if (StringUtil.isEmpty(responseContent)) {
                             LOGGER.warn("[[title=arex.completed]]response bytes: {}", Base64.getEncoder().encodeToString(responseBytes));
                         }
                     }

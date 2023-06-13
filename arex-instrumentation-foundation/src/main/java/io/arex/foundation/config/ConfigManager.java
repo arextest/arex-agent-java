@@ -15,7 +15,6 @@ import io.arex.inst.runtime.model.DynamicClassEntity;
 import io.arex.inst.runtime.model.DynamicClassStatusEnum;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -202,9 +201,9 @@ public class ConfigManager {
     void init() {
         agentVersion = System.getProperty(AGENT_VERSION);
         setEnableDebug(System.getProperty(ENABLE_DEBUG));
-        setServiceName(StringUtils.strip(System.getProperty(SERVICE_NAME)));
-        setStorageServiceHost(StringUtils.strip(System.getProperty(STORAGE_SERVICE_HOST)));
-        configPath = StringUtils.strip(System.getProperty(CONFIG_PATH));
+        setServiceName(StringUtil.strip(System.getProperty(SERVICE_NAME)));
+        setStorageServiceHost(StringUtil.strip(System.getProperty(STORAGE_SERVICE_HOST)));
+        configPath = StringUtil.strip(System.getProperty(CONFIG_PATH));
         setRecordRate(DEFAULT_RECORDING_RATE);
 
         setStorageServiceMode(System.getProperty(STORAGE_SERVICE_MODE));
@@ -252,7 +251,7 @@ public class ConfigManager {
                     return;
                 }
                 String key = item.substring(0, separatorIndex);
-                String value = StringUtils.strip(item.substring(separatorIndex + 1));
+                String value = StringUtil.strip(item.substring(separatorIndex + 1));
                 configMap.put(key, value);
             });
         } catch (IOException e) {

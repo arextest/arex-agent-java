@@ -37,11 +37,6 @@
             <artifactId>auto-service</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-            <version>3.7</version>
-        </dependency>
-        <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
             <version>2.13.1</version>
@@ -100,7 +95,6 @@
                 <configuration>
                     <artifactSet>
                         <includes>
-                            <include>org.apache.commons:commons-lang3</include>
                             <include>commons-logging:**</include>
                             <include>org.apache.httpcomponents:httpasyncclient</include>
                             <include>org.apache.httpcomponents:httpclient</include>
