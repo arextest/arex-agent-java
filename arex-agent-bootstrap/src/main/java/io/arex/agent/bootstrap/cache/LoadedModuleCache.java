@@ -17,8 +17,4 @@ public class LoadedModuleCache {
     public static Pair<Integer, Integer> get(String moduleName) {
         return PACKAGE_CACHE.get(moduleName);
     }
-
-    public static boolean exist(String moduleName) {
-        return PACKAGE_CACHE.containsKey(moduleName);
-    }
 }
