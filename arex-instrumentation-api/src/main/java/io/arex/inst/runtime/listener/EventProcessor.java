@@ -8,8 +8,13 @@ import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.serializer.Serializer;
+import io.arex.inst.runtime.serializer.StringSerializable;
 import io.arex.inst.runtime.util.LogUtil;
 import io.arex.inst.runtime.util.MockUtils;
+import io.arex.inst.runtime.util.SPIUtil;
+
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,10 +23,19 @@ public class EventProcessor {
     private static final String CLOCK_CLASS = "java.lang.System";
     private static final String CLOCK_METHOD = "currentTimeMillis";
     public static final String EXCLUDE_MOCK_TYPE = "java.util.HashMap-java.lang.String,java.util.HashSet";
+    private static final AtomicBoolean INITIALIZED = new AtomicBoolean(false);
 
     public static void onCreate(EventSource source){
         initContext(source);
         initClock();
+    }
+
+    /**
+     * user loader to load serializer, ex: ParallelWebappClassLoader
+     */
+    private static void initSerializer() {
+        final List<StringSerializable> serializableList = SPIUtil.load(StringSerializable.class, Thread.currentThread().getContextClassLoader());
+        Serializer.builder(serializableList).build();
     }
 
     public static void initContext(EventSource source){
@@ -58,6 +72,9 @@ public class EventProcessor {
      * Processing at the beginning of entry, for example:Servlet、Netty
      */
     public static void onRequest(){
+        if (INITIALIZED.compareAndSet(false, true)) {
+            initSerializer();
+        }
         TimeCache.remove();
         TraceContextManager.remove();
         ContextManager.overdueCleanUp();

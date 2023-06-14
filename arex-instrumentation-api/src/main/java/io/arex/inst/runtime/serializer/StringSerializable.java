@@ -37,4 +37,8 @@ public interface StringSerializable {
      * @return StringSerializable example: jacksonSerializer/GsonSerializer
      */
     StringSerializable reCreateSerializer();
+
+    default boolean isDefault() {
+        return false;
+    }
 }

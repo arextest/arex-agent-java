@@ -14,6 +14,9 @@ import io.arex.inst.runtime.util.TypeUtil;
 import java.sql.Time;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.joda.time.format.DateTimeFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.google.gson.*;
@@ -30,6 +33,34 @@ import java.util.*;
 @AutoService(StringSerializable.class)
 public class GsonSerializer implements StringSerializable {
     private static final Logger LOGGER = LoggerFactory.getLogger(GsonSerializer.class);
+
+    private static final JsonSerializer<DateTime> DATE_TIME_JSON_SERIALIZER =
+            ((src, typeOfSrc, context) -> new JsonPrimitive(src.toString(JacksonSerializer.DatePatternConstants.SIMPLE_DATE_FORMAT_WITH_TIMEZONE_DATETIME)));
+    private static final JsonDeserializer<DateTime> DATE_TIME_JSON_DESERIALIZER =
+            (json, type, context) -> {
+                TimeZone timeZone = JacksonSerializer.TimezoneParser.INSTANCE.parse(json.getAsString());
+                DateTimeZone dateTimeZone = DateTimeZone.forTimeZone(timeZone);
+                Date date = DateFormatParser.INSTANCE.parseDate(json.getAsString(), timeZone);
+                if (date == null) {
+                    return null;
+                }
+                return new DateTime(date.getTime()).withZone(dateTimeZone);
+            };
+
+    private static final JsonSerializer<org.joda.time.LocalDateTime> JODA_LOCAL_DATE_TIME_JSON_SERIALIZER =
+            (src, typeOfSrc, context) -> new JsonPrimitive(src.toString(JacksonSerializer.DatePatternConstants.SIMPLE_DATE_FORMAT_MILLIS));
+    private static final JsonDeserializer<org.joda.time.LocalDateTime> JODA_LOCAL_DATE_TIME_JSON_DESERIALIZER = (json, type, context) ->
+            org.joda.time.LocalDateTime.parse(json.getAsString(), DateTimeFormat.forPattern(JacksonSerializer.DatePatternConstants.SIMPLE_DATE_FORMAT_MILLIS));
+
+    private static final JsonSerializer<org.joda.time.LocalDate> JODA_LOCAL_DATE_JSON_SERIALIZER =
+            (src, typeOfSrc, context) -> new JsonPrimitive(src.toString(JacksonSerializer.DatePatternConstants.SHORT_DATE_FORMAT));
+    private static final JsonDeserializer<org.joda.time.LocalDate> JODA_LOCAL_DATE_JSON_DESERIALIZER = (json, type, context) ->
+            org.joda.time.LocalDate.parse(json.getAsString(), DateTimeFormat.forPattern(JacksonSerializer.DatePatternConstants.SHORT_DATE_FORMAT));
+
+    private static final JsonSerializer<org.joda.time.LocalTime> JODA_LOCAL_TIME_JSON_SERIALIZER =
+            (src, typeOfSrc, context) -> new JsonPrimitive(src.toString(JacksonSerializer.DatePatternConstants.SHORT_TIME_FORMAT_MILLISECOND));
+    private static final JsonDeserializer<org.joda.time.LocalTime> JODA_LOCAL_TIME_JSON_DESERIALIZER = (json, type, context) ->
+            org.joda.time.LocalTime.parse(json.getAsString(), DateTimeFormat.forPattern(JacksonSerializer.DatePatternConstants.SHORT_TIME_FORMAT_MILLISECOND));
 
     private static final JsonSerializer<LocalDateTime> LOCAL_DATE_TIME_JSON_SERIALIZER =
         ((src, typeOfSrc, context) -> new JsonPrimitive(src.format(DateTimeFormatter.ofPattern(JacksonSerializer.DatePatternConstants.localDateTimeFormat))));
@@ -119,43 +150,18 @@ public class GsonSerializer implements StringSerializable {
         return (Class) TypeUtil.forName(json.getAsString());
     };
 
-    private static final ExclusionStrategy EXCLUSION_STRATEGY = new ExclusionStrategy() {
-        @Override
-        public boolean shouldSkipField(FieldAttributes f) {
-            String fieldName = f.getName();
-            if ("stackTrace".equals(fieldName) || "suppressedExceptions".equals(fieldName)) {
-                return true;
-            }
-            String className = f.getDeclaringClass().getName();
-            List<String> fieldNameList = JacksonSerializer.INSTANCE.getSkipFieldNameList(className);
-
-            if (fieldNameList == null) {
-                return false;
-            }
-
-            if (fieldNameList.isEmpty()) {
-                return true;
-            }
-            return fieldNameList.contains(fieldName);
-        }
-
-        @Override
-        public boolean shouldSkipClass(Class<?> clazz) {
-            return false;
-        }
-    };
     public static final GsonSerializer INSTANCE = new GsonSerializer();
     private final Gson serializer;
     public GsonSerializer() {
         serializer = new GsonBuilder().registerTypeAdapterFactory(NumberTypeAdaptor.FACTORY)
-//              .registerTypeAdapter(org.joda.time.DateTime.class, DATE_TIME_JSON_SERIALIZER)
-//              .registerTypeAdapter(org.joda.time.DateTime.class, DATE_TIME_JSON_DESERIALIZER)
-//              .registerTypeAdapter(org.joda.time.LocalDateTime.class, JODA_LOCAL_DATE_TIME_JSON_SERIALIZER)
-//              .registerTypeAdapter(org.joda.time.LocalDateTime.class, JODA_LOCAL_DATE_TIME_JSON_DESERIALIZER)
-//              .registerTypeAdapter(org.joda.time.LocalDate.class, JODA_LOCAL_DATE_JSON_SERIALIZER)
-//              .registerTypeAdapter(org.joda.time.LocalDate.class, JODA_LOCAL_DATE_JSON_DESERIALIZER)
-//              .registerTypeAdapter(org.joda.time.LocalTime.class, JODA_LOCAL_TIME_JSON_SERIALIZER)
-//              .registerTypeAdapter(org.joda.time.LocalTime.class, JODA_LOCAL_TIME_JSON_DESERIALIZER)
+                .registerTypeAdapter(org.joda.time.DateTime.class, DATE_TIME_JSON_SERIALIZER)
+                .registerTypeAdapter(org.joda.time.DateTime.class, DATE_TIME_JSON_DESERIALIZER)
+                .registerTypeAdapter(org.joda.time.LocalDateTime.class, JODA_LOCAL_DATE_TIME_JSON_SERIALIZER)
+                .registerTypeAdapter(org.joda.time.LocalDateTime.class, JODA_LOCAL_DATE_TIME_JSON_DESERIALIZER)
+                .registerTypeAdapter(org.joda.time.LocalDate.class, JODA_LOCAL_DATE_JSON_SERIALIZER)
+                .registerTypeAdapter(org.joda.time.LocalDate.class, JODA_LOCAL_DATE_JSON_DESERIALIZER)
+                .registerTypeAdapter(org.joda.time.LocalTime.class, JODA_LOCAL_TIME_JSON_SERIALIZER)
+                .registerTypeAdapter(org.joda.time.LocalTime.class, JODA_LOCAL_TIME_JSON_DESERIALIZER)
                 .registerTypeAdapter(LocalDateTime.class, LOCAL_DATE_TIME_JSON_SERIALIZER)
                 .registerTypeAdapter(LocalDateTime.class, LOCAL_DATE_TIME_JSON_DESERIALIZER)
                 .registerTypeAdapter(LocalDate.class, LOCAL_DATE_JSON_SERIALIZER)
@@ -181,9 +187,8 @@ public class GsonSerializer implements StringSerializable {
                 .registerTypeAdapter(Class.class, CLASS_JSON_SERIALIZER)
                 .registerTypeAdapter(Class.class, CLASS_JSON_DESERIALIZER)
                 .enableComplexMapKeySerialization()
-                .setExclusionStrategies(EXCLUSION_STRATEGY)
+                .setExclusionStrategies(new ExcludeField())
                 .disableHtmlEscaping().create();
-
     }
 
     @Override
@@ -234,5 +239,32 @@ public class GsonSerializer implements StringSerializable {
     public StringSerializable reCreateSerializer() {
         return new GsonSerializer();
     }
+
+    static class ExcludeField implements ExclusionStrategy {
+        @Override
+        public boolean shouldSkipField(FieldAttributes f) {
+            String fieldName = f.getName();
+            if ("stackTrace".equals(fieldName) || "suppressedExceptions".equals(fieldName)) {
+                return true;
+            }
+            String className = f.getDeclaringClass().getName();
+            List<String> fieldNameList = JacksonSerializer.INSTANCE.getSkipFieldNameList(className);
+
+            if (fieldNameList == null) {
+                return false;
+            }
+
+            if (fieldNameList.isEmpty()) {
+                return true;
+            }
+            return fieldNameList.contains(fieldName);
+        }
+
+        @Override
+        public boolean shouldSkipClass(Class<?> clazz) {
+            return false;
+        }
+    }
+
 
 }

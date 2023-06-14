@@ -6,15 +6,16 @@ import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.agent.bootstrap.util.AdviceClassesCollector;
 import io.arex.foundation.config.ConfigManager;
 import io.arex.foundation.healthy.HealthManager;
+import io.arex.foundation.serializer.GsonSerializer;
 import io.arex.foundation.serializer.JacksonSerializer;
 import io.arex.foundation.services.ConfigService;
 import io.arex.foundation.services.DataCollectorService;
 import io.arex.foundation.util.NetUtils;
+import io.arex.foundation.util.NumberTypeAdaptor;
 import io.arex.foundation.util.SPIUtil;
 import io.arex.foundation.util.async.ThreadFactoryImpl;
 import io.arex.inst.runtime.context.RecordLimiter;
 import io.arex.inst.runtime.serializer.Serializer;
-import io.arex.inst.runtime.serializer.StringSerializable;
 import io.arex.inst.runtime.service.DataCollector;
 import io.arex.inst.runtime.service.DataService;
 
@@ -87,14 +88,14 @@ public abstract class BaseAgentInstaller implements AgentInstaller {
         ForkJoinTask.class.getDeclaredClasses();
     }
 
+    /**
+     * add class to user loader search. ex: ParallelWebappClassLoader
+     */
     private void initSerializer() {
         AdviceClassesCollector.INSTANCE.addClassToLoaderSearch(JacksonSerializer.class);
-        Serializer.Builder builder = Serializer.builder(JacksonSerializer.INSTANCE);
-        List<StringSerializable> serializableList = SPIUtil.load(StringSerializable.class, getClassLoader());
-        for (StringSerializable serializable : serializableList) {
-            builder.addSerializer(serializable.name(), serializable);
-        }
-        builder.build();
+        AdviceClassesCollector.INSTANCE.addClassToLoaderSearch(GsonSerializer.class);
+        AdviceClassesCollector.INSTANCE.addClassToLoaderSearch(NumberTypeAdaptor.class);
+        Serializer.builder(JacksonSerializer.INSTANCE).build();
     }
     private void initDataCollector() {
         DataCollector collector = DataCollectorService.INSTANCE;
