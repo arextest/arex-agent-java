@@ -33,12 +33,10 @@ public class ModuleVersionMatcher extends ElementMatcher.Junction.AbstractBase<C
 
     private boolean versionMatches(ClassLoader loader) {
         ResourceManager.registerResources(loader);
-        if (!LoadedModuleCache.exist(description.getModuleName())) {
-            return false;
-        }
         Pair<Integer, Integer> version = LoadedModuleCache.get(description.getModuleName());
         if (version == null) {
-            return true;
+            // to avoid duplicate transform of the same class in different module
+            return false;
         }
         return description.isSupported(version);
     }
