@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -227,5 +228,37 @@ class StringUtilTest {
     }, nullValues={"null"})
     void equals(String source, String target, boolean expect) {
         assertEquals(expect, StringUtil.equals(source, target));
+    }
+
+    @Test
+    void testFormat() {
+        String format = "%s %nrequest: %s, %nresponse: %s";
+        String actualResult = StringUtil.format(format, "acasdasdada", "badadadadas", "ccccccc");
+        String expectResult = "acasdasdada \nrequest: badadadadas, \nresponse: ccccccc";
+        assertEquals(expectResult, actualResult);
+
+        // test args not equal number of %s
+        actualResult = StringUtil.format(format, "badadadadas", "ccccccc");
+        Assertions.assertEquals(StringUtil.EMPTY, actualResult);
+
+        // null format
+        actualResult = StringUtil.format(null, "badadadadas", "ccccccc");
+        Assertions.assertEquals(StringUtil.EMPTY, actualResult);
+
+        // null args
+        actualResult = StringUtil.format(format, null);
+        Assertions.assertEquals(StringUtil.EMPTY, actualResult);
+
+        String format2 = "% %nrequest: %s, %nresponse: %s";
+        actualResult = StringUtil.format(format2, "badadadadas", "ccccccc");
+        Assertions.assertEquals("% \nrequest: badadadadas, \nresponse: ccccccc", actualResult);
+
+        format2 = "%s request";
+        actualResult = StringUtil.format(format2, "badadadadas");
+        Assertions.assertEquals("badadadadas request", actualResult);
+
+        format2 = "% %trequest: %s, %dresponse: %s";
+        actualResult = StringUtil.format(format2, "badadadadas", "ccccccc");
+        Assertions.assertEquals("% %trequest: badadadadas, %dresponse: ccccccc", actualResult);
     }
 }

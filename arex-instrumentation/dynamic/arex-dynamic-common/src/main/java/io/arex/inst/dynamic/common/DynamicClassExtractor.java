@@ -15,7 +15,7 @@ import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.model.DynamicClassEntity;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.util.IgnoreUtils;
-import io.arex.inst.runtime.util.LogUtil;
+import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.util.MockUtils;
 import io.arex.inst.runtime.util.TypeUtil;
 import java.lang.reflect.Array;
@@ -37,6 +37,7 @@ public class DynamicClassExtractor {
     private static final String LISTENABLE_FUTURE = "com.google.common.util.concurrent.ListenableFuture";
     private static final String COMPLETABLE_FUTURE = "java.util.concurrent.CompletableFuture";
     private static final String PROTOBUF_PACKAGE_NAME = "com.google.protobuf";
+    private static final String NEED_RECORD_TITLE = "dynamic.needRecord";
 
     private final String clazzName;
     private final String methodName;
@@ -250,7 +251,6 @@ public class DynamicClassExtractor {
     }
 
     private boolean needRecord() {
-        String logTitle = LogUtil.buildTitle("dynamic.needRecord");
         /*
          * Judge whether the hash value of the method signature has been recorded to avoid repeated recording.
          * The nonparametric method may return different results and needs to be recorded
@@ -261,8 +261,7 @@ public class DynamicClassExtractor {
             this.methodSignatureKeyHash = StringUtil.encodeAndHash(methodSignatureKey);
             if (context.getMethodSignatureHashList().contains(methodSignatureKeyHash)) {
                 if (Config.get().isEnableDebug()) {
-                    LOGGER.warn("{}do not record method, cuz exist same method signature:{}",
-                            logTitle, methodSignatureKey);
+                    LogManager.warn(NEED_RECORD_TITLE, StringUtil.format("do not record method, cuz exist same method signature: %s", methodSignatureKey));
                 }
                 return false;
             }
@@ -282,12 +281,13 @@ public class DynamicClassExtractor {
                 size = Array.getLength(result);
             }
             if (size > RESULT_SIZE_MAX) {
-                LOGGER.warn("{} do not record method, cuz result size:{} > max limit: {}, method info: {}",
-                    logTitle, size, RESULT_SIZE_MAX, methodSignatureKey);
+                LogManager.warn(NEED_RECORD_TITLE,
+                        StringUtil.format("do not record method, cuz result size:%s > max limit: %s, method info: %s",
+                                String.valueOf(size), String.valueOf(RESULT_SIZE_MAX), methodSignatureKey));
                 return false;
             }
         } catch (Throwable e) {
-            LOGGER.warn(logTitle, e);
+            LogManager.warn(NEED_RECORD_TITLE, e);
         }
         return true;
     }

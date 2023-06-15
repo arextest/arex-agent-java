@@ -34,7 +34,7 @@ public class ServiceLoader {
                 result.add((T) serviceClazz.getDeclaredConstructor().newInstance());
             } catch (Throwable ex) {
                 System.err.printf("Unable to load class: %s from classloader: %s, throwable: %s",
-                        service.getName(), service.getClassLoader(), ex.toString());
+                        service.getName(), loader, ex.toString());
             }
         }
         return result;

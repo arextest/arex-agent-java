@@ -4,22 +4,23 @@ import io.arex.agent.bootstrap.TraceContextManager;
 import io.arex.agent.bootstrap.cache.TimeCache;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
+import io.arex.inst.runtime.log.Logger;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.serializer.StringSerializable;
-import io.arex.inst.runtime.util.LogUtil;
 import io.arex.inst.runtime.util.MockUtils;
 import io.arex.agent.bootstrap.util.ServiceLoader;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
-import org.slf4j.Logger;
+
 import org.slf4j.LoggerFactory;
 
 public class EventProcessor {
-    private static final Logger LOGGER = LoggerFactory.getLogger(EventProcessor.class);
+    private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(EventProcessor.class);
     private static final String CLOCK_CLASS = "java.lang.System";
     private static final String CLOCK_METHOD = "currentTimeMillis";
     public static final String EXCLUDE_MOCK_TYPE = "java.util.HashMap-java.lang.String,java.util.HashSet";
@@ -61,7 +62,7 @@ public class EventProcessor {
                 MockUtils.recordMocker(mocker);
             }
         } catch (Throwable e) {
-            LOGGER.warn(LogUtil.buildTitle("time.machine.init"), e);
+            LOGGER.warn(LogManager.buildTitle("time.machine.init"), e);
         }
     }
 
@@ -74,10 +75,16 @@ public class EventProcessor {
     public static void onRequest(){
         if (INITIALIZED.compareAndSet(false, true)) {
             initSerializer();
+            initLog();
         }
         TimeCache.remove();
         TraceContextManager.remove();
         ContextManager.overdueCleanUp();
+    }
+
+    private static void initLog() {
+        List<Logger> extensionLoggerList = ServiceLoader.load(Logger.class, Thread.currentThread().getContextClassLoader());
+        LogManager.build(extensionLoggerList);
     }
 
     private static long parseLong(String value) {

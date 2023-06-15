@@ -5,8 +5,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import io.arex.inst.runtime.util.TypeUtil;
 import java.sql.Time;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
@@ -102,6 +102,35 @@ class JacksonSerializerTest {
         System.out.println(deserializedJson);
 
         assert expectedJson.equals(deserializedJson);
+    }
+
+    @Test
+    void serialize() {
+        // null object
+        assertNull(JacksonSerializer.INSTANCE.serialize(null));
+
+        // error serialize object
+        assertNull(JacksonSerializer.INSTANCE.serialize(JacksonSerializer.class.getDeclaredMethods()));
+    }
+
+    @Test
+    void deserializeClass() {
+        // null object
+        assertNull(JacksonSerializer.INSTANCE.deserialize(null, String.class));
+
+        // error deserialize object
+        String json  = JacksonSerializer.INSTANCE.serialize(LocalDateTime.now());
+        assertNull(JacksonSerializer.INSTANCE.deserialize(json, LocalTime.class));
+    }
+
+    @Test
+    void deserializeType() {
+        // null object
+        assertNull(JacksonSerializer.INSTANCE.deserialize(null, TypeUtil.forName(TypeUtil.getName(LocalTime.now()))));
+
+        // error deserialize object
+        String json  = JacksonSerializer.INSTANCE.serialize(LocalDateTime.now());
+        assertNull(JacksonSerializer.INSTANCE.deserialize(json, TypeUtil.forName(TypeUtil.getName(LocalTime.now()))));
     }
 
 }

@@ -1,8 +1,11 @@
 package io.arex.foundation.healthy;
 
+import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.foundation.config.ConfigManager;
 import io.arex.agent.bootstrap.internal.Pair;
 import io.arex.foundation.services.TimerService;
+import io.arex.inst.runtime.log.LogManager;
+
 import com.google.common.util.concurrent.RateLimiter;
 
 import java.util.Map;
@@ -63,6 +66,7 @@ public class HealthManager {
 
     public static void onDataServiceRejection() {
         if (STATE.compareAndSet(NORMAL, FAST_REJECT) || STATE.compareAndSet(QUEUE_OVERFLOW, FAST_REJECT)) {
+            LogManager.warn("onDataServiceRejection", "data service error! switch to reject state");
             if (scheduledFuture != null) {
                 scheduledFuture.cancel(false);
             }
@@ -125,6 +129,7 @@ public class HealthManager {
                 default:
                     break;
             }
+            LogManager.warn("healthCheckTask", StringUtil.format("check result: state=%s, isRecover=%s", String.valueOf(STATE.get()), String.valueOf(isRecover)));
         }
     }
 
@@ -218,15 +223,20 @@ public class HealthManager {
             if (!validate()) {
                 return;
             }
+            double currentRate = ConfigManager.INSTANCE.getRecordRate();
             for (Map.Entry<String, Pair<Double, RateLimiter>> entry : RATE_LIMITER_MAP.entrySet()) {
                 Pair<Double, RateLimiter> limiterPair = entry.getValue();
                 double targetRate = Math.max(limiterPair.getFirst() * 0.8, MIN_RATE);
                 if (targetRate > MIN_RATE) {
+                    currentRate = targetRate;
                     RATE_LIMITER_MAP.put(entry.getKey(), Pair.of(targetRate, RateLimiter.create(targetRate / BASE)));
                 } else {
                     break;
                 }
             }
+            LogManager.warn("onEnqueueRejection.decelerate",
+                    StringUtil.format("queue overflow! decrement record rate, current rate change to: %s",
+                            String.valueOf(currentRate)));
         }
 
         /**

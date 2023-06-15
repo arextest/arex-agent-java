@@ -70,6 +70,10 @@ class ReplaceMethodHelperTest {
         Mockito.when(ContextManager.needRecord()).thenReturn(true);
         Mockito.when(MockUtils.createDynamicClass(any(), any())).thenReturn(mocker);
         Assertions.assertDoesNotThrow(ReplaceMethodHelper::uuid);
+
+        // throw exception
+        Mockito.when(MockUtils.createDynamicClass(any(), any())).thenReturn(null);
+        Assertions.assertDoesNotThrow(ReplaceMethodHelper::uuid);
     }
 
     @Test
@@ -102,6 +106,10 @@ class ReplaceMethodHelperTest {
         Mockito.when(ContextManager.needReplay()).thenReturn(false);
         Mockito.when(ContextManager.needRecord()).thenReturn(true);
         Mockito.when(MockUtils.createDynamicClass(any(), any())).thenReturn(mocker);
+        Assertions.assertDoesNotThrow(() -> ReplaceMethodHelper.nextInt(new Random(), 10));
+
+        // throw exception
+        Mockito.when(MockUtils.createDynamicClass(any(), any())).thenReturn(null);
         Assertions.assertDoesNotThrow(() -> ReplaceMethodHelper.nextInt(new Random(), 10));
     }
 

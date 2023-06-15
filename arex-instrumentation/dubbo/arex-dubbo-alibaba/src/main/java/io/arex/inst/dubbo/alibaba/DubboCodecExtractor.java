@@ -7,7 +7,7 @@ import io.arex.agent.bootstrap.util.NumberUtil;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.model.ArexConstants;
-import io.arex.inst.runtime.util.LogUtil;
+import io.arex.inst.runtime.log.LogManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,7 +60,7 @@ public class DubboCodecExtractor {
             out.writeObject(result.getAttachments());
             return true;
         } catch (Throwable e) {
-            LOGGER.warn(LogUtil.buildTitle("[arex] alibaba dubbo writeAttachments error"), e);
+            LOGGER.warn(LogManager.buildTitle("alibaba.dubbo.writeAttachments"), e);
         }
         return false;
     }
