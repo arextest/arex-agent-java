@@ -29,6 +29,7 @@ class AgentInitializerTest {
     static void tearDown() {
         zipFile.deleteOnExit();
         zipExtensionFile.deleteOnExit();
+        CreateFileCommon.clear();
     }
 
     @Test

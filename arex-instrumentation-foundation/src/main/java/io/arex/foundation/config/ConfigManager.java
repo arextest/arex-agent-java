@@ -7,12 +7,12 @@ import io.arex.foundation.config.ConfigQueryResponse.ResponseBody;
 import io.arex.foundation.config.ConfigQueryResponse.ServiceCollectConfig;
 import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.foundation.util.NetUtils;
-import io.arex.foundation.util.SPIUtil;
 import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.config.ConfigBuilder;
 import io.arex.inst.runtime.config.listener.ConfigListener;
 import io.arex.inst.runtime.model.DynamicClassEntity;
 import io.arex.inst.runtime.model.DynamicClassStatusEnum;
+import io.arex.agent.bootstrap.util.ServiceLoader;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -71,7 +71,7 @@ public class ConfigManager {
     }
 
     private void initConfigListener() {
-        listeners = SPIUtil.load(ConfigListener.class);
+        listeners = ServiceLoader.load(ConfigListener.class);
     }
 
     public boolean isEnableDebug() {

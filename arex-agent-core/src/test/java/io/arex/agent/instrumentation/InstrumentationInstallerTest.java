@@ -1,12 +1,12 @@
 package io.arex.agent.instrumentation;
 
 import io.arex.foundation.config.ConfigManager;
-import io.arex.foundation.util.SPIUtil;
 import io.arex.inst.extension.MethodInstrumentation;
 import io.arex.inst.extension.ModuleInstrumentation;
 import io.arex.inst.extension.TypeInstrumentation;
 import io.arex.inst.runtime.model.DynamicClassEntity;
 import io.arex.inst.runtime.model.DynamicClassStatusEnum;
+import io.arex.agent.bootstrap.util.ServiceLoader;
 import java.lang.instrument.Instrumentation;
 import net.bytebuddy.agent.ByteBuddyAgent;
 import net.bytebuddy.agent.builder.AgentBuilder;
@@ -54,7 +54,7 @@ class InstrumentationInstallerTest {
         inst = Mockito.mock(TypeInstrumentation.class);
         Mockito.when(module.matcher()).thenReturn(ElementMatchers.none());
         Mockito.when(inst.matcher()).thenReturn(ElementMatchers.none());
-        Mockito.mockStatic(SPIUtil.class);
+        Mockito.mockStatic(ServiceLoader.class);
     }
 
     @AfterAll
@@ -81,7 +81,7 @@ class InstrumentationInstallerTest {
             config.setStorageServiceMode("local");
             config.setDisabledModules("mock");
             Mockito.when(module.name()).thenReturn("mock");
-            Mockito.when(SPIUtil.load(any())).thenReturn(Collections.singletonList(module));
+            Mockito.when(ServiceLoader.load(any())).thenReturn(Collections.singletonList(module));
         };
         Runnable resetAndRetransformClassEmpty = () -> {
             config.setDisabledModules("mock1");

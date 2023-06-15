@@ -6,11 +6,11 @@ import io.arex.inst.extension.TypeInstrumentation;
 import io.arex.agent.bootstrap.InstrumentationHolder;
 import io.arex.foundation.config.ConfigManager;
 import io.arex.agent.bootstrap.util.CollectionUtil;
-import io.arex.foundation.util.SPIUtil;
 
 import io.arex.inst.extension.matcher.IgnoredTypesMatcher;
 import io.arex.inst.runtime.model.DynamicClassEntity;
 import io.arex.inst.runtime.model.DynamicClassStatusEnum;
+import io.arex.agent.bootstrap.util.ServiceLoader;
 import java.util.stream.Collectors;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.agent.builder.AgentBuilder;
@@ -106,7 +106,7 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
     }
 
     private List<ModuleInstrumentation> loadInstrumentationModules() {
-        return SPIUtil.load(ModuleInstrumentation.class);
+        return ServiceLoader.load(ModuleInstrumentation.class);
     }
 
     private AgentBuilder installModule(AgentBuilder builder, ModuleInstrumentation module, boolean retransform) {

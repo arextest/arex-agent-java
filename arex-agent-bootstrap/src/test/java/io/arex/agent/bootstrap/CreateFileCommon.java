@@ -4,7 +4,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.zip.ZipEntry;
@@ -21,14 +23,15 @@ public class CreateFileCommon {
         }
     }
 
-    private  static File file1 = null, file2 = null, file3 = null, zipFile = null, zipExtensionFile = null;
+    private static File file1 = null, file2 = null, file3 = null, file4 = null, zipFile = null, zipExtensionFile = null;
 
     static {
         try {
             file1 = createFile(path, "/test1.class");
             file2 = createFile(path, "/test2.txt");
             file3 = createFile(path , "/io/arex/inst/ArexTest.class");
-            List<File> files = Arrays.asList(file1, file2, file3);
+            file4 = createFile(path, "/META-INF/services/io.arex.agent.bootstrap.util.ServiceLoaderTest$SpiTestInterface", "io.arex.agent.bootstrap.util.ServiceLoaderTest$TestStringSerializable");
+            List<File> files = Arrays.asList(file1, file2, file3, file4);
             zipFile = createFile(path, "/arex-agent-test.jar");
             zipExtensionFile = createFile(path + "/extensions/", "/arex-extension-test.jar");
             createZip(zipFile, files);
@@ -48,6 +51,21 @@ public class CreateFileCommon {
             assert zipExtensionFile != null;
             zipExtensionFile.deleteOnExit();
         }
+    }
+
+    public static void clear() {
+        assert file1 != null;
+        file1.deleteOnExit();
+        assert file2 != null;
+        file2.deleteOnExit();
+        assert file3 != null;
+        file3.deleteOnExit();
+        assert file4 != null;
+        file4.deleteOnExit();
+        assert zipFile != null;
+        zipFile.deleteOnExit();
+        assert zipExtensionFile != null;
+        zipExtensionFile.deleteOnExit();
     }
 
     public static File getZipFile() {
@@ -72,6 +90,18 @@ public class CreateFileCommon {
         }
     }
 
+    private static File createFile(String path, String name, String value) {
+        try {
+            File file = createFile(path, name);
+            assert file != null;
+            Files.write(file.toPath(), value.getBytes(StandardCharsets.UTF_8));
+            return file;
+        } catch (Throwable ex) {
+            ex.printStackTrace();
+            return null;
+        }
+    }
+
     private static void createZip(File zipFile, List<File> files) throws IOException {
         try (ZipOutputStream zos = new ZipOutputStream(Files.newOutputStream(zipFile.toPath()))) {
 
@@ -82,15 +112,17 @@ public class CreateFileCommon {
                 FileInputStream fis = new FileInputStream(file);
                 ZipEntry zipEntry;
                 String absolutePath = file.getAbsolutePath();
+                int index = -1;
                 if (absolutePath.contains("arex") || absolutePath.contains("extensions")) {
-                    int index = absolutePath.indexOf("io");
-                    if (index >= 0) {
-                        String substring = absolutePath.substring(index);
-                        String replace = substring.replace("\\", "/");
-                        zipEntry = new ZipEntry(replace);
-                    } else {
-                        zipEntry = new ZipEntry(file.getName());
-                    }
+                    index = absolutePath.indexOf("io");
+                }
+                if (absolutePath.contains("META-INF")) {
+                    index = absolutePath.indexOf("META-INF");
+                }
+                if (index >= 0) {
+                    String substring = absolutePath.substring(index);
+                    String replace = substring.replace("\\", "/");
+                    zipEntry = new ZipEntry(replace);
                 } else {
                     zipEntry = new ZipEntry(file.getName());
                 }
