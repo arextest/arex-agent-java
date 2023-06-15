@@ -24,9 +24,6 @@ public class DubboCodecExtractor {
     private static final int DUBBO_MAJOR_VERSION_26 = 26;
     private static final int DUBBOX_MAJOR_VERSION_28 = 28;
     private static final int SUB_VERSION_3 = 3;
-    private static final byte RESPONSE_WITH_EXCEPTION_WITH_ATTACHMENTS = 3;
-    private static final byte RESPONSE_VALUE_WITH_ATTACHMENTS = 4;
-    private static final byte RESPONSE_NULL_VALUE_WITH_ATTACHMENTS = 5;
 
     /**
      * fix dubbo not support return attachments to consumer-side before 2.6.3 version
@@ -45,6 +42,7 @@ public class DubboCodecExtractor {
                 return false;
             }
 
+            // refer: DubboCodec#encodeResponseData
             ResponseData responseData = new ResponseData();
             responseData.setService(result.getAttachment("interface", channel.getUrl().getServiceInterface()));
             responseData.setMethod(result.getAttachment("method", ""));
@@ -65,25 +63,7 @@ public class DubboCodecExtractor {
             }
 
             responseData.setTracecontext(result.getAttachment(ArexConstants.REPLAY_ID));
-
             out.writeObject(responseData);
-
-
-// **************************************************************
-//            Throwable throwable = result.getException();
-//            if (throwable == null) {
-//                Object bizResult = result.getValue();
-//                if (bizResult == null) {
-//                    out.writeByte(RESPONSE_NULL_VALUE_WITH_ATTACHMENTS);
-//                } else {
-//                    out.writeByte(RESPONSE_VALUE_WITH_ATTACHMENTS);
-//                    out.writeObject(bizResult);
-//                }
-//            } else {
-//                out.writeByte(RESPONSE_WITH_EXCEPTION_WITH_ATTACHMENTS);
-//                out.writeObject(throwable);
-//            }
-//            out.writeObject(result.getAttachments());
             return true;
         } catch (Throwable e) {
             LOGGER.warn(LogUtil.buildTitle("[arex] alibaba dubbo writeAttachments error"), e);

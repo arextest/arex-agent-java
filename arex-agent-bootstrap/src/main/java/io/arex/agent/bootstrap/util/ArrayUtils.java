@@ -1,5 +1,7 @@
 package io.arex.agent.bootstrap.util;
 
+import java.util.function.Function;
+
 public class ArrayUtils {
     private ArrayUtils() {}
 
@@ -28,5 +30,21 @@ public class ArrayUtils {
 
     public static boolean isNotEmpty(final Object[] array) {
         return !isEmpty(array);
+    }
+
+    public static String toString(Object[] array, Function<Object, String> parser) {
+        if (isEmpty(array)) {
+            return null;
+        }
+        int iMax = array.length - 1;
+        StringBuilder builder = new StringBuilder();
+        builder.append('[');
+        for (int i = 0; ; i++) {
+            builder.append(parser != null ? parser.apply(array[i]) : array[i]);
+            if (i == iMax) {
+                return builder.append(']').toString();
+            }
+            builder.append(", ");
+        }
     }
 }
