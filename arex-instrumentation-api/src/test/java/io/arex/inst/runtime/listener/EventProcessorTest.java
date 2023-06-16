@@ -1,12 +1,11 @@
 package io.arex.inst.runtime.listener;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.serializer.StringSerializable;
-import io.arex.inst.runtime.util.SPIUtil;
+import io.arex.agent.bootstrap.util.ServiceLoader;
 import java.lang.reflect.Type;
 import java.util.Arrays;
 import org.junit.jupiter.api.AfterAll;
@@ -19,7 +18,7 @@ public class EventProcessorTest {
     @BeforeAll
     static void setUp() {
         Mockito.mockStatic(ContextManager.class);
-        Mockito.mockStatic(SPIUtil.class);
+        Mockito.mockStatic(ServiceLoader.class);
     }
 
     @AfterAll
@@ -35,7 +34,7 @@ public class EventProcessorTest {
     @Test
     void testInitSerializer() {
         // load two class
-        Mockito.when(SPIUtil.load(StringSerializable.class, Thread.currentThread()
+        Mockito.when(ServiceLoader.load(StringSerializable.class, Thread.currentThread()
                 .getContextClassLoader())).thenReturn(Arrays.asList(new TestStringSerializable(), new TestStringSerializer2()));
         EventProcessor.onRequest();
         Assertions.assertNotNull(Serializer.getINSTANCE());
@@ -43,7 +42,7 @@ public class EventProcessorTest {
         Assertions.assertEquals(1, Serializer.getINSTANCE().getSerializers().size());
 
         // atomic load, only load once
-        Mockito.when(SPIUtil.load(StringSerializable.class, Thread.currentThread()
+        Mockito.when(ServiceLoader.load(StringSerializable.class, Thread.currentThread()
                 .getContextClassLoader())).thenReturn(null);
         EventProcessor.onRequest();
         Assertions.assertNotNull(Serializer.getINSTANCE());

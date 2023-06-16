@@ -11,7 +11,7 @@ import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.serializer.StringSerializable;
 import io.arex.inst.runtime.util.LogUtil;
 import io.arex.inst.runtime.util.MockUtils;
-import io.arex.inst.runtime.util.SPIUtil;
+import io.arex.agent.bootstrap.util.ServiceLoader;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -34,7 +34,7 @@ public class EventProcessor {
      * user loader to load serializer, ex: ParallelWebappClassLoader
      */
     private static void initSerializer() {
-        final List<StringSerializable> serializableList = SPIUtil.load(StringSerializable.class, Thread.currentThread().getContextClassLoader());
+        final List<StringSerializable> serializableList = ServiceLoader.load(StringSerializable.class, Thread.currentThread().getContextClassLoader());
         Serializer.builder(serializableList).build();
     }
 

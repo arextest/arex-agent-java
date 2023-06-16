@@ -2,6 +2,7 @@ package io.arex.agent.bootstrap.util;
 
 import io.arex.agent.bootstrap.InstrumentationHolder;
 import io.arex.agent.bootstrap.cache.AdviceInjectorCache;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -35,25 +36,23 @@ public class AdviceClassesCollector {
             do {
                 jarEntry = jarInputStream.getNextJarEntry();
 
-                if (jarEntry != null) {
+                if (jarEntry != null && !jarEntry.isDirectory()) {
                     String entryName = jarEntry.getName();
-
+                    if (ServiceLoader.match(entryName)) {
+                        ServiceLoader.buildCache(file, jarEntry, entryName);
+                    }
                     // exclude package io.arex.inst.runtime/extension, not class, and shaded class.
-                    boolean isFilterEntry = jarEntry.isDirectory() ||
-                            StringUtil.isEmpty(entryName) ||
+                    boolean isFilterEntry = StringUtil.isEmpty(entryName) ||
                             entryName.startsWith(EXCLUDE_CLASS_PREFIX) ||
                             !entryName.endsWith(CLASS_SUFFIX) ||
                             StringUtil.startWithFrom(entryName, "runtime", 13) ||
                             StringUtil.startWithFrom(entryName, "extension", 13);
-
                     if (isFilterEntry) {
                         continue;
                     }
-
                     String className = entryName.replace('/', '.');
                     String realClassName = className.substring(0,
                             className.length() - CLASS_SUFFIX_LENGTH);
-
                     if (isExtensionJar || entryName.startsWith(CLASS_AREX_AGENT_PREFIX)) {
                         addClassToInjectorCache(realClassName);
                     }
@@ -98,4 +97,5 @@ public class AdviceClassesCollector {
         ClassFileLocator locator = ClassFileLocator.ForClassLoader.of(loader);
         return locator.locate(name).resolve();
     }
+
 }

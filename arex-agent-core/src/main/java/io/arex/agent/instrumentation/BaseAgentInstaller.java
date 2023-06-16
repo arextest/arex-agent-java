@@ -12,13 +12,13 @@ import io.arex.foundation.services.ConfigService;
 import io.arex.foundation.services.DataCollectorService;
 import io.arex.foundation.util.NetUtils;
 import io.arex.foundation.util.NumberTypeAdaptor;
-import io.arex.foundation.util.SPIUtil;
 import io.arex.foundation.util.async.ThreadFactoryImpl;
 import io.arex.inst.runtime.context.RecordLimiter;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.service.DataCollector;
 import io.arex.inst.runtime.service.DataService;
 
+import io.arex.agent.bootstrap.util.ServiceLoader;
 import java.util.List;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -100,7 +100,7 @@ public abstract class BaseAgentInstaller implements AgentInstaller {
     private void initDataCollector() {
         DataCollector collector = DataCollectorService.INSTANCE;
         if (ConfigManager.INSTANCE.isLocalStorage()) {
-            List<DataCollector> extendCollectorList = SPIUtil.load(DataCollector.class, getClassLoader());
+            List<DataCollector> extendCollectorList = ServiceLoader.load(DataCollector.class, getClassLoader());
             if (CollectionUtil.isNotEmpty(extendCollectorList)) {
                 collector = extendCollectorList.get(0);
             }
