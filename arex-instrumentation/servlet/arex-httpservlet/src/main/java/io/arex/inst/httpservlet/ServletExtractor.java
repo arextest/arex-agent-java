@@ -1,5 +1,6 @@
 package io.arex.inst.httpservlet;
 
+import io.arex.agent.bootstrap.model.MockCategoryType;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.inst.httpservlet.adapter.ServletAdapter;
 import io.arex.inst.httpservlet.converter.HttpMessageConvertFactory;
@@ -101,9 +102,13 @@ public class ServletExtractor<HttpServletRequest, HttpServletResponse> {
         Map<String, Object> requestAttributes = new HashMap<>();
         requestAttributes.put("HttpMethod", httpMethod);
         requestAttributes.put("RequestPath", requestPath);
-        requestAttributes.put("Headers", getRequestHeaders());
+        Map<String,String> requestHeaders = getRequestHeaders();
+        requestAttributes.put("Headers", requestHeaders);
 
-        Mocker mocker = MockUtils.createServlet(pattern);
+        String originalMocker = requestHeaders.get(ArexConstants.REPLAY_ORIGINAL_MOCKER);
+        MockCategoryType mockCategoryType =
+            originalMocker == null ? MockCategoryType.SERVLET : MockCategoryType.createEntryPoint(originalMocker);
+        Mocker mocker = MockUtils.create(mockCategoryType, pattern);
 
         mocker.getTargetRequest().setAttributes(requestAttributes);
         mocker.getTargetRequest().setBody(getRequest());
