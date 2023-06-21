@@ -29,7 +29,7 @@ AREX utilizes the advanced Java technique, Instrument API, and is capable of ins
 - Java Executors
 - System time
 - Apache HttpClient 4.x
-- OkHttp 3+
+- OkHttp 3.x、4.x
 - Spring WebClient 5.x
 - Hibernate 5.x
 - MyBatis 3.x

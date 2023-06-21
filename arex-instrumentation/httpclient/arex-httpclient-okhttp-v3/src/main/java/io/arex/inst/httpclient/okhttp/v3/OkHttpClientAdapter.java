@@ -106,13 +106,15 @@ public class OkHttpClientAdapter implements HttpClientAdapter<Request, Response>
         }
         ResponseBody responseBody = null;
         if (contentType != null) {
-            responseBody = ResponseBody.create(wrapped.getContent(), MediaType.get(contentType));
+            // compatible with version 3.x
+            responseBody = ResponseBody.create(MediaType.parse(contentType), wrapped.getContent());
         }
         responseBuilder.request(this.httpRequest);
         responseBuilder.body(responseBody);
         responseBuilder.headers(headersBuilder.build());
         try {
-            StatusLine statusLine = StatusLine.Companion.parse(wrapped.getStatusLine());
+            // compatible with version 3.x
+            StatusLine statusLine = StatusLineAdapter.parse(wrapped.getStatusLine());
             responseBuilder.code(statusLine.code);
             responseBuilder.message(statusLine.message);
             responseBuilder.protocol(statusLine.protocol);

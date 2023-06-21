@@ -11,7 +11,7 @@ import static java.util.Collections.singletonList;
 @AutoService(ModuleInstrumentation.class)
 public class OkHttpModuleInstrumentation extends ModuleInstrumentation {
     public OkHttpModuleInstrumentation() {
-        super("okhttp-v3");
+        super("okhttp");
     }
 
     @Override
