@@ -108,4 +108,12 @@ public interface Mocker extends Serializable {
         }
         return builder;
     }
+
+    default String recordLogTitle() {
+        return "record." + getCategoryType().getName();
+    }
+
+    default String replayLogTitle() {
+        return "replay." + getCategoryType().getName();
+    }
 }

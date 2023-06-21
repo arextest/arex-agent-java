@@ -14,6 +14,7 @@ import com.fasterxml.jackson.databind.ser.BeanSerializerModifier;
 import io.arex.agent.thirdparty.util.time.DateFormatUtils;
 import io.arex.agent.thirdparty.util.time.FastDateFormat;
 import io.arex.foundation.util.JdkUtils;
+import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.model.SerializeSkipInfo;
@@ -121,7 +122,7 @@ public final class JacksonSerializer implements StringSerializable {
         try {
             return MAPPER.writeValueAsString(object);
         } catch (Throwable ex) {
-            LOGGER.warn("jackson-serialize", ex);
+            LogManager.warn("jackson-serialize", ex);
         }
         return null;
     }
@@ -134,7 +135,7 @@ public final class JacksonSerializer implements StringSerializable {
         try {
             return MAPPER.readValue(json, clazz);
         } catch (Throwable ex) {
-            LOGGER.warn("jackson-deserialize-clazz", ex);
+            LogManager.warn("jackson-deserialize-clazz", ex);
         }
         return null;
     }
@@ -164,7 +165,7 @@ public final class JacksonSerializer implements StringSerializable {
         try {
             return MAPPER.readValue(json, javaType);
         } catch (Throwable ex) {
-            LOGGER.warn("jackson-deserialize-type", ex);
+            LogManager.warn("jackson-deserialize-type", ex);
         }
         return null;
     }

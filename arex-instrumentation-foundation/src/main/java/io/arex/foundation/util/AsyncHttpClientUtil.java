@@ -5,7 +5,7 @@ import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.foundation.config.ConfigManager;
 import io.arex.foundation.util.async.AutoCleanedPoolingNHttpClientConnectionManager;
 import io.arex.foundation.util.async.ThreadFactoryImpl;
-import io.arex.inst.runtime.util.LogUtil;
+import io.arex.inst.runtime.log.LogManager;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
@@ -37,6 +37,7 @@ import java.util.function.Function;
  */
 public class AsyncHttpClientUtil {
     private static final Logger LOGGER = LoggerFactory.getLogger(AsyncHttpClientUtil.class);
+    private static final String COMPLETED_TITLE = "completed";
     private static final String USER_AGENT = String.format("arex-async-http-client-%s", ConfigManager.INSTANCE.getAgentVersion());
     /**
      *  the compressed size of the sent httpEntity is limited to less than 5MB
@@ -82,7 +83,7 @@ public class AsyncHttpClientUtil {
 
     public static CompletableFuture<String> executeAsync(String urlAddress, HttpEntity httpEntity, Map<String, String> requestHeaders) {
         if (AREX_RECORD_BODY_SIZE_LIMIT < httpEntity.getContentLength() || httpEntity.getContentLength() < 0) {
-            LOGGER.warn("[arex] do not record, the size is larger than 5MB.");
+            LogManager.warn("executeAsync", "do not record, the size is larger than 5MB.");
             return OVER_LIMIT_FUTURE;
         }
         HttpPost httpPost = getHttpPost(urlAddress, httpEntity, requestHeaders);
@@ -107,7 +108,6 @@ public class AsyncHttpClientUtil {
 
     public static CompletableFuture<Map<String, String>> executeAsync(HttpPost httpPost) {
         CompletableFuture<Map<String, String>> resultFuture = new CompletableFuture<>();
-
         Function<byte[], String> bytesParser;
 
         if (ClientConfig.STORAGE_CONTENT_TYPE.equals(httpPost.getFirstHeader(HttpHeaders.CONTENT_TYPE).getValue())) {
@@ -187,18 +187,18 @@ public class AsyncHttpClientUtil {
 
         @Override
         public void completed(HttpResponse response) {
-            LogUtil.setContextMap(contextMap);
+            LogManager.setContextMap(contextMap);
             String responseContent = null;
             Map<String, String> responseMap = new HashMap<>();
             if (response.getStatusLine() != null && response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-                LOGGER.warn("[[title=arex.completed]]response status info: {}", response.getStatusLine().toString());
+                LogManager.warn(COMPLETED_TITLE, StringUtil.format("response status info: %s", response.getStatusLine().toString()));
             } else {
                 try {
                     byte[] responseBytes = EntityUtils.toByteArray(response.getEntity());
                     if (responseBytes != null) {
                         responseContent = byteParser.apply(responseBytes);
                         if (StringUtil.isEmpty(responseContent)) {
-                            LOGGER.warn("[[title=arex.completed]]response bytes: {}", Base64.getEncoder().encodeToString(responseBytes));
+                            LogManager.warn(COMPLETED_TITLE, StringUtil.format("response bytes: %s", Base64.getEncoder().encodeToString(responseBytes)));
                         }
                     }
                     Header[] headers = response.getAllHeaders();
@@ -209,7 +209,7 @@ public class AsyncHttpClientUtil {
                     }
                 } catch (Throwable e) {
                     responseFuture.completeExceptionally(e);
-                    LOGGER.warn("[[title=arex.completed]]", e);
+                    LogManager.warn(COMPLETED_TITLE, e);
                 }
             }
 
@@ -220,16 +220,16 @@ public class AsyncHttpClientUtil {
 
         @Override
         public void failed(Exception e) {
-            LogUtil.setContextMap(contextMap);
+            LogManager.setContextMap(contextMap);
             responseFuture.completeExceptionally(e);
-            LOGGER.warn("[[title=arex.failed]]", e);
+            LogManager.warn("failed", e);
         }
 
         @Override
         public void cancelled() {
-            LogUtil.setContextMap(contextMap);
+            LogManager.setContextMap(contextMap);
             responseFuture.completeExceptionally(new InterruptedException("Request has been cancelled."));
-            LOGGER.warn("[[title=arex.cancelled]]Request has been cancelled.");
+            LogManager.warn("cancelled", "Request has been cancelled.");
         }
     }
 }

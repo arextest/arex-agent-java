@@ -96,6 +96,7 @@ public class ConfigService {
             request.setSystemEnv(new HashMap<>(System.getenv()));
         }
         request.setAgentStatus(agentStatus.name());
+        System.setProperty("arex.agent.status", agentStatus.name());
         return request;
     }
 

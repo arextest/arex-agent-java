@@ -8,7 +8,7 @@ import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.inst.runtime.model.DynamicClassEntity;
-import io.arex.inst.runtime.util.LogUtil;
+import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.util.MockUtils;
 import java.util.List;
 import java.util.Random;
@@ -71,7 +71,7 @@ public class ReplaceMethodHelper {
                 MockUtils.recordMocker(mocker);
             }
         } catch (Throwable ex) {
-            LogUtil.warn("replaceUuidRecord", ex);
+            LogManager.warn("replaceUuidRecord", ex);
         }
         return realUuid;
     }
@@ -94,7 +94,7 @@ public class ReplaceMethodHelper {
                 MockUtils.recordMocker(mocker);
             }
         } catch (Throwable ex) {
-            LogUtil.warn("replaceNextIntRecord", ex);
+            LogManager.warn("replaceNextIntRecord", ex);
         }
         return realNextInt;
     }

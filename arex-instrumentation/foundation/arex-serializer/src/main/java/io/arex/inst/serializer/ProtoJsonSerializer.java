@@ -6,7 +6,7 @@ import com.google.protobuf.AbstractMessage;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.serializer.StringSerializable;
-import io.arex.inst.runtime.util.LogUtil;
+import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.util.TypeUtil;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -14,10 +14,8 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Collection;
 
-import org.slf4j.LoggerFactory;
 
 public class ProtoJsonSerializer implements StringSerializable{
-    private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(ProtoJsonSerializer.class);
     private static final ProtoJsonSerializer INSTANCE = new ProtoJsonSerializer();
     private static final JsonFormat.Printer JSON_PRINTER = JsonFormat.printer().omittingInsignificantWhitespace();
     private static final JsonFormat.Parser JSON_PARSER = JsonFormat.parser().ignoringUnknownFields();
@@ -50,7 +48,7 @@ public class ProtoJsonSerializer implements StringSerializable{
             }
             return JSON_PRINTER.print((AbstractMessage) object);
         } catch (Throwable e) {
-            LOGGER.error(LogUtil.buildTitle("serialize"), e);
+            LogManager.warn("proto-serialize", e);
             return StringUtil.EMPTY;
         }
     }
@@ -68,7 +66,7 @@ public class ProtoJsonSerializer implements StringSerializable{
 
             return (T) builder.build();
         } catch (Throwable e) {
-            LOGGER.error(LogUtil.buildTitle("deserialize"), e);
+            LogManager.warn("proto-deserialize", e);
             return null;
         }
     }

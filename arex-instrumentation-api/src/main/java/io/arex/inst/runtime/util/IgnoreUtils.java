@@ -1,17 +1,15 @@
 package io.arex.inst.runtime.util;
 
+import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import io.arex.agent.bootstrap.util.StringUtil;
 
 import java.util.*;
 
 
 public class IgnoreUtils {
-    private static final Logger LOGGER = LoggerFactory.getLogger(IgnoreUtils.class);
     private static final String SEPARATOR_STAR = "*";
 
     public static boolean ignoreMockResult(String serviceKey, String operationKey) {
@@ -29,12 +27,12 @@ public class IgnoreUtils {
         Set<String> operationSet = excludeMockTemplate.get(serviceKey);
         // If empty, this service all operations ignore mock result
         if (operationSet == null || operationSet.isEmpty()) {
-            LOGGER.info("{}service:{} all operations ignore mock result", LogUtil.buildTitle("ignoreMock"), serviceKey);
+            LogManager.info("ignoreMock", StringUtil.format("service:%s all operations ignore mock result", serviceKey));
             return true;
         }
         // Specified operation ignore mock result
         if (operationSet.contains(operationKey)) {
-            LOGGER.info("{}operation:{}.{} ignore mock result", LogUtil.buildTitle("ignoreMock"), serviceKey, operationKey);
+            LogManager.info("ignoreMock", StringUtil.format("operation:%s.%s ignore mock result", serviceKey, operationKey));
             return true;
         }
         return false;

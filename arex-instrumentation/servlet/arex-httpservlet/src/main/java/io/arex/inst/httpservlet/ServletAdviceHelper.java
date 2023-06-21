@@ -12,7 +12,7 @@ import io.arex.inst.runtime.listener.CaseEventDispatcher;
 import io.arex.inst.runtime.listener.EventSource;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.util.IgnoreUtils;
-import io.arex.inst.runtime.util.LogUtil;
+import io.arex.inst.runtime.log.LogManager;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -155,7 +155,7 @@ public class ServletAdviceHelper {
             // sync request
             new ServletExtractor<>(adapter, httpServletRequest, httpServletResponse).execute();
         } catch (Throwable e) {
-            LogUtil.warn("servlet.onExit", e);
+            LogManager.warn("servlet.onExit", e);
         }
     }
 

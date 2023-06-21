@@ -4,9 +4,9 @@ import io.arex.agent.bootstrap.ctx.TraceTransmitter;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.dubbo.common.AbstractAdapter;
+import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.serializer.Serializer;
-import io.arex.inst.runtime.util.LogUtil;
 import io.arex.inst.runtime.util.TypeUtil;
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.rpc.*;
@@ -94,7 +94,7 @@ public class DubboAdapter extends AbstractAdapter {
                         value = throwable;
                     }
                 } catch (Throwable e) {
-                    LOGGER.warn(LogUtil.buildTitle("DubboResponseConsumer"), e);
+                    LOGGER.warn(LogManager.buildTitle("DubboResponseConsumer"), e);
                 } finally {
                     doExecute(value, mocker);
                 }

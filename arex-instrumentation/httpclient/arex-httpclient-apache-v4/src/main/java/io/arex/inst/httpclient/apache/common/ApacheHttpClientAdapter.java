@@ -4,6 +4,7 @@ import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.httpclient.common.HttpClientAdapter;
 import io.arex.inst.httpclient.common.HttpResponseWrapper;
 import io.arex.inst.httpclient.common.HttpResponseWrapper.StringTuple;
+import io.arex.inst.runtime.log.LogManager;
 import java.io.ByteArrayOutputStream;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -51,7 +52,7 @@ public class ApacheHttpClientAdapter implements HttpClientAdapter<HttpRequest, H
             entity.writeTo(byteArrayOutputStream);
             content = byteArrayOutputStream.toByteArray();
         } catch (Throwable e) {
-            LOGGER.warn("extract request content error:{}", e.getMessage(), e);
+            LogManager.warn("getRequestBytes", e);
             content = ZERO_BYTE;
         }
         return content;
@@ -86,7 +87,7 @@ public class ApacheHttpClientAdapter implements HttpClientAdapter<HttpRequest, H
             httpEntity.writeTo(byteArrayOutputStream);
             content = byteArrayOutputStream.toByteArray();
         } catch (Throwable e) {
-            LOGGER.warn("read content error:{}", e.getMessage(), e);
+            LogManager.warn("readContent", e);
             return null;
         }
 

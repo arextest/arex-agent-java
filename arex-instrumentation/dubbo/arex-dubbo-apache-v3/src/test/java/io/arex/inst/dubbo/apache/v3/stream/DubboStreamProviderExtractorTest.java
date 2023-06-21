@@ -9,6 +9,7 @@ import org.apache.dubbo.rpc.TriRpcStatus;
 import org.apache.dubbo.rpc.model.MethodDescriptor;
 import org.apache.dubbo.rpc.model.PackableMethod;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -69,6 +70,9 @@ class DubboStreamProviderExtractorTest {
         StreamModel.DataModel dataModel = StreamModel.DataModel.of(false, data);
         dataModels.add(dataModel);
         Mockito.when(adapter.getRequestMessages()).thenReturn(dataModels);
+        // throw exception
+        Assertions.assertDoesNotThrow(() -> instance.record(new HashMap<>(), null, null,
+                methodDescriptor, packableMethod));
 
         ArexMocker arexMocker = new ArexMocker();
         arexMocker.setTargetRequest(new Mocker.Target());
