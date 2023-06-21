@@ -38,13 +38,13 @@ public class ArrayUtils {
         }
         int iMax = array.length - 1;
         StringBuilder builder = new StringBuilder();
-        builder.append('[');
+        builder.append("[\"");
         for (int i = 0; ; i++) {
             builder.append(parser != null ? parser.apply(array[i]) : array[i]);
             if (i == iMax) {
-                return builder.append(']').toString();
+                return builder.append("\"]").toString();
             }
-            builder.append(", ");
+            builder.append("\", \"");
         }
     }
 }
