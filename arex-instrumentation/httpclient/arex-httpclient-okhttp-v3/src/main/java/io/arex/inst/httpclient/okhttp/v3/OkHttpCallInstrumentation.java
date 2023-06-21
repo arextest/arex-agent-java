@@ -27,7 +27,7 @@ public class OkHttpCallInstrumentation extends TypeInstrumentation {
 
     @Override
     public ElementMatcher<TypeDescription> typeMatcher() {
-        return named("okhttp3.internal.connection.RealCall");
+        return named("okhttp3.internal.connection.RealCall").or(named("okhttp3.RealCall"));
     }
 
     @Override
