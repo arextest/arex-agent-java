@@ -2,6 +2,7 @@ package io.arex.inst.runtime.serializer;
 
 import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.util.TypeUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,7 +66,7 @@ public class Serializer {
             }
             return INSTANCE.getSerializer(serializer).serialize(object);
         } catch (Exception ex) {
-            LOGGER.warn("serialize", ex);
+            LogManager.warn("serializer-serialize", ex);
             return null;
         }
     }
@@ -89,7 +90,7 @@ public class Serializer {
         try {
             return INSTANCE.getSerializer().deserialize(value, clazz);
         } catch (Exception ex) {
-            LOGGER.warn("deserialize", ex);
+            LogManager.warn("serializer-deserialize", ex);
             return null;
         }
     }
@@ -109,7 +110,7 @@ public class Serializer {
         try {
             return INSTANCE.getSerializer(serializer).deserialize(value, type);
         } catch (Exception ex) {
-            LOGGER.warn("deserialize-type", ex);
+            LogManager.warn("serializer-deserialize-type", ex);
             return null;
         }
     }
@@ -173,7 +174,7 @@ public class Serializer {
 
             return (T) list;
         } catch (Exception ex) {
-            LOGGER.warn("deserialize-typeName", ex);
+            LogManager.warn("serializer-deserialize-typeName", ex);
             return null;
         }
     }

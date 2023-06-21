@@ -3,26 +3,36 @@ package io.arex.inst.runtime.listener;
 import static org.mockito.ArgumentMatchers.any;
 
 import io.arex.inst.runtime.context.ContextManager;
+import io.arex.inst.runtime.log.LogManager;
+import io.arex.inst.runtime.log.Logger;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.serializer.StringSerializable;
 import io.arex.agent.bootstrap.util.ServiceLoader;
 import java.lang.reflect.Type;
 import java.util.Arrays;
+import java.util.Collections;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 public class EventProcessorTest {
+    static Logger logger = null;
+    static MockedStatic<LogManager> mockedStatic = null;
     @BeforeAll
     static void setUp() {
         Mockito.mockStatic(ContextManager.class);
         Mockito.mockStatic(ServiceLoader.class);
+        logger = Mockito.mock(Logger.class);
+        mockedStatic = Mockito.mockStatic(LogManager.class);
     }
 
     @AfterAll
     static void tearDown() {
+        logger = null;
+        mockedStatic = null;
         Mockito.clearAllCaches();
     }
 
@@ -32,11 +42,18 @@ public class EventProcessorTest {
     }
 
     @Test
-    void testInitSerializer() {
-        // load two class
+    void testInit() {
+        // load serializer
         Mockito.when(ServiceLoader.load(StringSerializable.class, Thread.currentThread()
                 .getContextClassLoader())).thenReturn(Arrays.asList(new TestStringSerializable(), new TestStringSerializer2()));
+        // logger
+        Mockito.when(ServiceLoader.load(Logger.class, Thread.currentThread()
+                .getContextClassLoader())).thenReturn(Collections.singletonList(logger));
+
         EventProcessor.onRequest();
+        // logger
+        mockedStatic.verify(() -> LogManager.build(any()), Mockito.times(1));
+        // serializer
         Assertions.assertNotNull(Serializer.getINSTANCE());
         Assertions.assertEquals("jackson", Serializer.getINSTANCE().getSerializer().name());
         Assertions.assertEquals(1, Serializer.getINSTANCE().getSerializers().size());
@@ -57,17 +74,17 @@ public class EventProcessorTest {
 
         @Override
         public String serialize(Object object) {
-            return null;
+            throw new RuntimeException("test");
         }
 
         @Override
         public <T> T deserialize(String value, Class<T> clazz) {
-            return null;
+            throw new RuntimeException("test");
         }
 
         @Override
         public <T> T deserialize(String value, Type type) {
-            return null;
+            throw new RuntimeException("test");
         }
 
         @Override

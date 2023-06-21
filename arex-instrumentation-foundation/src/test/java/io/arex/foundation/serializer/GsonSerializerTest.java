@@ -1,8 +1,12 @@
 package io.arex.foundation.serializer;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
+import io.arex.foundation.internal.MockEntityBuffer;
+import io.arex.inst.runtime.util.TypeUtil;
 import java.sql.Time;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
@@ -72,5 +76,34 @@ class GsonSerializerTest {
         System.out.println(deserializedJson);
 
         assert expectedJson.equals(deserializedJson);
+    }
+
+    @Test
+    void serialize() {
+        // null object
+        assertNull(GsonSerializer.INSTANCE.serialize(null));
+
+        // error serialize object
+        assertNull(GsonSerializer.INSTANCE.serialize(Thread.currentThread()));
+    }
+
+    @Test
+    void deserializeClass() {
+        // null object
+        assertNull(GsonSerializer.INSTANCE.deserialize(null, String.class));
+
+        // error deserialize object
+        String json  = GsonSerializer.INSTANCE.serialize(LocalDateTime.now());
+        assertNull(GsonSerializer.INSTANCE.deserialize(json, LocalTime.class));
+    }
+
+    @Test
+    void deserializeType() {
+        // null object
+        assertNull(GsonSerializer.INSTANCE.deserialize(null, TypeUtil.forName(TypeUtil.getName(LocalTime.now()))));
+
+        // error deserialize object
+        String json  = GsonSerializer.INSTANCE.serialize(LocalDateTime.now());
+        assertNull(GsonSerializer.INSTANCE.deserialize(json, TypeUtil.forName(TypeUtil.getName(LocalTime.now()))));
     }
 }

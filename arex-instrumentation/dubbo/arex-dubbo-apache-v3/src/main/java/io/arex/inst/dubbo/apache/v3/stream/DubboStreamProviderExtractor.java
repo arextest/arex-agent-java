@@ -2,8 +2,8 @@ package io.arex.inst.dubbo.apache.v3.stream;
 
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.CollectionUtil;
+import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.serializer.Serializer;
-import io.arex.inst.runtime.util.LogUtil;
 import io.arex.inst.runtime.util.MockUtils;
 import io.arex.inst.runtime.util.TypeUtil;
 import org.apache.dubbo.rpc.RpcContext;
@@ -137,7 +137,7 @@ public class DubboStreamProviderExtractor {
                 }
             }
         } catch (Exception e) {
-            LOGGER.warn(LogUtil.buildTitle("DubboStreamProviderExtractor record fail"), e);
+            LOGGER.warn(LogManager.buildTitle("DubboStreamProviderExtractor.record"), e);
         }
     }
 
@@ -167,7 +167,7 @@ public class DubboStreamProviderExtractor {
             Object request = requestMessage != null ? packableMethod.parseRequest(requestMessage) : null;
             adapter.replay(mocker, request, methodDescriptor.getRpcType(), true);
         } catch (Exception e) {
-            LOGGER.warn(LogUtil.buildTitle("DubboStreamProviderExtractor replay fail"), e);
+            LOGGER.warn(LogManager.buildTitle("DubboStreamProviderExtractor.replay"), e);
         }
     }
 

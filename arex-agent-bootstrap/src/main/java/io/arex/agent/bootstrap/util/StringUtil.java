@@ -470,4 +470,34 @@ public class StringUtil {
         }
         return CharSequenceUtils.regionMatches(cs1, false, 0, cs2, 0, cs1.length());
     }
+
+    public static String format(String format, String... args) {
+        if (isEmpty(format) || args == null || args.length == 0) {
+            return EMPTY;
+        }
+        try {
+            int cnt = 0;
+            StringBuilder builder = new StringBuilder();
+            int i = 0;
+            while (i < format.length()) {
+                if (format.charAt(i) == '%' && i + 1 < format.length()) {
+                    if (format.charAt(i + 1) == 's') {
+                        builder.append(args[cnt++]);
+                        i = i + 2;
+                        continue;
+                    }
+                    if (format.charAt(i + 1) == 'n') {
+                        builder.append('\n');
+                        i = i + 2;
+                        continue;
+                    }
+                }
+                builder.append(format.charAt(i));
+                i++;
+            }
+            return builder.toString();
+        } catch (Throwable e) {
+            return EMPTY;
+        }
+    }
 }

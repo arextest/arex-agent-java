@@ -5,9 +5,9 @@ import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.util.IgnoreUtils;
-import io.arex.inst.runtime.util.LogUtil;
 import io.arex.inst.runtime.util.MockUtils;
 import io.arex.inst.runtime.util.TypeUtil;
 import org.apache.dubbo.rpc.TriRpcStatus;
@@ -38,7 +38,7 @@ public class DubboStreamConsumerExtractor {
             byte[] data = packableMethod.packRequest(message);
             adapter.saveRequest(data);
         } catch (Exception e) {
-            LOGGER.warn(LogUtil.buildTitle("DubboStreamConsumerExtractor saveRequest fail"), e);
+            LOGGER.warn(LogManager.buildTitle("DubboStreamConsumerExtractor.saveRequest"), e);
         }
     }
 
@@ -81,7 +81,7 @@ public class DubboStreamConsumerExtractor {
             MockUtils.recordMocker(mocker);
             requestModel.setRecorded(true);
         } catch (Exception e) {
-            LOGGER.warn(LogUtil.buildTitle("DubboStreamConsumerExtractor record fail"), e);
+            LOGGER.warn(LogManager.buildTitle("DubboStreamConsumerExtractor.record"), e);
         }
     }
 
@@ -110,7 +110,7 @@ public class DubboStreamConsumerExtractor {
             Mocker mocker = MockUtils.createDubboConsumer(operation);
             mockResults = adapter.replay(mocker, requestMessage, requestMetadata.method.getRpcType(), ignoreMockResult);
         } catch (Exception e) {
-            LOGGER.warn(LogUtil.buildTitle("DubboStreamConsumerExtractor replay fail"), e);
+            LOGGER.warn(LogManager.buildTitle("DubboStreamConsumerExtractor.replay"), e);
         }
         return mockResults;
     }
@@ -131,7 +131,7 @@ public class DubboStreamConsumerExtractor {
             // restore
             clientCall.setAutoRequest(autoRequest);
         } catch (Exception e) {
-            LOGGER.warn(LogUtil.buildTitle("DubboStreamConsumerExtractor doReplay fail"), e);
+            LOGGER.warn(LogManager.buildTitle("DubboStreamConsumerExtractor.doReplay"), e);
         }
     }
 

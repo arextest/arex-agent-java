@@ -7,9 +7,8 @@ import io.arex.foundation.internal.DataEntity;
 import io.arex.foundation.internal.MockEntityBuffer;
 import io.arex.foundation.util.AsyncHttpClientUtil;
 import io.arex.foundation.util.async.ThreadFactoryImpl;
+import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.service.DataCollector;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
 import java.util.concurrent.Future;
@@ -20,7 +19,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 
 public class DataCollectorService implements DataCollector {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DataCollectorService.class);
     public static final DataCollectorService INSTANCE = new DataCollectorService();
 
     final ThreadPoolExecutor executor = new ThreadPoolExecutor(1, 1, 15,
@@ -92,7 +90,7 @@ public class DataCollectorService implements DataCollector {
                     doSleep(100);
                 }
             } catch (Throwable throwable) {
-                LOGGER.warn("Send mock data unhandled error:{}", throwable.getMessage(), throwable);
+                LogManager.warn("saveDataLoop","send mock data unhandled error");
             }
         }
     }
@@ -120,6 +118,7 @@ public class DataCollectorService implements DataCollector {
         return (response, throwable) -> {
             long usedTime = System.nanoTime() - entity.getQueueTime();
             if (Objects.nonNull(throwable)) {
+                LogManager.warn("saveMockDataConsumer", "save mock data error");
                 usedTime = -1; // -1:reject
                 HealthManager.onDataServiceRejection();
             }

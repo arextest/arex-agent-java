@@ -2,13 +2,12 @@ package io.arex.inst.runtime.util;
 
 import io.arex.agent.bootstrap.util.ArrayUtils;
 import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.inst.runtime.log.LogManager;
 
 import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -25,8 +24,6 @@ public class TypeUtil {
     public static final String HORIZONTAL_LINE_STR = "-";
     public static final String DEFAULT_CLASS_NAME = "java.lang.String";
     private static final ConcurrentMap<String, Field> GENERIC_FIELD_CACHE = new ConcurrentHashMap<>();
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(TypeUtil.class);
     private static final ConcurrentMap<String, Type> TYPE_NAME_CACHE = new ConcurrentHashMap<>();
     /**
      * Suppresses default constructor, ensuring non-instantiability.
@@ -73,7 +70,7 @@ public class TypeUtil {
             TYPE_NAME_CACHE.put(typeName, raw);
             return raw;
         } catch (Throwable ex) {
-            LOGGER.warn(LogUtil.buildTitle("forName"), ex);
+            LogManager.warn("forName", ex);
             return null;
         }
     }
@@ -148,7 +145,7 @@ public class TypeUtil {
             final Object genericField = field.get(result);
             return getName(genericField);
         } catch (Throwable ex) {
-            LOGGER.warn(LogUtil.buildTitle("invokeGetFieldType"), ex);
+            LogManager.warn("invokeGetFieldType", ex);
             return null;
         }
     }
@@ -252,7 +249,7 @@ public class TypeUtil {
             }
             return Class.forName(type, false, Thread.currentThread().getContextClassLoader());
         } catch (Throwable ex) {
-            LOGGER.warn(LogUtil.buildTitle("classForName"), ex);
+            LogManager.warn("classForName", ex);
             return null;
         }
     }

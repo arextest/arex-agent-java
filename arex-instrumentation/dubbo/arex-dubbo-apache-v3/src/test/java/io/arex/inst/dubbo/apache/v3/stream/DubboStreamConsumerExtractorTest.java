@@ -16,6 +16,7 @@ import org.apache.dubbo.rpc.protocol.tri.call.ClientCall;
 import org.apache.dubbo.rpc.protocol.tri.call.TripleClientCall;
 import org.apache.dubbo.rpc.protocol.tri.stream.ClientStream;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,6 +32,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executor;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
@@ -71,6 +73,7 @@ class DubboStreamConsumerExtractorTest {
         PackableMethod packableMethod = Mockito.mock(PackableMethod.class);
         instance.saveRequest(packableMethod, null);
         verify(adapter).saveRequest(any());
+        Assertions.assertDoesNotThrow(() -> instance.saveRequest(null, null));
     }
 
     @Test
@@ -129,6 +132,8 @@ class DubboStreamConsumerExtractorTest {
         Mockito.when(adapter.replay(any(), any(), any(), anyBoolean())).thenReturn(new ArrayList<>());
         List<MockResult> result = instance.replay(null, requestMetadata);
         assertNotNull(result);
+        // replay with exception
+        assertDoesNotThrow(() -> instance.replay(null, null));
     }
 
     @Test
@@ -142,6 +147,8 @@ class DubboStreamConsumerExtractorTest {
         verify(listener).onClose(any(), any());
         instance.doReplay(clientCall, listener, Collections.singletonList(MockResult.success("mock")));
         verify(listener).onMessage(any());
+        // replay with exception
+        assertDoesNotThrow(() -> instance.doReplay(null, null, null));
     }
 
     @Test
