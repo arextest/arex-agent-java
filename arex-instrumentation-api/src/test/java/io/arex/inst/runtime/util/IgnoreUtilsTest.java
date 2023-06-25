@@ -1,6 +1,7 @@
 package io.arex.inst.runtime.util;
 
 import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.config.ConfigBuilder;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
@@ -77,20 +78,29 @@ class IgnoreUtilsTest {
     @EmptySource
     @ValueSource(strings = {"/api", "/api/v1/get/order", "/api/v2/_info", "/api/v3"})
     void ignoreOperation(String targetName) {
-        ConfigBuilder.create("mock")
-                .excludeServiceOperations(Sets.newSet("/api", "/api/v1/*", "*_info"))
-                .build();
+        final ConfigBuilder configBuilder = ConfigBuilder.create("mock")
+                .excludeServiceOperations(Sets.newSet("/api", "/api/v1/*", "*_info"));
+        // includeServiceOperations empty
+        configBuilder.build();
         if (StringUtil.isEmpty(targetName) || "/api/v3".equals(targetName)) {
             assertFalse(IgnoreUtils.ignoreOperation(targetName));
         } else {
             assertTrue(IgnoreUtils.ignoreOperation(targetName));
         }
+
+        // includeServiceOperations not empty
+        configBuilder.addProperty("includeServiceOperations", "/api,/api/v1/*,*_info");
+        configBuilder.build();
+        if ("/api/v3".equals(targetName)) {
+            assertTrue(IgnoreUtils.ignoreOperation(targetName));
+        } else {
+            assertFalse(IgnoreUtils.ignoreOperation(targetName));
+        }
+
     }
 
     @Test
     void ignoreOperation_excludePathList() {
-        assertFalse(IgnoreUtils.ignoreOperation("api/v3"));
-
         ConfigBuilder.create("mock").build();
         assertFalse(IgnoreUtils.ignoreOperation("api/v3"));
     }

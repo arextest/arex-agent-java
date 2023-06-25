@@ -500,4 +500,15 @@ public class StringUtil {
             return EMPTY;
         }
     }
+
+    /**
+     * split str to set
+      */
+    public static Set<String> splitToSet(String str, char separatorChars) {
+        if (isEmpty(str)) {
+            return Collections.emptySet();
+        }
+        String[] strs = split(str, separatorChars);
+        return new HashSet<>(Arrays.asList(strs));
+    }
 }

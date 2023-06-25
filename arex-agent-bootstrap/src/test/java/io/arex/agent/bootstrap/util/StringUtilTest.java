@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -260,5 +261,23 @@ class StringUtilTest {
         format2 = "% %trequest: %s, %dresponse: %s";
         actualResult = StringUtil.format(format2, "badadadadas", "ccccccc");
         Assertions.assertEquals("% %trequest: badadadadas, %dresponse: ccccccc", actualResult);
+    }
+
+    @Test
+    void testSplitToSet() {
+        // null string
+        Set<String> nullSet = StringUtil.splitToSet(null, ',');
+        assertEquals(0, nullSet.size());
+
+        // empty string
+        Set<String> emptySet = StringUtil.splitToSet("", ',');
+        assertEquals(0, emptySet.size());
+
+        String s = "aaa,bb,c";
+        Set<String> set = StringUtil.splitToSet(s, ',');
+        assertEquals(3, set.size());
+        assertTrue(set.contains("aaa"));
+        assertTrue(set.contains("bb"));
+        assertTrue(set.contains("c"));
     }
 }
