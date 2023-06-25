@@ -1,5 +1,6 @@
 package io.arex.inst.runtime.util;
 
+import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.ArexContext;
@@ -46,26 +47,37 @@ public class IgnoreUtils {
             return false;
         }
 
+        Set<String> includeServiceOperations = Config.get().getIncludeServiceOperations();
+        if (CollectionUtil.isNotEmpty(includeServiceOperations)) {
+            return !operationMatched(targetName, includeServiceOperations);
+        }
         Set<String> excludePathList = Config.get().excludeServiceOperations();
-        if (excludePathList == null || excludePathList.isEmpty()) {
+        return operationMatched(targetName, excludePathList);
+    }
+
+    /**
+     * targetName match searchOperations
+     * @param searchOperations: includeServiceOperations or excludeServiceOperations.
+     * @return includeServiceOperations: true -> notNeedIgnore, excludeServiceOperations: true -> needIgnore
+      */
+    private static boolean operationMatched(String targetName, Set<String> searchOperations) {
+        if (CollectionUtil.isEmpty(searchOperations)) {
             return false;
         }
-
-        for (String excludePath : excludePathList) {
-            if (excludePath.equalsIgnoreCase(targetName)) {
+        for (String searchOperation : searchOperations) {
+            if (searchOperation.equalsIgnoreCase(targetName)) {
                 return true;
             }
-
-            if (excludePath.startsWith(SEPARATOR_STAR) &&
-                targetName.endsWith(excludePath.substring(1))) {
+            if (searchOperation.startsWith(SEPARATOR_STAR) &&
+                targetName.endsWith(searchOperation.substring(1))) {
                 return true;
             }
-            if (excludePath.endsWith(SEPARATOR_STAR) &&
-                targetName.startsWith(excludePath.substring(0, excludePath.length() - 1))) {
+            if (searchOperation.endsWith(SEPARATOR_STAR) &&
+                targetName.startsWith(searchOperation.substring(0, searchOperation.length() - 1))) {
                 return true;
             }
         }
-
         return false;
     }
+
 }

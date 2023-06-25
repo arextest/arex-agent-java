@@ -38,6 +38,7 @@ public class Config {
     private final int dubboStreamReplayThreshold;
     private final int recordRate;
     private final String recordVersion;
+    private final Set<String> includeServiceOperations;
 
     Config(boolean enableDebug, String serviceName, List<DynamicClassEntity> dynamicClassList,
         Map<String, String> properties,
@@ -50,6 +51,7 @@ public class Config {
         this.dubboStreamReplayThreshold = dubboStreamReplayThreshold;
         this.recordRate = recordRate;
         this.recordVersion = properties.get("arex.agent.version");
+        this.includeServiceOperations = StringUtil.splitToSet(properties.get("includeServiceOperations"), ',');
         buildDynamicClassInfo();
     }
 
@@ -155,6 +157,10 @@ public class Config {
 
     public int getRecordRate() {
         return recordRate;
+    }
+
+    public Set<String> getIncludeServiceOperations() {
+        return includeServiceOperations;
     }
 
     /**

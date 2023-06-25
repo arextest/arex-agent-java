@@ -62,6 +62,7 @@ class ConfigTest {
         assertNull(Config.get().getDynamicClassList());
 
         ConfigBuilder config = ConfigBuilder.create("mock").addProperty("arex.agent.version", "0.3.4");
+        config.addProperty("includeServiceOperations", "operation1,operation2,operation3");
         String genericObject = "innerTest";
         String genericTypeName = genericObject.getClass().getName();
         DynamicClassEntity genericEntity = new DynamicClassEntity("classA", "methodA", null, "T:" + genericTypeName);
@@ -76,6 +77,10 @@ class ConfigTest {
         assertEquals("mock", Config.get().getServiceName());
         assertEquals("0.3.4", Config.get().getRecordVersion());
         assertEquals("0.3.4", Config.get().getString("arex.agent.version"));
+        assertEquals(3, Config.get().getIncludeServiceOperations().size());
+        assertTrue(Config.get().getIncludeServiceOperations().contains("operation1"));
+        assertTrue(Config.get().getIncludeServiceOperations().contains("operation2"));
+        assertTrue(Config.get().getIncludeServiceOperations().contains("operation3"));
         assertNull(Config.get().excludeServiceOperations());
         assertEquals(0, Config.get().getDubboStreamReplayThreshold());
         assertEquals(3, Config.get().getDynamicClassSignatureMap().size());
