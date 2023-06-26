@@ -4,6 +4,8 @@ import io.arex.agent.bootstrap.TraceContextManager;
 import io.arex.agent.bootstrap.cache.TimeCache;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.inst.runtime.extension.MockerProcessor;
+import io.arex.inst.runtime.extension.RequestProcessor;
 import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.ArexContext;
@@ -76,6 +78,8 @@ public class EventProcessor {
         if (INITIALIZED.compareAndSet(false, true)) {
             initSerializer();
             initLog();
+            RequestProcessor.init();
+            MockerProcessor.init();
         }
         TimeCache.remove();
         TraceContextManager.remove();

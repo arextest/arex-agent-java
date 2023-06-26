@@ -296,7 +296,7 @@ public class DynamicClassExtractor {
         if (Objects.isNull(result)) {
             return String.format("%s_%s_%s_no_result", clazzName, methodName, methodKey);
         }
-        return String.format("%s_%s_%s_has_result_%s", clazzName, methodName, methodKey, result.getClass().getName());
+        return String.format("%s_%s_%s_has_result_%s", clazzName, methodName, methodKey, TypeUtil.getName(result));
     }
 
     /**
