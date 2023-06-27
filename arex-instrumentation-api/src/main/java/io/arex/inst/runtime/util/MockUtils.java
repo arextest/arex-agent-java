@@ -6,7 +6,6 @@ import io.arex.agent.bootstrap.model.MockStrategyEnum;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.model.Mocker.Target;
 import io.arex.agent.bootstrap.util.StringUtil;
-import io.arex.inst.runtime.extension.MockerProcessor;
 import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.ArexContext;
@@ -86,7 +85,6 @@ public final class MockUtils {
     }
 
     public static void recordMocker(Mocker requestMocker) {
-        MockerProcessor.preProcess(requestMocker);
         String postJson = Serializer.serialize(requestMocker);
 
         if (Config.get().isEnableDebug()) {
@@ -101,7 +99,6 @@ public final class MockUtils {
     }
 
     public static Mocker replayMocker(Mocker requestMocker, MockStrategyEnum mockStrategy) {
-        MockerProcessor.preProcess(requestMocker);
         String postJson = Serializer.serialize(requestMocker);
 
         String data = DataService.INSTANCE.query(postJson, mockStrategy);

@@ -14,10 +14,13 @@ import io.arex.inst.runtime.util.MockUtils;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Stream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -84,10 +87,10 @@ class ServletExtractorTest {
             Mockito.when(ContextManager.needRecordOrReplay()).thenReturn(false);
         };
 
+        ArexMocker mocker = new ArexMocker();
         Runnable mockNotRedirectRequest = () -> {
             Mockito.when(ContextManager.needRecordOrReplay()).thenReturn(true);
 
-            ArexMocker mocker = new ArexMocker();
             mocker.setTargetRequest(new Target());
             mocker.setTargetResponse(new Target());
             Mockito.when(MockUtils.create(any(),any())).thenReturn(mocker);
@@ -127,6 +130,26 @@ class ServletExtractorTest {
             Mockito.verify(adapter).getResponseBytes(response);
         };
 
+        Runnable getExtensionAttr = () -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("testKey", "mock-extension-attr");
+            Mockito.when(adapter.getAttribute(request, ArexConstants.AREX_EXTENSION_ATTRIBUTE)).thenReturn(map);
+        };
+
+        Runnable verifyGetExtensionAttr = () -> {
+            Assertions.assertEquals(mocker.getTargetRequest().getAttribute("testKey"), "mock-extension-attr");
+        };
+
+        Runnable getExtensionAttrError = () -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("testKey", "mock-extension-attr");
+            Mockito.when(adapter.getAttribute(request, ArexConstants.AREX_EXTENSION_ATTRIBUTE)).thenThrow(new RuntimeException());
+        };
+
+        Runnable verifyGetExtensionAttrError = () -> {
+            Assertions.assertNull(mocker.getTargetRequest().getAttribute("testKey"));
+        };
+
         return Stream.of(
             arguments("response status is 302", mockResponseStatus302, verifyCopyToResponse),
             arguments("response status is 200", mockResponseStatus100, verifyCopyToResponse),
@@ -135,7 +158,9 @@ class ServletExtractorTest {
             arguments("record execute not redirect request", mockNotRedirectRequest, verifyResponseHeaderContainsTrace),
             arguments("record execute redirect request", mockRedirectRequest, verifyResponseHeaderContainsTrace),
             arguments("replay execute", mockNeedRecord, verifySetResponseHeader),
-            arguments("get method", mockRequestMethodIsGet, verifyGetResponseBytes)
+            arguments("get method", mockRequestMethodIsGet, verifyGetResponseBytes),
+            arguments("get extension attr", getExtensionAttr, verifyGetExtensionAttr),
+            arguments("get extension attr error", getExtensionAttrError, verifyGetExtensionAttrError)
         );
     }
 }

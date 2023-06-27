@@ -296,7 +296,21 @@ public class DynamicClassExtractor {
         if (Objects.isNull(result)) {
             return String.format("%s_%s_%s_no_result", clazzName, methodName, methodKey);
         }
-        return String.format("%s_%s_%s_has_result_%s", clazzName, methodName, methodKey, TypeUtil.getName(result));
+        return String.format("%s_%s_%s_has_result_%s", clazzName, methodName, methodKey, getResultKey());
+    }
+
+    private String getResultKey() {
+        String resultClassName = result.getClass().getName();
+        if (result instanceof Collection<?>) {
+            return resultClassName + ((Collection<?>) result).size();
+        }
+        if (result instanceof Map<?, ?>) {
+            return resultClassName + ((Map<?, ?>) result).size();
+        }
+        if (result.getClass().isArray()) {
+            return resultClassName + Array.getLength(result);
+        }
+        return resultClassName;
     }
 
     /**

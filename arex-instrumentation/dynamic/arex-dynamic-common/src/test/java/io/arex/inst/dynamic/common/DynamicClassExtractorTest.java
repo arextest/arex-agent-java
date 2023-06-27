@@ -110,9 +110,9 @@ class DynamicClassExtractorTest {
         return Stream.of(
             arguments(signatureContains, new Object[]{"mock"}, "mock1", nonNull),
             arguments(resultIsNull, new Object[]{"mock"}, null, isNull),
-            arguments(resultIsNull, null, Collections.singletonList("mock"), nonNull),
-            arguments(resultIsNull, null, Collections.singletonMap("key", "val"), nonNull),
-            arguments(resultIsNull, null, new int[1001], nonNull),
+            arguments(resultIsNull, new Object[]{"mock"}, Collections.singletonList("mock"), nonNull),
+            arguments(resultIsNull, new Object[]{"mock"}, Collections.singletonMap("key", "val"), nonNull),
+            arguments(resultIsNull, new Object[]{"mock"}, new int[1001], nonNull),
             arguments(resultIsNull, null, null, isNull),
             arguments(resultIsNull, null, Futures.immediateFuture("mock-future"), nonNull)
         );

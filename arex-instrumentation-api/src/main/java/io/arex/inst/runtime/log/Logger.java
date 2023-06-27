@@ -6,4 +6,5 @@ public interface Logger {
     void warn(String message, Throwable exception);
     void error(String message);
     void error(String message, Throwable exception);
+    void addTag(String caseId, String replayId);
 }
