@@ -12,6 +12,8 @@ import java.util.List;
 
 import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.inst.runtime.context.ArexContext;
+import io.arex.inst.runtime.context.ContextManager;
 
 public class LogManager {
     private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(LogManager.class);
@@ -21,32 +23,25 @@ public class LogManager {
         EXTENSION_LOGGER_LIST.addAll(logger);
     }
 
-    public static void addReplayTag(String replayId) {
-        if (StringUtil.isNotEmpty(replayId)) {
-            MDC.put("arex-replay-id", replayId);
-        } else {
-            MDC.remove("arex-replay-id");
+    private static void addTag() {
+        ArexContext currentContext = ContextManager.currentContext();
+        if (currentContext == null) {
+            return;
         }
-    }
-
-    public static void addCaseTag(String recordId) {
-        if (StringUtil.isNotEmpty(recordId)) {
-            MDC.put("arex-case-id", recordId);
-        } else {
-            MDC.remove("arex-case-id");
+        if (useExtensionLog()) {
+            for (Logger extensionLogger : EXTENSION_LOGGER_LIST) {
+                extensionLogger.addTag(currentContext.getCaseId(), currentContext.getReplayId());
+            }
         }
-    }
-
-    public static void addTag(String caseId, String replayId) {
-        addCaseTag(caseId);
-        addReplayTag(replayId);
     }
 
     public static String buildTitle(String title) {
+        addTag();
         return StringUtil.format("[[title=arex.%s]]", title);
     }
 
     public static String buildTitle(String prefix, String title) {
+        addTag();
         return StringUtil.format("[[title=arex.%s%s]]", prefix, title);
     }
 

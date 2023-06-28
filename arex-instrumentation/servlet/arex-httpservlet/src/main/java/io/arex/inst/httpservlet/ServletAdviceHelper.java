@@ -2,11 +2,13 @@ package io.arex.inst.httpservlet;
 
 import io.arex.agent.bootstrap.TraceContextManager;
 import io.arex.agent.bootstrap.internal.Pair;
+import io.arex.agent.bootstrap.model.MockCategoryType;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.httpservlet.adapter.ServletAdapter;
 import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
+import io.arex.inst.runtime.request.RequestHandlerManager;
 import io.arex.inst.runtime.listener.CaseEvent;
 import io.arex.inst.runtime.listener.CaseEventDispatcher;
 import io.arex.inst.runtime.listener.EventSource;
@@ -107,6 +109,7 @@ public class ServletAdviceHelper {
             String caseId = adapter.getRequestHeader(httpServletRequest, ArexConstants.RECORD_ID);
             String excludeMockTemplate = adapter.getRequestHeader(httpServletRequest, ArexConstants.HEADER_EXCLUDE_MOCK);
             CaseEventDispatcher.onEvent(CaseEvent.ofCreateEvent(EventSource.of(caseId, excludeMockTemplate)));
+            RequestHandlerManager.preHandle(httpServletRequest, MockCategoryType.SERVLET.getName());
         }
 
         if (ContextManager.needRecordOrReplay()) {
@@ -124,6 +127,9 @@ public class ServletAdviceHelper {
         try {
             TRequest httpServletRequest = adapter.asHttpServletRequest(servletRequest);
             TResponse httpServletResponse = adapter.asHttpServletResponse(servletResponse);
+
+            RequestHandlerManager.postHandle(httpServletRequest, httpServletResponse, MockCategoryType.SERVLET.getName());
+
             if (httpServletRequest == null || httpServletResponse == null) {
                 return;
             }

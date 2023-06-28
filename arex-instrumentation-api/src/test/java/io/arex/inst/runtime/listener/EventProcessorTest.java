@@ -2,6 +2,8 @@ package io.arex.inst.runtime.listener;
 
 import static org.mockito.ArgumentMatchers.any;
 
+import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.log.Logger;
@@ -38,7 +40,21 @@ public class EventProcessorTest {
 
     @Test
     void testOnCreate() {
+        // null context
         EventProcessor.onCreate(EventSource.empty());
+        // record scene
+        String recordId = "testRecordId";
+        ArexContext context = ArexContext.of(recordId);
+        Mockito.when(ContextManager.currentContext()).thenReturn(context);
+        EventProcessor.onCreate(EventSource.empty());
+        mockedStatic.verify(() -> LogManager.info("enter", StringUtil.format("arex-record-id: %s", recordId)), Mockito.times(1));
+
+        // replay scene
+        String replayId = "testReplayId";
+        context = ArexContext.of(recordId, replayId);
+        Mockito.when(ContextManager.currentContext()).thenReturn(context);
+        EventProcessor.onCreate(EventSource.empty());
+        mockedStatic.verify(() -> LogManager.info("enter", StringUtil.format("arex-record-id: %s, arex-replay-id: %s", recordId, replayId)), Mockito.times(1));
     }
 
     @Test
