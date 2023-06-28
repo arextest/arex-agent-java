@@ -267,4 +267,16 @@ public class TypeUtil {
         }
         return builder.toString();
     }
+
+    public static String errorSerializeToString(Object object) {
+        if (object instanceof Object[]) {
+            Object[] objects = (Object[]) object;
+            StringBuilder builder = new StringBuilder();
+            for (Object obj : objects) {
+                builder.append(obj.getClass().getName()).append(",");
+            }
+            return builder.toString();
+        }
+        return getName(object);
+    }
 }

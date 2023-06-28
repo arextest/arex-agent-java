@@ -234,6 +234,7 @@ public class HealthManager {
                     break;
                 }
             }
+            System.setProperty("arex.current.rate", String.valueOf(currentRate));
             LogManager.warn("onEnqueueRejection.decelerate",
                     StringUtil.format("queue overflow! decrement record rate, current rate change to: %s",
                             String.valueOf(currentRate)));

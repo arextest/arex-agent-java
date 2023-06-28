@@ -33,6 +33,30 @@ public class Serializer {
     private final Map<String, StringSerializable> serializers;
 
     /**
+     * serialize throw throwable
+     */
+    public static String serializeWithException(Object object, String serializer) throws Throwable {
+        if (object == null || INSTANCE == null) {
+            return null;
+        }
+
+        String typeName = TypeUtil.getName(object);
+        if (typeName.contains(NESTED_LIST)) {
+            StringBuilder jsonBuilder = new StringBuilder();
+            List<List<?>> ans = (List<List<?>>) object;
+            for (int i = 0; i < ans.size(); i++) {
+                jsonBuilder.append(serializeWithException(ans.get(i), serializer));
+                if (i == ans.size() - 1) {
+                    continue;
+                }
+                jsonBuilder.append(SERIALIZE_SEPARATOR);
+            }
+            return jsonBuilder.toString();
+        }
+        return INSTANCE.getSerializer(serializer).serialize(object);
+    }
+
+    /**
      * Serialize to string
      *
      * @param object object to be serialized
@@ -46,27 +70,10 @@ public class Serializer {
     }
 
     public static String serialize(Object object, String serializer) {
-        if (object == null || INSTANCE == null) {
-            return null;
-        }
-
         try {
-            String typeName = TypeUtil.getName(object);
-            if (typeName.contains(NESTED_LIST)) {
-                StringBuilder jsonBuilder = new StringBuilder();
-                List<List<?>> ans = (List<List<?>>) object;
-                for (int i = 0; i < ans.size(); i++) {
-                    jsonBuilder.append(serialize(ans.get(i)));
-                    if (i == ans.size() - 1) {
-                        continue;
-                    }
-                    jsonBuilder.append(SERIALIZE_SEPARATOR);
-                }
-                return jsonBuilder.toString();
-            }
-            return INSTANCE.getSerializer(serializer).serialize(object);
-        } catch (Exception ex) {
-            LogManager.warn("serializer-serialize", ex);
+            return serializeWithException(object, serializer);
+        } catch (Throwable ex) {
+            LogManager.warn("serializer-serialize", StringUtil.format("can not serialize object: %s, cause: %s", TypeUtil.errorSerializeToString(object), ex.toString()));
             return null;
         }
     }
@@ -89,8 +96,8 @@ public class Serializer {
 
         try {
             return INSTANCE.getSerializer().deserialize(value, clazz);
-        } catch (Exception ex) {
-            LogManager.warn("serializer-deserialize", ex);
+        } catch (Throwable ex) {
+            LogManager.warn("serializer-deserialize", StringUtil.format("can not deserialize value %s to class %s, cause: %s", value, clazz.getName(), ex.toString()));
             return null;
         }
     }
@@ -109,8 +116,8 @@ public class Serializer {
 
         try {
             return INSTANCE.getSerializer(serializer).deserialize(value, type);
-        } catch (Exception ex) {
-            LogManager.warn("serializer-deserialize-type", ex);
+        } catch (Throwable ex) {
+            LogManager.warn("serializer-deserialize-type", StringUtil.format("can not deserialize value %s to type %s, cause: %s", value, type.getTypeName(), ex.toString()));
             return null;
         }
     }
@@ -173,8 +180,8 @@ public class Serializer {
             }
 
             return (T) list;
-        } catch (Exception ex) {
-            LogManager.warn("serializer-deserialize-typeName", ex);
+        } catch (Throwable ex) {
+            LogManager.warn("serializer-deserialize-typeName", StringUtil.format("can not deserialize value %s to class %s, cause: %s", value, typeName, ex.toString()));
             return null;
         }
     }

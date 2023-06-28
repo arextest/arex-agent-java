@@ -115,33 +115,25 @@ public final class JacksonSerializer implements StringSerializable {
     }
 
     @Override
-    public String serialize(Object object) {
+    public String serialize(Object object) throws Throwable {
         if (object == null) {
             return null;
         }
-        try {
-            return MAPPER.writeValueAsString(object);
-        } catch (Throwable ex) {
-            LogManager.warn("jackson-serialize", ex);
-        }
-        return null;
+
+        return MAPPER.writeValueAsString(object);
     }
 
     @Override
-    public <T> T deserialize(String json, Class<T> clazz) {
+    public <T> T deserialize(String json, Class<T> clazz) throws Throwable {
         if (StringUtil.isEmpty(json) || clazz == null) {
             return null;
         }
-        try {
-            return MAPPER.readValue(json, clazz);
-        } catch (Throwable ex) {
-            LogManager.warn("jackson-deserialize-clazz", ex);
-        }
-        return null;
+
+        return MAPPER.readValue(json, clazz);
     }
 
     @Override
-    public <T> T deserialize(String json, Type type) {
+    public <T> T deserialize(String json, Type type) throws Throwable {
         if (StringUtil.isEmpty(json) || type == null) {
             return null;
         }

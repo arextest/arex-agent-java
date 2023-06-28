@@ -1,6 +1,7 @@
 package io.arex.inst.runtime.util;
 
 import io.arex.agent.bootstrap.util.CollectionUtil;
+import io.arex.agent.bootstrap.util.ConcurrentHashSet;
 import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.ArexContext;
@@ -12,6 +13,10 @@ import java.util.*;
 
 public class IgnoreUtils {
     private static final String SEPARATOR_STAR = "*";
+    /**
+     *  operation cache: can not serialize args or response
+     */
+    private static final Set<Integer> INVALID_OPERATION_HASH_CACHE = new ConcurrentHashSet<>();
 
     public static boolean ignoreMockResult(String serviceKey, String operationKey) {
         if (StringUtil.isEmpty(serviceKey)) {
@@ -78,6 +83,14 @@ public class IgnoreUtils {
             }
         }
         return false;
+    }
+
+    public static boolean invalidOperation(String operationSignature) {
+        return INVALID_OPERATION_HASH_CACHE.contains(operationSignature.hashCode());
+    }
+
+    public static void addInvalidOperation(String operationSignature) {
+        INVALID_OPERATION_HASH_CACHE.add(operationSignature.hashCode());
     }
 
 }

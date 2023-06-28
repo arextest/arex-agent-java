@@ -86,6 +86,8 @@ class ConfigServiceTest {
             ahc.when(() -> AsyncHttpClientUtil.post(anyString(), anyString())).thenReturn(JacksonSerializer.INSTANCE.serialize(configQueryResponse));
             assertEquals(DELAY_MINUTES, ConfigService.INSTANCE.loadAgentConfig(null));
             assertTrue(ConfigManager.INSTANCE.valid() && ConfigManager.INSTANCE.inWorkingTime() && ConfigManager.INSTANCE.getRecordRate() > 0);
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
         }
     }
 }
