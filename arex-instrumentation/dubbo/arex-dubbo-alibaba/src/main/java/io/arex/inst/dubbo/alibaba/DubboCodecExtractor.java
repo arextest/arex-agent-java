@@ -38,7 +38,7 @@ public class DubboCodecExtractor {
 
             RpcResult result = (RpcResult) data;
             Map<String, String> attachments = new HashMap<>(result.getAttachments());
-            String version = channel.getUrl().getParameter("dubbo", "");
+            String version = channel.getUrl().getParameter("version", "");
             boolean attach = isNeedAttach(version, attachments);
             if (!attach) {
                 return false;

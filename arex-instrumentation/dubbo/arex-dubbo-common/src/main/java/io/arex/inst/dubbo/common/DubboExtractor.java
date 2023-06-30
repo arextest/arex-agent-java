@@ -7,9 +7,7 @@ import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.util.IgnoreUtils;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.function.BiConsumer;
 
 public class DubboExtractor {
@@ -17,12 +15,17 @@ public class DubboExtractor {
             "org.apache.dubbo.metadata.MetadataService.getMetadataInfo");
     protected static Mocker buildMocker(Mocker mocker, AbstractAdapter adapter, String reqHeader, String resHeader) {
         if (StringUtil.isNotEmpty(reqHeader)) {
-            mocker.getTargetRequest().setAttributes(Collections.singletonMap("Headers", reqHeader));
+            Map<String, Object> headers = new HashMap<>();
+            headers.put("Headers", reqHeader);
+            mocker.getTargetRequest().setAttributes(headers);
         }
         mocker.getTargetRequest().setBody(adapter.getRequest());
         mocker.getTargetRequest().setType(adapter.getRequestParamType());
+        mocker.getTargetRequest().setAttribute("recordRequestType", adapter.getRecordRequestType());
         if (StringUtil.isNotEmpty(resHeader)) {
-            mocker.getTargetResponse().setAttributes(Collections.singletonMap("Headers", resHeader));
+            Map<String, Object> headers = new HashMap<>();
+            headers.put("Headers", resHeader);
+            mocker.getTargetResponse().setAttributes(headers);
         }
         return mocker;
     }

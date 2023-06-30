@@ -6,6 +6,7 @@ import com.alibaba.dubbo.rpc.*;
 import com.alibaba.dubbo.rpc.protocol.dubbo.FutureAdapter;
 import io.arex.agent.bootstrap.ctx.TraceTransmitter;
 import io.arex.agent.bootstrap.model.Mocker;
+import io.arex.agent.bootstrap.util.ArrayUtils;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.dubbo.common.AbstractAdapter;
 import io.arex.inst.runtime.model.ArexConstants;
@@ -18,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.Future;
+import java.util.function.Function;
 
 public class DubboAdapter extends AbstractAdapter {
     private static final Logger LOGGER = LoggerFactory.getLogger(DubboAdapter.class);
@@ -53,12 +55,18 @@ public class DubboAdapter extends AbstractAdapter {
     public String getRequest() {
         return parseRequest(invocation.getArguments(), Serializer::serialize);
     }
+    /**
+     * for dubbo generic invoke
+     */
     public String getRequestParamType() {
-        Class<?>[] parameterTypes = invocation.getParameterTypes();
-        if (parameterTypes != null && parameterTypes.length > 0) {
-            return parameterTypes[0].getName();
-        }
-        return parseRequest(invocation.getArguments(), TypeUtil::getName);
+        Function<Object, String> parser = obj -> ((Class<?>)obj).getName();
+        return ArrayUtils.toString(invocation.getParameterTypes(), parser);
+    }
+    /**
+     * arex record request type, used when the dubbo generic invoke serialize cannot be resolved
+     */
+    public String getRecordRequestType() {
+        return ArrayUtils.toString(invocation.getArguments(), TypeUtil::getName);
     }
     public URL getUrl() {
         return invoker.getUrl();

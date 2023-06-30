@@ -62,16 +62,16 @@ class DubboCodecExtractorTest {
             rpcResult.setAttachment(ArexConstants.SCHEDULE_REPLAY_FLAG, Boolean.TRUE.toString());
         };
         Runnable mocker3 = () -> {
-            Mockito.when(url.getParameter("dubbo", "")).thenReturn("2.0");
+            Mockito.when(url.getParameter("version", "")).thenReturn("2.0");
         };
         Runnable mocker4 = () -> {
-            Mockito.when(url.getParameter("dubbo", "")).thenReturn("2.5.3");
+            Mockito.when(url.getParameter("version", "")).thenReturn("2.5.3");
         };
         Runnable mocker5 = () -> {
-            Mockito.when(url.getParameter("dubbo", "")).thenReturn("2.6.3");
+            Mockito.when(url.getParameter("version", "")).thenReturn("2.6.3");
         };
         Runnable mocker6 = () -> {
-            Mockito.when(url.getParameter("dubbo", "")).thenReturn("2.6.1");
+            Mockito.when(url.getParameter("version", "")).thenReturn("2.6.1");
         };
         Runnable mocker7 = () -> {
             rpcResult.setValue(null);
@@ -80,7 +80,7 @@ class DubboCodecExtractorTest {
             rpcResult.setException(new RuntimeException("mock"));
         };
         Runnable mocker9 = () -> {
-            Mockito.when(url.getParameter("dubbo", "")).thenThrow(new RuntimeException("mock"));
+            Mockito.when(url.getParameter("version", "")).thenThrow(new RuntimeException("mock"));
         };
 
         Predicate<Boolean> assertTrue = result -> result;

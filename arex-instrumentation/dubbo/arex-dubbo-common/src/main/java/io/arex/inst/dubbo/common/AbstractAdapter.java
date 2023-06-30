@@ -20,13 +20,6 @@ public abstract class AbstractAdapter {
     }
 
     public static String parseRequest(Object request, Function<Object, String> parser) {
-        if (request instanceof Object[]) {
-            Object[] requests = (Object[]) request;
-            if (requests.length > 0) {
-                // take only the first request parameter, and in most cases will be packed as one object
-                return parser.apply(requests[0]);
-            }
-        }
         return parser.apply(request);
     }
 
@@ -69,7 +62,15 @@ public abstract class AbstractAdapter {
     protected abstract String getOperationName();
     protected abstract String getServiceOperation();
     protected abstract String getRequest();
+
+    /**
+     * for dubbo generic invoke
+     */
     protected abstract String getRequestParamType();
+    /**
+     * arex record request type, used when the dubbo generic invoke serialize cannot be resolved
+     */
+    protected abstract String getRecordRequestType();
     protected abstract String getProtocol();
     protected abstract String getCaseId();
     protected abstract boolean forceRecord();
