@@ -5,6 +5,7 @@ public class DubboAdapterTest extends AbstractAdapter {
     private String serviceOperation;
     private String request;
     private String requestParamType;
+    private String recordRequestType;
     private String caseId;
     private String protocol;
     private boolean forceRecord;
@@ -53,6 +54,9 @@ public class DubboAdapterTest extends AbstractAdapter {
     }
     public String getRequestParamType() {
         return requestParamType;
+    }
+    public String getRecordRequestType() {
+        return recordRequestType;
     }
     public String getCaseId() {
         return caseId;

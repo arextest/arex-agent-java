@@ -2,8 +2,10 @@ package io.arex.inst.dubbo.common;
 
 import io.arex.agent.bootstrap.model.ArexMocker;
 import io.arex.agent.bootstrap.model.Mocker;
+import io.arex.agent.bootstrap.util.ArrayUtils;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.util.MockUtils;
+import io.arex.inst.runtime.util.TypeUtil;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -40,8 +42,9 @@ class AbstractAdapterTest {
 
     @Test
     void parseRequest() {
-        assertEquals("mock", AbstractAdapter.parseRequest(new Object[]{"mock"}, Object::toString));
-        assertNotNull(AbstractAdapter.parseRequest(new Object[]{}, Object::toString));
+        Object[] requests = new Object[]{"mock"};
+        assertEquals("[\"mock\"]", AbstractAdapter.parseRequest(requests, req -> ArrayUtils.toString(requests, null)));
+        assertNotNull(AbstractAdapter.parseRequest(new Object[]{}, TypeUtil::getName));
     }
 
     @Test
