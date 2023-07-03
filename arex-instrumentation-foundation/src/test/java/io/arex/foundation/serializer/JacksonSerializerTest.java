@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 
 class JacksonSerializerTest {
     @Test
-    void testLocalDateTime() {
+    void testLocalDateTime() throws Throwable {
         LocalDateTime now = LocalDateTime.now();
         String json = JacksonSerializer.INSTANCE.serialize(now);
         LocalDateTime actualResult = JacksonSerializer.INSTANCE.deserialize(json, LocalDateTime.class);
@@ -21,7 +21,7 @@ class JacksonSerializerTest {
     }
 
     @Test
-    void testLocalTime() {
+    void testLocalTime() throws Throwable {
         LocalDateTime now = LocalDateTime.now();
         String json = JacksonSerializer.INSTANCE.serialize(now);
         LocalDateTime actualResult = JacksonSerializer.INSTANCE.deserialize(json, LocalDateTime.class);
@@ -29,7 +29,7 @@ class JacksonSerializerTest {
     }
 
     @Test
-    void testNullList() {
+    void testNullList() throws Throwable {
         final List<Object> list = new ArrayList<>();
         list.add(null);
         String json = JacksonSerializer.INSTANCE.serialize(list);
@@ -41,7 +41,7 @@ class JacksonSerializerTest {
     }
 
     @Test
-    public void testSqlDate() throws InterruptedException {
+    public void testSqlDate() throws Throwable {
         java.sql.Date expectedSqlDate = new java.sql.Date(System.currentTimeMillis());
         String expectedJson = JacksonSerializer.INSTANCE.serialize(expectedSqlDate);
         Thread.sleep(10);
@@ -53,7 +53,7 @@ class JacksonSerializerTest {
     }
 
     @Test
-    public void testSqlTime() throws InterruptedException {
+    public void testSqlTime() throws Throwable {
         Time expectedTime = new Time(System.currentTimeMillis());
         String expectedJson = JacksonSerializer.INSTANCE.serialize(expectedTime);
         Thread.sleep(10);
@@ -65,7 +65,7 @@ class JacksonSerializerTest {
     }
 
     @Test
-    public void testTimeSerializeAndDeserialize() throws Exception {
+    public void testTimeSerializeAndDeserialize() throws Throwable {
         TimeTestInfo expectedTimeTest = new TimeTestInfo(LocalDateTime.now());
         String expectedJson = JacksonSerializer.INSTANCE.serialize(expectedTimeTest);
         System.out.println(expectedJson);
@@ -105,32 +105,38 @@ class JacksonSerializerTest {
     }
 
     @Test
-    void serialize() {
+    void serialize() throws Throwable {
         // null object
         assertNull(JacksonSerializer.INSTANCE.serialize(null));
 
         // error serialize object
-        assertNull(JacksonSerializer.INSTANCE.serialize(JacksonSerializer.class.getDeclaredMethods()));
+        assertThrows(Throwable.class, () -> JacksonSerializer.INSTANCE.serialize(JacksonSerializer.class.getDeclaredMethods()));
     }
 
     @Test
-    void deserializeClass() {
+    void deserializeClass() throws Throwable {
         // null object
         assertNull(JacksonSerializer.INSTANCE.deserialize(null, String.class));
 
+        // null class
+        assertNull(JacksonSerializer.INSTANCE.deserialize("test", (Class)null));
+
         // error deserialize object
         String json  = JacksonSerializer.INSTANCE.serialize(LocalDateTime.now());
-        assertNull(JacksonSerializer.INSTANCE.deserialize(json, LocalTime.class));
+        assertNotNull(JacksonSerializer.INSTANCE.deserialize(json, LocalDateTime.class));
     }
 
     @Test
-    void deserializeType() {
+    void deserializeType() throws Throwable {
         // null object
-        assertNull(JacksonSerializer.INSTANCE.deserialize(null, TypeUtil.forName(TypeUtil.getName(LocalTime.now()))));
+        assertNull(JacksonSerializer.INSTANCE.deserialize(null, TypeUtil.forName(TypeUtil.getName(LocalDateTime.now()))));
+
+        // null type
+        assertNull(JacksonSerializer.INSTANCE.deserialize("test", TypeUtil.forName(null)));
 
         // error deserialize object
         String json  = JacksonSerializer.INSTANCE.serialize(LocalDateTime.now());
-        assertNull(JacksonSerializer.INSTANCE.deserialize(json, TypeUtil.forName(TypeUtil.getName(LocalTime.now()))));
+        assertNotNull(JacksonSerializer.INSTANCE.deserialize(json, TypeUtil.forName(TypeUtil.getName(LocalDateTime.now()))));
     }
 
 }

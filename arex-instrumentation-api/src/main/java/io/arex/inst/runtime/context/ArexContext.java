@@ -1,10 +1,10 @@
 package io.arex.inst.runtime.context;
 
+import io.arex.agent.bootstrap.util.ConcurrentHashSet;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.model.ArexConstants;
-import java.util.ArrayList;
+
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -16,7 +16,7 @@ public class ArexContext {
     private final String replayId;
     private final long createTime;
     private final SequenceProvider sequence;
-    private final List<Integer> methodSignatureHashList = new ArrayList<>();
+    private final Set<Integer> methodSignatureHashList = new ConcurrentHashSet<>();
     private final Map<String, Object> cachedReplayResultMap = new ConcurrentHashMap<>();
     private Map<String, Set<String>> excludeMockTemplate;
 
@@ -63,7 +63,7 @@ public class ArexContext {
         return StringUtil.isEmpty(target) ? 0 : sequence.get(target);
     }
 
-    public List<Integer> getMethodSignatureHashList() {
+    public Set<Integer> getMethodSignatureHashList() {
         return methodSignatureHashList;
     }
 

@@ -1,6 +1,7 @@
 package io.arex.agent.bootstrap.model;
 
 public class MockResult {
+    public static final MockResult IGNORE_MOCK_RESULT = new MockResult(true, null, null);
     private final boolean ignoreMockResult;
     private final Object result;
     private final Throwable throwable;

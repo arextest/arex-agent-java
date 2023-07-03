@@ -9,7 +9,6 @@ import io.arex.agent.bootstrap.util.StringUtil;
 import com.google.gson.Gson;
 import com.google.gson.JsonDeserializer;
 
-import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.serializer.StringSerializable;
 import io.arex.inst.runtime.util.TypeUtil;
 import java.sql.Time;
@@ -202,12 +201,7 @@ public class GsonSerializer implements StringSerializable {
         if (object == null) {
             return null;
         }
-        try {
-            return serializer.toJson(object);
-        } catch (Throwable ex) {
-            LogManager.warn("gson-serialize", ex);
-            return null;
-        }
+        return serializer.toJson(object);
     }
 
     @Override
@@ -215,12 +209,7 @@ public class GsonSerializer implements StringSerializable {
         if (StringUtil.isEmpty(json) || clazz == null) {
             return null;
         }
-        try {
-            return serializer.fromJson(json, clazz);
-        } catch (Throwable ex) {
-            LogManager.warn("gson-deserialize-clazz", ex);
-            return null;
-        }
+        return serializer.fromJson(json, clazz);
     }
 
     @Override
@@ -228,12 +217,8 @@ public class GsonSerializer implements StringSerializable {
         if (StringUtil.isEmpty(json) || type == null) {
             return null;
         }
-        try {
-            return serializer.fromJson(json, type);
-        } catch (Throwable ex) {
-            LogManager.warn("gson-deserialize-type", ex);
-            return null;
-        }
+
+        return serializer.fromJson(json, type);
     }
 
     @Override

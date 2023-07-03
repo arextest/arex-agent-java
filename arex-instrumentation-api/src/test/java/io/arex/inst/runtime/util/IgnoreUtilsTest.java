@@ -104,4 +104,10 @@ class IgnoreUtilsTest {
         ConfigBuilder.create("mock").build();
         assertFalse(IgnoreUtils.ignoreOperation("api/v3"));
     }
+
+    @Test
+    void invalidOperation() {
+        IgnoreUtils.addInvalidOperation("testClass.testMethod");
+        assertTrue(IgnoreUtils.invalidOperation("testClass.testMethod"));
+    }
 }

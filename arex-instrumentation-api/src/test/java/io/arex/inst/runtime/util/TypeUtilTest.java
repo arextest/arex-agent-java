@@ -229,4 +229,23 @@ class TypeUtilTest {
         assertEquals(expectedName, actualName);
     }
 
+    @Test
+    void testSerializeObjectToString() {
+        // null object
+        assertNull(TypeUtil.errorSerializeToString(null));
+        // args
+        Object[] args = new Object[3];
+        String arg1 = "arg1";
+        Double arg2 = 2.0;
+        LocalDateTime arg3 = LocalDateTime.now();
+        args[0] = arg1;
+        args[1] = arg2;
+        args[2] = arg3;
+        String argsType = TypeUtil.errorSerializeToString(args);
+        assertEquals("java.lang.String,java.lang.Double,java.time.LocalDateTime,", argsType);
+        // just one class
+        final String arg2Type = TypeUtil.errorSerializeToString(arg2);
+        assertEquals("java.lang.Double", arg2Type);
+    }
+
 }
