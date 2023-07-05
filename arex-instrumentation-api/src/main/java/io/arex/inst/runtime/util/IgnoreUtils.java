@@ -73,13 +73,22 @@ public class IgnoreUtils {
             if (searchOperation.equalsIgnoreCase(targetName)) {
                 return true;
             }
-            if (searchOperation.startsWith(SEPARATOR_STAR) &&
-                targetName.endsWith(searchOperation.substring(1))) {
+            // startWith * and endWith *
+            if (searchOperation.length() > 2 &&
+                searchOperation.startsWith(SEPARATOR_STAR) &&
+                searchOperation.endsWith(SEPARATOR_STAR) &&
+                targetName.contains(searchOperation.substring(1, searchOperation.length() - 1))) {
                 return true;
             }
-            if (searchOperation.endsWith(SEPARATOR_STAR) &&
-                targetName.startsWith(searchOperation.substring(0, searchOperation.length() - 1))) {
-                return true;
+            if (searchOperation.length() > 1) {
+                if (searchOperation.startsWith(SEPARATOR_STAR) &&
+                    targetName.endsWith(searchOperation.substring(1))) {
+                    return true;
+                }
+                if (searchOperation.endsWith(SEPARATOR_STAR) &&
+                    targetName.startsWith(searchOperation.substring(0, searchOperation.length() - 1))) {
+                    return true;
+                }
             }
         }
         return false;

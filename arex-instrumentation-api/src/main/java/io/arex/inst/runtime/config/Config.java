@@ -164,7 +164,7 @@ public class Config {
     }
 
     /**
-     * Conditions for determining invalid recording configuration(debug mode don't judge):<br/>
+     * Conditions for determining invalid recording configuration:<br/>
      * 1. rate <= 0 <br/>
      * 2. not in working time <br/>
      * 3. exceed rate limit <br/>
@@ -173,9 +173,6 @@ public class Config {
      * @return true: invalid, false: valid
      */
     public boolean invalidRecord(String path) {
-        if (isEnableDebug()) {
-            return false;
-        }
         if (getRecordRate() <= 0) {
             return true;
         }
