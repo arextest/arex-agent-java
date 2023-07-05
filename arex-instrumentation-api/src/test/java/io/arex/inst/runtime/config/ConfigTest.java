@@ -28,11 +28,8 @@ class ConfigTest {
 
     static Stream<Arguments> invalidCase() {
         ConfigBuilder config = ConfigBuilder.create("mock");
-        Runnable mocker1 = () -> {
-            config.enableDebug(true).build();
-        };
         Runnable mocker2 = () -> {
-            config.enableDebug(false).build();
+            config.recordRate(0).build();
         };
         Runnable mocker3 = () -> {
             config.recordRate(1).build();
@@ -48,7 +45,6 @@ class ConfigTest {
         Predicate<Boolean> predicate1 = result -> !result;
         Predicate<Boolean> predicate2 = result -> result;
         return Stream.of(
-                arguments(mocker1, predicate1),
                 arguments(mocker2, predicate2),
                 arguments(mocker3, predicate2),
                 arguments(mocker4, predicate2),

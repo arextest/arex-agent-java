@@ -76,22 +76,24 @@ class IgnoreUtilsTest {
 
     @ParameterizedTest(name = "[{index}] {0}")
     @EmptySource
-    @ValueSource(strings = {"/api", "/api/v1/get/order", "/api/v2/_info", "/api/v3"})
+    @ValueSource(strings = {"/api", "/api/v1/get/order", "/api/v2/_info", "/api/v3", "/api/v4/query", "*"})
     void ignoreOperation(String targetName) {
         final ConfigBuilder configBuilder = ConfigBuilder.create("mock")
-                .excludeServiceOperations(Sets.newSet("/api", "/api/v1/*", "*_info"));
+                .excludeServiceOperations(Sets.newSet("/api", "/api/v1/*", "*_info", "*"));
         // includeServiceOperations empty
         configBuilder.build();
-        if (StringUtil.isEmpty(targetName) || "/api/v3".equals(targetName)) {
+        if (StringUtil.isEmpty(targetName) ||
+            "/api/v3".equals(targetName) ||
+            "/api/v4/query".equals(targetName)) {
             assertFalse(IgnoreUtils.ignoreOperation(targetName));
         } else {
             assertTrue(IgnoreUtils.ignoreOperation(targetName));
         }
 
         // includeServiceOperations not empty
-        configBuilder.addProperty("includeServiceOperations", "/api,/api/v1/*,*_info");
+        configBuilder.addProperty("includeServiceOperations", "/api,/api/v1/*,*_info,*/v4/*");
         configBuilder.build();
-        if ("/api/v3".equals(targetName)) {
+        if ("/api/v3".equals(targetName) || "*".equals(targetName)) {
             assertTrue(IgnoreUtils.ignoreOperation(targetName));
         } else {
             assertFalse(IgnoreUtils.ignoreOperation(targetName));
