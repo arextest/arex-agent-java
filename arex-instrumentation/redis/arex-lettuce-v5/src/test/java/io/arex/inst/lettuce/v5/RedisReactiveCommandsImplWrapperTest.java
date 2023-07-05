@@ -1,4 +1,4 @@
-package io.arex.inst.lettuce.v6;
+package io.arex.inst.lettuce.v5;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;

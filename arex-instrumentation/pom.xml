@@ -26,6 +26,7 @@
         <module>redis/arex-redis-common</module>
         <module>redis/arex-jedis-v2</module>
         <module>redis/arex-jedis-v4</module>
+        <module>redis/arex-lettuce-v5</module>
         <module>redis/arex-lettuce-v6</module>
         <module>redis/arex-redission-v3</module>
         <module>dynamic/arex-dynamic</module>

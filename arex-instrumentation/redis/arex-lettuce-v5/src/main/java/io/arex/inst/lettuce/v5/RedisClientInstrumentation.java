@@ -1,4 +1,4 @@
-package io.arex.inst.lettuce.v6;
+package io.arex.inst.lettuce.v5;
 
 import io.arex.inst.extension.MethodInstrumentation;
 import io.arex.inst.extension.TypeInstrumentation;
@@ -37,8 +37,8 @@ public class RedisClientInstrumentation extends TypeInstrumentation {
     public static class NewStatefulRedisConnectionAdvice {
         @Advice.OnMethodExit(suppress = Throwable.class)
         public static <K, V> void onExit(
-            @Advice.Return(readOnly = false) StatefulRedisConnectionImpl<K, V> connection,
-            @Advice.FieldValue("redisURI") RedisURI redisURI) {
+                @Advice.Return(readOnly = false) StatefulRedisConnectionImpl<K, V> connection,
+                @Advice.FieldValue("redisURI") RedisURI redisURI) {
             RedisConnectionManager.add(connection.hashCode(), redisURI.toString());
         }
     }

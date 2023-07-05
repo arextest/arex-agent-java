@@ -88,7 +88,8 @@
             **/model/**,
             **/context/**,
             **/wrapper/**,
-            **/thirdparty/**
+            **/thirdparty/**,
+            **/RedisCommandBuilderImpl.java
         </sonar.coverage.exclusions>
     </properties>
 

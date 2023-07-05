@@ -1,4 +1,4 @@
-package io.arex.inst.lettuce.v6;
+package io.arex.inst.lettuce.v5;
 
 import io.arex.inst.redis.common.RedisConnectionManager;
 import io.arex.inst.runtime.context.ContextManager;
@@ -95,11 +95,11 @@ class RedisAsyncCommandsImplWrapperTest {
         };
         Predicate<RedisFuture<?>> predicate1 = Objects::nonNull;
         return Stream.of(
-                arguments(mocker1, predicate1, MockResult.success("v1")),
-                arguments(mocker1, predicate1, MockResult.success(new NullPointerException())),
-                arguments(mocker2, predicate1, null),
-                arguments(mocker3, predicate1, null),
-                arguments(mocker4, predicate1, null)
+            arguments(mocker1, predicate1, MockResult.success(null)),
+            arguments(mocker1, predicate1, MockResult.success(new NullPointerException())),
+            arguments(mocker2, predicate1, null),
+            arguments(mocker3, predicate1, null),
+            arguments(mocker4, predicate1, null)
         );
     }
 }

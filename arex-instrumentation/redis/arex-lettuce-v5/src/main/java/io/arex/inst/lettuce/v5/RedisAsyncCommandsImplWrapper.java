@@ -1,4 +1,4 @@
-package io.arex.inst.lettuce.v6;
+package io.arex.inst.lettuce.v5;
 
 import io.arex.agent.bootstrap.ctx.TraceTransmitter;
 import io.arex.agent.bootstrap.model.MockResult;
@@ -6,7 +6,6 @@ import io.arex.inst.redis.common.RedisConnectionManager;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.redis.common.RedisExtractor;
 import io.arex.inst.redis.common.RedisKeyUtil;
-import io.lettuce.core.GetExArgs;
 import io.lettuce.core.KeyValue;
 import io.lettuce.core.RedisAsyncCommandsImpl;
 import io.lettuce.core.RedisFuture;
@@ -21,8 +20,6 @@ import io.lettuce.core.protocol.AsyncCommand;
 import io.lettuce.core.protocol.Command;
 import io.lettuce.core.protocol.RedisCommand;
 
-import java.time.Duration;
-import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +29,8 @@ import java.util.Set;
  * RedisAsyncCommandsImplWrapper
  */
 public class RedisAsyncCommandsImplWrapper<K, V> extends RedisAsyncCommandsImpl<K, V> {
+    public static final String START = "start";
+    public static final String STOP = "stop";
     private final RedisCommandBuilderImpl<K, V> commandBuilder;
     private String redisUri;
 
@@ -89,12 +88,6 @@ public class RedisAsyncCommandsImplWrapper<K, V> extends RedisAsyncCommandsImpl<
     }
 
     @Override
-    public RedisFuture<Boolean> expire(K key, Duration seconds) {
-        LettuceAssert.notNull(seconds, "Timeout must not be null");
-        return expire(key, seconds.toMillis() / 1000);
-    }
-
-    @Override
     public RedisFuture<Boolean> expireat(K key, long timestamp) {
         Command<K, V, Boolean> cmd = commandBuilder.expireat(key, timestamp);
         return dispatch(cmd, String.valueOf(key));
@@ -107,12 +100,6 @@ public class RedisAsyncCommandsImplWrapper<K, V> extends RedisAsyncCommandsImpl<
     }
 
     @Override
-    public RedisFuture<Boolean> expireat(K key, Instant timestamp) {
-        LettuceAssert.notNull(timestamp, "Timestamp must not be null");
-        return expireat(key, timestamp.toEpochMilli() / 1000);
-    }
-
-    @Override
     public RedisFuture<V> get(K key) {
         RedisCommand<K, V, V> cmd = commandBuilder.get(key);
         return dispatch(cmd, String.valueOf(key));
@@ -121,18 +108,6 @@ public class RedisAsyncCommandsImplWrapper<K, V> extends RedisAsyncCommandsImpl<
     @Override
     public RedisFuture<Long> getbit(K key, long offset) {
         Command<K, V, Long> cmd = commandBuilder.getbit(key, offset);
-        return dispatch(cmd, String.valueOf(key));
-    }
-
-    @Override
-    public RedisFuture<V> getdel(K key) {
-        Command<K, V, V> cmd = commandBuilder.getdel(key);
-        return dispatch(cmd, String.valueOf(key));
-    }
-
-    @Override
-    public RedisFuture<V> getex(K key, GetExArgs args) {
-        Command<K, V, V> cmd = commandBuilder.getex(key, args);
         return dispatch(cmd, String.valueOf(key));
     }
 
@@ -305,23 +280,17 @@ public class RedisAsyncCommandsImplWrapper<K, V> extends RedisAsyncCommandsImpl<
     }
 
     @Override
-    public RedisFuture<List<V>> lpop(K key, long count) {
-        Command<K, V, List<V>> cmd = commandBuilder.lpop(key, count);
-        return dispatch(cmd, String.valueOf(key));
-    }
-
-    @Override
     public RedisFuture<List<V>> lrange(K key, long start, long stop) {
         Command<K, V, List<V>> cmd = commandBuilder.lrange(key, start, stop);
         return dispatch(cmd, String.valueOf(key),
-            RedisKeyUtil.generate("start", String.valueOf(start), "stop", String.valueOf(stop)));
+            RedisKeyUtil.generate(START, String.valueOf(start), STOP, String.valueOf(stop)));
     }
 
     @Override
     public RedisFuture<Long> lrange(ValueStreamingChannel<V> channel, K key, long start, long stop) {
         Command<K, V, Long> cmd = commandBuilder.lrange(channel, key, start, stop);
         return dispatch(cmd, String.valueOf(key),
-            RedisKeyUtil.generate("start", String.valueOf(start), "stop", String.valueOf(stop)));
+            RedisKeyUtil.generate(START, String.valueOf(start), STOP, String.valueOf(stop)));
     }
 
     @Override
@@ -334,7 +303,7 @@ public class RedisAsyncCommandsImplWrapper<K, V> extends RedisAsyncCommandsImpl<
     public RedisFuture<String> ltrim(K key, long start, long stop) {
         Command<K, V, String> cmd = commandBuilder.ltrim(key, start, stop);
         return dispatch(cmd, String.valueOf(key),
-            RedisKeyUtil.generate("start", String.valueOf(start), "stop", String.valueOf(stop)));
+            RedisKeyUtil.generate(START, String.valueOf(start), STOP, String.valueOf(stop)));
     }
 
     @Override
@@ -386,21 +355,9 @@ public class RedisAsyncCommandsImplWrapper<K, V> extends RedisAsyncCommandsImpl<
     }
 
     @Override
-    public RedisFuture<Boolean> pexpire(K key, Duration milliseconds) {
-        LettuceAssert.notNull(milliseconds, "Timeout must not be null");
-        return pexpire(key, milliseconds.toMillis());
-    }
-
-    @Override
     public RedisFuture<Boolean> pexpireat(K key, Date timestamp) {
         LettuceAssert.notNull(timestamp, "Timestamp must not be null");
         return pexpireat(key, timestamp.getTime());
-    }
-
-    @Override
-    public RedisFuture<Boolean> pexpireat(K key, Instant timestamp) {
-        LettuceAssert.notNull(timestamp, "Timestamp must not be null");
-        return pexpireat(key, timestamp.toEpochMilli());
     }
 
     @Override
@@ -440,12 +397,6 @@ public class RedisAsyncCommandsImplWrapper<K, V> extends RedisAsyncCommandsImpl<
     }
 
     @Override
-    public RedisFuture<List<V>> rpop(K key, long count) {
-        Command<K, V, List<V>> cmd = commandBuilder.rpop(key, count);
-        return dispatch(cmd, String.valueOf(key));
-    }
-
-    @Override
     public RedisFuture<V> rpoplpush(K source, K destination) {
         Command<K, V, V> cmd = commandBuilder.rpoplpush(source, destination);
         return dispatch(cmd, String.valueOf(source), String.valueOf(destination));
@@ -478,18 +429,6 @@ public class RedisAsyncCommandsImplWrapper<K, V> extends RedisAsyncCommandsImpl<
     @Override
     public RedisFuture<String> set(K key, V value, SetArgs setArgs) {
         Command<K, V, String> cmd = commandBuilder.set(key, value, setArgs);
-        return dispatch(cmd, String.valueOf(key));
-    }
-
-    @Override
-    public RedisFuture<V> setGet(K key, V value) {
-        Command<K, V, V> cmd = commandBuilder.setGet(key, value);
-        return dispatch(cmd, String.valueOf(key));
-    }
-
-    @Override
-    public RedisFuture<V> setGet(K key, V value, SetArgs setArgs) {
-        Command<K, V, V> cmd = commandBuilder.setGet(key, value, setArgs);
         return dispatch(cmd, String.valueOf(key));
     }
 

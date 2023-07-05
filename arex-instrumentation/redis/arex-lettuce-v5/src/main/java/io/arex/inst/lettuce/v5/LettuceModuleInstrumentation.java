@@ -1,4 +1,4 @@
-package io.arex.inst.lettuce.v6;
+package io.arex.inst.lettuce.v5;
 
 import com.google.auto.service.AutoService;
 import io.arex.inst.extension.ModuleDescription;
@@ -14,8 +14,8 @@ import java.util.List;
 @AutoService(ModuleInstrumentation.class)
 public class LettuceModuleInstrumentation extends ModuleInstrumentation {
     public LettuceModuleInstrumentation() {
-        super("lettuce-v6", ModuleDescription.builder()
-                .name("lettuce.core").supportFrom(6, 0).build());
+        super("lettuce-v5", ModuleDescription.builder()
+                .name("lettuce.core").supportFrom(5, 0).supportTo(5, 9).build());
     }
 
     @Override

@@ -1,4 +1,4 @@
-package io.arex.inst.lettuce.v6;
+package io.arex.inst.lettuce.v5;
 
 import io.arex.inst.extension.MethodInstrumentation;
 import io.arex.inst.extension.TypeInstrumentation;
@@ -49,6 +49,9 @@ public class StatefulRedisConnectionImplInstrumentation extends TypeInstrumentat
             @Advice.Return(readOnly = false) RedisAsyncCommandsImpl<K, V> returnValue) {
             returnValue = new RedisAsyncCommandsImplWrapper<>(connection, codec);
         }
+
+        private NewRedisAsyncCommandsImplAdvice() {
+        }
     }
 
     public static class NewRedisReactiveCommandsImplAdvice {
@@ -62,6 +65,9 @@ public class StatefulRedisConnectionImplInstrumentation extends TypeInstrumentat
             @Advice.FieldValue("codec") RedisCodec<K, V> codec,
             @Advice.Return(readOnly = false) RedisReactiveCommandsImpl<K, V> returnValue) {
             returnValue = new RedisReactiveCommandsImplWrapper<>(connection, codec);
+        }
+
+        private NewRedisReactiveCommandsImplAdvice() {
         }
     }
 }
