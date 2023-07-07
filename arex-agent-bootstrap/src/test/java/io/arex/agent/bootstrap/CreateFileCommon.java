@@ -13,7 +13,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 public class CreateFileCommon {
-    private static final String path;
+    public static final String path;
 
     static {
         try {
@@ -74,6 +74,10 @@ public class CreateFileCommon {
 
     public static File getZipExtensionFile() {
         return zipExtensionFile;
+    }
+
+    public static File createFile(String name) {
+        return createFile(path, name);
     }
 
     private static File createFile(String path, String name) {
