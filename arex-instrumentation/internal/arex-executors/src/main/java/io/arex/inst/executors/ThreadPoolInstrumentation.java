@@ -58,6 +58,7 @@ public class ThreadPoolInstrumentation extends TypeInstrumentation {
                 "org.eclipse.jetty.util.thread.ReservedThreadExecutor",
                 "com.google.common.util.concurrent.AbstractListeningExecutorService",
                 "com.google.common.util.concurrent.MoreExecutors$ListeningDecorator",
+                "com.google.common.util.concurrent.AbstractFuture",
                 "io.netty.channel.epoll.EpollEventLoop",
                 "io.netty.channel.epoll.EpollEventLoopGroup",
                 "io.netty.channel.MultithreadEventLoopGroup",

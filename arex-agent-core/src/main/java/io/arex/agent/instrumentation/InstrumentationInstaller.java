@@ -1,5 +1,6 @@
 package io.arex.agent.instrumentation;
 
+import io.arex.agent.bootstrap.util.FileUtils;
 import io.arex.inst.extension.ModuleInstrumentation;
 import io.arex.inst.extension.MethodInstrumentation;
 import io.arex.inst.extension.TypeInstrumentation;
@@ -205,6 +206,8 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
             File bytecodeDumpPath = new File(agentFile.getParent(), BYTECODE_DUMP_DIR);
             if (!bytecodeDumpPath.exists()) {
                 bytecodeDumpPath.mkdir();
+            } else {
+                FileUtils.cleanDirectory(bytecodeDumpPath);
             }
             System.setProperty(TypeWriter.DUMP_PROPERTY, bytecodeDumpPath.getPath());
         } catch (Exception e) {
