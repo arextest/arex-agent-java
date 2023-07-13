@@ -63,7 +63,7 @@ class InternalHttpClientInstrumentationTest {
         try (MockedConstruction<HttpClientExtractor> mocked = Mockito.mockConstruction(HttpClientExtractor.class, (mock, context) -> {
             Mockito.when(mock.replay()).thenReturn(MockResult.success("mock"));
         })) {
-            Mockito.when(IgnoreUtils.ignoreOperation(any())).thenReturn(false);
+            Mockito.when(IgnoreUtils.excludeOperation(any())).thenReturn(false);
             Mockito.when(ContextManager.needRecordOrReplay()).thenReturn(true);
             Mockito.when(ContextManager.needReplay()).thenReturn(true);
             assertTrue(InternalHttpClientInstrumentation.ExecuteAdvice.onEnter(new HttpPost("localhost"), null, null));

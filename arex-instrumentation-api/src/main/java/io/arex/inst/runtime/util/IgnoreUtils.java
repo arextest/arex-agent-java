@@ -45,19 +45,39 @@ public class IgnoreUtils {
     }
 
     /**
-     * Register a service that will not capture data and playback
+     * Include the operation that need to record or replay
      */
-    public static boolean ignoreOperation(String targetName) {
+    public static boolean includeOperation(String targetName) {
         if (StringUtil.isEmpty(targetName) || Config.get() == null) {
             return false;
         }
 
         Set<String> includeServiceOperations = Config.get().getIncludeServiceOperations();
-        if (CollectionUtil.isNotEmpty(includeServiceOperations)) {
-            return !operationMatched(targetName, includeServiceOperations);
+        return operationMatched(targetName, includeServiceOperations);
+    }
+
+    /**
+     * Exclude the operation that not need to record or replay
+     */
+    public static boolean excludeOperation(String targetName) {
+        if (StringUtil.isEmpty(targetName) || Config.get() == null) {
+            return false;
         }
-        Set<String> excludePathList = Config.get().excludeServiceOperations();
-        return operationMatched(targetName, excludePathList);
+
+        Set<String> excludeServiceOperations = Config.get().excludeServiceOperations();
+        return operationMatched(targetName, excludeServiceOperations);
+    }
+
+    /**
+     * Exclude entrance operation by includeServiceOperations and excludeServiceOperations.
+     * First if includeServiceOperations is not empty, only use excludeServiceOperations to judge.
+     * Second if includeServiceOperations is empty, use excludeServiceOperations to jude.
+     */
+    public static boolean excludeEntranceOperation(String targetName) {
+        if (Config.get() != null && CollectionUtil.isNotEmpty(Config.get().getIncludeServiceOperations())) {
+            return !includeOperation(targetName);
+        }
+        return excludeOperation(targetName);
     }
 
     /**

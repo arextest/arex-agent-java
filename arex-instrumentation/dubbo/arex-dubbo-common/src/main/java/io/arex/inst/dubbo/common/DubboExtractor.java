@@ -47,7 +47,7 @@ public class DubboExtractor {
         if (adapter.replayWarmUp()) {
             return true;
         }
-        if (IgnoreUtils.ignoreOperation(adapter.getOperationName())) {
+        if (IgnoreUtils.excludeEntranceOperation(adapter.getOperationName())) {
             return true;
         }
         return Config.get().invalidRecord(adapter.getServiceOperation());

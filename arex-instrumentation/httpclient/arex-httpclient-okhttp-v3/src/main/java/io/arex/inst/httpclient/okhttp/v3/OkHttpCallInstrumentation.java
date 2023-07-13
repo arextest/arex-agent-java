@@ -49,7 +49,7 @@ public class OkHttpCallInstrumentation extends TypeInstrumentation {
                 @Advice.Local("wrapped") HttpClientExtractor<Request, Response> extractor,
                 @Advice.Local("mockResult") MockResult mockResult) {
             Request request = call.request();
-            if (IgnoreUtils.ignoreOperation(request.url().uri().getPath())) {
+            if (IgnoreUtils.excludeOperation(request.url().uri().getPath())) {
                 return false;
             }
 
@@ -97,7 +97,7 @@ public class OkHttpCallInstrumentation extends TypeInstrumentation {
         public static boolean onEnter(@Advice.This Call call,
             @Advice.Argument(value = 0, readOnly = false) Callback callback,
             @Advice.Local("mockResult") MockResult mockResult) {
-            if (IgnoreUtils.ignoreOperation(call.request().url().uri().getPath())) {
+            if (IgnoreUtils.excludeOperation(call.request().url().uri().getPath())) {
                 return false;
             }
 
