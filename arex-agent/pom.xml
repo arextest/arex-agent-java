@@ -264,6 +264,10 @@
                         <configuration>
                             <target>
                                 <mkdir dir="../arex-agent-jar" />
+                                <mkdir dir="../arex-agent-jar/bytecode-dump" />
+                                <delete>
+                                    <fileset dir="../arex-agent-jar/bytecode-dump" includes="*.class" />
+                                </delete>
                                 <copy todir="../arex-agent-jar">
                                     <fileset dir="../arex-agent/target/" includes="arex-agent-*.jar" />
                                     <fileset dir="../arex-agent-bootstrap/target/" includes="arex-agent-bootstrap-*.jar" />

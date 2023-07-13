@@ -72,7 +72,7 @@ public final class MockUtils {
         if (context != null) {
             mocker.setRecordId(context.getCaseId());
             mocker.setReplayId(context.getReplayId());
-            createTime += context.calculateSequence(context.getCaseId());
+            createTime += context.calculateSequence();
         }
         mocker.setCreationTime(createTime);
         mocker.setAppId(System.getProperty("arex.service.name"));
