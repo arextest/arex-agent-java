@@ -1,7 +1,6 @@
 package io.arex.inst.runtime.util;
 
 import io.arex.agent.bootstrap.util.StringUtil;
-import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.config.ConfigBuilder;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
@@ -11,7 +10,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EmptySource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -85,18 +83,18 @@ class IgnoreUtilsTest {
         if (StringUtil.isEmpty(targetName) ||
             "/api/v3".equals(targetName) ||
             "/api/v4/query".equals(targetName)) {
-            assertFalse(IgnoreUtils.ignoreOperation(targetName));
+            assertFalse(IgnoreUtils.excludeEntranceOperation(targetName));
         } else {
-            assertTrue(IgnoreUtils.ignoreOperation(targetName));
+            assertTrue(IgnoreUtils.excludeEntranceOperation(targetName));
         }
 
         // includeServiceOperations not empty
         configBuilder.addProperty("includeServiceOperations", "/api,/api/v1/*,*_info,*/v4/*");
         configBuilder.build();
-        if ("/api/v3".equals(targetName) || "*".equals(targetName)) {
-            assertTrue(IgnoreUtils.ignoreOperation(targetName));
+        if ("/api/v3".equals(targetName) || "*".equals(targetName) || StringUtil.isEmpty(targetName)) {
+            assertTrue(IgnoreUtils.excludeEntranceOperation(targetName));
         } else {
-            assertFalse(IgnoreUtils.ignoreOperation(targetName));
+            assertFalse(IgnoreUtils.excludeEntranceOperation(targetName));
         }
 
     }
@@ -104,7 +102,7 @@ class IgnoreUtilsTest {
     @Test
     void ignoreOperation_excludePathList() {
         ConfigBuilder.create("mock").build();
-        assertFalse(IgnoreUtils.ignoreOperation("api/v3"));
+        assertFalse(IgnoreUtils.excludeEntranceOperation("api/v3"));
     }
 
     @Test

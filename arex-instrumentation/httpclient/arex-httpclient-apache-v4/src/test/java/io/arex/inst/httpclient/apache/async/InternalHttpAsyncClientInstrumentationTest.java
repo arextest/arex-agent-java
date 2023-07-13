@@ -67,7 +67,7 @@ class InternalHttpAsyncClientInstrumentationTest {
             MockedStatic<FutureCallbackWrapper> futureCallbackWrapper = mockStatic(FutureCallbackWrapper.class);
             MockedStatic<IgnoreUtils> ignoreUtils = mockStatic(IgnoreUtils.class)) {
             Mockito.when(producer2.generateRequest()).thenReturn(new HttpPost("localhost"));
-            ignoreUtils.when(() -> IgnoreUtils.ignoreOperation(any())).thenReturn(false);
+            ignoreUtils.when(() -> IgnoreUtils.excludeOperation(any())).thenReturn(false);
             contextManager.when(ContextManager::needRecordOrReplay).thenReturn(false);
             actualResult = InternalHttpAsyncClientInstrumentation.ExecuteAdvice.onEnter(producer2, null, null);
             assertFalse(actualResult);

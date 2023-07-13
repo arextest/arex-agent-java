@@ -45,6 +45,6 @@ public class ApacheHttpClientHelper {
             return true;
         }
 
-        return IgnoreUtils.ignoreOperation(((HttpUriRequest) httpRequest).getURI().getPath());
+        return IgnoreUtils.excludeOperation(((HttpUriRequest) httpRequest).getURI().getPath());
     }
 }

@@ -45,7 +45,7 @@ public class WebClientInstrumentation extends TypeInstrumentation {
                                       @Advice.FieldValue("strategies") ExchangeStrategies strategies,
                                       @Advice.Local("wrapper") WebClientWrapper wrapper,
                                       @Advice.Local("mockResult") MockResult mockResult) {
-            if (IgnoreUtils.ignoreOperation(clientRequest.url().getPath())) {
+            if (IgnoreUtils.excludeOperation(clientRequest.url().getPath())) {
                 return false;
             }
 
