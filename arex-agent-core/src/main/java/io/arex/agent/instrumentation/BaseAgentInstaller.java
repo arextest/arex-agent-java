@@ -4,6 +4,8 @@ import io.arex.agent.bootstrap.AgentInstaller;
 import io.arex.agent.bootstrap.TraceContextManager;
 import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.agent.bootstrap.util.AdviceClassesCollector;
+import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.agent.instrumentation.asm.LineVisitTransformer;
 import io.arex.foundation.config.ConfigManager;
 import io.arex.foundation.healthy.HealthManager;
 import io.arex.foundation.serializer.GsonSerializer;
@@ -13,12 +15,14 @@ import io.arex.foundation.services.DataCollectorService;
 import io.arex.foundation.util.NetUtils;
 import io.arex.foundation.util.NumberTypeAdaptor;
 import io.arex.foundation.util.async.ThreadFactoryImpl;
+import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.RecordLimiter;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.service.DataCollector;
 import io.arex.inst.runtime.service.DataService;
 
 import io.arex.agent.bootstrap.util.ServiceLoader;
+
 import java.util.List;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -28,6 +32,7 @@ import net.bytebuddy.agent.builder.ResettableClassFileTransformer;
 
 import java.io.File;
 import java.lang.instrument.Instrumentation;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,7 +70,12 @@ public abstract class BaseAgentInstaller implements AgentInstaller {
                 return;
             }
             initDependentComponents();
-            transform();
+            ResettableClassFileTransformer transformer = transform();
+            String serviceNamespace = Config.get().getServiceNamespace();
+            serviceNamespace = "com.ctrip.flight";
+            if (StringUtil.isNotEmpty(serviceNamespace)) {
+                instrumentation.addTransformer(new LineVisitTransformer(serviceNamespace), true);
+            }
         } finally {
             Thread.currentThread().setContextClassLoader(savedContextClassLoader);
         }

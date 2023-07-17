@@ -63,6 +63,9 @@ public class ContextManager {
         if (StringUtil.isEmpty(caseId)) {
             return;
         }
-        RECORD_MAP.remove(caseId);
+        ArexContext remove = RECORD_MAP.remove(caseId);
+        if (remove != null) {
+            remove.postProcess();
+        }
     }
 }

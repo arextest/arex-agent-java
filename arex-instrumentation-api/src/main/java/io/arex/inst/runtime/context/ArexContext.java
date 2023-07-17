@@ -1,8 +1,15 @@
 package io.arex.inst.runtime.context;
 
+import io.arex.agent.bootstrap.model.ArexMocker;
+import io.arex.agent.bootstrap.model.MockCategoryType;
 import io.arex.agent.bootstrap.util.ConcurrentHashSet;
+import io.arex.agent.bootstrap.internal.converage.ExecutionPath;
+import io.arex.agent.bootstrap.internal.converage.ExecutionPathBuilder;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.model.ArexConstants;
+import io.arex.inst.runtime.serializer.Serializer;
+import io.arex.inst.runtime.service.DataService;
+import io.arex.inst.runtime.util.MockUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -23,6 +30,8 @@ public class ArexContext {
 
     private Map<String, Object> attachments = null;
 
+    private ExecutionPathBuilder executionPathBuilder = null;
+
     private boolean isRedirectRequest;
 
     public static ArexContext of(String caseId) {
@@ -38,6 +47,10 @@ public class ArexContext {
         this.caseId = caseId;
         this.sequence = new AtomicInteger(0);
         this.replayId = replayId;
+
+        if (StringUtil.isNotEmpty(replayId)) {
+            executionPathBuilder = ExecutionPath.builder(caseId);
+        }
     }
 
     public String getCaseId() {
@@ -85,6 +98,10 @@ public class ArexContext {
         this.excludeMockTemplate = excludeMockTemplate;
     }
 
+    public ExecutionPathBuilder getExecutionPathBuilder() {
+        return executionPathBuilder;
+    }
+
     public void setAttachment(String key, Object value) {
         if (attachments == null) {
             attachments = new HashMap<>();
@@ -127,6 +144,17 @@ public class ArexContext {
         }
         isRedirectRequest = Objects.equals(location, referer);
         return isRedirectRequest;
+    }
+
+    public void postProcess() {
+        if (executionPathBuilder != null) {
+            ExecutionPath executionPath = executionPathBuilder.build();
+            ArexMocker mocker = MockUtils.create(MockCategoryType.EXECUTION_PATH,
+                    String.valueOf(executionPath.getKey()));
+            mocker.getTargetResponse().setBody(executionPath.toString());
+            MockUtils.recordMocker(mocker);
+            executionPathBuilder = null;
+        }
     }
 
     public void clear() {

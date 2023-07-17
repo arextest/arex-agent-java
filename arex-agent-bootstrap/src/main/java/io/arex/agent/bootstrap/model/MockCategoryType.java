@@ -20,6 +20,8 @@ public class MockCategoryType implements Serializable {
     public static final MockCategoryType DUBBO_PROVIDER = createEntryPoint("DubboProvider");
     public static final MockCategoryType DUBBO_STREAM_PROVIDER = createDependency("DubboStreamProvider");
 
+    public static final MockCategoryType EXECUTION_PATH = createDependency("ExecutionPath");
+
     private String name;
     private boolean entryPoint;
     private boolean skipComparison;

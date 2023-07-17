@@ -62,6 +62,7 @@ public class ConfigManager {
     private boolean disableReplay;
     private List<ConfigListener> listeners = new ArrayList<>();
     private Map<String, String> extendField;
+    private String serviceNamespace;
 
     private ConfigManager() {
         init();
@@ -98,6 +99,19 @@ public class ConfigManager {
 
         this.serviceName = serviceName;
         System.setProperty(SERVICE_NAME, serviceName);
+    }
+
+    public String getServiceNamespace() {
+        return serviceNamespace;
+    }
+
+    public void setServiceNamespace(String serviceNamespace) {
+        if (StringUtil.isEmpty(serviceNamespace)) {
+            return;
+        }
+
+        this.serviceNamespace = serviceNamespace;
+        System.setProperty(SERVICE_NAMESPACE, serviceNamespace);
     }
 
     public String getAgentVersion() {
@@ -201,6 +215,7 @@ public class ConfigManager {
     void init() {
         agentVersion = System.getProperty(AGENT_VERSION);
         setEnableDebug(System.getProperty(ENABLE_DEBUG));
+        setServiceNamespace(StringUtil.strip(System.getProperty(SERVICE_NAMESPACE)));
         setServiceName(StringUtil.strip(System.getProperty(SERVICE_NAME)));
         setStorageServiceHost(StringUtil.strip(System.getProperty(STORAGE_SERVICE_HOST)));
         configPath = StringUtil.strip(System.getProperty(CONFIG_PATH));
@@ -232,6 +247,7 @@ public class ConfigManager {
 
         setEnableDebug(configMap.get(ENABLE_DEBUG));
         setServiceName(configMap.get(SERVICE_NAME));
+        setServiceNamespace(configMap.get(SERVICE_NAMESPACE));
         setStorageServiceHost(configMap.get(STORAGE_SERVICE_HOST));
         setDynamicResultSizeLimit(configMap.get(DYNAMIC_RESULT_SIZE_LIMIT));
         setTimeMachine(configMap.get(TIME_MACHINE));
@@ -266,6 +282,7 @@ public class ConfigManager {
         if (!agentMap.isEmpty()) {
             setStorageServiceMode(agentMap.get(STORAGE_SERVICE_MODE));
             setEnableDebug(agentMap.get(ENABLE_DEBUG));
+            setServiceNamespace(agentMap.get(SERVICE_NAMESPACE));
             updateRuntimeConfig();
         }
     }
@@ -300,6 +317,7 @@ public class ConfigManager {
 
         ConfigBuilder.create(getServiceName())
             .enableDebug(isEnableDebug())
+            .serviceNamespace(getServiceNamespace())
             .addProperties(configMap)
             .dynamicClassList(getDynamicClassList().stream()
                 .filter(item -> DynamicClassStatusEnum.RESET != item.getStatus()).collect(Collectors.toList()))
