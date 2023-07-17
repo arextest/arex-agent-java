@@ -4,6 +4,7 @@ public class ConfigConstants {
 
     public static final String ENABLE_DEBUG = "arex.enable.debug";
     public static final String SERVICE_NAME = "arex.service.name";
+    public static final String SERVICE_NAMESPACE = "arex.service.namespace";
     public static final String STORAGE_SERVICE_HOST = "arex.storage.service.host";
     public static final String CONFIG_PATH = "arex.config.path";
     public static final String STORAGE_MODE = "local";

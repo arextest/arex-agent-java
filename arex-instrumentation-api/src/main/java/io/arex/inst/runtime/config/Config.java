@@ -17,12 +17,12 @@ public class Config {
 
     private static Config INSTANCE = null;
 
-    static void update(boolean enableDebug, String serviceName, List<DynamicClassEntity> dynamicClassList,
-        Map<String, String> properties, Set<String> excludeServiceOperations,
-        int dubboStreamReplayThreshold, int recordRate) {
-        INSTANCE = new Config(enableDebug, serviceName, dynamicClassList, properties,
-            excludeServiceOperations,
-            dubboStreamReplayThreshold, recordRate);
+    static void update(boolean enableDebug, String serviceName, String serviceNamespace,
+                       List<DynamicClassEntity> dynamicClassList,
+                       Map<String, String> properties, Set<String> excludeServiceOperations,
+                       int dubboStreamReplayThreshold, int recordRate) {
+        INSTANCE = new Config(enableDebug, serviceName, serviceNamespace, dynamicClassList, properties,
+            excludeServiceOperations, dubboStreamReplayThreshold, recordRate);
     }
 
     public static Config get() {
@@ -41,11 +41,14 @@ public class Config {
     private final String recordVersion;
     private final Set<String> includeServiceOperations;
 
-    Config(boolean enableDebug, String serviceName, List<DynamicClassEntity> dynamicClassList,
-        Map<String, String> properties,
+    private final String serviceNamespace;
+
+    Config(boolean enableDebug, String serviceName, String serviceNamespace,
+           List<DynamicClassEntity> dynamicClassList, Map<String, String> properties,
         Set<String> excludeServiceOperations, int dubboStreamReplayThreshold, int recordRate) {
         this.enableDebug = enableDebug;
         this.serviceName = serviceName;
+        this.serviceNamespace = serviceNamespace;
         this.dynamicClassList = dynamicClassList;
         this.properties = properties;
         this.excludeServiceOperations = buildExcludeServiceOperations(excludeServiceOperations);
@@ -114,6 +117,10 @@ public class Config {
 
     public String getServiceName() {
         return this.serviceName;
+    }
+
+    public String getServiceNamespace() {
+        return this.serviceNamespace;
     }
 
     public String getString(String name) {

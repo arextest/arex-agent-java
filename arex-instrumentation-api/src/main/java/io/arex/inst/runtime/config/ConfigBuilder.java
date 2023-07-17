@@ -12,6 +12,7 @@ public class ConfigBuilder {
     private Set<String> excludeServiceOperations;
     private int dubboStreamReplayThreshold;
     private int recordRate;
+    private String serviceNamespace;
 
     public static ConfigBuilder create(String serviceName) {
         return new ConfigBuilder(serviceName);
@@ -24,6 +25,11 @@ public class ConfigBuilder {
 
     public ConfigBuilder enableDebug(boolean enableDebug) {
         this.enableDebug = enableDebug;
+        return this;
+    }
+
+    public ConfigBuilder serviceNamespace(String serviceNamespace) {
+        this.serviceNamespace = serviceNamespace;
         return this;
     }
 
@@ -70,7 +76,7 @@ public class ConfigBuilder {
     }
 
     public void build() {
-        Config.update(enableDebug, serviceName, dynamicClassList, Collections.unmodifiableMap(new HashMap<>(properties)),
+        Config.update(enableDebug, serviceName, serviceNamespace, dynamicClassList, Collections.unmodifiableMap(new HashMap<>(properties)),
             excludeServiceOperations, dubboStreamReplayThreshold, recordRate);
     }
 }
