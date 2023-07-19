@@ -1,5 +1,7 @@
 package io.arex.inst.httpclient.resttemplate;
 
+import static io.arex.inst.runtime.model.ArexConstants.GSON_SERIALIZER;
+
 import io.arex.agent.bootstrap.model.ArexMocker;
 import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.agent.bootstrap.model.Mocker;
@@ -17,7 +19,6 @@ import org.springframework.web.client.RequestCallback;
 
 public class RestTemplateExtractor {
     private static final String RESPONSE_ENTITY_WRAPPER_CLASS_NAME = ResponseEntityWrapper.class.getName();
-    private static final String GSON_SERIALIZER = "gson";
     private final URI uri;
     private final HttpMethod httpMethod;
     private final String request;
@@ -102,7 +103,7 @@ public class RestTemplateExtractor {
 
     private Mocker makeMocker() {
         ArexMocker mocker = MockUtils.createHttpClient(uri.getPath());
-        Map<String, Object> attributes = new HashMap<>();
+        Map<String, Object> attributes = new HashMap<>(2);
 
         mocker.getTargetRequest().setAttributes(attributes);
         attributes.put("HttpMethod", httpMethod);

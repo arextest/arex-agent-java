@@ -10,7 +10,7 @@ import java.util.List;
 public class RestTemplateModuleInstrumentation extends ModuleInstrumentation {
 
     public RestTemplateModuleInstrumentation() {
-        super("rest-template");
+        super("spring-restTemplate");
     }
 
     @Override
