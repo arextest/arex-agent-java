@@ -30,4 +30,5 @@ public class ArexConstants {
     public static final String SCHEDULE_REPLAY_FLAG = "arex-schedule-replay";
     public static final String REPLAY_ORIGINAL_MOCKER = "arex-replay-original-mocker";
     public static final String AREX_EXTENSION_ATTRIBUTE = "arex-extension-attribute";
+    public static final String GSON_SERIALIZER = "gson";
 }
