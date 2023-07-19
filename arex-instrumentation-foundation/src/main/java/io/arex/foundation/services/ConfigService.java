@@ -5,15 +5,19 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import io.arex.foundation.config.AgentStatusEnum;
+import io.arex.agent.bootstrap.util.MapUtils;
+import io.arex.foundation.model.AgentStatusEnum;
+import io.arex.foundation.model.AgentStatusRequest;
 import io.arex.foundation.config.ConfigManager;
-import io.arex.foundation.config.ConfigQueryRequest;
-import io.arex.foundation.config.ConfigQueryResponse;
-import io.arex.foundation.util.AsyncHttpClientUtil;
+import io.arex.foundation.model.ConfigQueryRequest;
+import io.arex.foundation.model.ConfigQueryResponse;
+import io.arex.foundation.util.httpclient.AsyncHttpClientUtil;
 import io.arex.foundation.util.NetUtils;
 import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.foundation.model.HttpClientResponse;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
@@ -26,13 +30,16 @@ import org.slf4j.LoggerFactory;
  * @date 2022/03/16
  */
 public class ConfigService {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(ConfigService.class);
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     public static final ConfigService INSTANCE = new ConfigService();
-    private static final String CONFIG_LOAD_URL =
+    private static final String CONFIG_LOAD_URI =
         String.format("http://%s/api/config/agent/load", ConfigManager.INSTANCE.getStorageServiceHost());
-    private static final AtomicBoolean FIRST_LOAD = new AtomicBoolean(false);
+
+    private final AtomicBoolean firstLoad = new AtomicBoolean(false);
+    private final AtomicBoolean reloadConfig = new AtomicBoolean(false);
     private static final long DELAY_MINUTES = 15L;
 
     private ConfigService() {
@@ -54,6 +61,7 @@ public class ConfigService {
         if (ConfigManager.INSTANCE.isLocalStorage()) {
             return -1;
         }
+        // Load agent config according to last modified time
         loadAgentConfig();
         return DELAY_MINUTES;
     }
@@ -63,23 +71,29 @@ public class ConfigService {
             ConfigQueryRequest request = buildConfigQueryRequest();
             String requestJson = serialize(request);
 
-            String responseJson = AsyncHttpClientUtil.post(CONFIG_LOAD_URL, requestJson);
-            LOGGER.info("[arex] Load agent config\nrequest: {}\nresponse: {}", requestJson, responseJson);
-
-            if (StringUtil.isEmpty(responseJson) || "{}".equals(responseJson)) {
+            HttpClientResponse clientResponse = AsyncHttpClientUtil.postAsyncWithJson(CONFIG_LOAD_URI, requestJson, null).join();
+            if (clientResponse == null) {
                 LOGGER.warn("[arex] Load agent config, response is null, pause recording");
                 ConfigManager.INSTANCE.setConfigInvalid();
                 return;
             }
 
-            ConfigQueryResponse response = deserialize(responseJson, ConfigQueryResponse.class);
-            if (response == null || response.getBody() == null ||
-                response.getBody().getServiceCollectConfiguration() == null) {
+            LOGGER.info("[arex] Load agent config\nrequest: {}\nresponse: {}", requestJson, clientResponse.getBody());
+
+            if (StringUtil.isEmpty(clientResponse.getBody()) || "{}".equals(clientResponse.getBody())) {
+                LOGGER.warn("[arex] Load agent config, response is null, pause recording");
+                ConfigManager.INSTANCE.setConfigInvalid();
+                return;
+            }
+
+            ConfigQueryResponse configResponse = deserialize(clientResponse.getBody(), ConfigQueryResponse.class);
+            if (configResponse == null || configResponse.getBody() == null ||
+                configResponse.getBody().getServiceCollectConfiguration() == null) {
                 ConfigManager.INSTANCE.setConfigInvalid();
                 LOGGER.warn("[arex] Load agent config, deserialize response is null, pause recording");
                 return;
             }
-            ConfigManager.INSTANCE.updateConfigFromService(response.getBody());
+            ConfigManager.INSTANCE.updateConfigFromService(configResponse.getBody());
         } catch (Throwable e) {
             LOGGER.warn("[arex] Load agent config error", e);
         }
@@ -96,25 +110,23 @@ public class ConfigService {
             request.setSystemEnv(new HashMap<>(System.getenv()));
         }
         request.setAgentStatus(agentStatus.name());
-        System.setProperty("arex.agent.status", agentStatus.name());
         return request;
     }
 
-    private AgentStatusEnum getAgentStatus() {
-        if (FIRST_LOAD.compareAndSet(false, true)) {
+    AgentStatusEnum getAgentStatus() {
+        if (firstLoad.compareAndSet(false, true)) {
             return AgentStatusEnum.START;
         }
+
+        if (ConfigManager.INSTANCE.valid() && ConfigManager.INSTANCE.getRecordRate() > 0) {
+            return AgentStatusEnum.WORKING;
+        }
+
         if (ConfigManager.FIRST_TRANSFORM.get()) {
-            if (ConfigManager.INSTANCE.valid() && ConfigManager.INSTANCE.getRecordRate() > 0) {
-                return AgentStatusEnum.WORKING;
-            } else {
-                return AgentStatusEnum.SLEEPING;
-            }
+            return AgentStatusEnum.SLEEPING;
         }
-        if (!ConfigManager.INSTANCE.valid()) {
-            return AgentStatusEnum.UN_START;
-        }
-        return AgentStatusEnum.NONE;
+
+        return AgentStatusEnum.UN_START;
     }
 
     public Map<String, String> getSystemProperties() {
@@ -134,8 +146,8 @@ public class ConfigService {
             return MAPPER.writeValueAsString(object);
         } catch (Exception ex) {
             LOGGER.warn("serialize exception", ex);
+            return null;
         }
-        return null;
     }
 
     public <T> T deserialize(String json, Class<T> clazz) {
@@ -146,7 +158,60 @@ public class ConfigService {
             return MAPPER.readValue(json, clazz);
         } catch (Exception ex) {
             LOGGER.warn("deserialize exception", ex);
+            return null;
         }
-        return null;
+    }
+
+    public void reportStatus() {
+        AgentStatusService.INSTANCE.report();
+    }
+
+    public boolean reloadConfig() {
+        return reloadConfig.get();
+    }
+
+    private static class AgentStatusService {
+        private static final AgentStatusService INSTANCE = new AgentStatusService();
+
+        private String prevLastModified;
+
+        private static final String AGENT_STATUS_URI =
+            String.format("http://%s/api/config/agent/agentStatus", ConfigManager.INSTANCE.getStorageServiceHost());
+
+        public void report() {
+            AgentStatusEnum agentStatus = ConfigService.INSTANCE.getAgentStatus();
+            System.setProperty("arex.agent.status", agentStatus.name());
+
+            AgentStatusRequest request = new AgentStatusRequest(ConfigManager.INSTANCE.getServiceName(),
+                NetUtils.getIpAddress(), agentStatus.name());
+
+            String requestJson = ConfigService.INSTANCE.serialize(request);
+
+            Map<String, String> requestHeaders = MapUtils.newHashMapWithExpectedSize(1);
+            requestHeaders.put("If-Modified-Since", prevLastModified);
+
+            HttpClientResponse response = AsyncHttpClientUtil.postAsyncWithJson(AGENT_STATUS_URI, requestJson,
+                requestHeaders).join();
+
+            if (response == null || MapUtils.isEmpty(response.getHeaders())) {
+                LOGGER.info("[arex] Report agent status response is null.\nrequest: {}", requestJson);
+                return;
+            }
+
+            // Tue, 15 Nov 1994 12:45:26 GMT, see https://datatracker.ietf.org/doc/html/rfc7232#section-3.3
+            String lastModified = response.getHeaders().get("Last-Modified");
+            LOGGER.info("[arex] Report agent status lastModified: {}.\nrequest: {}", lastModified, requestJson);
+            if (StringUtil.isEmpty(lastModified)) {
+                return;
+            }
+
+            if (StringUtil.isEmpty(prevLastModified)) {
+                prevLastModified = lastModified;
+                return;
+            }
+
+            ConfigService.INSTANCE.reloadConfig.set(!Objects.equals(prevLastModified, lastModified));
+            prevLastModified = lastModified;
+        }
     }
 }
