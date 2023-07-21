@@ -1,5 +1,6 @@
 package io.arex.inst.runtime.config;
 
+import io.arex.agent.bootstrap.util.ConcurrentHashSet;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.context.RecordLimiter;
 import io.arex.inst.runtime.model.DynamicClassEntity;
@@ -47,12 +48,21 @@ public class Config {
         this.serviceName = serviceName;
         this.dynamicClassList = dynamicClassList;
         this.properties = properties;
-        this.excludeServiceOperations = excludeServiceOperations;
+        this.excludeServiceOperations = buildExcludeServiceOperations(excludeServiceOperations);
         this.dubboStreamReplayThreshold = dubboStreamReplayThreshold;
         this.recordRate = recordRate;
         this.recordVersion = properties.get("arex.agent.version");
         this.includeServiceOperations = StringUtil.splitToSet(properties.get("includeServiceOperations"), ',');
         buildDynamicClassInfo();
+    }
+
+    private Set<String> buildExcludeServiceOperations(Set<String> excludeServiceOperations) {
+        if (excludeServiceOperations == null) {
+            return Collections.emptySet();
+        }
+        Set<String> excludeServiceOperationSet = new ConcurrentHashSet<>();
+        excludeServiceOperationSet.addAll(excludeServiceOperations);
+        return excludeServiceOperationSet;
     }
 
     private void buildDynamicClassInfo() {

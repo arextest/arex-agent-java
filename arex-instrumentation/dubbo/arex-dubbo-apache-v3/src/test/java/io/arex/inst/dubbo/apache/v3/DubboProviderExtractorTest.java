@@ -77,10 +77,10 @@ class DubboProviderExtractorTest {
         };
         Runnable mocker4 = () -> {
             Mockito.when(adapter.replayWarmUp()).thenReturn(false);
-            Mockito.when(IgnoreUtils.ignoreOperation(any())).thenReturn(true);
+            Mockito.when(IgnoreUtils.excludeEntranceOperation(any())).thenReturn(true);
         };
         Runnable mocker5 = () -> {
-            Mockito.when(IgnoreUtils.ignoreOperation(any())).thenReturn(false);
+            Mockito.when(IgnoreUtils.excludeEntranceOperation(any())).thenReturn(false);
         };
         Runnable asserts1 = () -> verify(adapter, times(0)).getExcludeMockTemplate();
         Runnable asserts2 = () -> verify(adapter, atLeastOnce()).getExcludeMockTemplate();

@@ -1,9 +1,11 @@
 package io.arex.inst.runtime.config;
 
+import io.arex.agent.bootstrap.util.ConcurrentHashSet;
 import io.arex.inst.runtime.context.RecordLimiter;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.model.DynamicClassEntity;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -77,10 +79,19 @@ class ConfigTest {
         assertTrue(Config.get().getIncludeServiceOperations().contains("operation1"));
         assertTrue(Config.get().getIncludeServiceOperations().contains("operation2"));
         assertTrue(Config.get().getIncludeServiceOperations().contains("operation3"));
-        assertNull(Config.get().excludeServiceOperations());
+        assertEquals(0, Config.get().excludeServiceOperations().size());
         assertEquals(0, Config.get().getDubboStreamReplayThreshold());
         assertEquals(3, Config.get().getDynamicClassSignatureMap().size());
         assertEquals(1, Config.get().getDynamicAbstractClassList().length);
         assertEquals("classB", Config.get().getDynamicAbstractClassList()[0]);
+    }
+
+    @Test
+    void testBuildExcludeOperation() {
+        final ConfigBuilder configBuilder = ConfigBuilder.create("test");
+        configBuilder.excludeServiceOperations(new HashSet<>(Arrays.asList("operation1", "operation2")));
+        configBuilder.build();
+        assertEquals(2, Config.get().excludeServiceOperations().size());
+        assertTrue(Config.get().excludeServiceOperations() instanceof ConcurrentHashSet);
     }
 }

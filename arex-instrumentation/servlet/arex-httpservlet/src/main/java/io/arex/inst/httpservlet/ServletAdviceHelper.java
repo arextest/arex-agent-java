@@ -217,7 +217,7 @@ public class ServletAdviceHelper {
             return false;
         }
 
-        if (IgnoreUtils.ignoreOperation(requestURI)) {
+        if (IgnoreUtils.excludeEntranceOperation(requestURI)) {
             return true;
         }
 

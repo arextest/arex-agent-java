@@ -16,16 +16,21 @@ import java.util.Collections;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class EventProcessorTest {
     static Logger logger = null;
     static MockedStatic<LogManager> mockedStatic = null;
+    static MockedStatic<ContextManager> contextMockedStatic = null;
     @BeforeAll
     static void setUp() {
-        Mockito.mockStatic(ContextManager.class);
+        contextMockedStatic = Mockito.mockStatic(ContextManager.class);
         Mockito.mockStatic(ServiceLoader.class);
         logger = Mockito.mock(Logger.class);
         mockedStatic = Mockito.mockStatic(LogManager.class);
@@ -35,10 +40,12 @@ public class EventProcessorTest {
     static void tearDown() {
         logger = null;
         mockedStatic = null;
+        contextMockedStatic = null;
         Mockito.clearAllCaches();
     }
 
     @Test
+    @Order(2)
     void testOnCreate() {
         // null context
         EventProcessor.onCreate(EventSource.empty());
@@ -58,7 +65,11 @@ public class EventProcessorTest {
     }
 
     @Test
+    @Order(1)
     void testInit() {
+        // not Init Complete
+        EventProcessor.onCreate(EventSource.empty());
+        contextMockedStatic.verify(() -> ContextManager.currentContext(true, null), Mockito.times(0));
         // load serializer
         Mockito.when(ServiceLoader.load(StringSerializable.class, Thread.currentThread()
                 .getContextClassLoader())).thenReturn(Arrays.asList(new TestStringSerializable(), new TestStringSerializer2()));

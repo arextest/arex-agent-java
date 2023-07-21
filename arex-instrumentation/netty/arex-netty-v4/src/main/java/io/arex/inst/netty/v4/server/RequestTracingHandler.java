@@ -75,7 +75,7 @@ public class RequestTracingHandler extends ChannelInboundHandlerAdapter {
             return true;
         }
 
-        if (IgnoreUtils.ignoreOperation(request.uri())) {
+        if (IgnoreUtils.excludeEntranceOperation(request.uri())) {
             return true;
         }
 

@@ -176,6 +176,11 @@
             <artifactId>arex-apollo</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>arex-httpclient-resttemplate</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <!--Agent instrumentation end-->
 
         <dependency>
@@ -269,6 +274,10 @@
                         <configuration>
                             <target>
                                 <mkdir dir="../arex-agent-jar" />
+                                <mkdir dir="../arex-agent-jar/bytecode-dump" />
+                                <delete>
+                                    <fileset dir="../arex-agent-jar/bytecode-dump" includes="*.class" />
+                                </delete>
                                 <copy todir="../arex-agent-jar">
                                     <fileset dir="../arex-agent/target/" includes="arex-agent-*.jar" />
                                     <fileset dir="../arex-agent-bootstrap/target/" includes="arex-agent-bootstrap-*.jar" />

@@ -50,12 +50,12 @@ public class OkHttpCallInstrumentationTest {
             MockedStatic<IgnoreUtils> ignoreUtils = mockStatic(IgnoreUtils.class)) {
             contextManager.when(ContextManager::needRecordOrReplay).thenReturn(true);
             contextManager.when(ContextManager::needReplay).thenReturn(true);
-            ignoreUtils.when(() -> IgnoreUtils.ignoreOperation(any())).thenReturn(true);
+            ignoreUtils.when(() -> IgnoreUtils.excludeOperation(any())).thenReturn(true);
 
             boolean actualResult = OkHttpCallInstrumentation.ExecuteAdvice.onEnter(call, null, null);
             assertFalse(actualResult);
 
-            ignoreUtils.when(() -> IgnoreUtils.ignoreOperation(any())).thenReturn(false);
+            ignoreUtils.when(() -> IgnoreUtils.excludeOperation(any())).thenReturn(false);
             actualResult = OkHttpCallInstrumentation.ExecuteAdvice.onEnter(call, null, null);
             Assertions.assertTrue(actualResult);
         }
@@ -93,12 +93,12 @@ public class OkHttpCallInstrumentationTest {
             try (MockedStatic<ContextManager> contextManager = mockStatic(ContextManager.class);
                 MockedStatic<RepeatedCollectManager> repeatedCollectManager = mockStatic(RepeatedCollectManager.class);
                 MockedStatic<IgnoreUtils> ignoreUtils = mockStatic(IgnoreUtils.class)) {
-                ignoreUtils.when(() -> IgnoreUtils.ignoreOperation(any())).thenReturn(true);
+                ignoreUtils.when(() -> IgnoreUtils.excludeOperation(any())).thenReturn(true);
 
                 boolean actualResult = OkHttpCallInstrumentation.EnqueueAdvice.onEnter(call, null, null);
                 assertFalse(actualResult);
 
-                ignoreUtils.when(() -> IgnoreUtils.ignoreOperation(any())).thenReturn(false);
+                ignoreUtils.when(() -> IgnoreUtils.excludeOperation(any())).thenReturn(false);
                 contextManager.when(ContextManager::needRecordOrReplay).thenReturn(false);
                 boolean actResult = OkHttpCallInstrumentation.EnqueueAdvice.onEnter(call, callback, mockResult);
                 Assertions.assertFalse(actResult);
