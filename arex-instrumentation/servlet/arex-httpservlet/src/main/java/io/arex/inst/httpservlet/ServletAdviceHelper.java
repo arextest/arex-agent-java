@@ -106,10 +106,16 @@ public class ServletAdviceHelper {
             TraceContextManager.set(redirectRecordId);
         } else {
             CaseEventDispatcher.onEvent(CaseEvent.ofEnterEvent());
+            RequestHandlerManager.preHandle(httpServletRequest, MockCategoryType.SERVLET.getName());
+            // Forbid create context if attr with arex-forbidden-flag
+            if (Boolean.TRUE.equals(adapter.getAttribute(httpServletRequest, ArexConstants.FORBIDDEN_FLAG))) {
+                return null;
+            }
+
             String caseId = adapter.getRequestHeader(httpServletRequest, ArexConstants.RECORD_ID);
             String excludeMockTemplate = adapter.getRequestHeader(httpServletRequest, ArexConstants.HEADER_EXCLUDE_MOCK);
             CaseEventDispatcher.onEvent(CaseEvent.ofCreateEvent(EventSource.of(caseId, excludeMockTemplate)));
-            RequestHandlerManager.preHandle(httpServletRequest, MockCategoryType.SERVLET.getName());
+
         }
 
         if (ContextManager.needRecordOrReplay()) {
