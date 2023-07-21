@@ -18,6 +18,8 @@ import com.alibaba.dubbo.rpc.support.ProtocolUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Future;
 import java.util.function.Function;
 
@@ -136,5 +138,9 @@ public class DubboAdapter extends AbstractAdapter {
 
     public String getProtocol() {
         return getUrl().getProtocol();
+    }
+
+    public String getConfigVersion() {
+        return invocation.getAttachment(ArexConstants.CONFIG_VERSION);
     }
 }

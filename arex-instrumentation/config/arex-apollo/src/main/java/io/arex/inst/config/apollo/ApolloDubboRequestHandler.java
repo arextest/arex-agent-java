@@ -1,7 +1,5 @@
 package io.arex.inst.config.apollo;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import com.google.auto.service.AutoService;
 import io.arex.agent.bootstrap.model.MockCategoryType;
 import io.arex.agent.bootstrap.util.StringUtil;
@@ -9,23 +7,22 @@ import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.request.RequestHandler;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @AutoService(RequestHandler.class)
-public class ApolloServletRequestHandler implements RequestHandler<HttpServletRequest, HttpServletResponse> {
+public class ApolloDubboRequestHandler implements RequestHandler<Map<String, String>, Map<String, String>> {
     @Override
     public String name() {
-        return MockCategoryType.SERVLET.getName();
+        return MockCategoryType.DUBBO_PROVIDER.getName();
     }
 
     @Override
-    public void preHandle(HttpServletRequest request) {
-        String recordId = request.getHeader(ArexConstants.RECORD_ID);
+    public void preHandle(Map<String, String> request) {
+        String recordId = request.get(ArexConstants.RECORD_ID);
         if (StringUtil.isEmpty(recordId)) {
             return;
         }
-        String configVersion = request.getHeader(ArexConstants.CONFIG_DEPENDENCY);
+        String configVersion = request.get(ArexConstants.CONFIG_DEPENDENCY);
         ApolloConfigHelper.initReplayState(recordId, configVersion);
 
         if (StringUtil.isEmpty(configVersion)) {
@@ -39,7 +36,7 @@ public class ApolloServletRequestHandler implements RequestHandler<HttpServletRe
     }
 
     @Override
-    public void postHandle(HttpServletRequest request, HttpServletResponse response) {
+    public void postHandle(Map<String, String> request, Map<String, String> response) {
         if (postInvalid(request, response)) {
             return;
         }
@@ -49,14 +46,11 @@ public class ApolloServletRequestHandler implements RequestHandler<HttpServletRe
         it may not record these configurations during preHandle()
          */
         ApolloConfigHelper.recordAllConfigs();
-        request.setAttribute(ArexConstants.CONFIG_VERSION, ApolloConfigExtractor.getCurrentRecordConfigVersion());
+        request.put(ArexConstants.CONFIG_VERSION, ApolloConfigExtractor.getCurrentRecordConfigVersion());
     }
 
-    private boolean postInvalid(HttpServletRequest request, HttpServletResponse response) {
-        if (request == null || response == null) {
-            return true;
-        }
-        if (response.getHeader(ArexConstants.RECORD_ID) != null) {
+    private boolean postInvalid(Map<String, String> request, Map<String, String> response) {
+        if (request == null) {
             return true;
         }
         return !ContextManager.needRecord();

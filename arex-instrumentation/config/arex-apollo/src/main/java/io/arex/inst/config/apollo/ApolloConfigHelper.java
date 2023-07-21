@@ -71,7 +71,6 @@ public class ApolloConfigHelper {
     }
 
     public static void initReplayState(String recordId, String configVersion) {
-        // init replay state
         ApolloConfigExtractor.updateReplayState(recordId, configVersion);
     }
 
@@ -119,7 +118,7 @@ public class ApolloConfigHelper {
         2. this configuration belongs to a new configuration,
            does not exist during the first full replay (replayAllConfigs)
            and no instances were created, which belongs to a new configuration.
-           in other words, the configuration instance and content are only created when the code is executed.
+           in other words, the configuration instance and content are only created when the business code is executed.
          */
         Properties properties = ApolloConfigExtractor.replay(namespace);
         if (properties == null) {
