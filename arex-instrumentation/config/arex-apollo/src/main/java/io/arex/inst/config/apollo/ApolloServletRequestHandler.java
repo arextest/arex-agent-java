@@ -9,9 +9,6 @@ import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.request.RequestHandler;
 
-import java.util.HashMap;
-import java.util.Map;
-
 @AutoService(RequestHandler.class)
 public class ApolloServletRequestHandler implements RequestHandler<HttpServletRequest, HttpServletResponse> {
     @Override
