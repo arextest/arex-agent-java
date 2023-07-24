@@ -35,29 +35,10 @@ import static net.bytebuddy.matcher.ElementMatchers.*;
  * DynamicClassInstrumentation
  */
 public class DynamicClassInstrumentation extends TypeInstrumentation {
-
-    private static final String[] ABSTRACT_CLASS_LIST = buildAbstractClassList();
-
-    protected static String[] buildAbstractClassList() {
-        ArrayList<String> list = new ArrayList<>();
-        final Config config = Config.get();
-        if (config == null) {
-            return new String[0];
-        }
-        List<DynamicClassEntity> dynamicClassEntities = config.dynamicClassEntities();
-        for (DynamicClassEntity entity : dynamicClassEntities) {
-            if (isAbstractClass(entity.getClazzName())) {
-                list.add(entity.getClazzName().substring(ABSTRACT_CLASS_PREFIX.length()));
-            }
-        }
-        return list.toArray(new String[0]);
-    }
-
     private final List<DynamicClassEntity> dynamicClassList;
     private DynamicClassEntity onlyClass = null;
     private final List<DynamicClassEntity> withParameterList = new ArrayList<>();
     private static final String SEPARATOR_STAR = "*";
-    private static final String ABSTRACT_CLASS_PREFIX = "ac:";
 
     protected ReplaceMethodsProvider replaceMethodsProvider;
 
@@ -107,12 +88,12 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
                 .and(not(returns(TypeDescription.VOID)))
                 .and(not(isAnnotatedWith(namedOneOf(DynamiConstants.SPRING_CACHE, DynamiConstants.AREX_MOCK))));
             if (isNotAbstractClass(onlyClass.getClazzName())) {
-                matcher = matcher.and(not(isOverriddenFrom(namedOneOf(ABSTRACT_CLASS_LIST))));
+                matcher = matcher.and(not(isOverriddenFrom(namedOneOf(Config.get().getDynamicAbstractClassList()))));
             }
         } else if (CollectionUtil.isNotEmpty(withParameterList)) {
             matcher = builderMethodMatcher(withParameterList.get(0));
             if (isNotAbstractClass(this.dynamicClassList.get(0).getClazzName())) {
-                matcher = matcher.and(not(isOverriddenFrom(namedOneOf(ABSTRACT_CLASS_LIST))));
+                matcher = matcher.and(not(isOverriddenFrom(namedOneOf(Config.get().getDynamicAbstractClassList()))));
             }
             for (int i = 1; i < withParameterList.size(); i++) {
                 matcher = matcher.or(builderMethodMatcher(withParameterList.get(i)));
@@ -193,7 +174,7 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
             return memberSubstitution.on(isMethod().or(isConstructor()));
         }
 
-        return memberSubstitution.on(namedOneOf(searchMethodList.toArray(new String[0])));
+        return memberSubstitution.on(namedOneOf(searchMethodList.toArray(StringUtil.EMPTY_STRING_ARRAY)));
     }
 
     private <T extends NamedElement> ElementMatcher.Junction<T> parseTypeMatcher(String originalTypeName,
@@ -253,14 +234,14 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
         }
 
         if (isAbstractClass(fullClazzName)) {
-            return hasSuperType(named(fullClazzName.substring(ABSTRACT_CLASS_PREFIX.length())));
+            return hasSuperType(named(fullClazzName.substring(DynamicClassEntity.ABSTRACT_CLASS_PREFIX.length())));
         }
 
         return named(fullClazzName);
     }
 
     private static boolean isAbstractClass(String fullClazzName) {
-        return fullClazzName.startsWith(ABSTRACT_CLASS_PREFIX);
+        return fullClazzName.startsWith(DynamicClassEntity.ABSTRACT_CLASS_PREFIX);
     }
 
     private static boolean isNotAbstractClass(String fullClazzName) {

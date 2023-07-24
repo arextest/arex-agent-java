@@ -1,23 +1,24 @@
 package io.arex.inst.runtime.context;
 
+import io.arex.agent.bootstrap.util.ConcurrentHashSet;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.model.ArexConstants;
-import java.util.ArrayList;
+
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ArexContext {
 
     private final String caseId;
     private final String replayId;
     private final long createTime;
-    private final SequenceProvider sequence;
-    private final List<Integer> methodSignatureHashList = new ArrayList<>();
-    private final Map<String, Object> cachedReplayResultMap = new ConcurrentHashMap<>();
+    private final AtomicInteger sequence;
+    private Set<Integer> methodSignatureHashList;
+    private Map<String, Object> cachedReplayResultMap;
     private Map<String, Set<String>> excludeMockTemplate;
 
     private Map<String, Object> attachments = null;
@@ -35,7 +36,7 @@ public class ArexContext {
     private ArexContext(String caseId, String replayId) {
         this.createTime = System.currentTimeMillis();
         this.caseId = caseId;
-        this.sequence = new SequenceProvider();
+        this.sequence = new AtomicInteger(0);
         this.replayId = replayId;
     }
 
@@ -59,15 +60,21 @@ public class ArexContext {
         return StringUtil.isNotEmpty(this.replayId);
     }
 
-    public int calculateSequence(String target) {
-        return StringUtil.isEmpty(target) ? 0 : sequence.get(target);
+    public int calculateSequence() {
+        return sequence.get();
     }
 
-    public List<Integer> getMethodSignatureHashList() {
+    public Set<Integer> getMethodSignatureHashList() {
+        if (methodSignatureHashList == null) {
+            methodSignatureHashList = new ConcurrentHashSet<>();
+        }
         return methodSignatureHashList;
     }
 
     public Map<String, Object> getCachedReplayResultMap() {
+        if (cachedReplayResultMap == null) {
+            cachedReplayResultMap = new ConcurrentHashMap<>();
+        }
         return cachedReplayResultMap;
     }
     public Map<String, Set<String>> getExcludeMockTemplate() {
@@ -114,7 +121,6 @@ public class ArexContext {
         }
 
         Object location = attachments.get(ArexConstants.REDIRECT_REFERER);
-
         if (location == null) {
             isRedirectRequest = false;
             return false;
@@ -124,9 +130,12 @@ public class ArexContext {
     }
 
     public void clear() {
-        methodSignatureHashList.clear();
-        cachedReplayResultMap.clear();
-        sequence.clear();
+        if (methodSignatureHashList != null) {
+            methodSignatureHashList.clear();
+        }
+        if (cachedReplayResultMap != null) {
+            cachedReplayResultMap.clear();
+        }
         if (excludeMockTemplate != null) {
             excludeMockTemplate.clear();
         }

@@ -38,7 +38,8 @@ public class ModuleVersionMatcher extends ElementMatcher.Junction.AbstractBase<C
         }
         Pair<Integer, Integer> version = LoadedModuleCache.get(description.getModuleName());
         if (version == null) {
-            return true;
+            // to avoid duplicate transform of the same class in different module
+            return false;
         }
         return description.isSupported(version);
     }

@@ -1,9 +1,11 @@
 package io.arex.inst.runtime.config;
 
+import io.arex.agent.bootstrap.util.ConcurrentHashSet;
 import io.arex.inst.runtime.context.RecordLimiter;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.model.DynamicClassEntity;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -28,11 +30,8 @@ class ConfigTest {
 
     static Stream<Arguments> invalidCase() {
         ConfigBuilder config = ConfigBuilder.create("mock");
-        Runnable mocker1 = () -> {
-            config.enableDebug(true).build();
-        };
         Runnable mocker2 = () -> {
-            config.enableDebug(false).build();
+            config.recordRate(0).build();
         };
         Runnable mocker3 = () -> {
             config.recordRate(1).build();
@@ -48,7 +47,6 @@ class ConfigTest {
         Predicate<Boolean> predicate1 = result -> !result;
         Predicate<Boolean> predicate2 = result -> result;
         return Stream.of(
-                arguments(mocker1, predicate1),
                 arguments(mocker2, predicate2),
                 arguments(mocker3, predicate2),
                 arguments(mocker4, predicate2),
@@ -57,22 +55,43 @@ class ConfigTest {
     }
 
     @Test
-    void testDynamicClassEntities() {
-        ConfigBuilder config = ConfigBuilder.create("mock");
+    void testDynamicClassList() {
+        ConfigBuilder.create("mock").dynamicClassList(null).build();
+        assertNull(Config.get().getDynamicClassList());
+
+        ConfigBuilder config = ConfigBuilder.create("mock").addProperty("arex.agent.version", "0.3.4");
+        config.addProperty("includeServiceOperations", "operation1,operation2,operation3");
         String genericObject = "innerTest";
         String genericTypeName = genericObject.getClass().getName();
         DynamicClassEntity genericEntity = new DynamicClassEntity("classA", "methodA", null, "T:" + genericTypeName);
         DynamicClassEntity uuidEntity = new DynamicClassEntity(null, null, null, ArexConstants.UUID_SIGNATURE);
         DynamicClassEntity systemEntity = new DynamicClassEntity(null, null, null, ArexConstants.CURRENT_TIME_MILLIS_SIGNATURE);
-        List<DynamicClassEntity> dynamicClassEntities = Arrays.asList(systemEntity, genericEntity, uuidEntity);
+        DynamicClassEntity abstractEntity = new DynamicClassEntity("ac:classB", "methodB", null, "T:" + genericTypeName);
+        List<DynamicClassEntity> dynamicClassEntities = Arrays.asList(systemEntity, genericEntity, uuidEntity, abstractEntity);
         config.dynamicClassList(dynamicClassEntities).build();
-        Assertions.assertEquals(3, Config.get().dynamicClassEntities().size());
+        Assertions.assertEquals(4, Config.get().getDynamicClassList().size());
         Assertions.assertEquals(genericTypeName, Config.get().getDynamicEntity(genericEntity.getSignature()).getActualType());
+
+        assertEquals("mock", Config.get().getServiceName());
+        assertEquals("0.3.4", Config.get().getRecordVersion());
+        assertEquals("0.3.4", Config.get().getString("arex.agent.version"));
+        assertEquals(3, Config.get().getIncludeServiceOperations().size());
+        assertTrue(Config.get().getIncludeServiceOperations().contains("operation1"));
+        assertTrue(Config.get().getIncludeServiceOperations().contains("operation2"));
+        assertTrue(Config.get().getIncludeServiceOperations().contains("operation3"));
+        assertEquals(0, Config.get().excludeServiceOperations().size());
+        assertEquals(0, Config.get().getDubboStreamReplayThreshold());
+        assertEquals(3, Config.get().getDynamicClassSignatureMap().size());
+        assertEquals(1, Config.get().getDynamicAbstractClassList().length);
+        assertEquals("classB", Config.get().getDynamicAbstractClassList()[0]);
     }
 
     @Test
-    void testDynamicClassEntitiesNull() {
-        ConfigBuilder config = ConfigBuilder.create("mock");
-        config.dynamicClassList(null).build();
+    void testBuildExcludeOperation() {
+        final ConfigBuilder configBuilder = ConfigBuilder.create("test");
+        configBuilder.excludeServiceOperations(new HashSet<>(Arrays.asList("operation1", "operation2")));
+        configBuilder.build();
+        assertEquals(2, Config.get().excludeServiceOperations().size());
+        assertTrue(Config.get().excludeServiceOperations() instanceof ConcurrentHashSet);
     }
 }

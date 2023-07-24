@@ -1,11 +1,9 @@
 package io.arex.inst.dubbo.alibaba;
 
-import com.alibaba.dubbo.common.URL;
 import com.alibaba.dubbo.remoting.exchange.ResponseCallback;
 import com.alibaba.dubbo.remoting.exchange.ResponseFuture;
 import com.alibaba.dubbo.rpc.*;
 import com.alibaba.dubbo.rpc.protocol.dubbo.FutureAdapter;
-import com.alibaba.dubbo.rpc.support.ProtocolUtils;
 import io.arex.agent.bootstrap.ctx.TraceTransmitter;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.ArrayUtils;
@@ -13,7 +11,10 @@ import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.dubbo.common.AbstractAdapter;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.serializer.Serializer;
+import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.util.TypeUtil;
+import com.alibaba.dubbo.common.URL;
+import com.alibaba.dubbo.rpc.support.ProtocolUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -127,6 +128,7 @@ public class DubboAdapter extends AbstractAdapter {
                 }
             }
         } catch (Throwable e) {
+            LOGGER.warn(LogManager.buildTitle("alibaba.Dubbo.doExecute"), e);
         } finally {
             super.doExecute(value, mocker);
         }

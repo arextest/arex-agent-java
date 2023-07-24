@@ -35,7 +35,7 @@ class ArexThreadLocalTest {
     @Test
     void replay() {
         assertNull(ArexThreadLocal.Transmitter.replay(null));
-        assertNotNull(ArexThreadLocal.Transmitter.replay(new ArexThreadLocal.Transmitter.Snapshot(snapshotMap)));
+        assertDoesNotThrow(() -> ArexThreadLocal.Transmitter.replay(new ArexThreadLocal.Transmitter.Snapshot(snapshotMap)));
     }
 
     @Test

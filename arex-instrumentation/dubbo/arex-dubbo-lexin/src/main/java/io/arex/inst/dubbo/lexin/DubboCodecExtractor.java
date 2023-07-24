@@ -5,8 +5,8 @@ import com.alibaba.dubbo.remoting.Channel;
 import com.alibaba.dubbo.remoting.exchange.ResponseData;
 import com.alibaba.dubbo.rpc.RpcResult;
 import io.arex.inst.runtime.context.ContextManager;
+import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.model.ArexConstants;
-import io.arex.inst.runtime.util.LogUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,7 +52,7 @@ public class DubboCodecExtractor {
             out.writeObject(responseData);
             return true;
         } catch (Throwable e) {
-            LOGGER.warn(LogUtil.buildTitle("[arex] alibaba dubbo writeAttachments error"), e);
+            LOGGER.warn(LogManager.buildTitle("alibaba.dubbo.writeAttachments"), e);
         }
         return false;
     }

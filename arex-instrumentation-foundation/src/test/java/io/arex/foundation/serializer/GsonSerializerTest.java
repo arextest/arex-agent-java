@@ -1,10 +1,22 @@
 package io.arex.foundation.serializer;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 
+import io.arex.foundation.internal.MockEntityBuffer;
+import io.arex.inst.runtime.util.TypeUtil;
 import java.sql.Time;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
+
+import javax.xml.datatype.DatatypeConfigurationException;
 
 class GsonSerializerTest {
 
@@ -59,9 +71,49 @@ class GsonSerializerTest {
 
         assert expectedTimeTest.getInstant().equals(deserializedTimeTest.getInstant());
 
+        assert expectedTimeTest.getJodaLocalDate().equals(deserializedTimeTest.getJodaLocalDate());
+        assert expectedTimeTest.getJodaLocalTime().equals(deserializedTimeTest.getJodaLocalTime());
+        assert expectedTimeTest.getJodaLocalDateTime().equals(deserializedTimeTest.getJodaLocalDateTime());
+        assert expectedTimeTest.getDateTime().equals(deserializedTimeTest.getDateTime());
+
         String deserializedJson = GsonSerializer.INSTANCE.serialize(deserializedTimeTest);
         System.out.println(deserializedJson);
 
         assert expectedJson.equals(deserializedJson);
+    }
+
+    @Test
+    void serialize() {
+        // null object
+        assertNull(GsonSerializer.INSTANCE.serialize(null));
+
+        // error serialize object
+        assertThrows(Throwable.class, () -> GsonSerializer.INSTANCE.serialize(Thread.currentThread()));
+    }
+
+    @Test
+    void deserializeClass() {
+        // null object
+        assertNull(GsonSerializer.INSTANCE.deserialize(null, String.class));
+
+        // null class
+        assertNull(GsonSerializer.INSTANCE.deserialize("", null));
+
+        // deserialize object
+        String json  = GsonSerializer.INSTANCE.serialize(LocalDateTime.now());
+        assertNotNull(GsonSerializer.INSTANCE.deserialize(json, LocalDateTime.class));
+    }
+
+    @Test
+    void deserializeType() {
+        // null object
+        assertNull(GsonSerializer.INSTANCE.deserialize(null, TypeUtil.forName(TypeUtil.getName(LocalDateTime.now()))));
+
+        // null type
+        assertNull(GsonSerializer.INSTANCE.deserialize("", TypeUtil.forName(null)));
+
+        // deserialize object
+        String json  = GsonSerializer.INSTANCE.serialize(LocalDateTime.now());
+        assertNotNull(GsonSerializer.INSTANCE.deserialize(json, TypeUtil.forName(TypeUtil.getName(LocalDateTime.now()))));
     }
 }

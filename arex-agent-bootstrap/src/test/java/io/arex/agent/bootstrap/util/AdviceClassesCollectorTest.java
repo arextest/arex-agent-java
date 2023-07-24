@@ -1,12 +1,17 @@
 package io.arex.agent.bootstrap.util;
 
 import static org.junit.jupiter.api.Assertions.*;
+
+import io.arex.agent.bootstrap.CreateFileCommon;
 import io.arex.agent.bootstrap.InstrumentationHolder;
 import io.arex.agent.bootstrap.cache.AdviceInjectorCache;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -40,6 +45,7 @@ class AdviceClassesCollectorTest {
     static void tearDown() {
         zipFile.deleteOnExit();
         zipFile = null;
+        CreateFileCommon.clear();
     }
 
     @Test
@@ -72,5 +78,12 @@ class AdviceClassesCollectorTest {
     void testNull() {
         assertDoesNotThrow(() -> AdviceClassesCollector.INSTANCE.addJarToLoaderSearch(null));
         assertDoesNotThrow(() -> AdviceClassesCollector.INSTANCE.addClassToLoaderSearch(null));
+    }
+
+    @Test
+    public void test() {
+        final File file = new File("D:\\Users\\yongwuhe\\IdeaProjects\\arex-agent-java\\arex-agent-jar\\arex-agent-0.3.6.jar");
+        String enrtyName = "META-INF/services/com.fasterxml.jackson.core.JsonFactory";
+        final Path path = Paths.get(file.getAbsolutePath() + "!/" + enrtyName);
     }
 }

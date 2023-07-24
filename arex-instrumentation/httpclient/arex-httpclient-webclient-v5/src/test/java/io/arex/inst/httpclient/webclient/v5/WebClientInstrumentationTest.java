@@ -14,7 +14,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.Mock;
 import org.mockito.MockedConstruction;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -67,7 +66,7 @@ class WebClientInstrumentationTest {
             Mockito.when(ContextManager.needReplay()).thenReturn(true);
             assertTrue(WebClientInstrumentation.ExchangeAdvice.onEnter(request, null, null, null));
 
-            Mockito.when(IgnoreUtils.ignoreOperation(any())).thenReturn(true);
+            Mockito.when(IgnoreUtils.excludeOperation(any())).thenReturn(true);
             assertFalse(WebClientInstrumentation.ExchangeAdvice.onEnter(request, null, null, null));
         }
     }

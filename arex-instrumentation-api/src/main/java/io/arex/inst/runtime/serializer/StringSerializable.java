@@ -2,6 +2,7 @@ package io.arex.inst.runtime.serializer;
 
 import java.lang.reflect.Type;
 
+
 public interface StringSerializable {
 
     String name();
@@ -12,7 +13,7 @@ public interface StringSerializable {
      * @param object object to be serialized
      * @return result string
      */
-    String serialize(Object object);
+    String serialize(Object object) throws Throwable;
 
     /**
      * Deserialize by Class
@@ -21,7 +22,7 @@ public interface StringSerializable {
      * @param clazz Class to deserialize, example, example: com.xxx.xxxClass
      * @return T
      */
-    <T> T deserialize(String value, Class<T> clazz);
+    <T> T deserialize(String value, Class<T> clazz) throws Throwable;
 
     /**
      * Deserialize by parameterized type
@@ -30,11 +31,15 @@ public interface StringSerializable {
      * @param type Class type, example: {@code List<com.xxx.XXXType>}
      * @return T
      */
-    <T> T deserialize(String value, Type type);
+    <T> T deserialize(String value, Type type) throws Throwable;
 
     /**
      * regenerate the serializer object and reload the serialization configuration
      * @return StringSerializable example: jacksonSerializer/GsonSerializer
      */
     StringSerializable reCreateSerializer();
+
+    default boolean isDefault() {
+        return false;
+    }
 }

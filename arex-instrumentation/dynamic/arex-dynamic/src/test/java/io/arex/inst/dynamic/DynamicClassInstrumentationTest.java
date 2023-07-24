@@ -12,6 +12,7 @@ import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.dynamic.common.DynamicClassExtractor;
 import io.arex.inst.extension.MethodInstrumentation;
+import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.config.ConfigBuilder;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.context.RepeatedCollectManager;
@@ -94,6 +95,8 @@ class DynamicClassInstrumentationTest {
     @ParameterizedTest(name = "[{index}] {0}")
     @MethodSource("methodAdvicesCase")
     void testMethodAdvices(String testName, List<DynamicClassEntity> dynamicClassList, Predicate<List<MethodInstrumentation>> predicate) {
+        ConfigBuilder.create("unit-test").dynamicClassList(new ArrayList<>()).build();
+
         DynamicClassInstrumentation instrumentation = new DynamicClassInstrumentation(dynamicClassList);
         List<MethodInstrumentation> methodAdvices = instrumentation.methodAdvices();
         assertTrue(predicate.test(methodAdvices));
@@ -236,21 +239,6 @@ class DynamicClassInstrumentationTest {
         DynamicClassEntity testNotNeedTransform = new DynamicClassEntity("io.arex.inst.dynamic.ReplaceMethodClass", "currentTimeMillis", "", "");
         DynamicClassInstrumentation target = new DynamicClassInstrumentation(Collections.singletonList(testNotNeedTransform));
         assertNull(target.transformer());
-    }
-
-    @Test
-    void testBuildAbstractClassList() {
-        final ConfigBuilder configBuilder = ConfigBuilder.create("testConfig");
-        configBuilder.dynamicClassList(Arrays.asList(
-                new DynamicClassEntity("io.arex.inst.dynamic.ReplaceMethodClass", "currentTimeMillis", "", ArexConstants.CURRENT_TIME_MILLIS_SIGNATURE),
-                new DynamicClassEntity("io.arex.inst.dynamic.ReplaceMethodClass", "uuid", "", ArexConstants.UUID_SIGNATURE),
-                new DynamicClassEntity("io.arex.inst.dynamic.ReplaceMethodClass", "nextInt", "", ArexConstants.NEXT_INT_SIGNATURE),
-                new DynamicClassEntity("io.arex.inst.dynamic.ReplaceMethodClass", "", "", ArexConstants.NEXT_INT_SIGNATURE),
-                new DynamicClassEntity("ac:io.arex.inst.dynamic.ReplaceMethodClass", "next", "", ArexConstants.NEXT_INT_SIGNATURE)
-        ));
-        configBuilder.build();
-        final String[] abstractClassList = DynamicClassInstrumentation.buildAbstractClassList();
-        assertEquals(1, abstractClassList.length);
     }
 
     @Test

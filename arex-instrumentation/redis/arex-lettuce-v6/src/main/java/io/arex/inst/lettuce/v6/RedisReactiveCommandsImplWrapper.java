@@ -1,6 +1,7 @@
 package io.arex.inst.lettuce.v6;
 
 import io.arex.agent.bootstrap.model.MockResult;
+import io.arex.inst.redis.common.RedisConnectionManager;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.redis.common.RedisExtractor;
 import io.arex.inst.redis.common.RedisKeyUtil;
@@ -600,7 +601,7 @@ public class RedisReactiveCommandsImplWrapper<K, V> extends RedisReactiveCommand
 
     public <T> Mono<T> createMono(Supplier<RedisCommand<K, V, T>> commandSupplier, String key, String field) {
         if (redisUri == null) {
-            redisUri = LettuceHelper.getRedisUri(this.getStatefulConnection().hashCode());
+            redisUri = RedisConnectionManager.getRedisUri(this.getStatefulConnection().hashCode());
         }
 
         if (ContextManager.needReplay()) {
@@ -638,7 +639,7 @@ public class RedisReactiveCommandsImplWrapper<K, V> extends RedisReactiveCommand
     public <T, R> Flux<R> createDissolvingFlux(Supplier<RedisCommand<K, V, T>> commandSupplier, String key,
                                                String field) {
         if (redisUri == null) {
-            redisUri = LettuceHelper.getRedisUri(this.getStatefulConnection().hashCode());
+            redisUri = RedisConnectionManager.getRedisUri(this.getStatefulConnection().hashCode());
         }
 
         if (ContextManager.needReplay()) {

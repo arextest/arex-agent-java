@@ -33,9 +33,7 @@ public class ConfigService {
     private static final String CONFIG_LOAD_URL =
         String.format("http://%s/api/config/agent/load", ConfigManager.INSTANCE.getStorageServiceHost());
     private static final AtomicBoolean FIRST_LOAD = new AtomicBoolean(false);
-    private int maxRetry = 3;
-    private static final int NORMAL_DELAY_SECONDS = 60 * 2;
-    private static final int ERROR_DELAY_SECONDS = NORMAL_DELAY_SECONDS * 10;
+    private static final long DELAY_MINUTES = 15L;
 
     private ConfigService() {
         MAPPER.configure(JsonGenerator.Feature.IGNORE_UNKNOWN, true);
@@ -47,7 +45,7 @@ public class ConfigService {
         MAPPER.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
     }
 
-    public int loadAgentConfig(String agentArgs) {
+    public long loadAgentConfig(String agentArgs) {
         // AREX cli may pass arguments to agent
         if (StringUtil.isNotEmpty(agentArgs)) {
             ConfigManager.INSTANCE.parseAgentConfig(agentArgs);
@@ -57,11 +55,7 @@ public class ConfigService {
             return -1;
         }
         loadAgentConfig();
-        if (maxRetry < 1) {
-            LOGGER.info("[arex] Load agent config error, will retry after {} seconds", ERROR_DELAY_SECONDS);
-            return ERROR_DELAY_SECONDS;
-        }
-        return NORMAL_DELAY_SECONDS;
+        return DELAY_MINUTES;
     }
 
     public void loadAgentConfig() {
@@ -74,7 +68,6 @@ public class ConfigService {
 
             if (StringUtil.isEmpty(responseJson) || "{}".equals(responseJson)) {
                 LOGGER.warn("[arex] Load agent config, response is null, pause recording");
-                maxRetry--;
                 ConfigManager.INSTANCE.setConfigInvalid();
                 return;
             }
@@ -82,13 +75,11 @@ public class ConfigService {
             ConfigQueryResponse response = deserialize(responseJson, ConfigQueryResponse.class);
             if (response == null || response.getBody() == null ||
                 response.getBody().getServiceCollectConfiguration() == null) {
-                maxRetry--;
                 ConfigManager.INSTANCE.setConfigInvalid();
                 LOGGER.warn("[arex] Load agent config, deserialize response is null, pause recording");
                 return;
             }
-            ConfigManager.INSTANCE.parseServiceConfig(response.getBody());
-            maxRetry = 3;
+            ConfigManager.INSTANCE.updateConfigFromService(response.getBody());
         } catch (Throwable e) {
             LOGGER.warn("[arex] Load agent config error", e);
         }
@@ -105,6 +96,7 @@ public class ConfigService {
             request.setSystemEnv(new HashMap<>(System.getenv()));
         }
         request.setAgentStatus(agentStatus.name());
+        System.setProperty("arex.agent.status", agentStatus.name());
         return request;
     }
 
@@ -112,15 +104,15 @@ public class ConfigService {
         if (FIRST_LOAD.compareAndSet(false, true)) {
             return AgentStatusEnum.START;
         }
-        if (!ConfigManager.INSTANCE.valid()) {
-            return AgentStatusEnum.UN_START;
-        }
-        if (ConfigManager.INSTANCE.valid()) {
-            if (ConfigManager.INSTANCE.inWorkingTime() && ConfigManager.INSTANCE.getRecordRate() > 0) {
+        if (ConfigManager.FIRST_TRANSFORM.get()) {
+            if (ConfigManager.INSTANCE.valid() && ConfigManager.INSTANCE.getRecordRate() > 0) {
                 return AgentStatusEnum.WORKING;
             } else {
                 return AgentStatusEnum.SLEEPING;
             }
+        }
+        if (!ConfigManager.INSTANCE.valid()) {
+            return AgentStatusEnum.UN_START;
         }
         return AgentStatusEnum.NONE;
     }

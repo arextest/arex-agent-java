@@ -1,11 +1,13 @@
 package io.arex.inst.httpservlet;
 
+import io.arex.agent.bootstrap.model.MockCategoryType;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.inst.httpservlet.adapter.ServletAdapter;
 import io.arex.inst.httpservlet.converter.HttpMessageConvertFactory;
 import io.arex.inst.httpservlet.converter.HttpMessageConverter;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
+import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.util.MockUtils;
@@ -98,12 +100,16 @@ public class ServletExtractor<HttpServletRequest, HttpServletResponse> {
             requestPath = adapter.getRequestPath(httpServletRequest);
         }
 
-        Map<String, Object> requestAttributes = new HashMap<>();
+        Map<String, Object> requestAttributes = getRequestAttributes();
         requestAttributes.put("HttpMethod", httpMethod);
         requestAttributes.put("RequestPath", requestPath);
-        requestAttributes.put("Headers", getRequestHeaders());
+        Map<String,String> requestHeaders = getRequestHeaders();
+        requestAttributes.put("Headers", requestHeaders);
 
-        Mocker mocker = MockUtils.createServlet(pattern);
+        String originalMocker = requestHeaders.get(ArexConstants.REPLAY_ORIGINAL_MOCKER);
+        MockCategoryType mockCategoryType =
+            originalMocker == null ? MockCategoryType.SERVLET : MockCategoryType.createEntryPoint(originalMocker);
+        Mocker mocker = MockUtils.create(mockCategoryType, pattern);
 
         mocker.getTargetRequest().setAttributes(requestAttributes);
         mocker.getTargetRequest().setBody(getRequest());
@@ -117,6 +123,18 @@ public class ServletExtractor<HttpServletRequest, HttpServletResponse> {
         } else if (ContextManager.needRecord()) {
             MockUtils.recordMocker(mocker);
         }
+    }
+
+    private Map<String, Object> getRequestAttributes() {
+        try {
+            final Object extensionAttr = adapter.getAttribute(httpServletRequest, ArexConstants.AREX_EXTENSION_ATTRIBUTE);
+            if (extensionAttr instanceof Map) {
+                return (Map<String, Object>) extensionAttr;
+            }
+        } catch (Throwable ex) {
+            LogManager.warn("getRequestAttr", ex);
+        }
+        return new HashMap<>();
     }
 
     private Map<String, String> getRequestHeaders() {

@@ -37,11 +37,6 @@
             <artifactId>auto-service</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-            <version>3.7</version>
-        </dependency>
-        <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
             <version>2.13.1</version>
@@ -65,6 +60,11 @@
             <groupId>com.github.luben</groupId>
             <artifactId>zstd-jni</artifactId>
             <version>1.5.2-5</version>
+        </dependency>
+        <dependency>
+            <groupId>joda-time</groupId>
+            <artifactId>joda-time</artifactId>
+            <version>2.9</version>
         </dependency>
     </dependencies>
 
@@ -100,7 +100,6 @@
                 <configuration>
                     <artifactSet>
                         <includes>
-                            <include>org.apache.commons:commons-lang3</include>
                             <include>commons-logging:**</include>
                             <include>org.apache.httpcomponents:httpasyncclient</include>
                             <include>org.apache.httpcomponents:httpclient</include>
@@ -109,6 +108,7 @@
                             <include>com.google.guava:guava</include>
                             <include>com.google.code.gson:gson</include>
                             <include>com.github.luben:zstd-jni</include>
+                            <include>joda-time:joda-time</include>
                         </includes>
                     </artifactSet>
                 </configuration>

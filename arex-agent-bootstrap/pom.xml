@@ -18,6 +18,10 @@
             <artifactId>byte-buddy</artifactId>
             <version>1.12.8</version>
         </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>arex-third-party</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

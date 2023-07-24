@@ -120,10 +120,10 @@ class ServletAdviceHelperTest {
         };
         Runnable shouldSkip5 = () -> {
             Mockito.when(adapter.getRequestURI(any())).thenReturn("uri");
-            Mockito.when(IgnoreUtils.ignoreOperation(any())).thenReturn(true);
+            Mockito.when(IgnoreUtils.excludeEntranceOperation(any())).thenReturn(true);
         };
         Runnable shouldSkip6 = () -> {
-            Mockito.when(IgnoreUtils.ignoreOperation(any())).thenReturn(false);
+            Mockito.when(IgnoreUtils.excludeEntranceOperation(any())).thenReturn(false);
             Mockito.when(adapter.getRequestURI(any())).thenReturn(".png");
         };
         Runnable shouldSkip7 = () -> {

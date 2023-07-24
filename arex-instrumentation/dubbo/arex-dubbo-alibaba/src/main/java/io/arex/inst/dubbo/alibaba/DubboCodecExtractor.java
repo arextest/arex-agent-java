@@ -2,16 +2,16 @@ package io.arex.inst.dubbo.alibaba;
 
 import com.alibaba.dubbo.common.serialize.ObjectOutput;
 import com.alibaba.dubbo.remoting.Channel;
-import com.alibaba.dubbo.rpc.RpcResult;
+import com.alibaba.dubbo.rpc.*;
 import io.arex.agent.bootstrap.util.NumberUtil;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.model.ArexConstants;
+import io.arex.inst.runtime.log.LogManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * DubboCodecExtractor
@@ -60,6 +60,7 @@ public class DubboCodecExtractor {
             out.writeObject(result.getAttachments());
             return true;
         } catch (Throwable e) {
+            LOGGER.warn(LogManager.buildTitle("alibaba.dubbo.writeAttachments"), e);
         }
         return false;
     }

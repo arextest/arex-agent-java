@@ -49,11 +49,12 @@
         <module>arex-attacher</module>
         <module>arex-integration-tests</module>
         <module>arex-instrumentation-api</module>
+        <module>arex-third-party</module>
     </modules>
 
     <properties>
         <!-- Maven CI Friendly Versions https://maven.apache.org/maven-ci-friendly.html -->
-        <revision>0.3.4</revision>
+        <revision>0.3.7</revision>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
@@ -73,7 +74,8 @@
             **/test/**,
             **/*Test.java,
             **/target/**,
-            **/model/**
+            **/model/**,
+            **/thirdparty/**
         </sonar.exclusions>
         <sonar.test.exclusions>
             **/test/**,
@@ -84,9 +86,10 @@
             **/*Test.java,
             **/target/**,
             **/model/**,
-            **/serializer/**,
             **/context/**,
-            **/wrapper/**
+            **/wrapper/**,
+            **/thirdparty/**,
+            **/RedisCommandBuilderImpl.java
         </sonar.coverage.exclusions>
     </properties>
 
@@ -115,6 +118,11 @@
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>arex-instrumentation-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>arex-third-party</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

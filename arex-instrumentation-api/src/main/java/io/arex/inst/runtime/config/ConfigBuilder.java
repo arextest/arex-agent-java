@@ -8,7 +8,7 @@ public class ConfigBuilder {
     private final Map<String, String> properties;
     private boolean enableDebug = false;
     private final String serviceName;
-    private List<DynamicClassEntity> entities;
+    private List<DynamicClassEntity> dynamicClassList;
     private Set<String> excludeServiceOperations;
     private int dubboStreamReplayThreshold;
     private int recordRate;
@@ -27,8 +27,8 @@ public class ConfigBuilder {
         return this;
     }
 
-    public ConfigBuilder dynamicClassList(List<DynamicClassEntity> entities) {
-        this.entities = entities;
+    public ConfigBuilder dynamicClassList(List<DynamicClassEntity> dynamicClassList) {
+        this.dynamicClassList = dynamicClassList;
         return this;
     }
 
@@ -70,7 +70,7 @@ public class ConfigBuilder {
     }
 
     public void build() {
-        Config.update(enableDebug, serviceName, entities, Collections.unmodifiableMap(new HashMap<>(properties)),
+        Config.update(enableDebug, serviceName, dynamicClassList, Collections.unmodifiableMap(new HashMap<>(properties)),
             excludeServiceOperations, dubboStreamReplayThreshold, recordRate);
     }
 }

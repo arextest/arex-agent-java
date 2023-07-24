@@ -15,7 +15,7 @@ import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.model.DynamicClassEntity;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.util.IgnoreUtils;
-import io.arex.inst.runtime.util.LogUtil;
+import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.util.MockUtils;
 import io.arex.inst.runtime.util.TypeUtil;
 import java.lang.reflect.Array;
@@ -25,19 +25,16 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class DynamicClassExtractor {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(DynamicClassExtractor.class);
     private static final int RESULT_SIZE_MAX = Integer.parseInt(System.getProperty("arex.dynamic.result.size.limit", "1000"));
     private static final String SERIALIZER = "gson";
     private static final String PROTOCOL_BUFFERS = "protobuf";
     private static final String LISTENABLE_FUTURE = "com.google.common.util.concurrent.ListenableFuture";
     private static final String COMPLETABLE_FUTURE = "java.util.concurrent.CompletableFuture";
     private static final String PROTOBUF_PACKAGE_NAME = "com.google.protobuf";
-
+    private static final String NEED_RECORD_TITLE = "dynamic.needRecord";
+    private static final String NEED_REPLAY_TITLE = "dynamic.needReplay";
     private final String clazzName;
     private final String methodName;
     private final String methodKey;
@@ -49,11 +46,13 @@ public class DynamicClassExtractor {
     private int methodSignatureKeyHash;
     private final Class<?> actualType;
     private final Object[] args;
+    private final String dynamicSignature;
 
     public DynamicClassExtractor(Method method, Object[] args, String keyExpression, Class<?> actualType) {
         this.clazzName = method.getDeclaringClass().getName();
         this.methodName = method.getName();
         this.args = args;
+        this.dynamicSignature = getDynamicEntitySignature();
         this.methodKey = buildMethodKey(method, args, keyExpression);
         this.methodReturnType = TypeUtil.getName(method.getReturnType());
         this.actualType = actualType;
@@ -63,11 +62,17 @@ public class DynamicClassExtractor {
         this.clazzName = method.getDeclaringClass().getName();
         this.methodName = method.getName();
         this.args = args;
+        this.dynamicSignature = getDynamicEntitySignature();
         this.methodKey = buildMethodKey(method, args);
         this.methodReturnType = TypeUtil.getName(method.getReturnType());
         this.actualType = null;
     }
     public void recordResponse(Object response) {
+        if (IgnoreUtils.invalidOperation(dynamicSignature)) {
+            LogManager.warn(NEED_RECORD_TITLE,
+                    StringUtil.format("do not record invalid operation: %s, can not serialize args or response", dynamicSignature));
+            return;
+        }
         if (response instanceof Future<?>) {
             this.setFutureResponse((Future<?>) response);
             return;
@@ -80,14 +85,13 @@ public class DynamicClassExtractor {
                 mocker.getTargetResponse().setAttribute("Format", PROTOCOL_BUFFERS);
                 this.serializedResult = ProtoJsonSerializer.getInstance().serialize(this.result);
             } else {
-                this.serializedResult = Serializer.serialize(this.result, SERIALIZER);
+                this.serializedResult = serialize(this.result);
             }
             mocker.getTargetResponse().setBody(this.serializedResult);
             MockUtils.recordMocker(mocker);
             cacheMethodSignature();
         }
     }
-
 
     private boolean isProtobufObject(Object result) {
         if (result == null) {
@@ -107,8 +111,12 @@ public class DynamicClassExtractor {
         return PROTOBUF_PACKAGE_NAME.equals(clazz.getSuperclass().getPackage().getName());
     }
 
-
     public MockResult replay() {
+        if (IgnoreUtils.invalidOperation(dynamicSignature)) {
+            LogManager.warn(NEED_REPLAY_TITLE,
+                    StringUtil.format("do not replay invalid operation: %s, can not serialize args or response", dynamicSignature));
+            return MockResult.IGNORE_MOCK_RESULT;
+        }
         String key = buildCacheKey();
         Map<String, Object> cachedReplayResultMap = ContextManager.currentContext()
                 .getCachedReplayResultMap();
@@ -166,13 +174,11 @@ public class DynamicClassExtractor {
             return resultClazz + TypeUtil.HORIZONTAL_LINE + actualType.getName();
         }
 
-        if (Config.get() == null || Config.get().getDynamicEntityMap().isEmpty()) {
+        if (Config.get() == null || Config.get().getDynamicClassSignatureMap().isEmpty()) {
             return resultClazz;
         }
 
-        String signature = getDynamicEntitySignature();
-
-        DynamicClassEntity dynamicEntity = Config.get().getDynamicEntity(signature);
+        DynamicClassEntity dynamicEntity = Config.get().getDynamicEntity(dynamicSignature);
 
         if (dynamicEntity == null || StringUtil.isEmpty(dynamicEntity.getActualType())) {
             return resultClazz;
@@ -191,7 +197,7 @@ public class DynamicClassExtractor {
             return key;
         }
 
-        return Serializer.serialize(args, SERIALIZER);
+        return serialize(args);
     }
 
     String buildMethodKey(Method method, Object[] args) {
@@ -199,13 +205,13 @@ public class DynamicClassExtractor {
             return null;
         }
 
-        if (Config.get() == null || Config.get().getDynamicEntityMap().isEmpty()) {
-            return Serializer.serialize(args, SERIALIZER);
+        if (Config.get() == null || Config.get().getDynamicClassSignatureMap().isEmpty()) {
+            return serialize(args);
         }
-        String signature = getDynamicEntitySignature();
-        DynamicClassEntity dynamicEntity = Config.get().getDynamicEntity(signature);
+
+        DynamicClassEntity dynamicEntity = Config.get().getDynamicEntity(dynamicSignature);
         if (dynamicEntity == null || StringUtil.isEmpty(dynamicEntity.getAdditionalSignature())) {
-            return Serializer.serialize(args, SERIALIZER);
+            return serialize(args);
         }
 
         String keyExpression = ExpressionParseUtil.replaceToExpression(method, dynamicEntity.getAdditionalSignature());
@@ -252,7 +258,6 @@ public class DynamicClassExtractor {
     }
 
     private boolean needRecord() {
-        String logTitle = LogUtil.buildTitle("dynamic.needRecord");
         /*
          * Judge whether the hash value of the method signature has been recorded to avoid repeated recording.
          * The nonparametric method may return different results and needs to be recorded
@@ -263,8 +268,8 @@ public class DynamicClassExtractor {
             this.methodSignatureKeyHash = StringUtil.encodeAndHash(methodSignatureKey);
             if (context.getMethodSignatureHashList().contains(methodSignatureKeyHash)) {
                 if (Config.get().isEnableDebug()) {
-                    LOGGER.warn("{}do not record method, cuz exist same method signature:{}",
-                            logTitle, methodSignatureKey);
+                    LogManager.warn(NEED_RECORD_TITLE,
+                            StringUtil.format("do not record method, cuz exist same method signature: %s", methodSignatureKey));
                 }
                 return false;
             }
@@ -284,12 +289,13 @@ public class DynamicClassExtractor {
                 size = Array.getLength(result);
             }
             if (size > RESULT_SIZE_MAX) {
-                LOGGER.warn("{} do not record method, cuz result size:{} > max limit: {}, method info: {}",
-                    logTitle, size, RESULT_SIZE_MAX, methodSignatureKey);
+                LogManager.warn(NEED_RECORD_TITLE,
+                        StringUtil.format("do not record method, cuz result size:%s > max limit: %s, method info: %s",
+                                String.valueOf(size), String.valueOf(RESULT_SIZE_MAX), methodSignatureKey));
                 return false;
             }
         } catch (Throwable e) {
-            LOGGER.warn(logTitle, e);
+            LogManager.warn(NEED_RECORD_TITLE, e);
         }
         return true;
     }
@@ -298,7 +304,21 @@ public class DynamicClassExtractor {
         if (Objects.isNull(result)) {
             return String.format("%s_%s_%s_no_result", clazzName, methodName, methodKey);
         }
-        return String.format("%s_%s_%s_has_result_%s", clazzName, methodName, methodKey, result.getClass().getName());
+        return String.format("%s_%s_%s_has_result_%s", clazzName, methodName, methodKey, getResultKey());
+    }
+
+    private String getResultKey() {
+        String resultClassName = result.getClass().getName();
+        if (result instanceof Collection<?>) {
+            return resultClassName + ((Collection<?>) result).size();
+        }
+        if (result instanceof Map<?, ?>) {
+            return resultClassName + ((Map<?, ?>) result).size();
+        }
+        if (result.getClass().isArray()) {
+            return resultClassName + Array.getLength(result);
+        }
+        return resultClassName;
     }
 
     /**
@@ -320,5 +340,18 @@ public class DynamicClassExtractor {
 
     public String getSerializedResult() {
         return serializedResult;
+    }
+
+    private String serialize(Object object) {
+        if (IgnoreUtils.invalidOperation(dynamicSignature)) {
+            return null;
+        }
+        try {
+            return Serializer.serializeWithException(object, SERIALIZER);
+        } catch (Throwable ex) {
+            IgnoreUtils.addInvalidOperation(dynamicSignature);
+            LogManager.warn("serializeWithException", StringUtil.format("can not serialize object: %s, cause: %s", TypeUtil.errorSerializeToString(object), ex.toString()));
+            return null;
+        }
     }
 }

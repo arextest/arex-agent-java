@@ -11,9 +11,9 @@ import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.ArrayUtils;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.dubbo.common.AbstractAdapter;
+import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.serializer.Serializer;
-import io.arex.inst.runtime.util.LogUtil;
 import io.arex.inst.runtime.util.TypeUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -147,7 +147,7 @@ public class DubboAdapter extends AbstractAdapter {
                 }
             }
         } catch (Throwable e) {
-            LOGGER.warn(LogUtil.buildTitle("[arex] alibaba dubbo doExecute error"), e);
+            LOGGER.warn(LogManager.buildTitle("alibaba.Dubbo.doExecute"), e);
         } finally {
             super.doExecute(value, mocker);
         }

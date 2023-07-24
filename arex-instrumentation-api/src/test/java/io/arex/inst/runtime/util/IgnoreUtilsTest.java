@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EmptySource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -75,23 +74,40 @@ class IgnoreUtilsTest {
 
     @ParameterizedTest(name = "[{index}] {0}")
     @EmptySource
-    @ValueSource(strings = {"/api", "/api/v1/get/order", "/api/v2/_info", "/api/v3"})
+    @ValueSource(strings = {"/api", "/api/v1/get/order", "/api/v2/_info", "/api/v3", "/api/v4/query", "*"})
     void ignoreOperation(String targetName) {
-        ConfigBuilder.create("mock")
-                .excludeServiceOperations(Sets.newSet("/api", "/api/v1/*", "*_info"))
-                .build();
-        if (StringUtil.isEmpty(targetName) || "/api/v3".equals(targetName)) {
-            assertFalse(IgnoreUtils.ignoreOperation(targetName));
+        final ConfigBuilder configBuilder = ConfigBuilder.create("mock")
+                .excludeServiceOperations(Sets.newSet("/api", "/api/v1/*", "*_info", "*"));
+        // includeServiceOperations empty
+        configBuilder.build();
+        if (StringUtil.isEmpty(targetName) ||
+            "/api/v3".equals(targetName) ||
+            "/api/v4/query".equals(targetName)) {
+            assertFalse(IgnoreUtils.excludeEntranceOperation(targetName));
         } else {
-            assertTrue(IgnoreUtils.ignoreOperation(targetName));
+            assertTrue(IgnoreUtils.excludeEntranceOperation(targetName));
         }
+
+        // includeServiceOperations not empty
+        configBuilder.addProperty("includeServiceOperations", "/api,/api/v1/*,*_info,*/v4/*");
+        configBuilder.build();
+        if ("/api/v3".equals(targetName) || "*".equals(targetName) || StringUtil.isEmpty(targetName)) {
+            assertTrue(IgnoreUtils.excludeEntranceOperation(targetName));
+        } else {
+            assertFalse(IgnoreUtils.excludeEntranceOperation(targetName));
+        }
+
     }
 
     @Test
     void ignoreOperation_excludePathList() {
-        assertFalse(IgnoreUtils.ignoreOperation("api/v3"));
-
         ConfigBuilder.create("mock").build();
-        assertFalse(IgnoreUtils.ignoreOperation("api/v3"));
+        assertFalse(IgnoreUtils.excludeEntranceOperation("api/v3"));
+    }
+
+    @Test
+    void invalidOperation() {
+        IgnoreUtils.addInvalidOperation("testClass.testMethod");
+        assertTrue(IgnoreUtils.invalidOperation("testClass.testMethod"));
     }
 }

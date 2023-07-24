@@ -1,8 +1,12 @@
 package io.arex.inst.runtime.config;
 
+import io.arex.agent.bootstrap.util.ConcurrentHashSet;
+import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.context.RecordLimiter;
 import io.arex.inst.runtime.model.DynamicClassEntity;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,12 +16,11 @@ import java.util.function.Function;
 public class Config {
 
     private static Config INSTANCE = null;
-    private final Map<String, DynamicClassEntity> dynamicEntityMap = new HashMap<>();
 
-    static void update(boolean enableDebug, String serviceName, List<DynamicClassEntity> entities,
+    static void update(boolean enableDebug, String serviceName, List<DynamicClassEntity> dynamicClassList,
         Map<String, String> properties, Set<String> excludeServiceOperations,
         int dubboStreamReplayThreshold, int recordRate) {
-        INSTANCE = new Config(enableDebug, serviceName, entities, properties,
+        INSTANCE = new Config(enableDebug, serviceName, dynamicClassList, properties,
             excludeServiceOperations,
             dubboStreamReplayThreshold, recordRate);
     }
@@ -28,34 +31,57 @@ public class Config {
 
     private final boolean enableDebug;
     private final String serviceName;
-    private final List<DynamicClassEntity> entities;
-    private Map<String, String> properties;
-    private Set<String> excludeServiceOperations;
+    private final List<DynamicClassEntity> dynamicClassList;
+    private Map<String, DynamicClassEntity> dynamicClassSignatureMap;
+    private String[] dynamicAbstractClassList;
+    private final Map<String, String> properties;
+    private final Set<String> excludeServiceOperations;
     private final int dubboStreamReplayThreshold;
-    private int recordRate;
-    private String recordVersion;
+    private final int recordRate;
+    private final String recordVersion;
+    private final Set<String> includeServiceOperations;
 
-    Config(boolean enableDebug, String serviceName, List<DynamicClassEntity> entities,
+    Config(boolean enableDebug, String serviceName, List<DynamicClassEntity> dynamicClassList,
         Map<String, String> properties,
         Set<String> excludeServiceOperations, int dubboStreamReplayThreshold, int recordRate) {
         this.enableDebug = enableDebug;
         this.serviceName = serviceName;
-        this.entities = entities;
+        this.dynamicClassList = dynamicClassList;
         this.properties = properties;
-        this.excludeServiceOperations = excludeServiceOperations;
+        this.excludeServiceOperations = buildExcludeServiceOperations(excludeServiceOperations);
         this.dubboStreamReplayThreshold = dubboStreamReplayThreshold;
         this.recordRate = recordRate;
         this.recordVersion = properties.get("arex.agent.version");
-        buildDynamicEntityMap();
+        this.includeServiceOperations = StringUtil.splitToSet(properties.get("includeServiceOperations"), ',');
+        buildDynamicClassInfo();
     }
 
-    private void buildDynamicEntityMap() {
-        if (entities == null) {
+    private Set<String> buildExcludeServiceOperations(Set<String> excludeServiceOperations) {
+        if (excludeServiceOperations == null) {
+            return Collections.emptySet();
+        }
+        Set<String> excludeServiceOperationSet = new ConcurrentHashSet<>();
+        excludeServiceOperationSet.addAll(excludeServiceOperations);
+        return excludeServiceOperationSet;
+    }
+
+    private void buildDynamicClassInfo() {
+        if (dynamicClassList == null) {
+            this.dynamicClassSignatureMap = Collections.emptyMap();
+            this.dynamicAbstractClassList = StringUtil.EMPTY_STRING_ARRAY;
             return;
         }
-        for (DynamicClassEntity entity : entities) {
-            dynamicEntityMap.putIfAbsent(entity.getSignature(), entity);
+
+        Map<String, DynamicClassEntity> map = new HashMap<>(dynamicClassList.size());
+        ArrayList<String> list = new ArrayList<>(dynamicClassList.size());
+        for (DynamicClassEntity entity : dynamicClassList) {
+            map.putIfAbsent(entity.getSignature(), entity);
+            if (entity.isAbstractClass()) {
+                list.add(entity.removedAbstractClassPrefix());
+            }
         }
+        this.dynamicClassSignatureMap = map;
+        this.dynamicAbstractClassList = list.toArray(StringUtil.EMPTY_STRING_ARRAY);
     }
 
     public String getRecordVersion() {
@@ -63,19 +89,23 @@ public class Config {
     }
 
     public DynamicClassEntity getDynamicEntity(String methodSignature) {
-        return dynamicEntityMap.get(methodSignature);
+        return dynamicClassSignatureMap.get(methodSignature);
     }
 
-    public Map<String, DynamicClassEntity> getDynamicEntityMap() {
-        return dynamicEntityMap;
+    public Map<String, DynamicClassEntity> getDynamicClassSignatureMap() {
+        return dynamicClassSignatureMap;
+    }
+
+    public String[] getDynamicAbstractClassList() {
+        return dynamicAbstractClassList;
     }
 
     public boolean isEnableDebug() {
         return this.enableDebug;
     }
 
-    public List<DynamicClassEntity> dynamicClassEntities() {
-        return this.entities;
+    public List<DynamicClassEntity> getDynamicClassList() {
+        return this.dynamicClassList;
     }
 
     public Set<String> excludeServiceOperations() {
@@ -87,7 +117,7 @@ public class Config {
     }
 
     public String getString(String name) {
-        return getRawProperty(name, null);
+        return getString(name, null);
     }
 
     public String getString(String name, String defaultValue) {
@@ -139,8 +169,12 @@ public class Config {
         return recordRate;
     }
 
+    public Set<String> getIncludeServiceOperations() {
+        return includeServiceOperations;
+    }
+
     /**
-     * Conditions for determining invalid recording configuration(debug mode don't judge):<br/>
+     * Conditions for determining invalid recording configuration:<br/>
      * 1. rate <= 0 <br/>
      * 2. not in working time <br/>
      * 3. exceed rate limit <br/>
@@ -149,9 +183,6 @@ public class Config {
      * @return true: invalid, false: valid
      */
     public boolean invalidRecord(String path) {
-        if (isEnableDebug()) {
-            return false;
-        }
         if (getRecordRate() <= 0) {
             return true;
         }

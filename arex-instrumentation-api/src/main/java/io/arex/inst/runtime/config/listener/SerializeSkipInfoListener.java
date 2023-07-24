@@ -14,8 +14,10 @@ import io.arex.inst.runtime.serializer.Serializer;
 @AutoService(ConfigListener.class)
 public class SerializeSkipInfoListener implements ConfigListener {
     private String currentSkipInfo = StringUtil.EMPTY;
-
-    public SerializeSkipInfoListener() {
+    @Override
+    public boolean validate(Config config) {
+        return Serializer.getINSTANCE() != null && Serializer.getINSTANCE().getSerializer() != null &&
+            Serializer.getINSTANCE().getSerializers() != null;
     }
 
     @Override
@@ -25,11 +27,11 @@ public class SerializeSkipInfoListener implements ConfigListener {
             return;
         }
         currentSkipInfo = configSkipInfo;
-        reBuildSerializer();
+        rebuildSerializer();
 
     }
 
-    public void reBuildSerializer() {
+    public void rebuildSerializer() {
         Serializer instance = Serializer.getINSTANCE();
         if (instance == null || instance.getSerializer() == null) {
             return;
@@ -37,8 +39,7 @@ public class SerializeSkipInfoListener implements ConfigListener {
         StringSerializable refreshDefaultSerializer = instance.getSerializer().reCreateSerializer();
         Builder builder = Serializer.builder(refreshDefaultSerializer);
         for (Map.Entry<String, StringSerializable> entry : instance.getSerializers().entrySet()) {
-            StringSerializable refreshSerializer = entry.getValue().reCreateSerializer();
-            builder.addSerializer(entry.getKey(), refreshSerializer);
+            builder.addSerializer(entry.getKey(), entry.getValue().reCreateSerializer());
         }
         builder.build();
     }

@@ -6,13 +6,12 @@ import io.arex.agent.bootstrap.model.MockStrategyEnum;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.model.Mocker.Target;
 import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.service.DataService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 public final class MockUtils {
@@ -21,8 +20,6 @@ public final class MockUtils {
 
     private MockUtils() {
     }
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(MockUtils.class);
 
     public static ArexMocker createMessageProducer(String subject) {
         return create(MockCategoryType.MESSAGE_PRODUCER, subject);
@@ -75,7 +72,7 @@ public final class MockUtils {
         if (context != null) {
             mocker.setRecordId(context.getCaseId());
             mocker.setReplayId(context.getReplayId());
-            createTime += context.calculateSequence(context.getCaseId());
+            createTime += context.calculateSequence();
         }
         mocker.setCreationTime(createTime);
         mocker.setAppId(System.getProperty("arex.service.name"));
@@ -91,7 +88,7 @@ public final class MockUtils {
         String postJson = Serializer.serialize(requestMocker);
 
         if (Config.get().isEnableDebug()) {
-            LOGGER.info("{}\nrequest: {}", requestMocker.logBuilder(), postJson);
+            LogManager.info(requestMocker.recordLogTitle(), StringUtil.format("%s%nrequest: %s", requestMocker.logBuilder().toString(), postJson));
         }
 
         DataService.INSTANCE.save(postJson);
@@ -106,13 +103,19 @@ public final class MockUtils {
 
         String data = DataService.INSTANCE.query(postJson, mockStrategy);
 
-        if (Config.get().isEnableDebug()) {
-            LOGGER.info("{}\nrequest: {}\nresponse: {}", requestMocker.logBuilder(), postJson, data);
+        boolean isEnableDebug = Config.get().isEnableDebug();
+
+        if (isEnableDebug) {
+            LogManager.info(requestMocker.replayLogTitle(), StringUtil.format("%s%nrequest: %s%nresponse: %s", requestMocker.logBuilder().toString(), postJson, data));
         }
 
         if (StringUtil.isEmpty(data) || EMPTY_JSON.equals(data)) {
-            LOGGER.warn("[arex] response body is null. request: {}", postJson);
+            LogManager.warn(requestMocker.replayLogTitle(), StringUtil.format("response body is null. request: %s", postJson));
             return null;
+        }
+
+        if (!isEnableDebug) {
+            LogManager.info(requestMocker.replayLogTitle(), StringUtil.format("arex replay operation: %s", requestMocker.getOperationName()));
         }
 
         return Serializer.deserialize(data, ArexMocker.class);
@@ -138,18 +141,19 @@ public final class MockUtils {
             return false;
         }
         Target targetResponse = responseMocker.getTargetResponse();
+        String logTitle = "checkResponseMocker";
         if (targetResponse == null) {
-            LOGGER.warn("targetResponse is null");
+            LogManager.info(logTitle, "targetResponse is null");
             return false;
         }
         final String body = targetResponse.getBody();
         if (StringUtil.isEmpty(body)) {
-            LOGGER.warn("The body of targetResponse is empty");
+            LogManager.info(logTitle, "The body of targetResponse is empty");
             return false;
         }
         final String clazzType = targetResponse.getType();
         if (StringUtil.isEmpty(clazzType)) {
-            LOGGER.warn("The type of targetResponse is empty");
+            LogManager.info(logTitle,"The type of targetResponse is empty");
             return false;
         }
 

@@ -39,6 +39,7 @@ class DubboExtractorTest {
     @AfterAll
     static void tearDown() {
         adapter = null;
+        Mockito.clearAllCaches();
     }
     @Test
     void buildMocker() {
@@ -74,10 +75,10 @@ class DubboExtractorTest {
         };
         Runnable mocker5 = () -> {
             adapter.setReplayWarmUp(false);
-            Mockito.when(IgnoreUtils.ignoreOperation(any())).thenReturn(true);
+            Mockito.when(IgnoreUtils.excludeEntranceOperation(any())).thenReturn(true);
         };
         Runnable mocker6 = () -> {
-            Mockito.when(IgnoreUtils.ignoreOperation(any())).thenReturn(false);
+            Mockito.when(IgnoreUtils.excludeEntranceOperation(any())).thenReturn(false);
         };
         Predicate<Boolean> predicate1 = result -> result;
         Predicate<Boolean> predicate2 = result -> !result;

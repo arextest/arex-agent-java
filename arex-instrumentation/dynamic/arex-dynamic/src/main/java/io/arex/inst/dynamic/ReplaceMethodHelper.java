@@ -8,7 +8,7 @@ import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.inst.runtime.model.DynamicClassEntity;
-import io.arex.inst.runtime.util.LogUtil;
+import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.util.MockUtils;
 import java.util.List;
 import java.util.Random;
@@ -35,6 +35,12 @@ public class ReplaceMethodHelper {
         return mocker;
     }
 
+    private static boolean replayResultIsNull(Mocker replayMocker) {
+        return replayMocker == null ||
+                replayMocker.getTargetResponse() == null ||
+                StringUtil.isEmpty(replayMocker.getTargetResponse().getBody());
+    }
+
     // region replace method
     public static long currentTimeMillis() {
         if (ContextManager.needReplay()) {
@@ -48,12 +54,15 @@ public class ReplaceMethodHelper {
     }
 
     public static UUID uuid() {
+        UUID realUuid = UUID.randomUUID();
         if (ContextManager.needReplay()) {
             Mocker mocker = createMocker();
             Mocker replayMocker = MockUtils.replayMocker(mocker);
+            if (replayResultIsNull(replayMocker)) {
+                return realUuid;
+            }
             return UUID.fromString(replayMocker.getTargetResponse().getBody());
         }
-        UUID realUuid = UUID.randomUUID();
         try {
             if (ContextManager.needRecord()) {
                 Mocker mocker = createMocker();
@@ -62,18 +71,21 @@ public class ReplaceMethodHelper {
                 MockUtils.recordMocker(mocker);
             }
         } catch (Throwable ex) {
-            LogUtil.warn("replaceUuidRecord", ex);
+            LogManager.warn("replaceUuidRecord", ex);
         }
         return realUuid;
     }
 
     public static int nextInt(Object random, int bound) {
+        int realNextInt = ((Random)random).nextInt(bound);
         if (ContextManager.needReplay()) {
             Mocker mocker = createNextIntMocker(bound);
             Mocker replayMocker = MockUtils.replayMocker(mocker);
+            if (replayResultIsNull(replayMocker)) {
+                return realNextInt;
+            }
             return Integer.parseInt(replayMocker.getTargetResponse().getBody());
         }
-        int realNextInt = ((Random)random).nextInt(bound);
         try {
             if (ContextManager.needRecord()) {
                 Mocker mocker = createNextIntMocker(bound);
@@ -82,7 +94,7 @@ public class ReplaceMethodHelper {
                 MockUtils.recordMocker(mocker);
             }
         } catch (Throwable ex) {
-            LogUtil.warn("replaceNextIntRecord", ex);
+            LogManager.warn("replaceNextIntRecord", ex);
         }
         return realNextInt;
     }

@@ -16,16 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 public class NumberTypeAdaptor extends TypeAdapter<Object> {
-    public static final TypeAdapterFactory FACTORY = new TypeAdapterFactory() {
-        @SuppressWarnings("unchecked")
-        @Override
-        public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> type) {
-            if (type.getRawType() == Object.class) {
-                return (TypeAdapter<T>) new NumberTypeAdaptor(gson);
-            }
-            return null;
-        }
-    };
+    public static final TypeAdapterFactory FACTORY = new GsonTypeAdaptFactory();
 
     private final Gson gson;
 
@@ -94,5 +85,16 @@ public class NumberTypeAdaptor extends TypeAdapter<Object> {
         }
 
         typeAdapter.write(out, value);
+    }
+
+    static class GsonTypeAdaptFactory implements TypeAdapterFactory {
+        @SuppressWarnings("unchecked")
+        @Override
+        public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> type) {
+            if (type.getRawType() == Object.class) {
+                return (TypeAdapter<T>) new NumberTypeAdaptor(gson);
+            }
+            return null;
+        }
     }
 }

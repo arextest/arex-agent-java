@@ -2,6 +2,7 @@ package io.arex.inst.lettuce.v6;
 
 import io.arex.agent.bootstrap.ctx.TraceTransmitter;
 import io.arex.agent.bootstrap.model.MockResult;
+import io.arex.inst.redis.common.RedisConnectionManager;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.redis.common.RedisExtractor;
 import io.arex.inst.redis.common.RedisKeyUtil;
@@ -594,7 +595,7 @@ public class RedisAsyncCommandsImplWrapper<K, V> extends RedisAsyncCommandsImpl<
 
     private <T> AsyncCommand<K, V, T> dispatch(RedisCommand<K, V, T> cmd, String key, String field) {
         if (redisUri == null) {
-            redisUri = LettuceHelper.getRedisUri(this.getStatefulConnection().hashCode());
+            redisUri = RedisConnectionManager.getRedisUri(this.getStatefulConnection().hashCode());
         }
         if (ContextManager.needReplay()) {
             AsyncCommand<K, V, T> asyncCommand = new AsyncCommand<>(cmd);

@@ -2,6 +2,7 @@ package io.arex.inst.lettuce.v6;
 
 import io.arex.inst.extension.MethodInstrumentation;
 import io.arex.inst.extension.TypeInstrumentation;
+import io.arex.inst.redis.common.RedisConnectionManager;
 import io.lettuce.core.RedisURI;
 import io.lettuce.core.StatefulRedisConnectionImpl;
 import net.bytebuddy.asm.Advice;
@@ -28,9 +29,8 @@ public class RedisClientInstrumentation extends TypeInstrumentation {
     public List<MethodInstrumentation> methodAdvices() {
         ElementMatcher<MethodDescription> matcher = isProtected().and(named("newStatefulRedisConnection"));
 
-        String adviceClassName = this.getClass().getName() + "$NewStatefulRedisConnectionAdvice";
-
-        return Collections.singletonList(new MethodInstrumentation(matcher, adviceClassName));
+        return Collections.singletonList(
+            new MethodInstrumentation(matcher, NewStatefulRedisConnectionAdvice.class.getName()));
     }
 
 
@@ -39,7 +39,7 @@ public class RedisClientInstrumentation extends TypeInstrumentation {
         public static <K, V> void onExit(
             @Advice.Return(readOnly = false) StatefulRedisConnectionImpl<K, V> connection,
             @Advice.FieldValue("redisURI") RedisURI redisURI) {
-            LettuceHelper.putToUriMap(connection.hashCode(), redisURI);
+            RedisConnectionManager.add(connection.hashCode(), redisURI.toString());
         }
     }
 }

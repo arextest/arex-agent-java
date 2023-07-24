@@ -2,11 +2,14 @@ package io.arex.agent.bootstrap.util;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 class StringUtilTest {
     @Test
@@ -118,6 +121,9 @@ class StringUtilTest {
         String[] actualResult = StringUtil.splitByWholeSeparator(null, ",");
         assertArrayEquals(new String[0], actualResult);
 
+        actualResult = StringUtil.splitByWholeSeparator("", ",");
+        assertArrayEquals(new String[0], actualResult);
+
         String val = "x,,y,z,";
         actualResult = StringUtil.splitByWholeSeparator(val, ",,");
         assertArrayEquals(new String[] {"x", "y,z,"}, actualResult);
@@ -156,8 +162,18 @@ class StringUtilTest {
         assertTrue(actualResult);
     }
 
-    @Test
-    void regionMatches() {
+    @ParameterizedTest
+    @CsvSource({
+            "false, 1, a, 1, false",
+            "true,  1, a, 1, false",
+            "true,  1, d, 1, false",
+            "true,  3, d, 1, false",
+            "true,  1, d, -1, false"
+    })
+    void regionMatches(boolean ignoreCase, int thisStart, String substring, int length, boolean expect) {
+        StringBuilder source = new StringBuilder("abc");
+        boolean result = StringUtil.regionMatches(source, ignoreCase, thisStart, substring, 0, length);
+        assertEquals(expect, result);
     }
 
     @Test
@@ -172,5 +188,96 @@ class StringUtilTest {
         String val = "x,,y,z,";
         actualResult = StringUtil.splitByFirstSeparator(val, ',');
         assertArrayEquals(new String[] {"x", ",y,z,"}, actualResult);
+    }
+
+    @Test
+    void strip() {
+        assertEquals("", StringUtil.strip(""));
+        assertEquals("mock", StringUtil.strip(" mock "));
+    }
+
+    @ParameterizedTest
+    @CsvSource(value ={
+            "null, null, null",
+            "' mock', null, mock",
+            "'mock', '', mock",
+            "mock, mo, ck",
+
+    }, nullValues={"null"})
+    void stripStart(String source, String strip, String expect) {
+        assertEquals(expect, StringUtil.stripStart(source, strip));
+    }
+
+    @ParameterizedTest
+    @CsvSource(value ={
+            "null, null, null",
+            "'mock ', null, mock",
+            "'mock', '', mock",
+            "mock, ck, mo",
+
+    }, nullValues={"null"})
+    void stripEnd(String source, String strip, String expect) {
+        assertEquals(expect, StringUtil.stripEnd(source, strip));
+    }
+
+    @ParameterizedTest
+    @CsvSource(value ={
+            "null, null, true",
+            "mock, null, false",
+            "mock, moc, false",
+            "mock, mock, true"
+    }, nullValues={"null"})
+    void equals(String source, String target, boolean expect) {
+        assertEquals(expect, StringUtil.equals(source, target));
+    }
+
+    @Test
+    void testFormat() {
+        String format = "%s %nrequest: %s, %nresponse: %s";
+        String actualResult = StringUtil.format(format, "acasdasdada", "badadadadas", "ccccccc");
+        String expectResult = "acasdasdada \nrequest: badadadadas, \nresponse: ccccccc";
+        assertEquals(expectResult, actualResult);
+
+        // test args not equal number of %s
+        actualResult = StringUtil.format(format, "badadadadas", "ccccccc");
+        Assertions.assertEquals(StringUtil.EMPTY, actualResult);
+
+        // null format
+        actualResult = StringUtil.format(null, "badadadadas", "ccccccc");
+        Assertions.assertEquals(StringUtil.EMPTY, actualResult);
+
+        // null args
+        actualResult = StringUtil.format(format, null);
+        Assertions.assertEquals(StringUtil.EMPTY, actualResult);
+
+        String format2 = "% %nrequest: %s, %nresponse: %s";
+        actualResult = StringUtil.format(format2, "badadadadas", "ccccccc");
+        Assertions.assertEquals("% \nrequest: badadadadas, \nresponse: ccccccc", actualResult);
+
+        format2 = "%s request";
+        actualResult = StringUtil.format(format2, "badadadadas");
+        Assertions.assertEquals("badadadadas request", actualResult);
+
+        format2 = "% %trequest: %s, %dresponse: %s";
+        actualResult = StringUtil.format(format2, "badadadadas", "ccccccc");
+        Assertions.assertEquals("% %trequest: badadadadas, %dresponse: ccccccc", actualResult);
+    }
+
+    @Test
+    void testSplitToSet() {
+        // null string
+        Set<String> nullSet = StringUtil.splitToSet(null, ',');
+        assertEquals(0, nullSet.size());
+
+        // empty string
+        Set<String> emptySet = StringUtil.splitToSet("", ',');
+        assertEquals(0, emptySet.size());
+
+        String s = "aaa,bb,c";
+        Set<String> set = StringUtil.splitToSet(s, ',');
+        assertEquals(3, set.size());
+        assertTrue(set.contains("aaa"));
+        assertTrue(set.contains("bb"));
+        assertTrue(set.contains("c"));
     }
 }

@@ -1,6 +1,9 @@
 package io.arex.agent.bootstrap.util;
 
 public class NumberUtil {
+    private NumberUtil() {
+    }
+
     public static int toInt(String str) {
         return toInt(str, 0);
     }

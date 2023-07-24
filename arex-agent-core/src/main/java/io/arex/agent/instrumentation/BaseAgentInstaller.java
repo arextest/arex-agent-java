@@ -6,18 +6,19 @@ import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.agent.bootstrap.util.AdviceClassesCollector;
 import io.arex.foundation.config.ConfigManager;
 import io.arex.foundation.healthy.HealthManager;
+import io.arex.foundation.serializer.GsonSerializer;
 import io.arex.foundation.serializer.JacksonSerializer;
 import io.arex.foundation.services.ConfigService;
 import io.arex.foundation.services.DataCollectorService;
 import io.arex.foundation.util.NetUtils;
-import io.arex.foundation.util.SPIUtil;
+import io.arex.foundation.util.NumberTypeAdaptor;
 import io.arex.foundation.util.async.ThreadFactoryImpl;
 import io.arex.inst.runtime.context.RecordLimiter;
 import io.arex.inst.runtime.serializer.Serializer;
-import io.arex.inst.runtime.serializer.StringSerializable;
 import io.arex.inst.runtime.service.DataCollector;
 import io.arex.inst.runtime.service.DataService;
 
+import io.arex.agent.bootstrap.util.ServiceLoader;
 import java.util.List;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -35,9 +36,7 @@ public abstract class BaseAgentInstaller implements AgentInstaller {
     protected final Instrumentation instrumentation;
     protected final File agentFile;
     protected final String agentArgs;
-    private ResettableClassFileTransformer transformer;
     private final AtomicBoolean initDependentComponents = new AtomicBoolean(false);
-    private final AtomicBoolean onlyTransformOnce = new AtomicBoolean(false);
     private ScheduledThreadPoolExecutor scheduler = null;
 
     public BaseAgentInstaller(Instrumentation inst, File agentFile, String agentArgs) {
@@ -52,24 +51,21 @@ public abstract class BaseAgentInstaller implements AgentInstaller {
         try {
             Thread.currentThread().setContextClassLoader(getClassLoader());
             // Timed load config for agent delay start and dynamic retransform
-            int delaySeconds = ConfigService.INSTANCE.loadAgentConfig(agentArgs);
-            if (delaySeconds > 0) {
+            long delayMinutes = ConfigService.INSTANCE.loadAgentConfig(agentArgs);
+            if (delayMinutes > 0) {
                 if (scheduler == null) {
                     scheduler = new ScheduledThreadPoolExecutor(1, new ThreadFactoryImpl("arex-install-thread"));
                 }
-                scheduler.schedule(this::install, delaySeconds, TimeUnit.SECONDS);
+                scheduler.schedule(this::install, delayMinutes, TimeUnit.MINUTES);
             }
             if (!ConfigManager.INSTANCE.valid()) {
-                if (!onlyTransformOnce.get()) {
+                if (!ConfigManager.FIRST_TRANSFORM.get()) {
                     LOGGER.warn("[AREX] Agent install will not install due to invalid config.");
                 }
                 return;
             }
             initDependentComponents();
-            if (onlyTransformOnce.compareAndSet(false, true)) {
-                transformer = transform();
-                LOGGER.info("[AREX] Agent install success.");
-            }
+            transform();
         } finally {
             Thread.currentThread().setContextClassLoader(savedContextClassLoader);
         }
@@ -86,26 +82,25 @@ public abstract class BaseAgentInstaller implements AgentInstaller {
     }
 
     /**
-     * Load the ForkJoinTask inner class in advance for transform
-     * ex: java.util.concurrent.ForkJoinTask$AdaptedCallable
+     * Load the ForkJoinTask inner class in advance for transform ex: java.util.concurrent.ForkJoinTask$AdaptedCallable
      */
     private void loadForkJoinTask() {
         ForkJoinTask.class.getDeclaredClasses();
     }
 
+    /**
+     * add class to user loader search. ex: ParallelWebappClassLoader
+     */
     private void initSerializer() {
         AdviceClassesCollector.INSTANCE.addClassToLoaderSearch(JacksonSerializer.class);
-        Serializer.Builder builder = Serializer.builder(JacksonSerializer.INSTANCE);
-        List<StringSerializable> serializableList = SPIUtil.load(StringSerializable.class, getClassLoader());
-        for (StringSerializable serializable : serializableList) {
-            builder.addSerializer(serializable.name(), serializable);
-        }
-        builder.build();
+        AdviceClassesCollector.INSTANCE.addClassToLoaderSearch(GsonSerializer.class);
+        AdviceClassesCollector.INSTANCE.addClassToLoaderSearch(NumberTypeAdaptor.class);
+        Serializer.builder(JacksonSerializer.INSTANCE).build();
     }
     private void initDataCollector() {
         DataCollector collector = DataCollectorService.INSTANCE;
         if (ConfigManager.INSTANCE.isLocalStorage()) {
-            List<DataCollector> extendCollectorList = SPIUtil.load(DataCollector.class, getClassLoader());
+            List<DataCollector> extendCollectorList = ServiceLoader.load(DataCollector.class, getClassLoader());
             if (CollectionUtil.isNotEmpty(extendCollectorList)) {
                 collector = extendCollectorList.get(0);
             }
