@@ -139,6 +139,11 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
+            <artifactId>arex-dubbo-lexin</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
             <artifactId>arex-dubbo-common</artifactId>
             <version>${project.version}</version>
         </dependency>

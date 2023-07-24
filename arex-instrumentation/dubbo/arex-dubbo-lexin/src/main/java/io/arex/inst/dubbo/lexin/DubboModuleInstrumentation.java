@@ -1,4 +1,4 @@
-package io.arex.inst.dubbo.alibaba;
+package io.arex.inst.dubbo.lexin;
 
 import com.google.auto.service.AutoService;
 import io.arex.inst.extension.ModuleDescription;
@@ -16,8 +16,8 @@ import static java.util.Arrays.asList;
 public class DubboModuleInstrumentation extends ModuleInstrumentation {
 
     public DubboModuleInstrumentation() {
-        super("dubbo-alibaba", ModuleDescription.builder()
-                .name("Dubbo").supportFrom(2, 0).supportTo(2, 6).build());
+        super("dubbo-lexin", ModuleDescription.builder()
+                .name("dubbo").supportFrom(2, 17).supportTo(2, 99).build());
     }
 
     @Override

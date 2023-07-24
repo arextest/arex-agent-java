@@ -40,6 +40,7 @@
         <module>dubbo/arex-dubbo-apache-v2</module>
         <module>dubbo/arex-dubbo-apache-v3</module>
         <module>dubbo/arex-dubbo-alibaba</module>
+        <module>dubbo/arex-dubbo-lexin</module>
         <module>dubbo/arex-dubbo-common</module>
         <module>authentication/arex-jwt</module>
         <module>authentication/arex-spring-security</module>

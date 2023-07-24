@@ -1,4 +1,4 @@
-package io.arex.inst.dubbo.alibaba;
+package io.arex.inst.dubbo.lexin;
 
 import com.alibaba.dubbo.common.URL;
 import com.alibaba.dubbo.remoting.exchange.ResponseCallback;
@@ -13,10 +13,13 @@ import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.dubbo.common.AbstractAdapter;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.serializer.Serializer;
+import io.arex.inst.runtime.util.LogUtil;
 import io.arex.inst.runtime.util.TypeUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.Future;
 import java.util.function.Function;
 
@@ -61,6 +64,7 @@ public class DubboAdapter extends AbstractAdapter {
         Function<Object, String> parser = obj -> ((Class<?>)obj).getName();
         return ArrayUtils.toString(invocation.getParameterTypes(), parser);
     }
+
     /**
      * arex record request type, used when the dubbo generic invoke serialize cannot be resolved
      */
@@ -78,6 +82,22 @@ public class DubboAdapter extends AbstractAdapter {
         return generic;
     }
     public String getCaseId() {
+        // for lexin dubbox tracecontext
+        String context = invocation.getAttachment("tracecontext");
+        if (StringUtil.isNotEmpty(context)) {
+            Map<String, Object> tracecontextMap = Serializer.deserialize(context, Map.class);
+            if (tracecontextMap != null) {
+                Object logObj = tracecontextMap.get("log_params");
+                if (logObj instanceof LinkedHashMap) {
+                    LinkedHashMap<String, String> logMap = (LinkedHashMap) logObj;
+                    String userObj = logMap.get("userDefineTag");
+                    if (userObj != null) {
+                        Map<String, String> userMap = Serializer.deserialize(userObj, Map.class);
+                        return userMap.get(ArexConstants.RECORD_ID);
+                    }
+                }
+            }
+        }
         return invocation.getAttachment(ArexConstants.RECORD_ID);
     }
     public String getExcludeMockTemplate() {
@@ -127,6 +147,7 @@ public class DubboAdapter extends AbstractAdapter {
                 }
             }
         } catch (Throwable e) {
+            LOGGER.warn(LogUtil.buildTitle("[arex] alibaba dubbo doExecute error"), e);
         } finally {
             super.doExecute(value, mocker);
         }

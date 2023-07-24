@@ -33,7 +33,7 @@ public class ResourceManager {
     /**
      * Register a package that allows instrumentation
      *
-     * <p>package name in manifest file, with key: Bundle-Name or Automatic-Module-Name
+     * <p>package name in manifest file, with key: Bundle-Name / Automatic-Module-Name / Implementation-Title
      * <p>package version in manifest file, with key: Bundle-Version or Implementation-Version
      */
     private static void classLoaderInitResources(ClassLoader classLoader) {
@@ -43,15 +43,6 @@ public class ResourceManager {
                 URL url = files.nextElement();
                 try (InputStream stream = url.openStream()) {
                     Manifest mf = new Manifest(stream);
-
-                    mf.getMainAttributes().forEach((k, v) -> {
-                        if (v != null) {
-                            if (v.toString().contains("dubbo")) {
-                                System.out.println("MANIFEST:" + k + " = " + v);
-                            }
-                        }
-                    });
-
                     String packageName = getManifestAttr(mf, "Bundle-Name", "Automatic-Module-Name", "Implementation-Title");
                     if (StringUtil.isEmpty(packageName)) {
                         continue;

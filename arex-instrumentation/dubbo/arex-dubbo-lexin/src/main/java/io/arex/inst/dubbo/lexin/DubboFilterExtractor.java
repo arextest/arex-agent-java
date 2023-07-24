@@ -1,4 +1,4 @@
-package io.arex.inst.dubbo.alibaba;
+package io.arex.inst.dubbo.lexin;
 
 import com.alibaba.dubbo.rpc.Invocation;
 import com.alibaba.dubbo.rpc.Result;
@@ -10,8 +10,6 @@ import io.arex.inst.runtime.model.ArexConstants;
  * DubboFilterExtractor
  */
 public class DubboFilterExtractor {
-    private DubboFilterExtractor() {}
-
     /**
      * after filter chain invoke reset result attachment for replay
      * the set result is used in DubboCodec#encodeResponseData (serialize)

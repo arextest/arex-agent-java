@@ -1,4 +1,4 @@
-package io.arex.inst.dubbo.alibaba;
+package io.arex.inst.dubbo.lexin;
 
 import com.alibaba.dubbo.common.serialize.ObjectOutput;
 import com.alibaba.dubbo.remoting.Channel;
