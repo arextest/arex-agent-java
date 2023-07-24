@@ -1,4 +1,4 @@
-package io.arex.foundation.config;
+package io.arex.foundation.model;
 
 import java.util.List;
 import java.util.Map;

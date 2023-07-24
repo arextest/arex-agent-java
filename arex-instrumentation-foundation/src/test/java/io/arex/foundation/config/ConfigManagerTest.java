@@ -1,6 +1,7 @@
 package io.arex.foundation.config;
 
-import io.arex.foundation.config.ConfigQueryResponse.DynamicClassConfiguration;
+import io.arex.foundation.model.ConfigQueryResponse;
+import io.arex.foundation.model.ConfigQueryResponse.DynamicClassConfiguration;
 import io.arex.inst.runtime.model.DynamicClassEntity;
 import io.arex.inst.runtime.model.DynamicClassStatusEnum;
 import java.time.LocalDate;
@@ -25,6 +26,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+import static io.arex.foundation.config.ConfigConstants.ENABLE_REPORT_STATUS;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
@@ -46,11 +48,13 @@ class ConfigManagerTest {
         System.setProperty("arex.service.name", "test-your-service");
         System.setProperty("arex.storage.service.host", "test-storage-service.host ");
         System.setProperty("arex.disable.replay", "true");
+        System.setProperty(ENABLE_REPORT_STATUS, "true");
         configManager.init();
 
         assertEquals("test-your-service", configManager.getServiceName());
         assertEquals("test-storage-service.host", configManager.getStorageServiceHost());
         assertTrue(configManager.disableReplay());
+        assertTrue(configManager.isEnableReportStatus());
     }
 
     @Test
