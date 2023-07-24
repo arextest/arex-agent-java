@@ -1,4 +1,4 @@
-package io.arex.foundation.util.async;
+package io.arex.foundation.util.httpclient.async;
 
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -34,10 +34,6 @@ public class ThreadFactoryImpl implements ThreadFactory {
         Thread thread = new Thread(this.group, runnable, name);
         thread.setDaemon(this.daemon);
         return thread;
-    }
-
-    public ThreadGroup getThreadGroup() {
-        return group;
     }
 }
 

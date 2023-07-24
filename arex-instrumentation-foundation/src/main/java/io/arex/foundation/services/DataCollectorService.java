@@ -5,11 +5,14 @@ import io.arex.foundation.config.ConfigManager;
 import io.arex.foundation.healthy.HealthManager;
 import io.arex.foundation.internal.DataEntity;
 import io.arex.foundation.internal.MockEntityBuffer;
-import io.arex.foundation.util.AsyncHttpClientUtil;
-import io.arex.foundation.util.async.ThreadFactoryImpl;
+import io.arex.foundation.util.httpclient.AsyncHttpClientUtil;
+import io.arex.foundation.model.HttpClientResponse;
+import io.arex.foundation.util.httpclient.async.ThreadFactoryImpl;
 import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.service.DataCollector;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -90,7 +93,7 @@ public class DataCollectorService implements DataCollector {
                     doSleep(100);
                 }
             } catch (Throwable throwable) {
-                LogManager.warn("saveDataLoop","send mock data unhandled error");
+                LogManager.warn("saveDataLoop", "send mock data unhandled error");
             }
         }
     }
@@ -103,15 +106,27 @@ public class DataCollectorService implements DataCollector {
         }
     }
 
+    private static final String MOCK_STRATEGY = "X-AREX-Mock-Strategy-Code";
+
     void saveData(DataEntity entity) {
-        AsyncHttpClientUtil.executeAsync(saveApiUrl, entity.getPostData()).whenComplete(saveMockDataConsumer(entity));
+        Map<String, String> requestHeaders = new HashMap<>();
+        requestHeaders.put(MOCK_STRATEGY, MockStrategyEnum.FIND_LAST.getCode());
+        AsyncHttpClientUtil.postAsyncWithZstdJson(saveApiUrl, entity.getPostData(), requestHeaders)
+            .whenComplete(saveMockDataConsumer(entity));
     }
 
     /**
      * Query replay data
      */
     String queryReplayData(String postData, MockStrategyEnum mockStrategy) {
-        return AsyncHttpClientUtil.zstdJsonPost(queryApiUrl, postData, mockStrategy);
+        Map<String, String> requestHeaders = new HashMap<>();
+        requestHeaders.put(MOCK_STRATEGY, mockStrategy.getCode());
+        HttpClientResponse clientResponse = AsyncHttpClientUtil.postAsyncWithZstdJson(queryApiUrl, postData,
+            requestHeaders).join();
+        if (clientResponse == null) {
+            return null;
+        }
+        return clientResponse.getBody();
     }
 
     private <T> BiConsumer<T, Throwable> saveMockDataConsumer(DataEntity entity) {

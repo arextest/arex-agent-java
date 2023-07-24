@@ -2,9 +2,9 @@ package io.arex.foundation.config;
 
 import com.google.common.annotations.VisibleForTesting;
 import io.arex.agent.bootstrap.util.StringUtil;
-import io.arex.foundation.config.ConfigQueryResponse.DynamicClassConfiguration;
-import io.arex.foundation.config.ConfigQueryResponse.ResponseBody;
-import io.arex.foundation.config.ConfigQueryResponse.ServiceCollectConfig;
+import io.arex.foundation.model.ConfigQueryResponse.DynamicClassConfiguration;
+import io.arex.foundation.model.ConfigQueryResponse.ResponseBody;
+import io.arex.foundation.model.ConfigQueryResponse.ServiceCollectConfig;
 import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.foundation.util.NetUtils;
 import io.arex.inst.runtime.config.Config;
@@ -38,6 +38,7 @@ public class ConfigManager {
     public static final AtomicBoolean FIRST_TRANSFORM = new AtomicBoolean(false);
     private static final int DEFAULT_RECORDING_RATE = 1;
     private boolean enableDebug;
+    private boolean enableReportStatus;
     private String agentVersion;
     private String serviceName;
     private String storageServiceHost;
@@ -85,6 +86,19 @@ public class ConfigManager {
 
         this.enableDebug = Boolean.parseBoolean(enableDebug);
         System.setProperty(ENABLE_DEBUG, enableDebug);
+    }
+
+    public boolean isEnableReportStatus() {
+        return enableReportStatus;
+    }
+
+    public void setEnableReportStatus(String enableReportStatus) {
+        if (StringUtil.isEmpty(enableReportStatus)) {
+            return;
+        }
+
+        this.enableReportStatus = Boolean.parseBoolean(enableReportStatus);
+        System.setProperty(ENABLE_REPORT_STATUS, enableReportStatus);
     }
 
     public String getServiceName() {
@@ -201,6 +215,7 @@ public class ConfigManager {
     void init() {
         agentVersion = System.getProperty(AGENT_VERSION);
         setEnableDebug(System.getProperty(ENABLE_DEBUG));
+        setEnableReportStatus(System.getProperty(ENABLE_REPORT_STATUS, Boolean.TRUE.toString()));
         setServiceName(StringUtil.strip(System.getProperty(SERVICE_NAME)));
         setStorageServiceHost(StringUtil.strip(System.getProperty(STORAGE_SERVICE_HOST)));
         configPath = StringUtil.strip(System.getProperty(CONFIG_PATH));
@@ -231,6 +246,7 @@ public class ConfigManager {
         }
 
         setEnableDebug(configMap.get(ENABLE_DEBUG));
+        setEnableReportStatus(System.getProperty(ENABLE_REPORT_STATUS));
         setServiceName(configMap.get(SERVICE_NAME));
         setStorageServiceHost(configMap.get(STORAGE_SERVICE_HOST));
         setDynamicResultSizeLimit(configMap.get(DYNAMIC_RESULT_SIZE_LIMIT));

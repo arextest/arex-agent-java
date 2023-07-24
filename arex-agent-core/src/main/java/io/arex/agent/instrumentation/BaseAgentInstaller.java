@@ -10,9 +10,9 @@ import io.arex.foundation.serializer.GsonSerializer;
 import io.arex.foundation.serializer.JacksonSerializer;
 import io.arex.foundation.services.ConfigService;
 import io.arex.foundation.services.DataCollectorService;
+import io.arex.foundation.services.TimerService;
 import io.arex.foundation.util.NetUtils;
 import io.arex.foundation.util.NumberTypeAdaptor;
-import io.arex.foundation.util.async.ThreadFactoryImpl;
 import io.arex.inst.runtime.context.RecordLimiter;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.service.DataCollector;
@@ -21,7 +21,7 @@ import io.arex.inst.runtime.service.DataService;
 import io.arex.agent.bootstrap.util.ServiceLoader;
 import java.util.List;
 import java.util.concurrent.ForkJoinTask;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import net.bytebuddy.agent.builder.ResettableClassFileTransformer;
@@ -37,7 +37,7 @@ public abstract class BaseAgentInstaller implements AgentInstaller {
     protected final File agentFile;
     protected final String agentArgs;
     private final AtomicBoolean initDependentComponents = new AtomicBoolean(false);
-    private ScheduledThreadPoolExecutor scheduler = null;
+    private ScheduledFuture<?> reportStatusTask;
 
     public BaseAgentInstaller(Instrumentation inst, File agentFile, String agentArgs) {
         this.instrumentation = inst;
@@ -52,15 +52,14 @@ public abstract class BaseAgentInstaller implements AgentInstaller {
             Thread.currentThread().setContextClassLoader(getClassLoader());
             // Timed load config for agent delay start and dynamic retransform
             long delayMinutes = ConfigService.INSTANCE.loadAgentConfig(agentArgs);
+            ConfigService.INSTANCE.reportStatus();
             if (delayMinutes > 0) {
-                if (scheduler == null) {
-                    scheduler = new ScheduledThreadPoolExecutor(1, new ThreadFactoryImpl("arex-install-thread"));
-                }
-                scheduler.schedule(this::install, delayMinutes, TimeUnit.MINUTES);
+                TimerService.schedule(this::install, delayMinutes, TimeUnit.MINUTES);
+                timedReportStatus();
             }
             if (!ConfigManager.INSTANCE.valid()) {
                 if (!ConfigManager.FIRST_TRANSFORM.get()) {
-                    LOGGER.warn("[AREX] Agent install will not install due to invalid config.");
+                    LOGGER.warn("[AREX] Agent would not install due to invalid config.");
                 }
                 return;
             }
@@ -69,6 +68,22 @@ public abstract class BaseAgentInstaller implements AgentInstaller {
         } finally {
             Thread.currentThread().setContextClassLoader(savedContextClassLoader);
         }
+    }
+
+    private void timedReportStatus() {
+        if (reportStatusTask != null) {
+            return;
+        }
+        if (!ConfigManager.INSTANCE.isEnableReportStatus()) {
+            return;
+        }
+        reportStatusTask = TimerService.scheduleAtFixedRate(() -> {
+            ConfigService.INSTANCE.reportStatus();
+            // Load agent config according to last modified time
+            if (ConfigService.INSTANCE.reloadConfig()) {
+                install();
+            }
+        }, 1, 1, TimeUnit.MINUTES);
     }
 
     private void initDependentComponents() {

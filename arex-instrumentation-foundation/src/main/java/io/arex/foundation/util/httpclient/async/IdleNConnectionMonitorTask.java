@@ -1,4 +1,4 @@
-package io.arex.foundation.util.async;
+package io.arex.foundation.util.httpclient.async;
 
 import org.apache.http.impl.nio.conn.PoolingNHttpClientConnectionManager;
 import org.slf4j.Logger;
@@ -27,13 +27,13 @@ public class IdleNConnectionMonitorTask implements Runnable {
     public void run() {
         try {
             connectionManager.closeExpiredConnections();
-        } catch (final Throwable t) {
+        } catch (final Exception t) {
             LOGGER.warn("[[title=arex.closeExpiredConnections]]Error closing expired connections for async pool", t);
         }
 
         try {
             connectionManager.closeIdleConnections(idleTimeoutMills, TimeUnit.MILLISECONDS);
-        } catch (final Throwable t) {
+        } catch (final Exception t) {
             LOGGER.warn("[[title=arex.closeIdleConnections]]Error closing idle connections for async pool", t);
         }
 
