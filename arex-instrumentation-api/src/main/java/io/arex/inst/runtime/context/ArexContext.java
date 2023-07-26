@@ -7,8 +7,6 @@ import io.arex.agent.bootstrap.internal.converage.ExecutionPath;
 import io.arex.agent.bootstrap.internal.converage.ExecutionPathBuilder;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.model.ArexConstants;
-import io.arex.inst.runtime.serializer.Serializer;
-import io.arex.inst.runtime.service.DataService;
 import io.arex.inst.runtime.util.MockUtils;
 
 import java.util.HashMap;
@@ -155,7 +153,6 @@ public class ArexContext {
             MockUtils.recordMocker(mocker);
             executionPathBuilder = null;
         }
-        clear();
     }
 
     public void clear() {
