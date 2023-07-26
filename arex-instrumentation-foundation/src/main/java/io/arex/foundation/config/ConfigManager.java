@@ -561,4 +561,16 @@ public class ConfigManager {
             ", dynamicClassList='" + dynamicClassList + '\'' +
             '}';
     }
+
+    public String getInvalidReason() {
+        if (!checkTargetAddress()) {
+            return "response [targetAddress] is not match";
+        }
+
+        if (!inWorkingTime()) {
+            return "not in working time, allow day of weeks is " + allowDayOfWeeks + ", time is " + allowTimeOfDayFrom + "-" + allowTimeOfDayTo;
+        }
+
+        return "invalid config";
+    }
 }
