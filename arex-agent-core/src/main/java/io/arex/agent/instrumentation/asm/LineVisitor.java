@@ -51,11 +51,12 @@ public class LineVisitor extends ClassVisitor {
 
         return new MethodVisitor(api, mv) {
             int key;
+            String methodName;
 
             @Override
             public void visitCode() {
                 super.visitCode();
-                String methodName = name.startsWith("lambda$") ?
+                methodName = name.startsWith("lambda$") ?
                         name.substring(0, name.lastIndexOf('$')) : name;
                 key = (fixedClassName + ":" + methodName + ":" + descriptor).hashCode();
 

@@ -49,6 +49,9 @@ public class ExecutionPathBuilder {
         ExecutionStack stack = TL_STACK.get();
         ExecutionRecord record = stack.pop();
         if (record.key == key) {
+            if (record.base < 0 || record.line == 0) {
+                return this;
+            }
             executionMap.computeIfAbsent(record.executionKey(), k -> record);
         } else {
             stack.push(record);
@@ -68,7 +71,7 @@ public class ExecutionPathBuilder {
         return new ExecutionPath(this.caseId, executionData.toArray(new Long[0]));
     }
 
-    static class ExecutionRecord {
+    public static class ExecutionRecord {
         static final int LINE_OVERFLOW_VALUE = Integer.MAX_VALUE >> 2;
 
         private int key;

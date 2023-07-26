@@ -229,11 +229,8 @@ public class ConfigManager {
     void init() {
         agentVersion = System.getProperty(AGENT_VERSION);
         setEnableDebug(System.getProperty(ENABLE_DEBUG));
-<<<<<<< HEAD
         setEnableReportStatus(System.getProperty(ENABLE_REPORT_STATUS, Boolean.TRUE.toString()));
-=======
         setServiceNamespace(StringUtil.strip(System.getProperty(SERVICE_NAMESPACE)));
->>>>>>> 75df617 (Collect the code execution path during replay)
         setServiceName(StringUtil.strip(System.getProperty(SERVICE_NAME)));
         setStorageServiceHost(StringUtil.strip(System.getProperty(STORAGE_SERVICE_HOST)));
         configPath = StringUtil.strip(System.getProperty(CONFIG_PATH));

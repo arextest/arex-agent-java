@@ -1,5 +1,6 @@
 package io.arex.inst.runtime.context;
 
+import io.arex.agent.bootstrap.TraceContextManager;
 import io.arex.agent.bootstrap.internal.converage.ExecutionPathBuilder;
 
 public class CoverageSupport {
@@ -17,7 +18,6 @@ public class CoverageSupport {
             builder.methodExecute(methodKey, line);
         }
     }
-
     public static void exit(final int methodKey) {
         ExecutionPathBuilder builder = getExecutionPathBuilder();
         if (builder != null) {

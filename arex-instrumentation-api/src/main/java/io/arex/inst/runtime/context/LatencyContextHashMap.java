@@ -26,6 +26,8 @@ final class LatencyContextHashMap extends ConcurrentHashMap<String, ArexContext>
         overdueCleanUp();
         if (latencyMap != null && context != null) {
             latencyMap.put(String.valueOf(key), context);
+        } else {
+            context.postProcess();
         }
 
         return context;
@@ -47,7 +49,7 @@ final class LatencyContextHashMap extends ConcurrentHashMap<String, ArexContext>
                     if (isExpired(entry.getValue().getCreateTime(), now)) {
                         // clear context attachments
                         entry.getValue().clear();
-                        latencyMap.remove(entry.getKey());
+                        latencyMap.remove(entry.getKey()).postProcess();
                     }
                 }
             } finally {
@@ -61,7 +63,7 @@ final class LatencyContextHashMap extends ConcurrentHashMap<String, ArexContext>
                 long now = System.currentTimeMillis();
                 for (Map.Entry<String, ArexContext> entry: super.entrySet()) {
                     if (isExpired(entry.getValue().getCreateTime(), now)) {
-                        super.remove(entry.getKey());
+                        super.remove(entry.getKey()).postProcess();
                     }
                 }
             } finally {

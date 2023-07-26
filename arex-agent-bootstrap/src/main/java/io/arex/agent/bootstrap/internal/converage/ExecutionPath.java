@@ -9,27 +9,30 @@ public class ExecutionPath {
     }
 
     private final String caseId;
-    private int key;
+    private long key;
     private Long[] executionData;
-    private String data;
 
-    public int getKey() {
+    public long getKey() {
         return key;
     }
 
-    public ExecutionPath(String caseId, Long[] executionData) {
+    public ExecutionPath(String caseId, final Long[] executionData) {
         this.caseId = caseId;
-        this.key = Arrays.hashCode(executionData);
+        this.key = calculateKey(executionData);
         this.executionData = executionData;
     }
 
-    public ExecutionPath(String caseId, String executionData) {
-        this.caseId = caseId;
-        this.data = executionData;
+    private long calculateKey(Long[] executionData) {
+        long resulet = 1;
+        for (long l : executionData) {
+            resulet = 31 * resulet + Long.hashCode(l);
+        }
+        return resulet;
     }
 
     public String toString() {
-        return "ExecutionPath(caseId=" + this.caseId + ", executionData=" + Arrays.deepToString(this.executionData);
+        return "ExecutionPath(caseId=" + this.caseId + ", key:" + key
+                + ", executionData=(" + executionData.length + ")" + Arrays.deepToString(this.executionData);
     }
 
 }

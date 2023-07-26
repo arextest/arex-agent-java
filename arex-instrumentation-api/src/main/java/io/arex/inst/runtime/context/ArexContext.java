@@ -155,6 +155,7 @@ public class ArexContext {
             MockUtils.recordMocker(mocker);
             executionPathBuilder = null;
         }
+        clear();
     }
 
     public void clear() {
