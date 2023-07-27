@@ -114,4 +114,8 @@ public class DubboAdapter extends AbstractAdapter {
     public String getProtocol() {
         return getUrl().getProtocol();
     }
+
+    public String getConfigVersion() {
+        return invocation.getAttachment(ArexConstants.CONFIG_VERSION);
+    }
 }

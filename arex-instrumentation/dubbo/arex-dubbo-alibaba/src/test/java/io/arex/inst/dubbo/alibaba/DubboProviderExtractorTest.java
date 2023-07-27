@@ -55,7 +55,7 @@ class DubboProviderExtractorTest {
     @Test
     void onServiceEnter() {
         Mockito.when(IgnoreUtils.excludeEntranceOperation(any())).thenReturn(false);
-        DubboProviderExtractor.onServiceEnter(null, null);
+        DubboProviderExtractor.onServiceEnter(null, invocation);
     }
 
     @ParameterizedTest

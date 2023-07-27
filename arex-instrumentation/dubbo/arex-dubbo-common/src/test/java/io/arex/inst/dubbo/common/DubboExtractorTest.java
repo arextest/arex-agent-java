@@ -46,7 +46,7 @@ class DubboExtractorTest {
         ArexMocker mocker = new ArexMocker();
         mocker.setTargetRequest(new Mocker.Target());
         mocker.setTargetResponse(new Mocker.Target());
-        DubboExtractor.buildMocker(mocker, adapter, "mock", "mock");
+        DubboExtractor.buildMocker(mocker, adapter, null, null);
     }
 
     @ParameterizedTest

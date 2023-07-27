@@ -25,26 +25,37 @@ AREX utilizes the advanced Java technique, Instrument API, and is capable of ins
 
 **Libraries and frameworks supported by Arex (to be added...)**
 
-
+#### Foundation
 - Java Executors
 - System time
+- Dynamic Type
+#### Spring
+- Spring Boot 1.4+-2.x+
+- Servlet API 3+、5+
+#### Http Client
 - Apache HttpClient 4.x
 - OkHttp 3.x、4.x
 - Spring WebClient 5.x
-- Hibernate 5.x
-- MyBatis 3.x
-- Redisson 3.x
-- Lettuce 6+
+- Spring Template
+#### Redis Client
 - Jedis 2.10+, 4+
-- Spring Boot 1.4+-2.x+, Servlet API 3+、5+
-- Custom type
-- Netty server 4.1+
-- Dubbo 2.x、3.x
+- Redisson 3.x
+- Lettuce 5.x, 6.x
+#### Persistence framework
+- MyBatis 3.x, MyBatis-Plus, TkMyBatis
+- Hibernate 5.x
+#### RPC
+- Apache Dubbo 2.x、3.x
+- Alibaba Dubbo
+#### Auth
 - Spring Security 5.x
 - Apache Shiro 1.x
 - Java JWT 3.x
 - JCasbin 1.x
-
+#### Netty
+- Netty server 4.1+
+#### Config
+- Apollo Config 1.x、2.x
 ## Installation
 
 

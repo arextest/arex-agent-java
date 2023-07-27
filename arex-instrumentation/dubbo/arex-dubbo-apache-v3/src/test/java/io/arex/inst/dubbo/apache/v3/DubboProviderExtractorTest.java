@@ -55,7 +55,7 @@ class DubboProviderExtractorTest {
     @MethodSource("onServiceEnterCase")
     void onServiceEnter(Runnable mocker, Runnable asserts) {
         mocker.run();
-        DubboProviderExtractor.onServiceEnter(null, null);
+        DubboProviderExtractor.onServiceEnter(null, invocation);
         asserts.run();
     }
 

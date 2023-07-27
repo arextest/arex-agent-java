@@ -75,7 +75,8 @@
             **/*Test.java,
             **/target/**,
             **/model/**,
-            **/thirdparty/**
+            **/thirdparty/**,
+            **/*Instrumentation.java
         </sonar.exclusions>
         <sonar.test.exclusions>
             **/test/**,

@@ -59,7 +59,7 @@ public abstract class BaseAgentInstaller implements AgentInstaller {
             }
             if (!ConfigManager.INSTANCE.valid()) {
                 if (!ConfigManager.FIRST_TRANSFORM.get()) {
-                    LOGGER.warn("[AREX] Agent would not install due to invalid config.");
+                    LOGGER.warn("[AREX] Agent would not install due to {}.", ConfigManager.INSTANCE.getInvalidReason());
                 }
                 return;
             }
