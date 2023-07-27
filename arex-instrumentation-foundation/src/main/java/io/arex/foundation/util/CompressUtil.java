@@ -51,14 +51,9 @@ public class CompressUtil {
         }
     }
 
-    public static String zstdDecompress(byte[] bytes, Charset charsetName) {
-        if (bytes == null || bytes.length == 0) {
-            return null;
-        }
-
-        try (ByteArrayInputStream byteInputStream = new ByteArrayInputStream(bytes);
-            ZstdInputStreamNoFinalizer zstdInputStream = new ZstdInputStreamNoFinalizer(byteInputStream);
-            ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream(byteInputStream.available())) {
+    public static String zstdDecompress(InputStream inputStream, Charset charsetName) {
+        try (ZstdInputStreamNoFinalizer zstdInputStream = new ZstdInputStreamNoFinalizer(inputStream);
+            ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream(inputStream.available())) {
 
             byte[] buffer = new byte[BYTES_BUFFER_LENGTH];
             for (int length; (length = zstdInputStream.read(buffer, 0, BYTES_BUFFER_LENGTH)) != -1; ) {
@@ -70,6 +65,10 @@ public class CompressUtil {
             LOGGER.warn("[[title=arex.decompress]]", e);
             return null;
         }
+    }
+
+    public static String zstdDecompress(byte[] bytes, Charset charsetName) {
+        return zstdDecompress(new ByteArrayInputStream(bytes), charsetName);
     }
 
     public static class ZstdInputStreamNoFinalizer extends ZstdInputStream {

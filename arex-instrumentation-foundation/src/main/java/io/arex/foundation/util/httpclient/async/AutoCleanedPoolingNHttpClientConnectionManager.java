@@ -1,4 +1,4 @@
-package io.arex.foundation.util.async;
+package io.arex.foundation.util.httpclient.async;
 
 /**
  * AutoCleanedPoolingNHttpClientConnectionManager
@@ -75,7 +75,7 @@ public final class AutoCleanedPoolingNHttpClientConnectionManager extends Poolin
             .build();
         try {
             return new DefaultConnectingIOReactor(ioReactorConfig);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.warn("[[title=arex.createConnectingIOReactor]]", ex);
             return null;
         }
