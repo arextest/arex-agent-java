@@ -32,7 +32,7 @@ public class ApolloConfigExtractor {
         mocker.setRecordId(RECORD_CONFIG_BATCH_NO.get());
         mocker.setRecordEnvironment(1);
         mocker.getTargetResponse().setBody(Serializer.serialize(properties));
-        mocker.getTargetResponse().setType(Properties.class.getName());
+        mocker.getTargetResponse().setType("java.util.Properties");
         MockUtils.recordMocker(mocker);
     }
 

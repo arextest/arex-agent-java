@@ -9,7 +9,7 @@ import java.util.List;
 import static java.util.Arrays.asList;
 
 /**
- * DubboModuleInstrumentation
+ * ApolloModuleInstrumentation
  */
 @AutoService(ModuleInstrumentation.class)
 public class ApolloModuleInstrumentation extends ModuleInstrumentation {
