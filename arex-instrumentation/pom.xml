@@ -44,6 +44,7 @@
         <module>httpclient/arex-httpclient-resttemplate</module>
         <module>httpclient/arex-httpclient-feign</module>
         <module>netty/arex-netty-v3</module>
+        <module>httpclient/arex-httpclient-asynchttpclient</module>
         <module>netty/arex-netty-v4</module>
         <module>dubbo/arex-dubbo-apache-v2</module>
         <module>dubbo/arex-dubbo-apache-v3</module>
