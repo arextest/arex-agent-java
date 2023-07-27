@@ -6,16 +6,73 @@ import com.ctrip.framework.apollo.core.dto.ApolloConfig;
 import com.ctrip.framework.apollo.internals.*;
 import com.ctrip.framework.apollo.util.ConfigUtil;
 import io.arex.agent.bootstrap.util.ReflectUtil;
+import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.model.ArexConstants;
 
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 
+/**
+ * {@link com.ctrip.framework.apollo.spi.DefaultConfigFactory#create} </br>
+ * Config config = new DefaultConfig(new LocalFileConfigRepository(new RemoteConfigRepository(namespace)))
+ * <pre>
+ * process:
+ *
+ *             --------------------------------
+ *             |       DefaultConfig          |
+ *             |    ----------------------    |
+ *             |    | onRepositoryChange |    |
+ *             |    ----------------------    |
+ *             --------------------------------
+ *                        ¦          ↑
+ *                        1          4
+ *                        ↓          ¦
+ *             --------------------------------
+ *             |       LocalFileConfig        |
+ *             |    ----------------------    |
+ *             |    | onRepositoryChange |    |
+ *             |    ----------------------    |
+ *             --------------------------------
+ *                        ¦          ↑
+ *                        2          3
+ *                        ↓          ¦
+ *          ---------------------------------------
+ *          |  RemoteConfig(trySync,longPolling)  |
+ *          |    ------------------------         |
+ *          |    | fireRepositoryChange |         |
+ *          |    ------------------------         |
+ *          ---------------------------------------
+ *
+ * </pre>
+ */
 public class ApolloConfigHelper {
     private static Field configInstancesField;
 
+    public static void initAndRecord(Supplier<String> recordIdSpl, Supplier<String> versionSpl) {
+        String recordId = recordIdSpl.get();
+        if (StringUtil.isEmpty(recordId)) {
+            return;
+        }
+        String configVersion = versionSpl.get();
+        initReplayState(recordId, configVersion);
+
+        if (StringUtil.isEmpty(configVersion)) {
+            return;
+        }
+        /*
+        Does not include increment config, as Apollo has not yet created an instance of this configuration
+        it will be replay in io.arex.inst.config.apollo.ApolloConfigHelper.getReplayConfig
+         */
+        replayAllConfigs();
+    }
+
+    /**
+     * 1. first record init config(full & incremental) {@link ApolloServletV3RequestHandler#postHandle}
+     * 2. then record changed config within running {@link ApolloDefaultConfigInstrumentation}
+     */
     public static void recordAllConfigs() {
         if (!ApolloConfigExtractor.needRecord()) {
             return;
@@ -74,6 +131,15 @@ public class ApolloConfigHelper {
         ApolloConfigExtractor.updateReplayState(recordId, configVersion);
     }
 
+    /**
+     * you can also modify m_configs in {@link DefaultConfigManager} just like the recorded logic,
+     * But there are the following points to consider: <pre>
+     * 1. the case where configuration polling triggers a change during replay, it may overwrite the values replay
+     * 2. how can trigger ConfigChangeListener on business side
+     * 3. how to recover the original configuration after replay
+     * </pre>
+     * so the final entry point is sync() in the {@link RemoteConfigRepository}
+     */
     public static void replayAllConfigs() {
         Map<String, Config> configMap = getAllConfigInstance();
         for (Map.Entry<String, Config> entry : configMap.entrySet()) {
@@ -103,6 +169,7 @@ public class ApolloConfigHelper {
 
     public static ApolloConfig getReplayConfig(ApolloConfig previous, String namespace, ConfigUtil configUtil) {
         if (!ApolloConfigExtractor.duringReplay() || previous == null) {
+            // execute original business code, not replay
             return null;
         }
         /*

@@ -20,6 +20,7 @@ import org.mockito.Mockito;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -46,6 +47,31 @@ class ApolloConfigHelperTest {
         mockStaticExtractor = null;
         mockExtractor = null;
         Mockito.clearAllCaches();
+    }
+
+    @ParameterizedTest
+    @MethodSource("initAndRecordCase")
+    void initAndRecord(Supplier<String> recordIdSpl, Supplier<String> versionSpl, Assert asserts) {
+        ApolloConfigHelper.initAndRecord(recordIdSpl, versionSpl);
+        asserts.verity();
+    }
+
+    static Stream<Arguments> initAndRecordCase() {
+        Supplier<String> emptySupplier = () -> "";
+        Supplier<String> mockSpl = () -> "mock";
+
+        Assert asserts1 = () -> {
+            mockStaticExtractor.verify(ApolloConfigExtractor::duringReplay, atLeastOnce());
+        };
+        Assert asserts2 = () -> {
+            mockStaticExtractor.verify(() -> ApolloConfigExtractor.updateReplayState(any(), any()), atLeastOnce());
+        };
+
+        return Stream.of(
+                arguments(emptySupplier, emptySupplier, asserts1),
+                arguments(mockSpl, emptySupplier, asserts2),
+                arguments(mockSpl, mockSpl, asserts2)
+        );
     }
 
     @ParameterizedTest

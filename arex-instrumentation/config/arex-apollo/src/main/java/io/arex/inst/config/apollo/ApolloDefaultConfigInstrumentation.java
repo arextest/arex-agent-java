@@ -25,6 +25,7 @@ public class ApolloDefaultConfigInstrumentation extends TypeInstrumentation {
 
     @Override
     public List<MethodInstrumentation> methodAdvices() {
+        // compatible with different versions of Apollo
         ElementMatcher<MethodDescription> matcher = named("updateAndCalcConfigChanges")
                 .and(takesArgument(0, named("java.util.Properties")));
 

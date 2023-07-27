@@ -4,13 +4,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import com.google.auto.service.AutoService;
 import io.arex.agent.bootstrap.model.MockCategoryType;
-import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.request.RequestHandler;
 
 @AutoService(RequestHandler.class)
-public class ApolloServletRequestHandler implements RequestHandler<HttpServletRequest, HttpServletResponse> {
+public class ApolloServletV3RequestHandler implements RequestHandler<HttpServletRequest, HttpServletResponse> {
     @Override
     public String name() {
         return MockCategoryType.SERVLET.getName();
@@ -18,21 +17,9 @@ public class ApolloServletRequestHandler implements RequestHandler<HttpServletRe
 
     @Override
     public void preHandle(HttpServletRequest request) {
-        String recordId = request.getHeader(ArexConstants.RECORD_ID);
-        if (StringUtil.isEmpty(recordId)) {
-            return;
-        }
-        String configVersion = request.getHeader(ArexConstants.CONFIG_DEPENDENCY);
-        ApolloConfigHelper.initReplayState(recordId, configVersion);
-
-        if (StringUtil.isEmpty(configVersion)) {
-            return;
-        }
-        /*
-        Does not include increment config, as Apollo has not yet created an instance of this configuration
-        it will be replay in io.arex.inst.config.apollo.ApolloConfigHelper.getReplayConfig
-         */
-        ApolloConfigHelper.replayAllConfigs();
+        ApolloConfigHelper.initAndRecord(
+                () -> request.getHeader(ArexConstants.RECORD_ID),
+                () -> request.getHeader(ArexConstants.CONFIG_DEPENDENCY));
     }
 
     @Override

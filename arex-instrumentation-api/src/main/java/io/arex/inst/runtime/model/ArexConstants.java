@@ -33,5 +33,5 @@ public class ArexConstants {
     public static final String GSON_SERIALIZER = "gson";
     public static final String CONFIG_DEPENDENCY = "arex_replay_prepare_dependency";
     public static final String PREFIX = "arex-";
-    public static final String CONFIG_VERSION = "arex-config-version";
+    public static final String CONFIG_VERSION = "configBatchNo";
 }

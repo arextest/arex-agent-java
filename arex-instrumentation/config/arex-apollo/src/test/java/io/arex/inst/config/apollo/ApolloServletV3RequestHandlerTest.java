@@ -20,15 +20,16 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.times;
 
-class ApolloServletRequestHandlerTest {
-    static ApolloServletRequestHandler target;
+class ApolloServletV3RequestHandlerTest {
+    static ApolloServletV3RequestHandler target;
     static MockedStatic<ApolloConfigHelper> mockStaticHelper;
 
     @BeforeAll
     static void setUp() {
-        target = new ApolloServletRequestHandler();
+        target = new ApolloServletV3RequestHandler();
         mockStaticHelper = Mockito.mockStatic(ApolloConfigHelper.class);
         Mockito.mockStatic(ContextManager.class);
     }
@@ -42,44 +43,14 @@ class ApolloServletRequestHandlerTest {
 
     @Test
     void name() {
-        assertNotNull(new ApolloServletRequestHandler().name());
+        assertNotNull(new ApolloServletV3RequestHandler().name());
     }
 
-    @ParameterizedTest
-    @MethodSource("preHandleCase")
-    void preHandle(HttpServletRequest request, Assert asserts) {
+    @Test
+    void preHandle() {
+        HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
         target.preHandle(request);
-        asserts.verity();
-    }
-
-    static Stream<Arguments> preHandleCase() {
-        Supplier<HttpServletRequest> requestSupplier = () -> Mockito.mock(HttpServletRequest.class);
-        Supplier<HttpServletRequest> recordIdSupplier = () -> {
-            HttpServletRequest request = requestSupplier.get();
-            Mockito.when(request.getHeader(ArexConstants.RECORD_ID)).thenReturn("mock");
-            return request;
-        };
-        Supplier<HttpServletRequest> configVersionSupplier = () -> {
-            HttpServletRequest request = recordIdSupplier.get();
-            Mockito.when(request.getHeader(ArexConstants.CONFIG_DEPENDENCY)).thenReturn("mock");
-            return request;
-        };
-
-        Assert asserts1 = () -> {
-            mockStaticHelper.verify(() -> ApolloConfigHelper.initReplayState(any(), any()), times(0));
-        };
-        Assert asserts2 = () -> {
-            mockStaticHelper.verify(() -> ApolloConfigHelper.initReplayState(any(), any()), times(1));
-        };
-        Assert asserts3 = () -> {
-            mockStaticHelper.verify(ApolloConfigHelper::replayAllConfigs, times(1));
-        };
-
-        return Stream.of(
-                arguments(requestSupplier.get(), asserts1),
-                arguments(recordIdSupplier.get(), asserts2),
-                arguments(configVersionSupplier.get(), asserts3)
-        );
+        mockStaticHelper.verify(() -> ApolloConfigHelper.initAndRecord(any(), any()), atLeastOnce());
     }
 
     @ParameterizedTest

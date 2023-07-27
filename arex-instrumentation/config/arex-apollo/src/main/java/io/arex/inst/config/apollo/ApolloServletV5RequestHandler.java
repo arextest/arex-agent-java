@@ -5,25 +5,26 @@ import io.arex.agent.bootstrap.model.MockCategoryType;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.request.RequestHandler;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
-import java.util.Map;
 
 @AutoService(RequestHandler.class)
-public class ApolloDubboRequestHandler implements RequestHandler<Map<String, String>, Map<String, String>> {
+public class ApolloServletV5RequestHandler implements RequestHandler<HttpServletRequest, HttpServletResponse> {
     @Override
     public String name() {
-        return MockCategoryType.DUBBO_PROVIDER.getName();
+        return MockCategoryType.SERVLET.getName();
     }
 
     @Override
-    public void preHandle(Map<String, String> request) {
+    public void preHandle(HttpServletRequest request) {
         ApolloConfigHelper.initAndRecord(
-                () -> request.get(ArexConstants.RECORD_ID),
-                () -> request.get(ArexConstants.CONFIG_DEPENDENCY));
+                () -> request.getHeader(ArexConstants.RECORD_ID),
+                () -> request.getHeader(ArexConstants.CONFIG_DEPENDENCY));
     }
 
     @Override
-    public void postHandle(Map<String, String> request, Map<String, String> response) {
+    public void postHandle(HttpServletRequest request, HttpServletResponse response) {
         if (postInvalid(request, response)) {
             return;
         }
@@ -33,11 +34,14 @@ public class ApolloDubboRequestHandler implements RequestHandler<Map<String, Str
         it may not record these configurations during preHandle()
          */
         ApolloConfigHelper.recordAllConfigs();
-        request.put(ArexConstants.CONFIG_VERSION, ApolloConfigExtractor.getCurrentRecordConfigVersion());
+        request.setAttribute(ArexConstants.CONFIG_VERSION, ApolloConfigExtractor.getCurrentRecordConfigVersion());
     }
 
-    private boolean postInvalid(Map<String, String> request, Map<String, String> response) {
-        if (request == null) {
+    private boolean postInvalid(HttpServletRequest request, HttpServletResponse response) {
+        if (request == null || response == null) {
+            return true;
+        }
+        if (response.getHeader(ArexConstants.RECORD_ID) != null) {
             return true;
         }
         return !ContextManager.needRecord();
