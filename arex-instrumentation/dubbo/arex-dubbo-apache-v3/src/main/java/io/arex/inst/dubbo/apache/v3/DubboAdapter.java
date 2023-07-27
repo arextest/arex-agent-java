@@ -117,4 +117,8 @@ public class DubboAdapter extends AbstractAdapter {
         }
         return "";
     }
+
+    public String getConfigVersion() {
+        return invocation.getAttachment(ArexConstants.CONFIG_VERSION);
+    }
 }

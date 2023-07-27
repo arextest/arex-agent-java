@@ -105,6 +105,8 @@ public class ServletExtractor<HttpServletRequest, HttpServletResponse> {
         requestAttributes.put("RequestPath", requestPath);
         Map<String,String> requestHeaders = getRequestHeaders();
         requestAttributes.put("Headers", requestHeaders);
+        requestAttributes.put(ArexConstants.CONFIG_VERSION,
+                adapter.getAttribute(httpServletRequest, ArexConstants.CONFIG_VERSION));
 
         String originalMocker = requestHeaders.get(ArexConstants.REPLAY_ORIGINAL_MOCKER);
         MockCategoryType mockCategoryType =

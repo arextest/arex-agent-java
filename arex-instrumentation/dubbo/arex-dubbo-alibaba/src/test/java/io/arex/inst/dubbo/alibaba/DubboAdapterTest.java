@@ -220,4 +220,9 @@ class DubboAdapterTest {
     void getProtocol() {
         assertNull(adapter.getProtocol());
     }
+
+    @Test
+    void getConfigVersion() {
+        assertNull(adapter.getConfigVersion());
+    }
 }

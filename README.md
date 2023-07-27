@@ -54,7 +54,8 @@ AREX utilizes the advanced Java technique, Instrument API, and is capable of ins
 - JCasbin 1.x
 #### Netty
 - Netty server 4.1+
-
+#### Config
+- Apollo Config 1.x、2.x
 ## Installation
 
 

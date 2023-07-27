@@ -13,20 +13,12 @@ import java.util.function.BiConsumer;
 public class DubboExtractor {
     private static final List<String> EXCLUDE_DUBBO_METHOD_LIST = Arrays.asList(
             "org.apache.dubbo.metadata.MetadataService.getMetadataInfo");
-    protected static Mocker buildMocker(Mocker mocker, AbstractAdapter adapter, String reqHeader, String resHeader) {
-        if (StringUtil.isNotEmpty(reqHeader)) {
-            Map<String, Object> headers = new HashMap<>();
-            headers.put("Headers", reqHeader);
-            mocker.getTargetRequest().setAttributes(headers);
-        }
+    protected static Mocker buildMocker(Mocker mocker, AbstractAdapter adapter, Map<String, Object> requestAttributes, Map<String, Object> responseAttributes) {
+        mocker.getTargetRequest().setAttributes(requestAttributes);
         mocker.getTargetRequest().setBody(adapter.getRequest());
         mocker.getTargetRequest().setType(adapter.getRequestParamType());
         mocker.getTargetRequest().setAttribute("recordRequestType", adapter.getRecordRequestType());
-        if (StringUtil.isNotEmpty(resHeader)) {
-            Map<String, Object> headers = new HashMap<>();
-            headers.put("Headers", resHeader);
-            mocker.getTargetResponse().setAttributes(headers);
-        }
+        mocker.getTargetResponse().setAttributes(responseAttributes);
         return mocker;
     }
 
