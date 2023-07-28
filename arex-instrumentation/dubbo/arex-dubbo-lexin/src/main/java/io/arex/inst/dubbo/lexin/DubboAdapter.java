@@ -9,6 +9,7 @@ import com.alibaba.dubbo.rpc.support.ProtocolUtils;
 import io.arex.agent.bootstrap.ctx.TraceTransmitter;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.ArrayUtils;
+import io.arex.agent.bootstrap.util.MapUtils;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.dubbo.common.AbstractAdapter;
 import io.arex.inst.runtime.log.LogManager;
@@ -28,6 +29,7 @@ public class DubboAdapter extends AbstractAdapter {
     private final Invoker<?> invoker;
     private final Invocation invocation;
     private final TraceTransmitter traceTransmitter;
+    private Map<String, String> userDefineMap;
 
     private DubboAdapter(Invoker<?> invoker, Invocation invocation) {
         this.invoker = invoker;
@@ -82,24 +84,38 @@ public class DubboAdapter extends AbstractAdapter {
         return generic;
     }
     public String getCaseId() {
-        // for lexin dubbox tracecontext
-        String context = invocation.getAttachment("tracecontext");
-        if (StringUtil.isNotEmpty(context)) {
-            Map<String, Object> tracecontextMap = Serializer.deserialize(context, Map.class);
-            if (tracecontextMap != null) {
-                Object logObj = tracecontextMap.get("log_params");
-                if (logObj instanceof LinkedHashMap) {
-                    LinkedHashMap<String, String> logMap = (LinkedHashMap) logObj;
-                    String userObj = logMap.get("userDefineTag");
-                    if (userObj != null) {
-                        Map<String, String> userMap = Serializer.deserialize(userObj, Map.class);
-                        return userMap.get(ArexConstants.RECORD_ID);
-                    }
-                }
-            }
+        Map<String, String> userMap = getUserDefineMap();
+        if (MapUtils.isNotEmpty(userMap)) {
+            return userMap.get(ArexConstants.RECORD_ID);
         }
         return invocation.getAttachment(ArexConstants.RECORD_ID);
     }
+
+    /**
+     * for lexin dubbox tracecontext
+     */
+    public Map<String, String> getUserDefineMap() {
+        if (userDefineMap == null) {
+            String context = invocation.getAttachment("tracecontext");
+            if (StringUtil.isEmpty(context)) {
+                return null;
+            }
+            Map<String, Object> traceContextMap = Serializer.deserialize(context, Map.class);
+            if (traceContextMap == null) {
+                return null;
+            }
+            Object logObj = traceContextMap.get("log_params");
+            if (logObj instanceof LinkedHashMap) {
+                LinkedHashMap<String, String> logMap = (LinkedHashMap) logObj;
+                String userObj = logMap.get("userDefineTag");
+                if (userObj != null) {
+                    userDefineMap = Serializer.deserialize(userObj, Map.class);
+                }
+            }
+        }
+        return userDefineMap;
+    }
+
     public String getExcludeMockTemplate() {
         return invocation.getAttachment(ArexConstants.HEADER_EXCLUDE_MOCK);
     }
@@ -155,5 +171,9 @@ public class DubboAdapter extends AbstractAdapter {
 
     public String getProtocol() {
         return getUrl().getProtocol();
+    }
+
+    public String getConfigVersion() {
+        return invocation.getAttachment(ArexConstants.CONFIG_VERSION);
     }
 }
