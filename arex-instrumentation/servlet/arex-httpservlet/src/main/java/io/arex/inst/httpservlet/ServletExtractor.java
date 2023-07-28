@@ -118,7 +118,8 @@ public class ServletExtractor<HttpServletRequest, HttpServletResponse> {
         mocker.getTargetResponse().setAttributes(Collections.singletonMap("Headers", getResponseHeaders()));
 
         Object response = getResponse();
-        mocker.getTargetResponse().setBody(Serializer.serialize(response));
+        String responseString = response instanceof String ? (String) response : Serializer.serialize(response);
+        mocker.getTargetResponse().setBody(responseString);
         mocker.getTargetResponse().setType(TypeUtil.getName(response));
         if (ContextManager.needReplay()) {
             MockUtils.replayMocker(mocker);
