@@ -17,6 +17,10 @@ public class ApolloServletV3RequestHandler implements RequestHandler<HttpServlet
 
     @Override
     public void preHandle(HttpServletRequest request) {
+        // check business application if loaded apollo-client
+        if (ApolloConfigHelper.unloadApollo()) {
+            return;
+        }
         ApolloConfigHelper.initAndRecord(
                 () -> request.getHeader(ArexConstants.RECORD_ID),
                 () -> request.getHeader(ArexConstants.CONFIG_DEPENDENCY));
@@ -43,6 +47,6 @@ public class ApolloServletV3RequestHandler implements RequestHandler<HttpServlet
         if (response.getHeader(ArexConstants.RECORD_ID) != null) {
             return true;
         }
-        return !ContextManager.needRecord();
+        return !ContextManager.needRecord() || ApolloConfigHelper.unloadApollo();
     }
 }

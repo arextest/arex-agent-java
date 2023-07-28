@@ -17,6 +17,10 @@ public class ApolloDubboRequestHandler implements RequestHandler<Map<String, Str
 
     @Override
     public void preHandle(Map<String, String> request) {
+        // check business application if loaded apollo-client
+        if (ApolloConfigHelper.unloadApollo()) {
+            return;
+        }
         ApolloConfigHelper.initAndRecord(
                 () -> request.get(ArexConstants.RECORD_ID),
                 () -> request.get(ArexConstants.CONFIG_DEPENDENCY));
@@ -40,6 +44,6 @@ public class ApolloDubboRequestHandler implements RequestHandler<Map<String, Str
         if (request == null) {
             return true;
         }
-        return !ContextManager.needRecord();
+        return !ContextManager.needRecord() || ApolloConfigHelper.unloadApollo();
     }
 }

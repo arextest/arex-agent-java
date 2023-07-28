@@ -23,8 +23,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atLeastOnce;
@@ -176,5 +175,10 @@ class ApolloConfigHelperTest {
                 arguments(mocker1, previous3, predicate_isNull),
                 arguments(mocker2, previous3, predicate_nonNull)
         );
+    }
+
+    @Test
+    void unloadApollo() {
+        assertFalse(ApolloConfigHelper.unloadApollo());
     }
 }
