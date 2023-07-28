@@ -57,7 +57,7 @@ public class ApolloConfigHelper {
             Class.forName("com.ctrip.framework.apollo.ConfigService");
             isLoadedApollo = true;
         } catch (ClassNotFoundException e) {
-            // business application unLoad apollo-client
+            // ignore, means business application unLoad apollo-client
         }
     }
 

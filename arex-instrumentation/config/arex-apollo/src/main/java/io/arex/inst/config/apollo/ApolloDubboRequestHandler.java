@@ -17,6 +17,7 @@ public class ApolloDubboRequestHandler implements RequestHandler<Map<String, Str
 
     @Override
     public void preHandle(Map<String, String> request) {
+        // check business application if loaded apollo-client
         if (ApolloConfigHelper.unloadApollo()) {
             return;
         }
