@@ -2,15 +2,15 @@ package io.arex.inst.runtime.listener;
 
 public class CaseEventDispatcher {
 
-    public static void onEvent(CaseEvent e) {
-        switch (e.action) {
+    public static void onEvent(CaseEvent event) {
+        switch (event.getAction()) {
             case ENTER:
                 EventProcessor.onRequest();
                  break;
             case CREATE:
-                EventProcessor.onCreate((EventSource) e.getSource());
+                EventProcessor.onCreate((EventSource) event.getSource());
                 break;
-            case DESTROY:
+            case EXIT:
                 EventProcessor.onExit();
                 break;
             default:
