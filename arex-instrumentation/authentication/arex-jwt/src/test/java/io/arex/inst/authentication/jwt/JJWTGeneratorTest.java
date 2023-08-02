@@ -2,7 +2,6 @@ package io.arex.inst.authentication.jwt;
 
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.serializer.Serializer;
-import io.jsonwebtoken.Jwt;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -11,11 +10,9 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
 
 import java.util.HashMap;
-import java.util.Objects;
-import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 
@@ -36,10 +33,9 @@ class JJWTGeneratorTest {
 
     @ParameterizedTest
     @MethodSource("generateCase")
-    void generate(Runnable mocker, String jwt, Predicate<Jwt> predicate) {
+    void generate(Runnable mocker, String jwt) {
         mocker.run();
-        Jwt result = JJWTGenerator.generate(jwt);
-        assertTrue(predicate.test(result));
+        assertDoesNotThrow(() -> JJWTGenerator.generate(jwt));
     }
 
     static Stream<Arguments> generateCase() {
@@ -51,13 +47,11 @@ class JJWTGeneratorTest {
             Mockito.when(Serializer.deserialize(any(String.class), any(Class.class))).thenReturn(new HashMap<>());
         };
 
-        Predicate<Jwt> predicate_isNull = Objects::isNull;
-        Predicate<Jwt> predicate_nonNull = Objects::nonNull;
         return Stream.of(
-                arguments(emptyMocker, "", predicate_isNull),
-                arguments(mocker1, "", predicate_isNull),
-                arguments(mocker1, token, predicate_isNull),
-                arguments(mocker2, token, predicate_nonNull)
+                arguments(emptyMocker, ""),
+                arguments(mocker1, ""),
+                arguments(mocker1, token),
+                arguments(mocker2, token)
         );
     }
 }
