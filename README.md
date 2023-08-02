@@ -50,8 +50,9 @@ AREX utilizes the advanced Java technique, Instrument API, and is capable of ins
 #### Auth
 - Spring Security 5.x
 - Apache Shiro 1.x
-- Java JWT 3.x
 - JCasbin 1.x
+- Auth0 jwt 3.x
+- JWTK jjwt 0.1+、jjwt-api 0.10+
 #### Netty
 - Netty server 4.1+
 #### Config

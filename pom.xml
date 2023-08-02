@@ -76,7 +76,8 @@
             **/target/**,
             **/model/**,
             **/thirdparty/**,
-            **/*Instrumentation.java
+            **/*Instrumentation.java,
+            **/JJWTGenerator.java
         </sonar.exclusions>
         <sonar.test.exclusions>
             **/test/**,
