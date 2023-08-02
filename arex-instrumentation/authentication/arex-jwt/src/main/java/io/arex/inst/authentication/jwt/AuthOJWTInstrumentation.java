@@ -15,9 +15,9 @@ import static java.util.Collections.singletonList;
 import static net.bytebuddy.matcher.ElementMatchers.*;
 
 /**
- * JWTInstrumentation
+ * com.auth0:jwt
  */
-public class JWTInstrumentation extends TypeInstrumentation {
+public class AuthOJWTInstrumentation extends TypeInstrumentation {
 
     @Override
     public ElementMatcher<TypeDescription> typeMatcher() {
