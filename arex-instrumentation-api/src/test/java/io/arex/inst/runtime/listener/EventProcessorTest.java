@@ -92,6 +92,11 @@ public class EventProcessorTest {
         Assertions.assertNotNull(Serializer.getINSTANCE());
     }
 
+    @Test
+    void onExit() {
+        Assertions.assertDoesNotThrow(EventProcessor::onExit);
+    }
+
     public static class TestStringSerializable implements StringSerializable {
 
         @Override

@@ -36,6 +36,7 @@ public class DubboProviderExtractor extends DubboExtractor {
         RequestHandlerManager.postHandle(invocation.getAttachments(), RpcContext.getServerAttachment().getAttachments(),
                 MockCategoryType.DUBBO_PROVIDER.getName());
         adapter.execute(result, makeMocker(adapter));
+        CaseEventDispatcher.onEvent(CaseEvent.ofExitEvent());
     }
     private static Mocker makeMocker(DubboAdapter adapter) {
         Mocker mocker = MockUtils.createDubboProvider(adapter.getServiceOperation());
