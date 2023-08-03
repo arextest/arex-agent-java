@@ -2,6 +2,7 @@ package io.arex.agent.bootstrap.internal.converage;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -19,7 +20,7 @@ public class ExecutionPathBuilder {
     }
 
     private String caseId;
-    private ConcurrentHashMap<Long, ExecutionRecord> executionMap = new ConcurrentHashMap<>(50);
+    private ConcurrentHashMap<Long, ExecutionRecord> executionMap = new ConcurrentHashMap<>(100);
 
     public ExecutionPathBuilder caseId(String caseId) {
         this.caseId = caseId;
@@ -59,15 +60,34 @@ public class ExecutionPathBuilder {
         return this;
     }
 
+    public ExecutionPathBuilder methodExit(int key, String message) {
+        ExecutionStack stack = TL_STACK.get();
+        ExecutionRecord record = stack.pop();
+        if (record.key == key) {
+            if (record.base < 0 || record.line == 0) {
+                return this;
+            }
+            record.method = message;
+            executionMap.computeIfAbsent(record.executionKey(), k -> record);
+        } else {
+            stack.push(record);
+        }
+        return this;
+    }
+
     public ExecutionPath build() {
         List<Long> executionData = new ArrayList<>(executionMap.size());
-        for (ExecutionRecord record : executionMap.values()) {
+        //StringBuilder builder = new StringBuilder();
+        List<ExecutionRecord> records = new ArrayList<>(executionMap.values());
+        records.sort(Comparator.comparingLong(ExecutionRecord::executionKey));
+        for (ExecutionRecord record : records) {
             if (record.base < 0) {
                 continue;
             }
             executionData.add(record.executionKey());
+            //builder.append(record.method).append(";").append(record.executionKey()).append("\r\n");
         }
-        executionData.sort(Long::compareTo);
+        //executionData.sort(Long::compareTo);
         return new ExecutionPath(this.caseId, executionData.toArray(new Long[0]));
     }
 
@@ -79,6 +99,8 @@ public class ExecutionPathBuilder {
         private int base = -1;
         private int lastLine;
         private boolean locked = false;
+
+        private String method;
 
         private ByteSet loopSet;
 
@@ -124,9 +146,14 @@ public class ExecutionPathBuilder {
             return true;
         }
 
+        private long executionKey = -1;
+
         public long executionKey() {
-            int lineCode = loopSet == null ? line : Arrays.hashCode(new int[]{ line, loopSet.hashCode() });
-            return ((long) key << 32) | lineCode;
+            if (executionKey < 0) {
+                int lineCode = loopSet == null ? line : Arrays.hashCode(new int[]{line, loopSet.hashCode()});
+                executionKey = ((long) key << 32) | lineCode;
+            }
+            return executionKey;
         }
 
         public String toString() {

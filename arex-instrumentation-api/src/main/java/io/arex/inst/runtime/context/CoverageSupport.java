@@ -25,6 +25,13 @@ public class CoverageSupport {
         }
     }
 
+    /*public static void exit(final String name, final int methodKey) {
+        ExecutionPathBuilder builder = getExecutionPathBuilder();
+        if (builder != null) {
+            builder.methodExit(methodKey, name);
+        }
+    }*/
+
     private static ExecutionPathBuilder getExecutionPathBuilder() {
         ArexContext context = ContextManager.currentContext();
         return context != null ? context.getExecutionPathBuilder() : null;

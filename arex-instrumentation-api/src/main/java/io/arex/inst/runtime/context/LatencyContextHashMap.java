@@ -9,7 +9,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * Only used for ContextManager
  */
 final class LatencyContextHashMap extends ConcurrentHashMap<String, ArexContext> {
-    private static final int CLEANUP_THRESHOLD = 10;
+    private static final int CLEANUP_THRESHOLD = 0;
     private static final long RECORD_TTL_MILLIS = TimeUnit.MINUTES.toMillis(1);
     private static final ReentrantLock CLEANUP_LOCK = new ReentrantLock();
     private ConcurrentHashMap<String, ArexContext> latencyMap;
@@ -27,30 +27,29 @@ final class LatencyContextHashMap extends ConcurrentHashMap<String, ArexContext>
             return null;
         }
 
-        overdueCleanUp();
         if (latencyMap != null) {
             latencyMap.put(String.valueOf(key), context);
         } else {
             context.postProcess();
         }
+        overdueCleanUp();
 
         return context;
     }
 
     private ArexContext initOrGet(Object key) {
         if (latencyMap == null) {
-            System.out.println("[AREX] LatencyContextHashMap init");
             latencyMap = new ConcurrentHashMap<>();
             return null;
         }
         return latencyMap.get(key);
     }
 
-    private void overdueCleanUp() {
-        if (latencyMap != null && CLEANUP_LOCK.tryLock() && latencyMap.mappingCount() > CLEANUP_THRESHOLD) {
+    public void overdueCleanUp() {
+        if (latencyMap != null && latencyMap.size() > CLEANUP_THRESHOLD && CLEANUP_LOCK.tryLock()) {
             try {
                 long now = System.currentTimeMillis();
-                for (Map.Entry<String, ArexContext> entry: latencyMap.entrySet()) {
+                for (Map.Entry<String, ArexContext> entry : latencyMap.entrySet()) {
                     if (isExpired(entry.getValue().getCreateTime(), now)) {
                         // clear context attachments
                         entry.getValue().clear();
@@ -63,10 +62,11 @@ final class LatencyContextHashMap extends ConcurrentHashMap<String, ArexContext>
         }
 
         // Compatible where map.remove() not called
-        if (CLEANUP_LOCK.tryLock() && this.mappingCount() > CLEANUP_THRESHOLD) {
+        if (this.size() > CLEANUP_THRESHOLD && CLEANUP_LOCK.tryLock()) {
+            System.out.println("[AREX] map size:" + this.size());
             try {
                 long now = System.currentTimeMillis();
-                for (Map.Entry<String, ArexContext> entry: super.entrySet()) {
+                for (Map.Entry<String, ArexContext> entry : super.entrySet()) {
                     if (isExpired(entry.getValue().getCreateTime(), now)) {
                         super.remove(entry.getKey()).postProcess();
                     }

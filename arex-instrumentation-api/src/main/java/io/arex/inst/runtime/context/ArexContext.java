@@ -149,6 +149,8 @@ public class ArexContext {
             ExecutionPath executionPath = executionPathBuilder.build();
             ArexMocker mocker = MockUtils.create(MockCategoryType.EXECUTION_PATH,
                     String.valueOf(executionPath.getKey()));
+            mocker.setRecordId(executionPath.getCaseId());
+            mocker.setReplayId(executionPath.size());
             mocker.getTargetResponse().setBody(executionPath.toString());
             MockUtils.recordMocker(mocker);
             executionPathBuilder = null;
