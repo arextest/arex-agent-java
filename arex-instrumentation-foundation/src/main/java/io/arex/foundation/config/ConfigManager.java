@@ -1,6 +1,7 @@
 package io.arex.foundation.config;
 
 import com.google.common.annotations.VisibleForTesting;
+import io.arex.agent.bootstrap.util.MapUtils;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.foundation.model.ConfigQueryResponse.DynamicClassConfiguration;
 import io.arex.foundation.model.ConfigQueryResponse.ResponseBody;
@@ -29,7 +30,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Stream;
 
-import static io.arex.foundation.config.ConfigConstants.*;
+import static io.arex.agent.bootstrap.constants.ConfigConstants.*;
 
 public class ConfigManager {
 
@@ -60,7 +61,6 @@ public class ConfigManager {
     private Set<String> excludeServiceOperations;
     private String targetAddress;
     private int dubboStreamReplayThreshold;
-    private boolean disableReplay;
     private List<ConfigListener> listeners = new ArrayList<>();
     private Map<String, String> extendField;
 
@@ -231,7 +231,6 @@ public class ConfigManager {
         setRetransformModules(System.getProperty(RETRANSFORM_MODULE));
         setExcludeServiceOperations(System.getProperty(EXCLUDE_SERVICE_OPERATION));
         setDubboStreamReplayThreshold(System.getProperty(DUBBO_STREAM_REPLAY_THRESHOLD, "100"));
-        setDisableReplay(System.getProperty(DISABLE_REPLAY));
     }
 
     @VisibleForTesting
@@ -255,7 +254,8 @@ public class ConfigManager {
         setDisabledModules(configMap.get(DISABLE_MODULE));
         setRetransformModules(configMap.get(RETRANSFORM_MODULE));
         setExcludeServiceOperations(configMap.get(EXCLUDE_SERVICE_OPERATION));
-        setDisableReplay(configMap.get(DISABLE_REPLAY));
+        System.setProperty(DISABLE_REPLAY, StringUtil.defaultString(configMap.get(DISABLE_REPLAY)));
+        System.setProperty(DISABLE_RECORD, StringUtil.defaultString(configMap.get(DISABLE_RECORD)));
     }
 
     private static Map<String, String> parseConfigFile(String configPath) {
@@ -305,12 +305,13 @@ public class ConfigManager {
         Map<String, String> configMap = new HashMap<>();
         configMap.put(DYNAMIC_RESULT_SIZE_LIMIT, String.valueOf(getDynamicResultSizeLimit()));
         configMap.put(TIME_MACHINE, String.valueOf(startTimeMachine()));
-        configMap.put(DISABLE_REPLAY, String.valueOf(disableReplay()));
+        configMap.put(DISABLE_REPLAY, System.getProperty(DISABLE_REPLAY));
+        configMap.put(DISABLE_RECORD, System.getProperty(DISABLE_RECORD));
         configMap.put(DURING_WORK, Boolean.toString(nextWorkTime() <= 0));
         configMap.put(AGENT_VERSION, agentVersion);
         configMap.put(IP_VALIDATE, Boolean.toString(checkTargetAddress()));
         Map<String, String> extendFieldMap = getExtendField();
-        if (extendFieldMap != null && !extendFieldMap.isEmpty()) {
+        if (MapUtils.isNotEmpty(extendFieldMap)) {
             configMap.putAll(extendFieldMap);
         }
 
@@ -521,19 +522,6 @@ public class ConfigManager {
 
     public int getDubboStreamReplayThreshold() {
         return dubboStreamReplayThreshold;
-    }
-
-    public void setDisableReplay(String disableReplay) {
-        if (StringUtil.isEmpty(disableReplay)) {
-            return;
-        }
-
-        this.disableReplay = Boolean.parseBoolean(disableReplay);
-        System.setProperty(DISABLE_REPLAY, disableReplay);
-    }
-
-    public boolean disableReplay() {
-        return disableReplay;
     }
 
     public Map<String, String> getExtendField() {
