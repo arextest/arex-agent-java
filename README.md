@@ -6,11 +6,11 @@
 
 #### An Open Source Testing Framework with Real World Data
 
-- [Introduction](https://#introduction)
-- [Installation](https://#installation)
-- [Getting Started](https://#getting-started)
-- [Contributing](https://#contributing)
-- [License](https://#license)
+- [Introduction](#introduction)
+- [Installation](#installation)
+- [Getting Started](#getting-started)
+- [Contributing](#contributing)
+- [License](#license)
 
 ## Introduction
 
