@@ -1,5 +1,6 @@
 package io.arex.inst.runtime.config;
 
+import io.arex.agent.bootstrap.constants.ConfigConstants;
 import io.arex.agent.bootstrap.util.ConcurrentHashSet;
 import io.arex.inst.runtime.context.RecordLimiter;
 import io.arex.inst.runtime.model.ArexConstants;
@@ -37,20 +38,25 @@ class ConfigTest {
             config.recordRate(1).build();
         };
         Runnable mocker4 = () -> {
-            config.addProperty("arex.during.work", "true").build();;
+            config.addProperty(ConfigConstants.DURING_WORK, "true").build();;
         };
         Runnable mocker5 = () -> {
-            config.addProperty("arex.ip.validate", "true").build();;
+            config.addProperty(ConfigConstants.IP_VALIDATE, "true").build();
+            RecordLimiter.init(mock -> true);
+        };
+        Runnable disableRecord = () -> {
+            config.addProperty(ConfigConstants.DISABLE_RECORD, "true").build();;
             RecordLimiter.init(mock -> true);
         };
 
-        Predicate<Boolean> predicate1 = result -> !result;
-        Predicate<Boolean> predicate2 = result -> result;
+        Predicate<Boolean> assertFalse = result -> !result;
+        Predicate<Boolean> assertTrue = result -> result;
         return Stream.of(
-                arguments(mocker2, predicate2),
-                arguments(mocker3, predicate2),
-                arguments(mocker4, predicate2),
-                arguments(mocker5, predicate1)
+            arguments(mocker2, assertTrue),
+            arguments(mocker3, assertTrue),
+            arguments(mocker4, assertTrue),
+            arguments(mocker5, assertFalse),
+            arguments(disableRecord, assertTrue)
         );
     }
 

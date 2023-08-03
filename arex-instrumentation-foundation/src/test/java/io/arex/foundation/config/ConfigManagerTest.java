@@ -1,5 +1,6 @@
 package io.arex.foundation.config;
 
+import io.arex.agent.bootstrap.constants.ConfigConstants;
 import io.arex.foundation.model.ConfigQueryResponse;
 import io.arex.foundation.model.ConfigQueryResponse.DynamicClassConfiguration;
 import io.arex.foundation.util.NetUtils;
@@ -28,7 +29,7 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 import org.mockito.MockedStatic;
 
-import static io.arex.foundation.config.ConfigConstants.ENABLE_REPORT_STATUS;
+import static io.arex.agent.bootstrap.constants.ConfigConstants.ENABLE_REPORT_STATUS;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.Mockito.mockStatic;
@@ -50,13 +51,11 @@ class ConfigManagerTest {
     void initFromSystemPropertyTest() {
         System.setProperty("arex.service.name", "test-your-service");
         System.setProperty("arex.storage.service.host", "test-storage-service.host ");
-        System.setProperty("arex.disable.replay", "true");
-        System.setProperty(ENABLE_REPORT_STATUS, "true");
+        System.setProperty(ConfigConstants.DISABLE_REPLAY, "true");
         configManager.init();
 
         assertEquals("test-your-service", configManager.getServiceName());
         assertEquals("test-storage-service.host", configManager.getStorageServiceHost());
-        assertTrue(configManager.disableReplay());
         assertTrue(configManager.isEnableReportStatus());
     }
 

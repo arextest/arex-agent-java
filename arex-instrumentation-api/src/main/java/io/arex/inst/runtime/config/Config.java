@@ -1,5 +1,6 @@
 package io.arex.inst.runtime.config;
 
+import io.arex.agent.bootstrap.constants.ConfigConstants;
 import io.arex.agent.bootstrap.util.ConcurrentHashSet;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.context.RecordLimiter;
@@ -179,6 +180,7 @@ public class Config {
      * 2. not in working time <br/>
      * 3. exceed rate limit <br/>
      * 4. local IP match target IP <br/>
+     * 5. record disabled by config
      *
      * @return true: invalid, false: valid
      */
@@ -186,10 +188,13 @@ public class Config {
         if (getRecordRate() <= 0) {
             return true;
         }
-        if (!getBoolean("arex.during.work", false)) {
+        if (!getBoolean(ConfigConstants.DURING_WORK, false)) {
             return true;
         }
-        if (!getBoolean("arex.ip.validate", false)) {
+        if (!getBoolean(ConfigConstants.IP_VALIDATE, false)) {
+            return true;
+        }
+        if (getBoolean(ConfigConstants.DISABLE_RECORD, false)) {
             return true;
         }
 
