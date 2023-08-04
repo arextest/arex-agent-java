@@ -1,19 +1,19 @@
 package io.arex.inst.extension;
 
-import io.arex.agent.bootstrap.internal.Pair;
+import io.arex.agent.bootstrap.model.ComparableVersion;
 
 public class ModuleDescription {
     public static Builder builder() {
         return new Builder();
     }
 
-    private Pair<Integer, Integer> from;
-    private Pair<Integer, Integer> to;
+    private ComparableVersion from;
+    private ComparableVersion to;
 
     private String moduleName;
 
     private ModuleDescription(String moduleName,
-                              Pair<Integer, Integer> supportFrom, Pair<Integer, Integer> supportTo) {
+                              ComparableVersion supportFrom, ComparableVersion supportTo) {
         this.moduleName = moduleName;
         this.from = supportFrom;
         this.to = supportTo;
@@ -23,32 +23,31 @@ public class ModuleDescription {
         return moduleName;
     }
 
-    public boolean isSupported(Pair<Integer, Integer> current) {
-        boolean isSupported = current.getFirst() >= from.getFirst() && current.getSecond() >= from.getSecond();
+    public boolean isSupported(ComparableVersion current) {
+        boolean isSupported = current.compareTo(from) >= 0;
         if (isSupported && to != null) {
-            isSupported = current.getFirst() <= to.getFirst() && current.getSecond() <= to.getSecond();
+            isSupported = current.compareTo(to) <= 0;
         }
-
         return isSupported;
     }
 
     public static final class Builder {
         private String name;
-        private Pair<Integer, Integer> from;
-        private Pair<Integer, Integer> to;
+        private ComparableVersion from;
+        private ComparableVersion to;
 
         public Builder name(String moduleName) {
             this.name = moduleName;
             return this;
         }
 
-        public Builder supportFrom(int major, int minor) {
-            this.from = Pair.of(major, minor);
+        public Builder supportFrom(ComparableVersion version) {
+            this.from = version;
             return this;
         }
 
-        public Builder supportTo(int major, int minor) {
-            this.to = Pair.of(major, minor);
+        public Builder supportTo(ComparableVersion version) {
+            this.to = version;
             return this;
         }
 
