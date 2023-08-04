@@ -78,10 +78,14 @@ public abstract class BaseAgentInstaller implements AgentInstaller {
             return;
         }
         reportStatusTask = TimerService.scheduleAtFixedRate(() -> {
-            ConfigService.INSTANCE.reportStatus();
-            // Load agent config according to last modified time
-            if (ConfigService.INSTANCE.reloadConfig()) {
-                install();
+            try {
+                ConfigService.INSTANCE.reportStatus();
+                // Load agent config according to last modified time
+                if (ConfigService.INSTANCE.reloadConfig()) {
+                    install();
+                }
+            } catch (Exception e) {
+                LOGGER.error("[AREX] Report status error.", e);
             }
         }, 1, 1, TimeUnit.MINUTES);
     }
