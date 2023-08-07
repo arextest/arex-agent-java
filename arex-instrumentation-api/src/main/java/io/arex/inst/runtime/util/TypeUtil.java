@@ -292,7 +292,7 @@ public class TypeUtil {
      */
     private static String filterRawGenericType(String genericType) {
         if (StringUtil.isEmpty(genericType)) {
-            // does not return null, otherwise com.xxx.Response-null will deserialize throw ClassNorFoundException: null
+            // does not return null, otherwise com.xxx.Response-null will deserialize throw ClassNotFoundException: null
             // this case means that the generic field is not assigned a value
             return StringUtil.EMPTY;
         }

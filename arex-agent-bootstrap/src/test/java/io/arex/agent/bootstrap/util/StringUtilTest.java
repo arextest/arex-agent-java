@@ -280,4 +280,10 @@ class StringUtilTest {
         assertTrue(set.contains("bb"));
         assertTrue(set.contains("c"));
     }
+
+    @Test
+    void isNullWord() {
+        assertTrue(StringUtil.isNullWord("null"));
+        assertTrue(StringUtil.isNullWord("NULL"));
+    }
 }
