@@ -285,5 +285,6 @@ class StringUtilTest {
     void isNullWord() {
         assertTrue(StringUtil.isNullWord("null"));
         assertTrue(StringUtil.isNullWord("NULL"));
+        assertFalse(StringUtil.isNullWord("mock"));
     }
 }
