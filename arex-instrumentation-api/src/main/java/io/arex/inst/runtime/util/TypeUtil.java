@@ -120,7 +120,7 @@ public class TypeUtil {
             Field field = GENERIC_FIELD_CACHE.get(cacheKey);
             if (field == null) {
                 for (Field declaredField : rawClass.getDeclaredFields()) {
-                    // such as: java.util.List<T> != T but contains T
+                    // java.util.List<T> contains T
                     if (declaredField.getGenericType().getTypeName().contains(typeName)) {
                         declaredField.setAccessible(true);
                         GENERIC_FIELD_CACHE.put(cacheKey, declaredField);
@@ -285,7 +285,7 @@ public class TypeUtil {
      * class A<T> {
      *     List<T> t;
      * }
-     *
+     * A<List<T>> -> A<T>
      * such as: com.xxx.Response-java.util.ArrayList-java.lang.String
      * return com.xxx.Response-java.lang.String
      */
@@ -298,7 +298,7 @@ public class TypeUtil {
         StringBuilder builder = new StringBuilder();
         String[] types = StringUtil.split(genericType, HORIZONTAL_LINE);
         for (String type : types) {
-            if ("null".equalsIgnoreCase(type) || isCollection(type)) {
+            if (StringUtil.isNullWord(type) || isCollection(type)) {
                 continue;
             }
             builder.append(HORIZONTAL_LINE).append(type);

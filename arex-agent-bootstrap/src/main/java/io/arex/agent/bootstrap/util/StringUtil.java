@@ -511,4 +511,8 @@ public class StringUtil {
         String[] strs = split(str, separatorChars);
         return new HashSet<>(Arrays.asList(strs));
     }
+
+    public static boolean isNullWord(String str) {
+        return equals(str, "null") || equals(str, "NULL");
+    }
 }

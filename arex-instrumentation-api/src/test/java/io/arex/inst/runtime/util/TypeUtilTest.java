@@ -9,16 +9,12 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import java.time.LocalDateTime;
-import java.util.List;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -166,6 +162,14 @@ class TypeUtilTest {
         final Type type2 = TypeUtil.forName(name2);
         assert type2 != null;
         assertEquals("io.arex.agent.bootstrap.internal.Pair<java.lang.Long, java.time.LocalTime>", type2.getTypeName());
+
+        final Pair pairNull = Pair.of(System.currentTimeMillis(), null);
+        final String genericNull = TypeUtil.getName(pairNull);
+        assertEquals("io.arex.agent.bootstrap.internal.Pair-java.lang.Long,", genericNull);
+
+        final Pair pairList = Pair.of(System.currentTimeMillis(), Arrays.asList("mock"));
+        final String genericList = TypeUtil.getName(pairList);
+        assertEquals("io.arex.agent.bootstrap.internal.Pair-java.lang.Long,java.lang.String", genericList);
     }
 
     @Test
@@ -248,4 +252,8 @@ class TypeUtilTest {
         assertEquals("java.lang.Double", arg2Type);
     }
 
+//    @Test
+//    public void filterRawGenericType() {
+//        assertEquals(StringUtil.EMPTY, TypeUtil.filterRawGenericType(null));
+//    }
 }
