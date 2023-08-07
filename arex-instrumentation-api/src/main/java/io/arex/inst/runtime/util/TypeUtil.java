@@ -120,7 +120,8 @@ public class TypeUtil {
             Field field = GENERIC_FIELD_CACHE.get(cacheKey);
             if (field == null) {
                 for (Field declaredField : rawClass.getDeclaredFields()) {
-                    if (declaredField.getGenericType().getTypeName().equals(typeName)) {
+                    // java.util.List<T> contains T
+                    if (declaredField.getGenericType().getTypeName().contains(typeName)) {
                         declaredField.setAccessible(true);
                         GENERIC_FIELD_CACHE.put(cacheKey, declaredField);
                         field = declaredField;
@@ -128,7 +129,7 @@ public class TypeUtil {
                     }
                 }
             }
-            builder.append(invokeGetFieldType(field, result));
+            builder.append(filterRawGenericType(invokeGetFieldType(field, result)));
             if (i == typeParameters.length - 1) {
                return builder.toString();
             }
@@ -278,5 +279,40 @@ public class TypeUtil {
             return builder.toString();
         }
         return getName(object);
+    }
+
+    /**
+     * filter out effective raw generic in collection: A<List<T>> -> A<T>
+     * class A<T> {
+     *     List<T> t;
+     * }
+     * otherwise deserialize will fail
+     * such as: com.xxx.Response-java.util.ArrayList-java.lang.String
+     * return com.xxx.Response-java.lang.String
+     */
+    private static String filterRawGenericType(String genericType) {
+        if (StringUtil.isEmpty(genericType)) {
+            // does not return null, otherwise com.xxx.Response-null will deserialize throw ClassNotFoundException: null
+            // this case means that the generic field is not assigned a value
+            return StringUtil.EMPTY;
+        }
+        StringBuilder builder = new StringBuilder();
+        String[] types = StringUtil.split(genericType, HORIZONTAL_LINE);
+        for (String type : types) {
+            if (StringUtil.isNullWord(type) || isCollection(type)) {
+                continue;
+            }
+            builder.append(HORIZONTAL_LINE).append(type);
+        }
+        return builder.substring(1);
+    }
+
+    private static boolean isCollection(String genericType) {
+        try {
+            Class<?> clazz = Class.forName(genericType);
+            return Collection.class.isAssignableFrom(clazz);
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
     }
 }
