@@ -251,9 +251,4 @@ class TypeUtilTest {
         final String arg2Type = TypeUtil.errorSerializeToString(arg2);
         assertEquals("java.lang.Double", arg2Type);
     }
-
-//    @Test
-//    public void filterRawGenericType() {
-//        assertEquals(StringUtil.EMPTY, TypeUtil.filterRawGenericType(null));
-//    }
 }
