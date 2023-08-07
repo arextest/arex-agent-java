@@ -282,10 +282,11 @@ public class TypeUtil {
     }
 
     /**
+     * filter out effective raw generic in collection: A<List<T>> -> A<T>
      * class A<T> {
      *     List<T> t;
      * }
-     * A<List<T>> -> A<T>
+     * otherwise deserialize will fail
      * such as: com.xxx.Response-java.util.ArrayList-java.lang.String
      * return com.xxx.Response-java.lang.String
      */
