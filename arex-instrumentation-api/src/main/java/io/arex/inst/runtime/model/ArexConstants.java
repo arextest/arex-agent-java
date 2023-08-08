@@ -34,5 +34,5 @@ public class ArexConstants {
     public static final String CONFIG_DEPENDENCY = "arex_replay_prepare_dependency";
     public static final String PREFIX = "arex-";
     public static final String CONFIG_VERSION = "configBatchNo";
-    public static final String FORBIDDEN_FLAG = "arex-forbidden-flag";
+    public static final String SKIP_FLAG = "arex-skip-flag";
 }

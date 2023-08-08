@@ -135,6 +135,10 @@ class ServletAdviceHelperTest {
             Mockito.when(RecordLimiter.acquire(any())).thenReturn(true);
             Mockito.when(ContextManager.needRecordOrReplay()).thenReturn(true);
         };
+        Runnable shouldSkip9 = () -> {
+            Mockito.when(adapter.getRequestHeader(any(), eq(ArexConstants.RECORD_ID))).thenReturn("mock");
+            Mockito.when(adapter.getAttribute(any(), eq(ArexConstants.SKIP_FLAG))).thenReturn(Boolean.TRUE);
+        };
 
         Predicate<Pair<?, ?>> predicate1 = Objects::isNull;
         Predicate<Pair<?, ?>> predicate2 = Objects::nonNull;
@@ -153,7 +157,8 @@ class ServletAdviceHelperTest {
             arguments("shouldSkip: IgnoreUtils.ignoreOperation returns true", shouldSkip5, predicate1),
             arguments("shouldSkip: adapter.getRequestURI return .png", shouldSkip6, predicate1),
             arguments("shouldSkip: adapter.getContentType return image/", shouldSkip7, predicate1),
-            arguments("ContextManager.needRecordOrReplay is true", shouldSkip8, predicate2)
+            arguments("ContextManager.needRecordOrReplay is true", shouldSkip8, predicate2),
+            arguments("shouldSkip: adapter.getAttribute returns true", shouldSkip9, predicate1)
         );
     }
 
