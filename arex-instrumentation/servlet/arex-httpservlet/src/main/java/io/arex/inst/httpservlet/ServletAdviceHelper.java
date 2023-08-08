@@ -1,6 +1,7 @@
 package io.arex.inst.httpservlet;
 
 import io.arex.agent.bootstrap.TraceContextManager;
+import io.arex.agent.bootstrap.constants.ConfigConstants;
 import io.arex.agent.bootstrap.internal.Pair;
 import io.arex.agent.bootstrap.model.MockCategoryType;
 import io.arex.agent.bootstrap.util.StringUtil;
@@ -100,6 +101,12 @@ public class ServletAdviceHelper {
             return null;
         }
 
+        RequestHandlerManager.preHandle(httpServletRequest, MockCategoryType.SERVLET.getName());
+        // skip servlet if attr with arex-skip-flag
+        if (Boolean.TRUE.equals(adapter.getAttribute(httpServletRequest, ArexConstants.SKIP_FLAG))) {
+            return null;
+        }
+
         // 302 Redirect request
         String redirectRecordId = getRedirectRecordId(adapter, httpServletRequest);
         if (StringUtil.isNotEmpty(redirectRecordId)) {
@@ -109,7 +116,7 @@ public class ServletAdviceHelper {
             String caseId = adapter.getRequestHeader(httpServletRequest, ArexConstants.RECORD_ID);
             String excludeMockTemplate = adapter.getRequestHeader(httpServletRequest, ArexConstants.HEADER_EXCLUDE_MOCK);
             CaseEventDispatcher.onEvent(CaseEvent.ofCreateEvent(EventSource.of(caseId, excludeMockTemplate)));
-            RequestHandlerManager.preHandle(httpServletRequest, MockCategoryType.SERVLET.getName());
+
         }
 
         if (ContextManager.needRecordOrReplay()) {
@@ -198,7 +205,7 @@ public class ServletAdviceHelper {
 
         // Replay scene
         if (StringUtil.isNotEmpty(caseId)) {
-            return Config.get().getBoolean("arex.disable.replay", false);
+            return Config.get().getBoolean(ConfigConstants.DISABLE_REPLAY, false);
         }
 
         String forceRecord = adapter.getRequestHeader(httpServletRequest, ArexConstants.FORCE_RECORD);
