@@ -1,5 +1,6 @@
 package io.arex.inst.runtime.util;
 
+import io.arex.agent.bootstrap.model.ParameterizedTypeImpl;
 import io.arex.agent.bootstrap.util.ArrayUtils;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.log.LogManager;
@@ -15,7 +16,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
 
 public class TypeUtil {
 
