@@ -1,6 +1,7 @@
 package io.arex.foundation.config;
 
 import com.google.common.annotations.VisibleForTesting;
+import io.arex.agent.bootstrap.util.ArrayUtils;
 import io.arex.agent.bootstrap.util.MapUtils;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.foundation.model.ConfigQueryResponse.DynamicClassConfiguration;
@@ -154,24 +155,31 @@ public class ConfigManager {
         return dynamicClassList;
     }
 
-    public void setDynamicClassList(List<DynamicClassConfiguration> newDynamicCOnfigList) {
-        if (newDynamicCOnfigList == null) {
+    public void setDynamicClassList(List<DynamicClassConfiguration> newDynamicConfigList) {
+        if (newDynamicConfigList == null) {
             return;
         }
         // reset previously configured dynamic classes
-        if (newDynamicCOnfigList.isEmpty()) {
+        if (newDynamicConfigList.isEmpty()) {
             for (DynamicClassEntity item : dynamicClassList) {
                 item.setStatus(DynamicClassStatusEnum.RESET);
             }
             return;
         }
 
-        List<DynamicClassEntity> newDynamicClassList = new ArrayList<>(newDynamicCOnfigList.size());
-        for (DynamicClassConfiguration config : newDynamicCOnfigList) {
-            DynamicClassEntity newItem = new DynamicClassEntity(config.getFullClassName(), config.getMethodName(),
-                config.getParameterTypes(), config.getKeyFormula());
-            newItem.setStatus(DynamicClassStatusEnum.RETRANSFORM);
-            newDynamicClassList.add(newItem);
+        List<DynamicClassEntity> newDynamicClassList = new ArrayList<>(newDynamicConfigList.size());
+        // keyFormula: java.lang.System.currentTimeMillis,java.util.UUID.randomUUID -> 2 dynamic classes will be created
+        for (DynamicClassConfiguration config : newDynamicConfigList) {
+            final String[] split = StringUtil.split(config.getKeyFormula(), ',');
+
+            if (ArrayUtils.isEmpty(split)) {
+                newDynamicClassList.add(createDynamicClass(config, config.getKeyFormula()));
+                continue;
+            }
+
+            for (String keyFormula : split) {
+                newDynamicClassList.add(createDynamicClass(config, keyFormula));
+            }
         }
 
         // if old dynamic class list is empty, add all new dynamic class list
@@ -209,6 +217,13 @@ public class ConfigManager {
             }
         }
         dynamicClassList.addAll(retransformList);
+    }
+
+    private DynamicClassEntity createDynamicClass(DynamicClassConfiguration config, String keyFormula) {
+        DynamicClassEntity newItem = new DynamicClassEntity(config.getFullClassName(), config.getMethodName(),
+                config.getParameterTypes(), keyFormula);
+        newItem.setStatus(DynamicClassStatusEnum.RETRANSFORM);
+        return newItem;
     }
 
     @VisibleForTesting

@@ -4,12 +4,15 @@ import io.arex.agent.bootstrap.constants.ConfigConstants;
 import io.arex.foundation.model.ConfigQueryResponse;
 import io.arex.foundation.model.ConfigQueryResponse.DynamicClassConfiguration;
 import io.arex.foundation.util.NetUtils;
+import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.model.DynamicClassEntity;
 import io.arex.inst.runtime.model.DynamicClassStatusEnum;
+import java.lang.reflect.Constructor;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -277,5 +280,62 @@ class ConfigManagerTest {
             assertTrue(reason.startsWith("not in working time"));
             assertFalse(reason.contains(LocalDate.now().getDayOfWeek().name()));
         }
+    }
+
+    @Test
+    void setDynamicClassListWithKeyFormula() throws Exception {
+        DynamicClassConfiguration dynamicClassConfiguration1 = new DynamicClassConfiguration();
+        dynamicClassConfiguration1.setFullClassName("class1");
+        dynamicClassConfiguration1.setMethodName("method1");
+        dynamicClassConfiguration1.setKeyFormula("$1");
+
+        DynamicClassConfiguration dynamicClassConfiguration2 = new DynamicClassConfiguration();
+        dynamicClassConfiguration2.setFullClassName("class2");
+        dynamicClassConfiguration2.setMethodName("method2");
+
+        DynamicClassConfiguration dynamicClassConfiguration3 = new DynamicClassConfiguration();
+        dynamicClassConfiguration3.setFullClassName("class3");
+        dynamicClassConfiguration3.setMethodName("method3");
+        dynamicClassConfiguration3.setKeyFormula("$1 + $2");
+
+        DynamicClassConfiguration dynamicClassConfiguration4 = new DynamicClassConfiguration();
+        dynamicClassConfiguration4.setFullClassName("class4");
+        dynamicClassConfiguration4.setMethodName("method4");
+        dynamicClassConfiguration4.setKeyFormula(ArexConstants.UUID_SIGNATURE);
+
+        DynamicClassConfiguration dynamicClassConfiguration5 = new DynamicClassConfiguration();
+        dynamicClassConfiguration5.setFullClassName("class5");
+        dynamicClassConfiguration5.setMethodName("method5");
+        dynamicClassConfiguration5.setKeyFormula(ArexConstants.UUID_SIGNATURE + "," + ArexConstants.CURRENT_TIME_MILLIS_SIGNATURE);
+
+        final Constructor<ConfigManager> constructor = ConfigManager.class.getDeclaredConstructor(null);
+        constructor.setAccessible(true);
+        ConfigManager newConfigManager = constructor.newInstance(null);
+        newConfigManager.setDynamicClassList(
+                Arrays.asList(dynamicClassConfiguration1, dynamicClassConfiguration2, dynamicClassConfiguration3, dynamicClassConfiguration4, dynamicClassConfiguration5));
+        assertEquals(6, newConfigManager.getDynamicClassList().size());
+        assertEquals("class1", newConfigManager.getDynamicClassList().get(0).getClazzName());
+        assertEquals("method1", newConfigManager.getDynamicClassList().get(0).getOperation());
+        assertEquals("$1", newConfigManager.getDynamicClassList().get(0).getAdditionalSignature());
+
+        assertEquals("class2", newConfigManager.getDynamicClassList().get(1).getClazzName());
+        assertEquals("method2", newConfigManager.getDynamicClassList().get(1).getOperation());
+        assertNull(newConfigManager.getDynamicClassList().get(1).getAdditionalSignature());
+
+        assertEquals("class3", newConfigManager.getDynamicClassList().get(2).getClazzName());
+        assertEquals("method3", newConfigManager.getDynamicClassList().get(2).getOperation());
+        assertEquals("$1 + $2", newConfigManager.getDynamicClassList().get(2).getAdditionalSignature());
+
+        assertEquals("class4", newConfigManager.getDynamicClassList().get(3).getClazzName());
+        assertEquals("method4", newConfigManager.getDynamicClassList().get(3).getOperation());
+        assertEquals(ArexConstants.UUID_SIGNATURE, newConfigManager.getDynamicClassList().get(3).getAdditionalSignature());
+
+        assertEquals("class5", newConfigManager.getDynamicClassList().get(4).getClazzName());
+        assertEquals("method5", newConfigManager.getDynamicClassList().get(4).getOperation());
+        assertEquals(ArexConstants.UUID_SIGNATURE, newConfigManager.getDynamicClassList().get(4).getAdditionalSignature());
+
+        assertEquals("class5", newConfigManager.getDynamicClassList().get(5).getClazzName());
+        assertEquals("method5", newConfigManager.getDynamicClassList().get(5).getOperation());
+        assertEquals(ArexConstants.CURRENT_TIME_MILLIS_SIGNATURE, newConfigManager.getDynamicClassList().get(5).getAdditionalSignature());
     }
 }
