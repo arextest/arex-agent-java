@@ -208,7 +208,28 @@
         </dependency>
     </dependencies>
 
+    <profiles>
+        <profile>
+            <id>default</id>
+            <properties>
+                <jarName>${project.artifactId}</jarName>
+                <bootStrapJarName>arex-agent-bootstrap.${project.packaging}</bootStrapJarName>
+            </properties>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+        </profile>
+        <profile>
+            <id>jar-with-version</id>
+            <properties>
+                <jarName>${project.artifactId}-${project.version}</jarName>
+                <bootStrapJarName>arex-agent-bootstrap-${project.version}.${project.packaging}</bootStrapJarName>
+            </properties>
+        </profile>
+    </profiles>
+
     <build>
+        <finalName>${jarName}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
