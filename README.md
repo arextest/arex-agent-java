@@ -60,14 +60,20 @@ AREX utilizes the advanced Java technique, Instrument API, and is capable of ins
 ## Installation
 
 
-Simply download the latest binary from [github](https://github.com/arextest/releases) or compile it by yourself.
+Simply download the latest binary from [github](https://github.com/arextest/arex-agent-java/releases) 
+or compile it with `mvn clean package -DskipTests` by yourself.
 
 There are two agent files provided in the arex-agent-jar folder like below. They must be placed in the same directory.
 
 ```other
+arex-agent.jar
+arex-agent-bootstrap.jar
+```
+
+If you need these jar with version, you can add option: `mvn clean package -DskipTests -Pjar-with-version` 
+```other
 arex-agent-<version>.jar
 arex-agent-bootstrap-<version>.jar
-
 ```
 
 
@@ -81,7 +87,7 @@ AREX agent works along with the [AREX storage service](https://github.com/arexte
 You could just configure the host and port of them respectively, like below
 
 ```other
-java -javaagent:/path/to/arex-agent-<version>.jar
+java -javaagent:/path/to/arex-agent.jar
       -Darex.service.name=your-service-name
       -Darex.storage.service.host=[storage.service.host:port](storage.service.host:port) 
       -jar your-application.jar
@@ -99,7 +105,7 @@ arex.storage.service.host=<storage.service.host:port>
 Then simply run:
 
 ```other
-java -javaagent:/path/to/arex-agent-<version>.jar
+java -javaagent:/path/to/arex-agent.jar
       -Darex.config.path=/path/to/arex.agent.conf
       -jar your-application.jar
 ```

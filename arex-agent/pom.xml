@@ -190,7 +190,6 @@
     </dependencies>
 
     <build>
-        <finalName>arex-agent-${project.version}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -204,7 +203,6 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <addClasspath>true</addClasspath>
                             <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
                             <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
                         </manifest>
@@ -216,6 +214,7 @@
                             <Can-Set-Native-Method-Prefix>true</Can-Set-Native-Method-Prefix>
                             <Build-Time>${maven.build.timestamp}</Build-Time>
                             <Built-By>arextest.com</Built-By>
+                            <Class-Path>${bootStrapJarName}</Class-Path>
                         </manifestEntries>
                     </archive>
                 </configuration>
@@ -279,8 +278,8 @@
                                     <fileset dir="../arex-agent-jar/bytecode-dump" includes="*.class" />
                                 </delete>
                                 <copy todir="../arex-agent-jar">
-                                    <fileset dir="../arex-agent/target/" includes="arex-agent-*.jar" />
-                                    <fileset dir="../arex-agent-bootstrap/target/" includes="arex-agent-bootstrap-*.jar" />
+                                    <fileset dir="../arex-agent/target/" includes="arex-agent*.jar" />
+                                    <fileset dir="../arex-agent-bootstrap/target/" includes="arex-agent-bootstrap*.jar" />
                                 </copy>
                             </target>
                         </configuration>
