@@ -6,7 +6,7 @@ import io.arex.agent.bootstrap.util.StringUtil;
 import java.util.Map;
 
 public class ContextManager {
-    private static final Map<String, ArexContext> RECORD_MAP = new LatencyContextHashMap();
+    private static final LatencyContextHashMap RECORD_MAP = new LatencyContextHashMap();
 
     /**
      * agent call this method
@@ -19,6 +19,11 @@ public class ContextManager {
      * agent will call this method
      */
     public static ArexContext currentContext(boolean createIfAbsent, String caseId) {
+        if (caseId != null) {
+            System.out.println("[AREX] replay case: " + caseId);
+            RECORD_MAP.overdueCleanUp();
+        }
+
         // replay scene
         if (StringUtil.isNotEmpty(caseId)) {
             TraceContextManager.set(caseId);

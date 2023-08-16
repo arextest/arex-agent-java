@@ -71,6 +71,7 @@ public abstract class BaseAgentInstaller implements AgentInstaller {
             initDependentComponents();
             ResettableClassFileTransformer transformer = transform();
             String serviceNamespace = Config.get().getServiceNamespace();
+            serviceNamespace = "com.ctrip.flight";
             if (StringUtil.isNotEmpty(serviceNamespace)) {
                 instrumentation.addTransformer(new LineVisitTransformer(serviceNamespace), true);
             }

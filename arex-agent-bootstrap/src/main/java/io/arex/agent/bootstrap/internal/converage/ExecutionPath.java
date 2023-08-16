@@ -1,6 +1,9 @@
 package io.arex.agent.bootstrap.internal.converage;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
 
 public class ExecutionPath {
 
@@ -10,9 +13,10 @@ public class ExecutionPath {
 
     private final String caseId;
     private long key;
-    private Long[] executionData;
 
-    private String message;
+    List<Integer> executedChangeMethods;
+
+    private String debugMessage;
 
     public long getKey() {
         return key;
@@ -22,34 +26,55 @@ public class ExecutionPath {
         return this.caseId;
     }
 
-    public String size() {
-        return String.valueOf(executionData.length);
-    }
-
-    public ExecutionPath(String caseId, final Long[] executionData) {
+    public ExecutionPath(String caseId, List<ExecutionPathBuilder.MethodExecutionRecord> executionData) {
         this.caseId = caseId;
-        this.key = calculateKey(executionData);
-        this.executionData = executionData;
+        init(executionData);
+        this.count2 = executionData.size();
     }
 
-    public ExecutionPath(String caseId, final Long[] executionData, String message) {
-        this(caseId, executionData);
+    private int count1;
+    private int count2;
 
-        this.message = message;
-        System.out.println("[AREX] caseid: " + this.caseId + "\r\n" + message);
+    private StringBuilder builder;
+
+    public ExecutionPath(String caseId, List<ExecutionPathBuilder.MethodExecutionRecord> executionData, int count) {
+
+        this.count1 = count;
+        this.count2 = executionData.size();
+        this.caseId = caseId;
+        init(executionData);
     }
 
-    private long calculateKey(Long[] executionData) {
-        long resulet = 1;
-        for (long l : executionData) {
-            resulet = 31 * resulet + Long.hashCode(l);
+    private void init(List<ExecutionPathBuilder.MethodExecutionRecord> executionData) {
+        builder = new StringBuilder();
+        executionData.sort(Comparator.comparingLong(ExecutionPathBuilder.MethodExecutionRecord::executionKey));
+
+        //StringBuilder sb = new StringBuilder();
+        for (ExecutionPathBuilder.MethodExecutionRecord record : executionData) {
+            this.key = 31 * this.key + record.executionKey();
+
+            if (record.isChangedMethod()) {
+                if (executedChangeMethods == null) {
+                    executedChangeMethods = new ArrayList<>();
+                }
+                executedChangeMethods.add(record.getMethodKey());
+            }
+
+            if (record.getDebugMessage() != null) {
+                builder.append(record.getDebugMessage()).append('-').append(record.getStrCodes()).append(record.getCodes()).append(",");
+            }
         }
-        return resulet;
+
+        String msg = "ExecutionPath(caseId=" + caseId + ",key=" + this.key + ", count1=" + count1 + ", count2=" + count2 + "): ";
+        builder.insert(0, msg);
+
+        /*if (sb.length() > 0) {
+            sb.deleteCharAt(sb.length() - 1);
+            this.debugMessage = sb.toString();
+        }*/
     }
 
     public String toString() {
-        return "ExecutionPath(caseId=" + this.caseId + ", key:" + key
-                + ", executionData=(" + executionData.length + ")" + Arrays.deepToString(this.executionData);
+        return builder.toString();
     }
-
 }

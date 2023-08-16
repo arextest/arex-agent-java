@@ -1,9 +1,6 @@
 package io.arex.agent.bootstrap.internal.converage;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ExecutionPathBuilder {
@@ -15,12 +12,14 @@ public class ExecutionPathBuilder {
         }
     };
 
+    private int count1 = 0;
+
     public ExecutionPathBuilder(String caseId) {
         this.caseId = caseId;
     }
 
     private String caseId;
-    private ConcurrentHashMap<Long, ExecutionRecord> executionMap = new ConcurrentHashMap<>(100);
+    private ConcurrentHashMap<Long, MethodExecutionRecord> executionMap = new ConcurrentHashMap<>(100);
 
     public ExecutionPathBuilder caseId(String caseId) {
         this.caseId = caseId;
@@ -29,45 +28,38 @@ public class ExecutionPathBuilder {
 
     public ExecutionPathBuilder methodEnter(int key) {
         ExecutionStack stack = TL_STACK.get();
-        ExecutionPathBuilder.ExecutionRecord record = stack.top();
-        if (stack.size() == 0 || record.key != key) {
-            record = new ExecutionPathBuilder.ExecutionRecord(key);
+        MethodExecutionRecord record = stack.top();
+        if (record == null || record.methodKey != key) {
+            stack.push(new MethodExecutionRecord(key));
         }
-
-        stack.push(record);
         return this;
     }
 
-    public ExecutionPathBuilder methodExecute(int key, int line) {
-        ExecutionRecord record = TL_STACK.get().top();
-        if (record != null && record.key == key) {
-            record.appendLine(line);
+    public ExecutionPathBuilder methodExecute(int key, int code) {
+        MethodExecutionRecord record = TL_STACK.get().top();
+        if (record != null && record.methodKey == key) {
+            record.executeBranch(code);
         }
         return this;
     }
 
     public ExecutionPathBuilder methodExit(int key) {
-        ExecutionStack stack = TL_STACK.get();
-        ExecutionRecord record = stack.pop();
-        if (record.key == key) {
-            if (record.base < 0 || record.line == 0) {
-                return this;
-            }
-            executionMap.computeIfAbsent(record.executionKey(), k -> record);
-        } else {
-            stack.push(record);
-        }
-        return this;
+        return methodExit(key, null);
     }
 
     public ExecutionPathBuilder methodExit(int key, String message) {
         ExecutionStack stack = TL_STACK.get();
-        ExecutionRecord record = stack.pop();
-        if (record.key == key) {
-            if (record.base < 0 || record.line == 0) {
+        MethodExecutionRecord record = stack.pop();
+        if (record == null) {
+            return this;
+        }
+
+        if (record.methodKey == key) {
+            count1++;
+            if (record.codes == 0) {
                 return this;
             }
-            record.method = message;
+            record.debugMessage = message;
             executionMap.computeIfAbsent(record.executionKey(), k -> record);
         } else {
             stack.push(record);
@@ -76,90 +68,85 @@ public class ExecutionPathBuilder {
     }
 
     public ExecutionPath build() {
-        List<Long> executionData = new ArrayList<>(executionMap.size());
-        //StringBuilder builder = new StringBuilder();
-        List<ExecutionRecord> records = new ArrayList<>(executionMap.values());
-        records.sort(Comparator.comparingLong(ExecutionRecord::executionKey));
-        for (ExecutionRecord record : records) {
-            if (record.base < 0) {
-                continue;
-            }
-            executionData.add(record.executionKey());
-            //builder.append(record.method).append(";").append(record.executionKey()).append("\r\n");
-        }
-        //executionData.sort(Long::compareTo);
-        return new ExecutionPath(this.caseId, executionData.toArray(new Long[0]));
+        return new ExecutionPath(this.caseId, new ArrayList<>(executionMap.values()), count1);
     }
 
-    public static class ExecutionRecord {
+    public static class MethodExecutionRecord {
         static final int LINE_OVERFLOW_VALUE = Integer.MAX_VALUE >> 2;
 
-        private int key;
-        private int line;
-        private int base = -1;
-        private int lastLine;
-        private boolean locked = false;
-
-        private String method;
-
-        private ByteSet loopSet;
-
-        public ExecutionRecord(int key) {
-            this.key = key;
-        }
-
-        public void appendLine(int line) {
-            if (!validate(line)) {
-                return;
-            }
-
-            if (this.base < 0) {
-                this.base = line;
-                return;
-            }
-
-            line -= base;
-            if (line < lastLine) {
-                // maybe loop
-                if (loopSet == null) {
-                    loopSet = new ByteSet(10);
-                }
-                loopSet.add((byte) line);
-                return;
-            }
-
-            this.line = (this.line < LINE_OVERFLOW_VALUE) ? this.line << 1 : this.line;
-            this.line += line;
-            lastLine = line;
-        }
-
-        private boolean validate(int line) {
-            if (locked) {
-                return false;
-            }
-
-            if (line == base && lastLine > line) {
-                // recursive call
-                this.locked = true;
-                return false;
-            }
-            return true;
-        }
-
+        private int methodKey;
         private long executionKey = -1;
+        private int codes;
+        private int lastCode = -1;
+        private String debugMessage;
+        private int loopCodes = 0;
+        private boolean changedMethod = false;
+
+        private String strCodes = "";
+
+        public String getStrCodes() {
+            return strCodes;
+        }
+
+        public MethodExecutionRecord(int key) {
+            this.methodKey = key;
+        }
+
+        public int getMethodKey() {
+            return methodKey;
+        }
+
+        public int getCodes() {
+            return codes;
+        }
+
+        public String getDebugMessage() {
+            return debugMessage;
+        }
+
+        public void executeBranch(int code) {
+            if (code < lastCode) {
+                // maybe loop or recursive call
+                loopCodes |= mapCode(code);
+                return;
+            } else {
+                if (loopCodes != 0) {
+                    appendCode(loopCodes);
+                    loopCodes = 0;
+                }
+            }
+
+            lastCode = code;
+            appendCode(code);
+        }
+
+        private void appendCode(int code) {
+            this.codes = ((this.codes < LINE_OVERFLOW_VALUE) ? this.codes << 1 : this.codes) + code;
+        }
 
         public long executionKey() {
             if (executionKey < 0) {
-                int lineCode = loopSet == null ? line : Arrays.hashCode(new int[]{line, loopSet.hashCode()});
-                executionKey = ((long) key << 32) | lineCode;
+                if (loopCodes != 0) {
+                    appendCode(loopCodes);
+                    loopCodes = 0;
+                }
+                executionKey = ((long) methodKey << 32) | codes;
             }
             return executionKey;
         }
 
+        public boolean isChangedMethod() {
+            return changedMethod;
+        }
+
+        private int mapCode(int code) {
+            return 2 ^ (code - 1);
+        }
+
         public String toString() {
             return "ExecuteRecord{" +
-                    "key='" + key + '\'' +
-                    ", line=" + line +
+                    "key='" + methodKey + '\'' +
+                    ", code=" + codes +
                     '}';
         }
     }

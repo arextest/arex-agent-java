@@ -3,19 +3,19 @@ package io.arex.agent.bootstrap.internal.converage;
 class ByteSet {
 
     private static final byte[] EMPTY_ARRAY = new byte[0];
-    private transient byte[] a;
+    private transient byte[] bytes;
     private int size;
     public ByteSet() {
-        this.a = EMPTY_ARRAY;
+        this.bytes = EMPTY_ARRAY;
     }
 
     public ByteSet(final int capacity) {
-        this.a = new byte[capacity];
+        this.bytes = new byte[capacity];
     }
 
     private int findKey(final byte o) {
         for (int i = size; i-- != 0;)
-            if (((a[i]) == (o)))
+            if (((bytes[i]) == (o)))
                 return i;
         return -1;
     }
@@ -32,13 +32,13 @@ class ByteSet {
         final int pos = findKey(k);
         if (pos != -1)
             return false;
-        if (size == a.length) {
+        if (size == bytes.length) {
             final byte[] b = new byte[size == 0 ? 2 : size * 2];
             for (int i = size; i-- != 0;)
-                b[i] = a[i];
-            a = b;
+                b[i] = bytes[i];
+            bytes = b;
         }
-        a[size++] = k;
+        bytes[size++] = k;
         return true;
     }
 
@@ -53,9 +53,13 @@ class ByteSet {
     public int hashCode() {
         int h = 0;
         for (int i = size, j = 0; i-- != 0;) {
-            h += (a[i]);
+            h += (bytes[i]);
         }
         return h;
+    }
+
+    public void sort() {
+        java.util.Arrays.sort(bytes, 0, size);
     }
 
     public boolean equals(final Object o) {
@@ -64,6 +68,6 @@ class ByteSet {
         if (!(o instanceof ByteSet))
             return false;
         ByteSet s = (ByteSet) o;
-        return s.size == size && java.util.Arrays.equals(a, s.a);
+        return s.size == size && java.util.Arrays.equals(bytes, s.bytes);
     }
 }

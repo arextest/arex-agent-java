@@ -4,12 +4,12 @@ import java.util.*;
 
 class ExecutionStack {
 
-    static final ExecutionPathBuilder.ExecutionRecord[] DEFAULT_EMPTY_ARRAY
-            = new ExecutionPathBuilder.ExecutionRecord[0];
+    static final ExecutionPathBuilder.MethodExecutionRecord[] DEFAULT_EMPTY_ARRAY
+            = new ExecutionPathBuilder.MethodExecutionRecord[0];
     static final int MAX_ARRAY_SIZE = 25536;
     public static final int DEFAULT_INITIAL_CAPACITY = 10;
 
-    protected transient ExecutionPathBuilder.ExecutionRecord[] data;
+    protected transient ExecutionPathBuilder.MethodExecutionRecord[] data;
     protected int size;
 
     public ExecutionStack() {
@@ -20,32 +20,32 @@ class ExecutionStack {
         if (capacity <= 0) {
             this.data = DEFAULT_EMPTY_ARRAY;
         } else {
-            this.data = new ExecutionPathBuilder.ExecutionRecord[capacity];
+            this.data = new ExecutionPathBuilder.MethodExecutionRecord[capacity];
         }
     }
 
-    public ExecutionPathBuilder.ExecutionRecord push(ExecutionPathBuilder.ExecutionRecord o) {
+    public ExecutionPathBuilder.MethodExecutionRecord push(ExecutionPathBuilder.MethodExecutionRecord o) {
         ensureCapacity(size + 1);
         this.data[this.size++] = o;
         return o;
     }
 
-    public List<ExecutionPathBuilder.ExecutionRecord> list() {
+    public List<ExecutionPathBuilder.MethodExecutionRecord> list() {
         return Arrays.asList(this.data);
     }
 
-    public ExecutionPathBuilder.ExecutionRecord pop() {
+    public ExecutionPathBuilder.MethodExecutionRecord pop() {
         if (this.size == 0) {
             return null;
         }
 
-        ExecutionPathBuilder.ExecutionRecord old = this.data[this.size - 1];
+        ExecutionPathBuilder.MethodExecutionRecord old = this.data[this.size - 1];
         --this.size;
         this.data[this.size] = null;
         return old;
     }
 
-    public ExecutionPathBuilder.ExecutionRecord top() {
+    public ExecutionPathBuilder.MethodExecutionRecord top() {
         return size == 0 ? null : this.data[this.size - 1];
     }
 
@@ -60,7 +60,7 @@ class ExecutionStack {
             capacity = DEFAULT_INITIAL_CAPACITY;
         }
 
-        ExecutionPathBuilder.ExecutionRecord[] newData = new ExecutionPathBuilder.ExecutionRecord[capacity];
+        ExecutionPathBuilder.MethodExecutionRecord[] newData = new ExecutionPathBuilder.MethodExecutionRecord[capacity];
         System.arraycopy(this.data, 0, newData, 0, this.size);
         this.data = newData;
     }

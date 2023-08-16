@@ -10,7 +10,8 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 final class LatencyContextHashMap extends ConcurrentHashMap<String, ArexContext> {
     private static final int CLEANUP_THRESHOLD = 0;
-    private static final long RECORD_TTL_MILLIS = TimeUnit.MINUTES.toMillis(1);
+    //private static final long RECORD_TTL_MILLIS = TimeUnit.MINUTES.toMillis(1);
+    private static final long RECORD_TTL_MILLIS = TimeUnit.SECONDS.toMillis(20);
     private static final ReentrantLock CLEANUP_LOCK = new ReentrantLock();
     private ConcurrentHashMap<String, ArexContext> latencyMap;
 
