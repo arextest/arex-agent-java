@@ -6,6 +6,7 @@ import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.log.LogManager;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.TypeVariable;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
@@ -229,17 +230,31 @@ public class TypeUtil {
     }
 
     private static String mapToString(Map<?, ?> result) {
-        if (result.size() < 1) {
+        if (result.isEmpty()) {
             return result.getClass().getName();
         }
+
+        String resultClassName = result.getClass().getName();
+        final TypeVariable<?>[] typeParameters = result.getClass().getTypeParameters();
+        if (ArrayUtils.isEmpty(typeParameters)) {
+            return resultClassName;
+        }
         StringBuilder builder = new StringBuilder();
-        builder.append(result.getClass().getName()).append(HORIZONTAL_LINE);
+        builder.append(resultClassName).append(HORIZONTAL_LINE);
+
+        // only get the first element
         for (Map.Entry<?, ?> entry : result.entrySet()) {
-            String keyClassName = entry.getKey() == null ? DEFAULT_CLASS_NAME : entry.getKey().getClass().getName();
             String valueClassName = entry.getValue() == null ? DEFAULT_CLASS_NAME : getName(entry.getValue());
-            builder.append(keyClassName).append(COMMA).append(valueClassName);
+
+            if (typeParameters.length == 1) {
+                builder.append(valueClassName);
+            } else {
+                String keyClassName = entry.getKey() == null ? DEFAULT_CLASS_NAME : entry.getKey().getClass().getName();
+                builder.append(keyClassName).append(COMMA).append(valueClassName);
+            }
             break;
         }
+
         return builder.toString();
     }
 
