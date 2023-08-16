@@ -2,6 +2,7 @@ package io.arex.inst.runtime.util;
 
 import io.arex.agent.bootstrap.model.ParameterizedTypeImpl;
 import io.arex.agent.bootstrap.util.ArrayUtils;
+import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.log.LogManager;
 
@@ -175,8 +176,13 @@ public class TypeUtil {
         return null;
     }
 
+
     /**
-     * only support {@code List<Object> and List<List<Object>>} type
+     * Converts a collection to a string representation.
+     * <p>
+     * eg: {@code List<String>} to java.util.ArrayList-java.lang.String
+     * <p>
+     * {@code List<List<String>>} to java.util.ArrayList-java.util.ArrayList,java.lang.String,java.lang.Integer
      */
     private static String collectionToString(Collection<?> result) {
         StringBuilder builder = new StringBuilder();
@@ -189,32 +195,34 @@ public class TypeUtil {
         builder.append(HORIZONTAL_LINE);
 
         List<String> linkedList = new LinkedList<>();
-
+        boolean appendInnerCollection = true;
         for (Object innerObj : result) {
             if (innerObj == null) {
                 continue;
             }
 
-            if (!(innerObj instanceof List)) {
+            Collection<?> innerCollection = null;
+            if (innerObj instanceof Collection<?>) {
+                innerCollection = (Collection<?>) innerObj;
+            }
+            if (innerCollection == null) {
                 builder.append(getName(innerObj));
                 return builder.toString();
             }
 
-            String innerObjClassName = innerObj.getClass().getName();
-            if (!linkedList.contains(innerObjClassName)) {
-                linkedList.add(innerObjClassName);
+            if (appendInnerCollection) {
+                linkedList.add(innerObj.getClass().getName());
+                appendInnerCollection = false;
             }
 
-            List<?> innerList = (List<?>) innerObj;
-            for (Object innerElement : innerList) {
+            for (Object innerElement : innerCollection) {
                 if (innerElement == null) {
                     continue;
                 }
 
-                String innerElementClassName = innerElement.getClass().getName();
-
-                // By default, the data types in list<list<Object,Object>> are the same, and the inner list gets the first non-null element, which is break.
-                linkedList.add(innerElementClassName);
+                // By default, the data types in list<list<Object,Object>> are the same,
+                // and the inner list gets the first non-null element, which is break.
+                linkedList.add(innerElement.getClass().getName());
                 break;
             }
         }
@@ -284,14 +292,20 @@ public class TypeUtil {
         return builder.toString();
     }
 
+    public static String arrayObjectToString(Object[] objects) {
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < objects.length; i++) {
+            builder.append(objects[i].getClass().getName());
+            if (i != objects.length - 1) {
+                builder.append(",");
+            }
+        }
+        return builder.toString();
+    }
+
     public static String errorSerializeToString(Object object) {
         if (object instanceof Object[]) {
-            Object[] objects = (Object[]) object;
-            StringBuilder builder = new StringBuilder();
-            for (Object obj : objects) {
-                builder.append(obj.getClass().getName()).append(",");
-            }
-            return builder.toString();
+            return arrayObjectToString((Object[]) object);
         }
         return getName(object);
     }
@@ -322,12 +336,49 @@ public class TypeUtil {
         return builder.substring(1);
     }
 
-    private static boolean isCollection(String genericType) {
-        try {
-            Class<?> clazz = Class.forName(genericType);
-            return Collection.class.isAssignableFrom(clazz);
-        } catch (ClassNotFoundException e) {
+    public static boolean isCollection(String genericType) {
+        if (StringUtil.isEmpty(genericType)) {
             return false;
         }
+        switch (genericType) {
+            case "java.util.ArrayList":
+            case "java.util.LinkedList":
+            case "java.util.HashSet":
+            case "java.util.LinkedHashSet":
+            case "java.util.TreeSet":
+            case "java.util.Collections$EmptyList":
+            case "java.util.Collections$EmptySet":
+                return true;
+            default:
+                try {
+                    Class<?> clazz = Class.forName(genericType);
+                    return Collection.class.isAssignableFrom(clazz);
+                } catch (ClassNotFoundException e) {
+                    return false;
+                }
+        }
     }
+
+    public static Collection<Collection<?>> toNestedCollection(Object object) {
+        Collection<Collection<?>> collection = null;
+        if (object instanceof Collection<?>) {
+            collection = (Collection<Collection<?>>) object;
+        }
+
+        if (CollectionUtil.isEmpty(collection)) {
+            return null;
+        }
+
+        for (Object innerCollection : collection) {
+            if (innerCollection == null) {
+                continue;
+            }
+            if (!(innerCollection instanceof Collection<?>)) {
+                return null;
+            }
+        }
+
+        return collection;
+    }
+
 }

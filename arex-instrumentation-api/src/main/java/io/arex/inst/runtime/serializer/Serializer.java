@@ -1,6 +1,8 @@
 package io.arex.inst.runtime.serializer;
 
+import io.arex.agent.bootstrap.util.ArrayUtils;
 import io.arex.agent.bootstrap.util.CollectionUtil;
+import io.arex.agent.bootstrap.util.ReflectUtil;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.util.TypeUtil;
@@ -24,7 +26,6 @@ public class Serializer {
     }
 
     public static final String EMPTY_LIST_JSON = "[]";
-    private static final String NESTED_LIST = "java.util.ArrayList-java.util.ArrayList";
     private static final String HASH_MAP_VALUES_CLASS = "java.util.HashMap$Values";
     private static final String ARRAY_LIST_CLASS = "java.util.ArrayList";
     public static final String SERIALIZE_SEPARATOR = "A@R#E$X";
@@ -40,20 +41,31 @@ public class Serializer {
             return null;
         }
 
-        String typeName = TypeUtil.getName(object);
-        if (typeName.contains(NESTED_LIST)) {
-            StringBuilder jsonBuilder = new StringBuilder();
-            List<List<?>> ans = (List<List<?>>) object;
-            for (int i = 0; i < ans.size(); i++) {
-                jsonBuilder.append(serializeWithException(ans.get(i), serializer));
-                if (i == ans.size() - 1) {
-                    continue;
-                }
+        Collection<Collection<?>> nestedCollection = TypeUtil.toNestedCollection(object);
+        if (nestedCollection != null) {
+            return serializeNestedCollection(serializer, nestedCollection);
+        }
+
+        return INSTANCE.getSerializer(serializer).serialize(object);
+    }
+
+    private static String serializeNestedCollection(String serializer, Collection<Collection<?>> nestedCollection) throws Throwable {
+        StringBuilder jsonBuilder = new StringBuilder();
+        Iterator<Collection<?>> collectionIterator = nestedCollection.iterator();
+        while (collectionIterator.hasNext()) {
+            Collection<?> collection = collectionIterator.next();
+            if (collection == null) {
+                jsonBuilder.append(NULL_STRING);
+            } else if (collection.isEmpty()) {
+                jsonBuilder.append(EMPTY_LIST_JSON);
+            } else {
+                jsonBuilder.append(serializeWithException(collection, serializer));
+            }
+            if (collectionIterator.hasNext()) {
                 jsonBuilder.append(SERIALIZE_SEPARATOR);
             }
-            return jsonBuilder.toString();
         }
-        return INSTANCE.getSerializer(serializer).serialize(object);
+        return jsonBuilder.toString();
     }
 
     /**
@@ -76,10 +88,6 @@ public class Serializer {
             LogManager.warn("serializer-serialize", StringUtil.format("can not serialize object: %s, cause: %s", TypeUtil.errorSerializeToString(object), ex.toString()));
             return null;
         }
-    }
-
-    public static Serializer getINSTANCE() {
-        return INSTANCE;
     }
 
     /**
@@ -133,12 +141,11 @@ public class Serializer {
      * @param typeName Complex type name, example: java.util.ArrayList-java.util.ArrayList,com.xxx.XXXType
      * @return T
      */
-    public static <T> T deserialize(String value, String typeName) {
+    public static <T> T deserialize(String value, String typeName, String serializer) {
         if (StringUtil.isEmpty(value) || StringUtil.isEmpty(typeName)) {
             return null;
         }
 
-        String serializer = null;
         if (typeName.endsWith("Exception")) {
             serializer = "gson";
         }
@@ -147,43 +154,64 @@ public class Serializer {
             return (T) restoreHashMapValues(value, typeName, serializer);
         }
 
-        if (!typeName.contains(NESTED_LIST)) {
-            return deserialize(value, TypeUtil.forName(typeName), serializer);
+        String[] typeNames = StringUtil.split(typeName, '-');
+        if (ArrayUtils.isNotEmpty(typeNames) && TypeUtil.isCollection(typeNames[0])) {
+            String[] innerTypeNames = StringUtil.split(typeNames[1], ',');
+            if (ArrayUtils.isNotEmpty(innerTypeNames) && TypeUtil.isCollection(innerTypeNames[0])) {
+                return (T) deserializeNestedCollection(value, typeNames[0], innerTypeNames, serializer);
+            }
         }
 
-        try {
-            // Divide the json string according to the object separator added during serialization
-            String[] jsonList = StringUtil.splitByWholeSeparator(value, SERIALIZE_SEPARATOR);
-            List<List<?>> list = new ArrayList<>(jsonList.length);
+        return deserialize(value, TypeUtil.forName(typeName), serializer);
+    }
 
-            String innerElementClass = StringUtil.substring(typeName, NESTED_LIST.length() + 1);
-            String[] innerElementClasses = StringUtil.split(innerElementClass, ',');
+    public static <T> T deserialize(String value, String typeName) {
+        return deserialize(value, typeName, null);
+    }
 
-            int elementIndex = 0;
-            for (String innerJson : jsonList) {
-                if (EMPTY_LIST_JSON.equals(innerJson)) {
-                    list.add(new ArrayList<>());
-                    continue;
-                }
-
-                if (NULL_STRING.equals(innerJson)) {
-                    list.add(null);
-                    continue;
-                }
-
-                if (innerElementClasses != null && innerElementClasses.length > elementIndex) {
-                    // The intercepted value and TypeName are deserialized in one-to-one correspondence
-                    String innerListTypeName = String.format("java.util.ArrayList-%s", innerElementClasses[elementIndex]);
-                    list.add(deserialize(innerJson, TypeUtil.forName(innerListTypeName), serializer));
-                    elementIndex++;
-                }
-            }
-
-            return (T) list;
-        } catch (Throwable ex) {
-            LogManager.warn("serializer-deserialize-typeName", StringUtil.format("can not deserialize value %s to class %s, cause: %s", value, typeName, ex.toString()));
+    /**
+     * Deserialize nested collection
+     * @param json json string
+     * @param collectionType type name eg: java.util.HashSet-java.util.HashSet,java.lang.String,java.lang.String
+     * @param serializer serializer
+     */
+    private static <T> Collection<Collection<T>> deserializeNestedCollection(String json, String collectionType,
+        String[] innerCollectionType, String serializer) {
+        Collection<Collection<T>> collection = ReflectUtil.getCollectionInstance(collectionType);
+        if (collection == null) {
             return null;
         }
+
+        if (ArrayUtils.isEmpty(innerCollectionType)) {
+            return collection;
+        }
+
+        // Divide the json string according to the object separator added during serialization
+        String[] jsonArray = StringUtil.splitByWholeSeparator(json, SERIALIZE_SEPARATOR);
+
+        int elementIndex = 1;
+        StringBuilder builder = new StringBuilder();
+        for (String innerJson : jsonArray) {
+            if (EMPTY_LIST_JSON.equals(innerJson)) {
+                collection.add(ReflectUtil.getCollectionInstance(innerCollectionType[0]));
+                continue;
+            }
+
+            if (StringUtil.isNullWord(innerJson)) {
+                collection.add(null);
+                continue;
+            }
+
+            if (innerCollectionType.length > elementIndex) {
+                // The intercepted value and TypeName are deserialized in one-to-one correspondence
+                builder.append(innerCollectionType[0]).append('-').append(innerCollectionType[elementIndex]);
+                collection.add(deserialize(innerJson, TypeUtil.forName(builder.toString()), serializer));
+                builder.setLength(0);
+                elementIndex++;
+            }
+        }
+
+        return collection;
     }
 
     private static Collection<?> restoreHashMapValues(String value, String typeName, String serializer) {
@@ -199,6 +227,10 @@ public class Serializer {
             map.put(count++, element);
         }
         return map.values();
+    }
+
+    public static Serializer getINSTANCE() {
+        return INSTANCE;
     }
 
     public Map<String, StringSerializable> getSerializers() {

@@ -246,11 +246,85 @@ class TypeUtilTest {
         args[1] = arg2;
         args[2] = arg3;
         String argsType = TypeUtil.errorSerializeToString(args);
-        assertEquals("java.lang.String,java.lang.Double,java.time.LocalDateTime,", argsType);
+        assertEquals("java.lang.String,java.lang.Double,java.time.LocalDateTime", argsType);
         // just one class
         final String arg2Type = TypeUtil.errorSerializeToString(arg2);
         assertEquals("java.lang.Double", arg2Type);
     }
+
+    @Test
+    void testSetNestedSet() {
+        Set<Object> nestedSet1 = new HashSet<>();
+        nestedSet1.add("mark");
+
+        Set<Object> nestedSet2 = new HashSet<>();
+        nestedSet2.add(33);
+
+        Set<Set<Object>> set = new HashSet<>();
+        set.add(null);
+        set.add(new HashSet<>());
+        set.add(nestedSet1);
+        set.add(nestedSet2);
+
+        String typeName = TypeUtil.getName(set);
+        System.out.println(typeName);
+    }
+
+    @Test
+    void testListNestedList() {
+        List<Object> nestedList1 = new ArrayList<>();
+        nestedList1.add("mark");
+
+        List<Object> nestedList2 = new ArrayList<>();
+        nestedList2.add(33);
+
+        List<List<Object>> list = new ArrayList<>();
+        list.add(null);
+        list.add(new ArrayList<>());
+        list.add(nestedList1);
+        list.add(nestedList2);
+
+        String typeName = TypeUtil.getName(list);
+        System.out.println(typeName);
+        assertEquals("java.util.ArrayList-java.util.ArrayList,java.lang.String,java.lang.Integer", typeName);
+    }
+
+    @Test
+    void testIsCollection() {
+        assertFalse(TypeUtil.isCollection(null));
+        assertTrue(TypeUtil.isCollection("java.util.ArrayList"));
+        assertTrue(TypeUtil.isCollection("java.util.LinkedList"));
+        assertTrue(TypeUtil.isCollection("java.util.LinkedHashSet"));
+        assertTrue(TypeUtil.isCollection("java.util.TreeSet"));
+        assertTrue(TypeUtil.isCollection("java.util.HashSet"));
+        assertTrue(TypeUtil.isCollection("java.util.Collections$EmptyList"));
+        assertTrue(TypeUtil.isCollection("java.util.Collections$EmptySet"));
+        assertTrue(TypeUtil.isCollection("java.util.ArrayDeque"));
+        assertFalse(TypeUtil.isCollection("java.util.Collections$EmptyMap"));
+        System.out.println(TypeUtil.getName(Collections.emptyList()));
+    }
+
+    @Test
+    void testToNestedCollection() {
+        Collection<?> actualResult = TypeUtil.toNestedCollection(null);
+        assertNull(actualResult);
+
+        actualResult = TypeUtil.toNestedCollection(new HashMap<>());
+        assertNull(actualResult);
+
+        Collection<Object> collection = new ArrayList<>();
+        actualResult = TypeUtil.toNestedCollection(collection);
+        assertNull(actualResult);
+
+        collection.add(null);
+        actualResult = TypeUtil.toNestedCollection(collection);
+        assertEquals(collection, actualResult);
+
+        collection.add(new ArrayList<>());
+        actualResult = TypeUtil.toNestedCollection(collection);
+        assertEquals(collection, actualResult);
+    }
+
 
     @Test
     void testMapToString() {
