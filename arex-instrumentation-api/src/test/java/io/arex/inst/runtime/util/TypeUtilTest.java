@@ -251,4 +251,37 @@ class TypeUtilTest {
         final String arg2Type = TypeUtil.errorSerializeToString(arg2);
         assertEquals("java.lang.Double", arg2Type);
     }
+
+    @Test
+    void testMapToString() {
+        // single generic map
+        final Map<Integer, String> map = new SingleTypeMap<>();
+
+        // empty map
+        final String name1 = TypeUtil.getName(map);
+        assertEquals("io.arex.inst.runtime.util.TypeUtilTest$SingleTypeMap", name1);
+
+        map.put(1, "test");
+        final String name = TypeUtil.getName(map);
+        assertEquals("io.arex.inst.runtime.util.TypeUtilTest$SingleTypeMap-java.lang.String", name);
+        final Type type = TypeUtil.forName(name);
+        assert type != null;
+        assertEquals("io.arex.inst.runtime.util.TypeUtilTest$SingleTypeMap<java.lang.String>", type.getTypeName());
+
+        // no generic map
+        final Map<Integer, String> map2 = new Integer2String();
+        map2.put(1, "test");
+        final String name2 = TypeUtil.getName(map2);
+        assertEquals(Integer2String.class.getName(), name2);
+        final Type type2 = TypeUtil.forName(name2);
+        assert type2 != null;
+        assertEquals(Integer2String.class.getName(), type2.getTypeName());
+    }
+
+
+    static class SingleTypeMap<V> extends HashMap<Integer, V> {
+    }
+
+    static class Integer2String extends HashMap<Integer, String> {
+    }
 }
