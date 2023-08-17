@@ -1,6 +1,12 @@
 package io.arex.foundation.serializer;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.databind.ObjectMapper.DefaultTypeResolverBuilder;
+import com.fasterxml.jackson.databind.ObjectMapper.DefaultTyping;
+import com.fasterxml.jackson.databind.jsontype.TypeResolverBuilder;
+import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
 import com.google.auto.service.AutoService;
+import com.google.common.collect.Range;
 
 import io.arex.agent.bootstrap.util.StringUtil;
 import com.fasterxml.jackson.annotation.JsonIgnoreType;
@@ -13,6 +19,8 @@ import com.fasterxml.jackson.databind.ser.BeanSerializerModifier;
 
 import io.arex.agent.thirdparty.util.time.DateFormatUtils;
 import io.arex.agent.thirdparty.util.time.FastDateFormat;
+import io.arex.foundation.serializer.custom.FastUtilAdapterFactory;
+import io.arex.foundation.serializer.custom.GuavaRangeSerializer;
 import io.arex.foundation.util.JdkUtils;
 import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.config.Config;
@@ -20,7 +28,6 @@ import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.model.SerializeSkipInfo;
 import io.arex.inst.runtime.serializer.StringSerializable;
 import io.arex.inst.runtime.util.TypeUtil;
-
 import java.sql.Time;
 import java.time.Instant;
 import org.joda.time.DateTime;
@@ -68,8 +75,16 @@ public final class JacksonSerializer implements StringSerializable {
         configMapper();
         customTimeFormatSerializer(MODULE);
         customTimeFormatDeserializer(MODULE);
-
+        customTypeResolver();
         MAPPER.registerModule(MODULE);
+    }
+
+    private void customTypeResolver() {
+        TypeResolverBuilder<?> typeResolver = new CustomTypeResolverBuilder();
+        typeResolver.init(JsonTypeInfo.Id.CLASS, null);
+        typeResolver.inclusion(JsonTypeInfo.As.PROPERTY);
+        typeResolver.typeProperty("@CLASS");
+        MAPPER.setDefaultTyping(typeResolver);
     }
 
     private void buildSkipInfoMap() {
@@ -180,6 +195,7 @@ public final class JacksonSerializer implements StringSerializable {
         // java.sql.Date/Time serialize same as java.util.Date
         module.addSerializer(Date.class, new DateSerialize());
         module.addSerializer(Instant.class, new InstantSerialize());
+        module.addSerializer(Range.class, new GuavaRangeSerializer.JacksonRangeSerializer());
     }
 
     private void customTimeFormatDeserializer(SimpleModule module) {
@@ -198,6 +214,7 @@ public final class JacksonSerializer implements StringSerializable {
         module.addDeserializer(java.sql.Date.class, new SqlDateDeserialize());
         module.addDeserializer(Time.class, new SqlTimeDeserialize());
         module.addDeserializer(Instant.class, new InstantDeserialize());
+        module.addDeserializer(Range.class, new GuavaRangeSerializer.JacksonRangeDeserializer());
     }
 
     private static class JacksonSimpleModule extends SimpleModule {
@@ -730,4 +747,19 @@ public final class JacksonSerializer implements StringSerializable {
         }
     }
 
+    private static class CustomTypeResolverBuilder extends DefaultTypeResolverBuilder {
+
+        public CustomTypeResolverBuilder() {
+            super(DefaultTyping.NON_FINAL, LaissezFaireSubTypeValidator.instance);
+        }
+
+        /**
+         * @return true will serialize with runtime type info
+         */
+        @Override
+        public boolean useForType(JavaType type) {
+            return type.getRawClass().isInterface() &&
+                    StringUtil.startWith(type.getRawClass().getName(), FastUtilAdapterFactory.FASTUTIL_PACKAGE);
+        }
+    }
 }

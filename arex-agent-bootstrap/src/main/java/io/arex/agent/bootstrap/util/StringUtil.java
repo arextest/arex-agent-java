@@ -351,6 +351,10 @@ public class StringUtil {
         return false;
     }
 
+    public static boolean startWith(String source, String prefix) {
+        return startWithFrom(source, prefix, 0);
+    }
+
     public static boolean startWithFrom(String source, String prefix, int checkStartIndex) {
         int length = prefix.length();
         if (checkStartIndex < 0 || checkStartIndex + length > source.length()) {

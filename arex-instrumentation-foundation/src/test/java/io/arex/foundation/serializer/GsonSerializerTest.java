@@ -3,9 +3,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 
 import com.google.gson.internal.LinkedTreeMap;
 import io.arex.inst.runtime.util.TypeUtil;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import java.sql.Time;
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -133,5 +136,14 @@ class GsonSerializerTest {
         map.put("null", null);
         json = GsonSerializer.INSTANCE.serialize(map);
         assertEquals("{\"key\":\"value\",\"long-java.lang.Long\":2}", json);
+    }
+
+    @Test
+    void testFastUtil() throws Throwable {
+        final IntOpenHashSet hashSet = new IntOpenHashSet();
+        final String json = GsonSerializer.INSTANCE.serialize(hashSet);
+        final IntSet deserialize = GsonSerializer.INSTANCE.deserialize(json, IntSet.class);
+        assert deserialize != null;
+        assertEquals(hashSet, deserialize);
     }
 }

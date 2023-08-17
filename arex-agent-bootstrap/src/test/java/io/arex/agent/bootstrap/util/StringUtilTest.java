@@ -309,4 +309,10 @@ class StringUtilTest {
         assertTrue(StringUtil.isNullWord("NULL"));
         assertFalse(StringUtil.isNullWord("mock"));
     }
+
+    @Test
+    void startWith() {
+        assertTrue(StringUtil.startWith("mock", "m"));
+        assertFalse(StringUtil.startWith("mock", "o"));
+    }
 }
