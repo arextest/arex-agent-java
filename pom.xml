@@ -70,6 +70,8 @@
         <commons-lang3.version>3.7</commons-lang3.version>
         <version.junit-jupiter>5.8.2</version.junit-jupiter>
         <mockito-junit-jupiter.version>4.7.0</mockito-junit-jupiter.version>
+        <jackson.version>2.13.1</jackson.version>
+        <gson.version>2.10.1</gson.version>
         <sonar.exclusions>
             **/test/**,
             **/*Test.java,
