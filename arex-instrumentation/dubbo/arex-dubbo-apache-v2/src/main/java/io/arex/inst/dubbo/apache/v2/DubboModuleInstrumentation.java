@@ -17,8 +17,9 @@ import static java.util.Arrays.asList;
 public class DubboModuleInstrumentation extends ModuleInstrumentation {
 
     public DubboModuleInstrumentation() {
+        // The reason for not add supportTo() is compatible with custom dubbo version, such as qunar.dubbo:4.0.77
         super("dubbo-apache-v2", ModuleDescription.builder()
-                .name("dubbo-all").supportFrom(ComparableVersion.of("2.7")).supportTo(ComparableVersion.of("2.8")).build());
+                .name("dubbo-all").supportFrom(ComparableVersion.of("2.7")).build());
     }
 
     @Override
