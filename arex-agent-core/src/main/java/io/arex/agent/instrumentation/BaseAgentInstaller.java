@@ -52,12 +52,12 @@ public abstract class BaseAgentInstaller implements AgentInstaller {
             Thread.currentThread().setContextClassLoader(getClassLoader());
             // Timed load config for agent delay start and dynamic retransform
             long delayMinutes = ConfigService.INSTANCE.loadAgentConfig(agentArgs);
-            ConfigService.INSTANCE.reportStatus();
             if (delayMinutes > 0) {
                 TimerService.schedule(this::install, delayMinutes, TimeUnit.MINUTES);
                 timedReportStatus();
             }
             if (!ConfigManager.INSTANCE.valid()) {
+                ConfigService.INSTANCE.reportStatus();
                 if (!ConfigManager.FIRST_TRANSFORM.get()) {
                     LOGGER.warn("[AREX] Agent would not install due to {}.", ConfigManager.INSTANCE.getInvalidReason());
                 }
@@ -65,6 +65,7 @@ public abstract class BaseAgentInstaller implements AgentInstaller {
             }
             initDependentComponents();
             transform();
+            ConfigService.INSTANCE.reportStatus();
         } finally {
             Thread.currentThread().setContextClassLoader(savedContextClassLoader);
         }
@@ -78,10 +79,14 @@ public abstract class BaseAgentInstaller implements AgentInstaller {
             return;
         }
         reportStatusTask = TimerService.scheduleAtFixedRate(() -> {
-            ConfigService.INSTANCE.reportStatus();
-            // Load agent config according to last modified time
-            if (ConfigService.INSTANCE.reloadConfig()) {
-                install();
+            try {
+                ConfigService.INSTANCE.reportStatus();
+                // Load agent config according to last modified time
+                if (ConfigService.INSTANCE.reloadConfig()) {
+                    install();
+                }
+            } catch (Exception e) {
+                LOGGER.error("[AREX] Report status error.", e);
             }
         }, 1, 1, TimeUnit.MINUTES);
     }

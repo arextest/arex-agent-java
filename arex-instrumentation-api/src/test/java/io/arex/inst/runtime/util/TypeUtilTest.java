@@ -1,6 +1,7 @@
 package io.arex.inst.runtime.util;
 
 import io.arex.agent.bootstrap.internal.Pair;
+import io.arex.agent.bootstrap.model.ParameterizedTypeImpl;
 import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.agent.bootstrap.util.StringUtil;
 import java.lang.reflect.Field;
@@ -9,16 +10,12 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import java.time.LocalDateTime;
-import java.util.List;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -26,7 +23,6 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
-import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
@@ -166,6 +162,14 @@ class TypeUtilTest {
         final Type type2 = TypeUtil.forName(name2);
         assert type2 != null;
         assertEquals("io.arex.agent.bootstrap.internal.Pair<java.lang.Long, java.time.LocalTime>", type2.getTypeName());
+
+        final Pair pairNull = Pair.of(System.currentTimeMillis(), null);
+        final String genericNull = TypeUtil.getName(pairNull);
+        assertEquals("io.arex.agent.bootstrap.internal.Pair-java.lang.Long,", genericNull);
+
+        final Pair pairList = Pair.of(System.currentTimeMillis(), Arrays.asList("mock"));
+        final String genericList = TypeUtil.getName(pairList);
+        assertEquals("io.arex.agent.bootstrap.internal.Pair-java.lang.Long,java.lang.String", genericList);
     }
 
     @Test
@@ -242,10 +246,116 @@ class TypeUtilTest {
         args[1] = arg2;
         args[2] = arg3;
         String argsType = TypeUtil.errorSerializeToString(args);
-        assertEquals("java.lang.String,java.lang.Double,java.time.LocalDateTime,", argsType);
+        assertEquals("java.lang.String,java.lang.Double,java.time.LocalDateTime", argsType);
         // just one class
         final String arg2Type = TypeUtil.errorSerializeToString(arg2);
         assertEquals("java.lang.Double", arg2Type);
     }
 
+    @Test
+    void testSetNestedSet() {
+        Set<Object> nestedSet1 = new HashSet<>();
+        nestedSet1.add("mark");
+
+        Set<Object> nestedSet2 = new HashSet<>();
+        nestedSet2.add(33);
+
+        Set<Set<Object>> set = new HashSet<>();
+        set.add(null);
+        set.add(new HashSet<>());
+        set.add(nestedSet1);
+        set.add(nestedSet2);
+
+        String typeName = TypeUtil.getName(set);
+        System.out.println(typeName);
+    }
+
+    @Test
+    void testListNestedList() {
+        List<Object> nestedList1 = new ArrayList<>();
+        nestedList1.add("mark");
+
+        List<Object> nestedList2 = new ArrayList<>();
+        nestedList2.add(33);
+
+        List<List<Object>> list = new ArrayList<>();
+        list.add(null);
+        list.add(new ArrayList<>());
+        list.add(nestedList1);
+        list.add(nestedList2);
+
+        String typeName = TypeUtil.getName(list);
+        System.out.println(typeName);
+        assertEquals("java.util.ArrayList-java.util.ArrayList,java.lang.String,java.lang.Integer", typeName);
+    }
+
+    @Test
+    void testIsCollection() {
+        assertFalse(TypeUtil.isCollection(null));
+        assertTrue(TypeUtil.isCollection("java.util.ArrayList"));
+        assertTrue(TypeUtil.isCollection("java.util.LinkedList"));
+        assertTrue(TypeUtil.isCollection("java.util.LinkedHashSet"));
+        assertTrue(TypeUtil.isCollection("java.util.TreeSet"));
+        assertTrue(TypeUtil.isCollection("java.util.HashSet"));
+        assertTrue(TypeUtil.isCollection("java.util.Collections$EmptyList"));
+        assertTrue(TypeUtil.isCollection("java.util.Collections$EmptySet"));
+        assertTrue(TypeUtil.isCollection("java.util.ArrayDeque"));
+        assertFalse(TypeUtil.isCollection("java.util.Collections$EmptyMap"));
+        System.out.println(TypeUtil.getName(Collections.emptyList()));
+    }
+
+    @Test
+    void testToNestedCollection() {
+        Collection<?> actualResult = TypeUtil.toNestedCollection(null);
+        assertNull(actualResult);
+
+        actualResult = TypeUtil.toNestedCollection(new HashMap<>());
+        assertNull(actualResult);
+
+        Collection<Object> collection = new ArrayList<>();
+        actualResult = TypeUtil.toNestedCollection(collection);
+        assertNull(actualResult);
+
+        collection.add(null);
+        actualResult = TypeUtil.toNestedCollection(collection);
+        assertEquals(collection, actualResult);
+
+        collection.add(new ArrayList<>());
+        actualResult = TypeUtil.toNestedCollection(collection);
+        assertEquals(collection, actualResult);
+    }
+
+
+    @Test
+    void testMapToString() {
+        // single generic map
+        final Map<Integer, String> map = new SingleTypeMap<>();
+
+        // empty map
+        final String name1 = TypeUtil.getName(map);
+        assertEquals("io.arex.inst.runtime.util.TypeUtilTest$SingleTypeMap", name1);
+
+        map.put(1, "test");
+        final String name = TypeUtil.getName(map);
+        assertEquals("io.arex.inst.runtime.util.TypeUtilTest$SingleTypeMap-java.lang.String", name);
+        final Type type = TypeUtil.forName(name);
+        assert type != null;
+        assertEquals("io.arex.inst.runtime.util.TypeUtilTest$SingleTypeMap<java.lang.String>", type.getTypeName());
+
+        // no generic map
+        final Map<Integer, String> map2 = new Integer2String();
+        map2.put(1, "test");
+        final String name2 = TypeUtil.getName(map2);
+        assertEquals(Integer2String.class.getName(), name2);
+        final Type type2 = TypeUtil.forName(name2);
+        assert type2 != null;
+        assertEquals(Integer2String.class.getName(), type2.getTypeName());
+    }
+
+
+    static class SingleTypeMap<V> extends HashMap<Integer, V> {
+    }
+
+    static class Integer2String extends HashMap<Integer, String> {
+    }
 }

@@ -148,8 +148,7 @@ public class DynamicClassExtractor {
             return ProtoJsonSerializer.getInstance().deserialize(replayMocker.getTargetResponse().getBody(),
                     TypeUtil.forName(typeName));
         }
-        return Serializer.deserialize(replayMocker.getTargetResponse().getBody(),
-                TypeUtil.forName(typeName), SERIALIZER);
+        return Serializer.deserialize(replayMocker.getTargetResponse().getBody(), typeName, SERIALIZER);
     }
 
     void setFutureResponse(Future<?> result) {

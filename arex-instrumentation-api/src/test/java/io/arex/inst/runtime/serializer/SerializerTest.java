@@ -2,30 +2,36 @@ package io.arex.inst.runtime.serializer;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import io.arex.inst.runtime.listener.EventProcessorTest;
-import io.arex.inst.runtime.listener.EventProcessorTest.TestStringSerializable;
-import io.arex.inst.runtime.listener.EventProcessorTest.TestStringSerializer2;
+import io.arex.inst.runtime.listener.EventProcessorTest.TestJacksonSerializable;
+import io.arex.inst.runtime.listener.EventProcessorTest.TestGsonSerializer;
 import io.arex.inst.runtime.util.TypeUtil;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 class SerializerTest {
+    @BeforeAll
+    static void setUp() {
+        final List<StringSerializable> list = new ArrayList<>(2);
+        list.add(new TestJacksonSerializable());
+        list.add(new TestGsonSerializer());
+        Serializer.builder(list).build();
+    }
 
-    @Test
-    void builder() {
-        Serializer.builder(new EventProcessorTest.TestStringSerializable()).build();
-        assertNotNull(Serializer.getINSTANCE());
-        assertEquals(0, Serializer.getINSTANCE().getSerializers().size());
+    @AfterAll
+    static void tearDown() {
+
     }
 
     @Test
-    void testBuilder() {
-        final List<StringSerializable> list = new ArrayList<>();
-        list.add(new TestStringSerializable());
-        list.add(new TestStringSerializer2());
-        Serializer.builder(list).build();
+    void builder() {
         assertNotNull(Serializer.getINSTANCE());
         assertEquals(1, Serializer.getINSTANCE().getSerializers().size());
     }
@@ -33,8 +39,8 @@ class SerializerTest {
     @Test
     void testThrowError() {
         final List<StringSerializable> list = new ArrayList<>();
-        list.add(new TestStringSerializable());
-        list.add(new TestStringSerializer2());
+        list.add(new TestJacksonSerializable());
+        list.add(new TestGsonSerializer());
         Serializer.builder(list).build();
         // serialize throw error
         Assertions.assertDoesNotThrow(() -> Serializer.serialize("test"));
@@ -50,27 +56,53 @@ class SerializerTest {
     }
 
     @Test
-    void testSerializeThrowException() throws Throwable {
-        final List<StringSerializable> list = new ArrayList<>();
-        list.add(new TestStringSerializable());
-        list.add(new TestStringSerializer2());
-        Serializer.builder(list).build();
+    void testNestedList() {
+        List<List<Object>> list = new ArrayList<>();
+        List<Object> nestedList1 = new ArrayList<>();
+        nestedList1.add("nestList1-1");
+        nestedList1.add("nestList1-2");
 
-        // null
-        assertNull(Serializer.serializeWithException(null, null));
+        List<Object> nestedList2 = new LinkedList<>();
+        nestedList2.add("nestList2-1");
+        nestedList2.add("nestList2-2");
 
-        // serialize throw error
-        Assertions.assertThrows(Throwable.class, () -> Serializer.serializeWithException("test", null));
+        list.add(null);
+        list.add(new ArrayList<>());
+        list.add(nestedList1);
+        list.add(nestedList2);
 
-        // serialize normal
-        List<List<String>> list2 = new ArrayList<>();
-        final List<String> innerList = new ArrayList<>();
-        final List<String> innerList2 = new ArrayList<>();
-        innerList.add("test");
-        innerList2.add("test2");
-        list2.add(innerList);
-        list2.add(innerList2);
-        Assertions.assertDoesNotThrow(() -> Serializer.serializeWithException(list2, "gson"));
+        String json = Serializer.serialize(list, "jackson");
+        String typeName = TypeUtil.getName(list);
+        System.out.println(typeName);
+        System.out.println(json);
+
+        List<List<Object>> actualResult = Serializer.deserialize(json, typeName);
+        assertEquals(list, actualResult);
+    }
+
+    @Test
+    void testNestedSet() {
+        Set<Set<Object>> set = new HashSet<>();
+        Set<Object> nestedSet1 = new HashSet<>();
+        nestedSet1.add("nestedSet1-1");
+        nestedSet1.add("nestedSet1-2");
+
+        Set<Object> nestedSet2 = new TreeSet<>();
+        nestedSet2.add("nestedSet2-1");
+        nestedSet2.add("nestedSet2-2");
+
+        set.add(null);
+        set.add(new HashSet<>());
+        set.add(nestedSet1);
+        set.add(nestedSet2);
+
+        String json = Serializer.serialize(set, "jackson");
+        String typeName = TypeUtil.getName(set);
+        System.out.println(typeName);
+        System.out.println(json);
+
+        Set<Set<Object>> actualResult = Serializer.deserialize(json, typeName);
+        assertEquals(set, actualResult);
     }
 
     @Test

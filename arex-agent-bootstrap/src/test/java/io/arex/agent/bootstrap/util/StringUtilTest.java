@@ -280,4 +280,33 @@ class StringUtilTest {
         assertTrue(set.contains("bb"));
         assertTrue(set.contains("c"));
     }
+
+    @Test
+    void testIsNumeric() {
+        String s = "123";
+        assertTrue(StringUtil.isNumeric(s));
+        String s2 = "123.1";
+        assertFalse(StringUtil.isNumeric(s2));
+        String s3 = "";
+        assertFalse(StringUtil.isNumeric(s3));
+        String s4 = null;
+        assertFalse(StringUtil.isNumeric(s4));
+    }
+
+    @Test
+    void testGetFirstNumeric() {
+        String s = "1-SNAPSHOT";
+        assertEquals(1, StringUtil.getFirstNumeric(s));
+        String s2 = "RC2";
+        assertEquals(2, StringUtil.getFirstNumeric(s2));
+        String s3 = "SNAPSHOT";
+        assertEquals(0, StringUtil.getFirstNumeric(s3));
+    }
+
+    @Test
+    void isNullWord() {
+        assertTrue(StringUtil.isNullWord("null"));
+        assertTrue(StringUtil.isNullWord("NULL"));
+        assertFalse(StringUtil.isNullWord("mock"));
+    }
 }

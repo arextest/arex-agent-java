@@ -122,7 +122,7 @@ public class ApolloConfigHelper {
                 return (Map<String, Config>) configs;
             }
         } catch (Throwable e) {
-            LogManager.warn("get apollo all config instance error", e);
+            LogManager.warn("get apollo all config instance error", e.getMessage());
         }
         return Collections.emptyMap();
     }

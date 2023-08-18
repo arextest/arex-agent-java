@@ -6,6 +6,7 @@ import io.arex.inst.extension.TypeInstrumentation;
 
 import java.util.List;
 
+import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 
 /**
@@ -20,6 +21,8 @@ public class JWTModuleInstrumentation extends ModuleInstrumentation {
 
     @Override
     public List<TypeInstrumentation> instrumentationTypes() {
-        return singletonList(new JWTInstrumentation());
+        return asList(
+                new AuthOJWTInstrumentation(),
+                new JJWTInstrumentation());
     }
 }

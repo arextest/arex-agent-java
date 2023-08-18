@@ -1,8 +1,8 @@
 package io.arex.inst.extension.matcher;
 
 import io.arex.agent.bootstrap.cache.LoadedModuleCache;
-import io.arex.agent.bootstrap.internal.Pair;
 import io.arex.agent.bootstrap.util.ConcurrentCache;
+import io.arex.agent.bootstrap.model.ComparableVersion;
 import io.arex.inst.runtime.context.ResourceManager;
 import io.arex.inst.extension.ModuleDescription;
 import net.bytebuddy.matcher.ElementMatcher;
@@ -33,14 +33,11 @@ public class ModuleVersionMatcher extends ElementMatcher.Junction.AbstractBase<C
 
     private boolean versionMatches(ClassLoader loader) {
         ResourceManager.registerResources(loader);
-        if (!LoadedModuleCache.exist(description.getModuleName())) {
-            return false;
-        }
-        Pair<Integer, Integer> version = LoadedModuleCache.get(description.getModuleName());
+        String version = LoadedModuleCache.get(description.getModuleName());
         if (version == null) {
             // to avoid duplicate transform of the same class in different module
             return false;
         }
-        return description.isSupported(version);
+        return description.isSupported(ComparableVersion.of(version));
     }
 }

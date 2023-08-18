@@ -511,4 +511,36 @@ public class StringUtil {
         String[] strs = split(str, separatorChars);
         return new HashSet<>(Arrays.asList(strs));
     }
+
+    public static boolean isNumeric(final String cs) {
+        if (isEmpty(cs)) {
+            return false;
+        }
+        final int sz = cs.length();
+        for (int i = 0; i < sz; i++) {
+            if (!Character.isDigit(cs.charAt(i))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * get the first occurrence of a number in a string
+     * example: 1-SNAPSHOT -> 1
+     *          CR1 -> 1
+     */
+    public static Integer getFirstNumeric(String s) {
+        for (int i = 0; i < s.length(); i++) {
+            char charAt = s.charAt(i);
+            if (Character.isDigit(charAt)) {
+                return Character.getNumericValue(charAt);
+            }
+        }
+        return 0;
+    }
+
+    public static boolean isNullWord(String str) {
+        return equals(str, "null") || equals(str, "NULL");
+    }
 }

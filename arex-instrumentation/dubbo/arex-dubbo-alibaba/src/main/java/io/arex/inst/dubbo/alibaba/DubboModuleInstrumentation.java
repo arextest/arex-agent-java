@@ -1,6 +1,7 @@
 package io.arex.inst.dubbo.alibaba;
 
 import com.google.auto.service.AutoService;
+import io.arex.agent.bootstrap.model.ComparableVersion;
 import io.arex.inst.extension.ModuleDescription;
 import io.arex.inst.extension.ModuleInstrumentation;
 import io.arex.inst.extension.TypeInstrumentation;
@@ -17,7 +18,7 @@ public class DubboModuleInstrumentation extends ModuleInstrumentation {
 
     public DubboModuleInstrumentation() {
         super("dubbo-alibaba", ModuleDescription.builder()
-                .name("Dubbo").supportFrom(2, 0).supportTo(2, 6).build());
+                .name("Dubbo").supportFrom(ComparableVersion.of("2.0")).supportTo(ComparableVersion.of("2.6")).build());
     }
 
     @Override

@@ -1,10 +1,13 @@
 package io.arex.inst.runtime.util;
 
+import io.arex.agent.bootstrap.model.ParameterizedTypeImpl;
 import io.arex.agent.bootstrap.util.ArrayUtils;
+import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.log.LogManager;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.TypeVariable;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
@@ -15,7 +18,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
 
 public class TypeUtil {
 
@@ -120,7 +122,8 @@ public class TypeUtil {
             Field field = GENERIC_FIELD_CACHE.get(cacheKey);
             if (field == null) {
                 for (Field declaredField : rawClass.getDeclaredFields()) {
-                    if (declaredField.getGenericType().getTypeName().equals(typeName)) {
+                    // java.util.List<T> contains T
+                    if (declaredField.getGenericType().getTypeName().contains(typeName)) {
                         declaredField.setAccessible(true);
                         GENERIC_FIELD_CACHE.put(cacheKey, declaredField);
                         field = declaredField;
@@ -128,7 +131,7 @@ public class TypeUtil {
                     }
                 }
             }
-            builder.append(invokeGetFieldType(field, result));
+            builder.append(filterRawGenericType(invokeGetFieldType(field, result)));
             if (i == typeParameters.length - 1) {
                return builder.toString();
             }
@@ -173,8 +176,13 @@ public class TypeUtil {
         return null;
     }
 
+
     /**
-     * only support {@code List<Object> and List<List<Object>>} type
+     * Converts a collection to a string representation.
+     * <p>
+     * eg: {@code List<String>} to java.util.ArrayList-java.lang.String
+     * <p>
+     * {@code List<List<String>>} to java.util.ArrayList-java.util.ArrayList,java.lang.String,java.lang.Integer
      */
     private static String collectionToString(Collection<?> result) {
         StringBuilder builder = new StringBuilder();
@@ -187,32 +195,34 @@ public class TypeUtil {
         builder.append(HORIZONTAL_LINE);
 
         List<String> linkedList = new LinkedList<>();
-
+        boolean appendInnerCollection = true;
         for (Object innerObj : result) {
             if (innerObj == null) {
                 continue;
             }
 
-            if (!(innerObj instanceof List)) {
+            Collection<?> innerCollection = null;
+            if (innerObj instanceof Collection<?>) {
+                innerCollection = (Collection<?>) innerObj;
+            }
+            if (innerCollection == null) {
                 builder.append(getName(innerObj));
                 return builder.toString();
             }
 
-            String innerObjClassName = innerObj.getClass().getName();
-            if (!linkedList.contains(innerObjClassName)) {
-                linkedList.add(innerObjClassName);
+            if (appendInnerCollection) {
+                linkedList.add(innerObj.getClass().getName());
+                appendInnerCollection = false;
             }
 
-            List<?> innerList = (List<?>) innerObj;
-            for (Object innerElement : innerList) {
+            for (Object innerElement : innerCollection) {
                 if (innerElement == null) {
                     continue;
                 }
 
-                String innerElementClassName = innerElement.getClass().getName();
-
-                // By default, the data types in list<list<Object,Object>> are the same, and the inner list gets the first non-null element, which is break.
-                linkedList.add(innerElementClassName);
+                // By default, the data types in list<list<Object,Object>> are the same,
+                // and the inner list gets the first non-null element, which is break.
+                linkedList.add(innerElement.getClass().getName());
                 break;
             }
         }
@@ -228,17 +238,31 @@ public class TypeUtil {
     }
 
     private static String mapToString(Map<?, ?> result) {
-        if (result.size() < 1) {
+        if (result.isEmpty()) {
             return result.getClass().getName();
         }
+
+        String resultClassName = result.getClass().getName();
+        final TypeVariable<?>[] typeParameters = result.getClass().getTypeParameters();
+        if (ArrayUtils.isEmpty(typeParameters)) {
+            return resultClassName;
+        }
         StringBuilder builder = new StringBuilder();
-        builder.append(result.getClass().getName()).append(HORIZONTAL_LINE);
+        builder.append(resultClassName).append(HORIZONTAL_LINE);
+
+        // only get the first element
         for (Map.Entry<?, ?> entry : result.entrySet()) {
-            String keyClassName = entry.getKey() == null ? DEFAULT_CLASS_NAME : entry.getKey().getClass().getName();
             String valueClassName = entry.getValue() == null ? DEFAULT_CLASS_NAME : getName(entry.getValue());
-            builder.append(keyClassName).append(COMMA).append(valueClassName);
+
+            if (typeParameters.length == 1) {
+                builder.append(valueClassName);
+            } else {
+                String keyClassName = entry.getKey() == null ? DEFAULT_CLASS_NAME : entry.getKey().getClass().getName();
+                builder.append(keyClassName).append(COMMA).append(valueClassName);
+            }
             break;
         }
+
         return builder.toString();
     }
 
@@ -268,15 +292,93 @@ public class TypeUtil {
         return builder.toString();
     }
 
+    public static String arrayObjectToString(Object[] objects) {
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < objects.length; i++) {
+            builder.append(objects[i].getClass().getName());
+            if (i != objects.length - 1) {
+                builder.append(",");
+            }
+        }
+        return builder.toString();
+    }
+
     public static String errorSerializeToString(Object object) {
         if (object instanceof Object[]) {
-            Object[] objects = (Object[]) object;
-            StringBuilder builder = new StringBuilder();
-            for (Object obj : objects) {
-                builder.append(obj.getClass().getName()).append(",");
-            }
-            return builder.toString();
+            return arrayObjectToString((Object[]) object);
         }
         return getName(object);
     }
+
+    /**
+     * filter out effective raw generic in collection: A<List<T>> -> A<T>
+     * class A<T> {
+     *     List<T> t;
+     * }
+     * otherwise deserialize will fail
+     * such as: com.xxx.Response-java.util.ArrayList-java.lang.String
+     * return com.xxx.Response-java.lang.String
+     */
+    private static String filterRawGenericType(String genericType) {
+        if (StringUtil.isEmpty(genericType)) {
+            // does not return null, otherwise com.xxx.Response-null will deserialize throw ClassNotFoundException: null
+            // this case means that the generic field is not assigned a value
+            return StringUtil.EMPTY;
+        }
+        StringBuilder builder = new StringBuilder();
+        String[] types = StringUtil.split(genericType, HORIZONTAL_LINE);
+        for (String type : types) {
+            if (StringUtil.isNullWord(type) || isCollection(type)) {
+                continue;
+            }
+            builder.append(HORIZONTAL_LINE).append(type);
+        }
+        return builder.substring(1);
+    }
+
+    public static boolean isCollection(String genericType) {
+        if (StringUtil.isEmpty(genericType)) {
+            return false;
+        }
+        switch (genericType) {
+            case "java.util.ArrayList":
+            case "java.util.LinkedList":
+            case "java.util.HashSet":
+            case "java.util.LinkedHashSet":
+            case "java.util.TreeSet":
+            case "java.util.Collections$EmptyList":
+            case "java.util.Collections$EmptySet":
+                return true;
+            default:
+                try {
+                    Class<?> clazz = Class.forName(genericType);
+                    return Collection.class.isAssignableFrom(clazz);
+                } catch (ClassNotFoundException e) {
+                    return false;
+                }
+        }
+    }
+
+    public static Collection<Collection<?>> toNestedCollection(Object object) {
+        Collection<Collection<?>> collection = null;
+        if (object instanceof Collection<?>) {
+            collection = (Collection<Collection<?>>) object;
+        }
+
+        if (CollectionUtil.isEmpty(collection)) {
+            return null;
+        }
+
+        for (Object innerCollection : collection) {
+            if (innerCollection == null) {
+                continue;
+            }
+            if (!(innerCollection instanceof Collection<?>)) {
+                return null;
+            }
+        }
+
+        return collection;
+    }
+
 }

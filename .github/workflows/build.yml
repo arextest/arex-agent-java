@@ -1,5 +1,5 @@
 # This workflow will build a Java project with Maven, and cache/restore any dependencies to improve the workflow execution time
-# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-maven
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-maven
 
 name: Build and Test
 
@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        java-version: [ 8, 11 ]
+        java-version: [ 8, 11, 17 ]
     steps:
     - uses: actions/checkout@v3
     - name: "Set up JDK ${{ matrix.java-version }}"
@@ -32,10 +32,10 @@ jobs:
     - uses: actions/checkout@v3
       with:
         fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
-    - name: "Set up JDK 11"
+    - name: "Set up JDK 17"
       uses: actions/setup-java@v3
       with:
-        java-version: 11
+        java-version: 17
         distribution: 'temurin'
         cache: maven
     - name: Cache SonarCloud packages
@@ -55,5 +55,5 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
       run: mvn --batch-mode --no-transfer-progress --fail-fast clean test verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=arextest_arex-agent-java -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=arextest -Dsonar.token=1f4a261beca6bbf7c93c3cf80bbc198de74d1020 -DskipTests=false
     - name: Codecov
-      uses: codecov/codecov-action@v3.1.0
+      uses: codecov/codecov-action@v3
     

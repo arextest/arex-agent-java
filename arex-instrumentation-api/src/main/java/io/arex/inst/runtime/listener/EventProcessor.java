@@ -88,6 +88,8 @@ public class EventProcessor {
     }
 
     public static void onExit(){
+        TimeCache.remove();
+        ContextManager.remove();
     }
 
     /**

@@ -2,6 +2,11 @@ package io.arex.inst.runtime.listener;
 
 import static org.mockito.ArgumentMatchers.any;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
@@ -72,7 +77,7 @@ public class EventProcessorTest {
         contextMockedStatic.verify(() -> ContextManager.currentContext(true, null), Mockito.times(0));
         // load serializer
         Mockito.when(ServiceLoader.load(StringSerializable.class, Thread.currentThread()
-                .getContextClassLoader())).thenReturn(Arrays.asList(new TestStringSerializable(), new TestStringSerializer2()));
+                .getContextClassLoader())).thenReturn(Arrays.asList(new TestJacksonSerializable(), new TestGsonSerializer()));
         // logger
         Mockito.when(ServiceLoader.load(Logger.class, Thread.currentThread()
                 .getContextClassLoader())).thenReturn(Collections.singletonList(logger));
@@ -82,7 +87,7 @@ public class EventProcessorTest {
         mockedStatic.verify(() -> LogManager.build(any()), Mockito.times(1));
         // serializer
         Assertions.assertNotNull(Serializer.getINSTANCE());
-        Assertions.assertEquals("jackson", Serializer.getINSTANCE().getSerializer().name());
+        Assertions.assertEquals("gson", Serializer.getINSTANCE().getSerializer().name());
         Assertions.assertEquals(1, Serializer.getINSTANCE().getSerializers().size());
 
         // atomic load, only load once
@@ -92,26 +97,78 @@ public class EventProcessorTest {
         Assertions.assertNotNull(Serializer.getINSTANCE());
     }
 
-    public static class TestStringSerializable implements StringSerializable {
+    @Test
+    void onExit() {
+        Assertions.assertDoesNotThrow(EventProcessor::onExit);
+    }
 
+    public static class TestJacksonSerializable implements StringSerializable {
+        private final ObjectMapper MAPPER = new ObjectMapper();
         @Override
         public String name() {
             return "jackson";
         }
 
         @Override
+        public String serialize(Object object) throws JsonProcessingException {
+            return MAPPER.writeValueAsString(object);
+        }
+
+        @Override
+        public <T> T deserialize(String json, Class<T> clazz) throws JsonProcessingException {
+            if (StringUtil.isEmpty(json) || clazz == null) {
+                return null;
+            }
+
+            return MAPPER.readValue(json, clazz);
+        }
+
+        @Override
+        public <T> T deserialize(String json, Type type) throws JsonProcessingException {
+            if (StringUtil.isEmpty(json) || type == null) {
+                return null;
+            }
+
+            JavaType javaType = MAPPER.getTypeFactory().constructType(type);
+            return MAPPER.readValue(json, javaType);
+        }
+
+        @Override
+        public StringSerializable reCreateSerializer() {
+            return null;
+        }
+    }
+
+    public static class TestGsonSerializer implements StringSerializable {
+        private final Gson serializer = new GsonBuilder().enableComplexMapKeySerialization().disableHtmlEscaping().create();
+        @Override
+        public String name() {
+            return "gson";
+        }
+
+        @Override
         public String serialize(Object object) {
-            throw new RuntimeException("test");
+            if (object == null) {
+                return null;
+            }
+            return serializer.toJson(object);
         }
 
         @Override
-        public <T> T deserialize(String value, Class<T> clazz) {
-            throw new RuntimeException("test");
+        public <T> T deserialize(String json, Class<T> clazz) {
+            if (StringUtil.isEmpty(json) || clazz == null) {
+                return null;
+            }
+            return serializer.fromJson(json, clazz);
         }
 
         @Override
-        public <T> T deserialize(String value, Type type) {
-            throw new RuntimeException("test");
+        public <T> T deserialize(String json, Type type) {
+            if (StringUtil.isEmpty(json) || type == null) {
+                return null;
+            }
+
+            return serializer.fromJson(json, type);
         }
 
         @Override
@@ -122,34 +179,6 @@ public class EventProcessorTest {
         @Override
         public boolean isDefault() {
             return true;
-        }
-    }
-
-    public static class TestStringSerializer2 implements StringSerializable {
-
-        @Override
-        public String name() {
-            return "gson";
-        }
-
-        @Override
-        public String serialize(Object object) {
-            return null;
-        }
-
-        @Override
-        public <T> T deserialize(String value, Class<T> clazz) {
-            return null;
-        }
-
-        @Override
-        public <T> T deserialize(String value, Type type) {
-            return null;
-        }
-
-        @Override
-        public StringSerializable reCreateSerializer() {
-            return null;
         }
     }
 }
