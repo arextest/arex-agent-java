@@ -78,6 +78,11 @@ class SerializerTest {
 
         List<List<Object>> actualResult = Serializer.deserialize(json, typeName);
         assertEquals(list, actualResult);
+
+        // empty list
+        String emptyListTypeName = TypeUtil.getName(new ArrayList<>());
+        List<Object> emptyList = Serializer.deserialize("[]", emptyListTypeName);
+        assertEquals(0, emptyList.size());
     }
 
     @Test

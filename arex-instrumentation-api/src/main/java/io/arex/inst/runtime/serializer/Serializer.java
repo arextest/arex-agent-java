@@ -155,7 +155,7 @@ public class Serializer {
         }
 
         String[] typeNames = StringUtil.split(typeName, '-');
-        if (ArrayUtils.isNotEmpty(typeNames) && TypeUtil.isCollection(typeNames[0])) {
+        if (ArrayUtils.isNotEmpty(typeNames) && typeNames.length > 1 && TypeUtil.isCollection(typeNames[0])) {
             String[] innerTypeNames = StringUtil.split(typeNames[1], ',');
             if (ArrayUtils.isNotEmpty(innerTypeNames) && TypeUtil.isCollection(innerTypeNames[0])) {
                 return (T) deserializeNestedCollection(value, typeNames[0], innerTypeNames, serializer);
