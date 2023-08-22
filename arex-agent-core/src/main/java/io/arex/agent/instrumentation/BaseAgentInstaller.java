@@ -20,7 +20,6 @@ import io.arex.inst.runtime.service.DataService;
 
 import io.arex.agent.bootstrap.util.ServiceLoader;
 import java.util.List;
-import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -97,15 +96,7 @@ public abstract class BaseAgentInstaller implements AgentInstaller {
             RecordLimiter.init(HealthManager::acquire);
             initSerializer();
             initDataCollector();
-            loadForkJoinTask();
         }
-    }
-
-    /**
-     * Load the ForkJoinTask inner class in advance for transform ex: java.util.concurrent.ForkJoinTask$AdaptedCallable
-     */
-    private void loadForkJoinTask() {
-        ForkJoinTask.class.getDeclaredClasses();
     }
 
     /**
