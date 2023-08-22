@@ -41,7 +41,7 @@ public class HealthManager {
     private static final AtomicInteger STATE = new AtomicInteger(NORMAL);
 
     private static final RecordRateChecker DATA_SERVICE_CHECKER =
-            new RecordRateChecker(TimeUnit.MILLISECONDS.toNanos(300));
+            new RecordRateChecker(TimeUnit.MILLISECONDS.toNanos(3000));
     private static final RecordRateChecker BALANCE_CHECKER =
             new RecordRateChecker(TimeUnit.MILLISECONDS.toNanos(3000));
     private static ScheduledFuture<?> scheduledFuture = null;
@@ -161,6 +161,8 @@ public class HealthManager {
             }
 
             boolean isRecover = (fatal.get() < 3 && ((double)success.get() / total.get()) >= 0.99);
+            LogManager.warn("isRecover", StringUtil.format("fatal=%s, success=%s, total=%s",
+                    String.valueOf(fatal), String.valueOf(success), String.valueOf(total)));
             reset();
             return isRecover;
         }

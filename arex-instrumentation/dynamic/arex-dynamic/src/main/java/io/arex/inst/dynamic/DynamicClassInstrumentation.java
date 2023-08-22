@@ -4,6 +4,8 @@ import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.inst.dynamic.common.DynamiConstants;
 import io.arex.inst.dynamic.common.DynamicClassExtractor;
 import io.arex.inst.runtime.config.Config;
+
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Collections;
 
@@ -11,6 +13,7 @@ import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.context.RepeatedCollectManager;
+import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.model.DynamicClassEntity;
 import io.arex.inst.extension.MethodInstrumentation;
 import io.arex.inst.extension.TypeInstrumentation;
@@ -23,8 +26,10 @@ import net.bytebuddy.asm.MemberSubstitution;
 import net.bytebuddy.description.NamedElement;
 import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.description.type.TypeDescription;
+import net.bytebuddy.dynamic.DynamicType;
 import net.bytebuddy.implementation.bytecode.assign.Assigner;
 import net.bytebuddy.matcher.ElementMatcher;
+import net.bytebuddy.matcher.LatentMatcher;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +44,7 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
     private DynamicClassEntity onlyClass = null;
     private final List<DynamicClassEntity> withParameterList = new ArrayList<>();
     private static final String SEPARATOR_STAR = "*";
+    private static Field ignoredMethods = null;
 
     protected ReplaceMethodsProvider replaceMethodsProvider;
 
@@ -76,8 +82,24 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
             for (Map.Entry<String, List<String>> entry : replaceMethodsProvider.getSearchMethodMap().entrySet()) {
                 builder = builder.visit(replaceMethod(entry.getValue(), entry.getKey()));
             }
+            // byte buddy will ignore the method which is lambda. replace method need search all method(include lambda).
+            if (builder instanceof DynamicType.Builder.AbstractBase.Adapter) {
+                removeIgnoredMethods(builder);
+            }
             return builder;
         };
+    }
+
+    private void removeIgnoredMethods(DynamicType.Builder<?> builder) {
+        try {
+            if (ignoredMethods == null) {
+                ignoredMethods = DynamicType.Builder.AbstractBase.Adapter.class.getDeclaredField("ignoredMethods");
+                ignoredMethods.setAccessible(true);
+            }
+            ignoredMethods.set(builder, new LatentMatcher.Resolved<MethodDescription>(none()));
+        } catch (Exception e) {
+            LogManager.warn("removeIgnoredMethods", e);
+        }
     }
 
     @Override

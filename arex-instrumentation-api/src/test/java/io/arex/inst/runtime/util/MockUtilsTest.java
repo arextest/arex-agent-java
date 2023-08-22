@@ -25,6 +25,7 @@ class MockUtilsTest {
     @AfterAll
     static void tearDown() {
         configBuilder = null;
+        Mockito.clearAllCaches();
     }
 
     @Test

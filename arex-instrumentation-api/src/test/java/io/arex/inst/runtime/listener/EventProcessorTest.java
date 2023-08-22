@@ -135,7 +135,7 @@ public class EventProcessorTest {
 
         @Override
         public StringSerializable reCreateSerializer() {
-            return null;
+            return new TestJacksonSerializable();
         }
     }
 
