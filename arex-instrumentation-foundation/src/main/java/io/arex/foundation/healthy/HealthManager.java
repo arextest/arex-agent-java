@@ -1,8 +1,10 @@
 package io.arex.foundation.healthy;
 
+import io.arex.agent.bootstrap.constants.ConfigConstants;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.foundation.config.ConfigManager;
 import io.arex.agent.bootstrap.internal.Pair;
+import io.arex.foundation.model.DecelerateReasonEnum;
 import io.arex.foundation.services.TimerService;
 import io.arex.inst.runtime.log.LogManager;
 
@@ -209,12 +211,16 @@ public class HealthManager {
             if (!validate()) {
                 return;
             }
-
+            double targetRate = ConfigManager.INSTANCE.getRecordRate();
             for (Map.Entry<String, Pair<Double, RateLimiter>> entry : RATE_LIMITER_MAP.entrySet()) {
                 Pair<Double, RateLimiter> limiterPair = entry.getValue();
-                Double targetRate = useMinRate ? MIN_RATE : limiterPair.getFirst();
+                targetRate = useMinRate ? MIN_RATE : limiterPair.getFirst();
                 RATE_LIMITER_MAP.put(entry.getKey(), Pair.of(limiterPair.getFirst(), RateLimiter.create(targetRate / BASE)));
             }
+            System.setProperty(ConfigConstants.CURRENT_RATE, String.valueOf(targetRate));
+            // if useMinRate is false, means recover from service exception
+            String decelerateCode = useMinRate ? DecelerateReasonEnum.SERVICE_EXCEPTION.getCodeStr() : DecelerateReasonEnum.NORMAL.getCodeStr();
+            System.setProperty(ConfigConstants.DECELERATE_CODE, decelerateCode);
         }
 
         /**
@@ -225,21 +231,17 @@ public class HealthManager {
             if (!validate()) {
                 return;
             }
-            double currentRate = ConfigManager.INSTANCE.getRecordRate();
+            double targetRate = ConfigManager.INSTANCE.getRecordRate();
             for (Map.Entry<String, Pair<Double, RateLimiter>> entry : RATE_LIMITER_MAP.entrySet()) {
                 Pair<Double, RateLimiter> limiterPair = entry.getValue();
-                double targetRate = Math.max(limiterPair.getFirst() * 0.8, MIN_RATE);
-                if (targetRate > MIN_RATE) {
-                    currentRate = targetRate;
-                    RATE_LIMITER_MAP.put(entry.getKey(), Pair.of(targetRate, RateLimiter.create(targetRate / BASE)));
-                } else {
-                    break;
-                }
+                targetRate = Math.max(limiterPair.getFirst() * 0.8, MIN_RATE);
+                RATE_LIMITER_MAP.put(entry.getKey(), Pair.of(targetRate, RateLimiter.create(targetRate / BASE)));
             }
-            System.setProperty("arex.current.rate", String.valueOf(currentRate));
+            System.setProperty(ConfigConstants.CURRENT_RATE, String.valueOf(targetRate));
+            System.setProperty(ConfigConstants.DECELERATE_CODE, DecelerateReasonEnum.QUEUE_OVERFLOW.getCodeStr());
             LogManager.warn("onEnqueueRejection.decelerate",
                     StringUtil.format("queue overflow! decrement record rate, current rate change to: %s",
-                            String.valueOf(currentRate)));
+                            String.valueOf(targetRate)));
         }
 
         /**

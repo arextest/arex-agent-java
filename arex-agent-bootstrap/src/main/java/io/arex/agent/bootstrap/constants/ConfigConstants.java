@@ -27,4 +27,6 @@ public class ConfigConstants {
     public static final String IP_VALIDATE = "arex.ip.validate";
 
     public static final String ENABLE_REPORT_STATUS = "arex.enable.report.status";
+    public static final String CURRENT_RATE = "arex.current.rate";
+    public static final String DECELERATE_CODE = "arex.decelerate.code";
 }
