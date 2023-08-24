@@ -5,16 +5,14 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import io.arex.agent.bootstrap.constants.ConfigConstants;
 import io.arex.agent.bootstrap.util.MapUtils;
-import io.arex.foundation.model.AgentStatusEnum;
-import io.arex.foundation.model.AgentStatusRequest;
+import io.arex.foundation.model.*;
 import io.arex.foundation.config.ConfigManager;
-import io.arex.foundation.model.ConfigQueryRequest;
-import io.arex.foundation.model.ConfigQueryResponse;
 import io.arex.foundation.util.httpclient.AsyncHttpClientUtil;
 import io.arex.foundation.util.NetUtils;
 import io.arex.agent.bootstrap.util.StringUtil;
-import io.arex.foundation.model.HttpClientResponse;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -185,6 +183,10 @@ public class ConfigService {
 
             AgentStatusRequest request = new AgentStatusRequest(ConfigManager.INSTANCE.getServiceName(),
                 NetUtils.getIpAddress(), agentStatus.name());
+            request.setCurrentRate(System.getProperty(ConfigConstants.CURRENT_RATE,
+                    String.valueOf(ConfigManager.INSTANCE.getRecordRate())));
+            request.setDecelerateCode(Integer.parseInt(System.getProperty(ConfigConstants.DECELERATE_CODE,
+                    DecelerateReasonEnum.NORMAL.getCodeStr())));
 
             String requestJson = ConfigService.INSTANCE.serialize(request);
 
