@@ -48,6 +48,6 @@ class HealthManagerTest {
         ConfigManager.INSTANCE.setRecordRate(1);
         HealthManager.acquire("mock");
         HealthManager.RecordRateManager.RECORD_RATE_MANAGER.decelerate();
-        assertEquals(String.valueOf(0.8), System.getProperty(ConfigConstants.CURRENT_RATE));
+        assertEquals("0.80", System.getProperty(ConfigConstants.CURRENT_RATE));
     }
 }
