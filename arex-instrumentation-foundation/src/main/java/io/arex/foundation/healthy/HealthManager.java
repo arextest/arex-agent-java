@@ -237,11 +237,11 @@ public class HealthManager {
                 targetRate = Math.max(limiterPair.getFirst() * 0.8, MIN_RATE);
                 RATE_LIMITER_MAP.put(entry.getKey(), Pair.of(targetRate, RateLimiter.create(targetRate / BASE)));
             }
-            System.setProperty(ConfigConstants.CURRENT_RATE, String.valueOf(targetRate));
+            System.setProperty(ConfigConstants.CURRENT_RATE, String.format("%.2f", targetRate));
             System.setProperty(ConfigConstants.DECELERATE_CODE, DecelerateReasonEnum.QUEUE_OVERFLOW.getCodeStr());
             LogManager.warn("onEnqueueRejection.decelerate",
                     StringUtil.format("queue overflow! decrement record rate, current rate change to: %s",
-                            String.valueOf(targetRate)));
+                            String.format("%.2f", targetRate)));
         }
 
         /**
