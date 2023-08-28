@@ -130,6 +130,8 @@ class ServletAdviceHelperTest {
             Mockito.when(adapter.getRequestURI(any())).thenReturn(".js");
         };
         Runnable shouldSkip6_2 = () -> {
+            Mockito.when(RecordLimiter.acquire(any())).thenReturn(true);
+            Mockito.when(ContextManager.needRecordOrReplay()).thenReturn(true);
             Mockito.when(adapter.getRequestURI(any())).thenReturn(".json");
         };
         Runnable shouldSkip6_3 = () -> {
@@ -166,8 +168,8 @@ class ServletAdviceHelperTest {
             arguments("shouldSkip: IgnoreUtils.ignoreOperation returns true", shouldSkip5, predicate1),
             arguments("shouldSkip: adapter.getRequestURI return .png", shouldSkip6, predicate1),
             arguments("shouldSkip: adapter.getRequestURI return .js", shouldSkip6_1, predicate1),
-            arguments("shouldSkip: adapter.getRequestURI return .json", shouldSkip6_2, predicate1),
-            arguments("shouldSkip: adapter.getRequestURI return .jsp", shouldSkip6_2, predicate1),
+            arguments("shouldSkip: adapter.getRequestURI return .json", shouldSkip6_2, predicate2),
+            arguments("shouldSkip: adapter.getRequestURI return .jsp", shouldSkip6_3, predicate2),
             arguments("shouldSkip: adapter.getContentType return image/", shouldSkip7, predicate1),
             arguments("ContextManager.needRecordOrReplay is true", shouldSkip8, predicate2),
             arguments("shouldSkip: adapter.getAttribute returns true", shouldSkip9, predicate1)
