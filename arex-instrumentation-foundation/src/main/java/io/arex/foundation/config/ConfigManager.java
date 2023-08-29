@@ -325,6 +325,7 @@ public class ConfigManager {
         configMap.put(DURING_WORK, Boolean.toString(nextWorkTime() <= 0));
         configMap.put(AGENT_VERSION, agentVersion);
         configMap.put(IP_VALIDATE, Boolean.toString(checkTargetAddress()));
+        configMap.put(STORAGE_SERVICE_MODE, storageServiceMode);
         Map<String, String> extendFieldMap = getExtendField();
         if (MapUtils.isNotEmpty(extendFieldMap)) {
             configMap.putAll(extendFieldMap);
