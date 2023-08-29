@@ -49,14 +49,6 @@ public final class JacksonSerializer implements StringSerializable {
     public static final String EXTENSION = "json";
 
     private static final String SKIP_INFO_LIST_TYPE = "java.util.ArrayList-io.arex.inst.runtime.model.SerializeSkipInfo";
-    private static List<String> MYBATIS_PLUS_CLASS_LIST = Arrays.asList(
-            "com.baomidou.mybatisplus.core.conditions.query.QueryWrapper",
-            "com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper",
-            "com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper",
-            "com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper");
-
-    private static List<String> TK_MYBATIS_PLUS_CLASS_LIST = Arrays.asList(
-            "tk.mybatis.mapper.entity.EntityColumn");
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JacksonSerializer.class);
 

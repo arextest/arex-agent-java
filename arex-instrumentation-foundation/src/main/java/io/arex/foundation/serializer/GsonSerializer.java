@@ -9,11 +9,13 @@ import io.arex.agent.bootstrap.util.StringUtil;
 import com.google.gson.Gson;
 import com.google.gson.JsonDeserializer;
 
+import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.serializer.StringSerializable;
 import io.arex.inst.runtime.util.TypeUtil;
 import java.sql.Time;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
+import java.util.Map.Entry;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
@@ -151,11 +153,24 @@ public class GsonSerializer implements StringSerializable {
     };
 
     public static final GsonSerializer INSTANCE = new GsonSerializer();
-    private final Gson serializer;
+    private Gson serializer;
+    private GsonBuilder gsonBuilder;
+
+    @Override
+    public void addTypeSerializer(Class<?> clazz, Object typeSerializer) {
+        if (typeSerializer == null) {
+            // map<String, Object> custom serializer
+            this.gsonBuilder.registerTypeAdapter(clazz, new MapSerializer());
+        } else {
+            this.gsonBuilder.registerTypeAdapter(clazz, typeSerializer);
+        }
+        this.serializer = gsonBuilder.create();
+    }
+
     public GsonSerializer() {
-        serializer = new GsonBuilder().registerTypeAdapterFactory(NumberTypeAdaptor.FACTORY)
-                .registerTypeAdapter(org.joda.time.DateTime.class, DATE_TIME_JSON_SERIALIZER)
-                .registerTypeAdapter(org.joda.time.DateTime.class, DATE_TIME_JSON_DESERIALIZER)
+        gsonBuilder = new GsonBuilder().registerTypeAdapterFactory(NumberTypeAdaptor.FACTORY)
+                .registerTypeAdapter(DateTime.class, DATE_TIME_JSON_SERIALIZER)
+                .registerTypeAdapter(DateTime.class, DATE_TIME_JSON_DESERIALIZER)
                 .registerTypeAdapter(org.joda.time.LocalDateTime.class, JODA_LOCAL_DATE_TIME_JSON_SERIALIZER)
                 .registerTypeAdapter(org.joda.time.LocalDateTime.class, JODA_LOCAL_DATE_TIME_JSON_DESERIALIZER)
                 .registerTypeAdapter(org.joda.time.LocalDate.class, JODA_LOCAL_DATE_JSON_SERIALIZER)
@@ -188,7 +203,64 @@ public class GsonSerializer implements StringSerializable {
                 .registerTypeAdapter(Class.class, CLASS_JSON_DESERIALIZER)
                 .enableComplexMapKeySerialization()
                 .setExclusionStrategies(new ExcludeField())
-                .disableHtmlEscaping().create();
+                .disableHtmlEscaping();
+        serializer = gsonBuilder.create();
+    }
+
+
+    static class MapSerializer implements JsonSerializer<Map<String, Object>>, JsonDeserializer<Map<String, Object>> {
+
+        private static final Character SEPARATOR = '-';
+
+        @Override
+        public JsonElement serialize(Map<String, Object> document, Type type, JsonSerializationContext context) {
+            JsonObject jsonObject = new JsonObject();
+            for (Map.Entry<String, Object> entry : document.entrySet()) {
+                final Object value = entry.getValue();
+
+                if (value == null) {
+                    jsonObject.add(entry.getKey(), null);
+                    continue;
+                }
+
+                if (value instanceof String) {
+                    jsonObject.addProperty(entry.getKey(), (String) value);
+                    continue;
+                }
+                jsonObject.add(entry.getKey() + SEPARATOR + TypeUtil.getName(value),
+                        context.serialize(value));
+            }
+            return jsonObject;
+        }
+
+        @Override
+        public Map<String, Object> deserialize(JsonElement json, Type typeOfT,
+                JsonDeserializationContext context) throws JsonParseException {
+
+            final JsonObject jsonObject = json.getAsJsonObject();
+            try {
+                // only support no-arg constructor
+                final Map<String, Object> map = (Map<String, Object>) ((Class) typeOfT).getDeclaredConstructor(null).newInstance();
+                for (Entry<String, JsonElement> entry : jsonObject.entrySet()) {
+                    final String[] split = StringUtil.splitByFirstSeparator(entry.getKey(), SEPARATOR);
+                    if (split.length < 2) {
+                        map.put(entry.getKey(), context.deserialize(entry.getValue(), String.class));
+                        continue;
+                    }
+                    String valueClazz = split[1];
+                    String key = split[0];
+                    final JsonElement valueJson = entry.getValue();
+                    final Type valueType = TypeUtil.forName(valueClazz);
+                    final Object value = context.deserialize(valueJson, valueType);
+                    map.put(key, value);
+                }
+                return map;
+            } catch (Exception e) {
+                LogManager.warn("MapSerializer.deserialize", e);
+                return null;
+            }
+
+        }
     }
 
     @Override
@@ -234,6 +306,9 @@ public class GsonSerializer implements StringSerializable {
                 return true;
             }
             String className = f.getDeclaringClass().getName();
+            if (MONGO_CLASS_LIST.contains(className) && !MONGO_FIELD_LIST.contains(fieldName)) {
+                return true;
+            }
             List<String> fieldNameList = JacksonSerializer.INSTANCE.getSkipFieldNameList(className);
 
             if (fieldNameList == null) {
