@@ -95,7 +95,7 @@ public final class MockUtils {
     }
 
     public static Mocker replayMocker(Mocker requestMocker) {
-        return replayMocker(requestMocker, MockStrategyEnum.FIND_LAST);
+        return replayMocker(requestMocker, MockStrategyEnum.OVER_BREAK);
     }
 
     public static Mocker replayMocker(Mocker requestMocker, MockStrategyEnum mockStrategy) {
@@ -122,7 +122,7 @@ public final class MockUtils {
     }
 
     public static Object replayBody(Mocker requestMocker) {
-        return replayBody(requestMocker, MockStrategyEnum.FIND_LAST);
+        return replayBody(requestMocker, MockStrategyEnum.OVER_BREAK);
     }
 
     public static Object replayBody(Mocker requestMocker, MockStrategyEnum mockStrategy) {
