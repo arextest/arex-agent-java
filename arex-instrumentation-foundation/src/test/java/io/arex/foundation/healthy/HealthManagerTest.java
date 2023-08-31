@@ -31,11 +31,11 @@ class HealthManagerTest {
     @Test
     void changeRate() {
         ConfigManager.INSTANCE.setRecordRate(0);
-        HealthManager.RecordRateManager.RECORD_RATE_MANAGER.changeRate(false);
+        HealthManager.RecordRateManager.RECORD_RATE_MANAGER.changeRate();
         assertNull(System.getProperty(ConfigConstants.CURRENT_RATE));
         ConfigManager.INSTANCE.setRecordRate(1);
         HealthManager.acquire("mock");
-        HealthManager.RecordRateManager.RECORD_RATE_MANAGER.changeRate(true);
+        HealthManager.RecordRateManager.RECORD_RATE_MANAGER.changeRate();
         assertEquals(String.valueOf(HealthManager.RecordRateManager.MIN_RATE),
                 System.getProperty(ConfigConstants.CURRENT_RATE));
     }
