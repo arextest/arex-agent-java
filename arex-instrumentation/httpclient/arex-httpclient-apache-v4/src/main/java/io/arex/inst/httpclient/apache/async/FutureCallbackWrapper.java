@@ -38,7 +38,9 @@ public class FutureCallbackWrapper<T> implements FutureCallback<T> {
                 HttpResponse response = (HttpResponse) t;
                 extractor.record(response);
             }
-            delegate.completed(t);
+            if (delegate != null) {
+                delegate.completed(t);
+            }
         }
     }
 
@@ -48,14 +50,18 @@ public class FutureCallbackWrapper<T> implements FutureCallback<T> {
             if (extractor != null) {
                 extractor.record(e);
             }
-            delegate.failed(e);
+            if (delegate != null) {
+                delegate.failed(e);
+            }
         }
     }
 
     @Override
     public void cancelled() {
         try (TraceTransmitter tm = traceTransmitter.transmit()) {
-            delegate.cancelled();
+            if (delegate != null) {
+                delegate.cancelled();
+            }
         }
     }
 
