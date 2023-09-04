@@ -46,18 +46,34 @@ public class DatabaseExtractor {
         this.methodName = methodName;
     }
 
+    /**
+     * mongo
+     */
+    public DatabaseExtractor(String dbName, String sql, String parameters, String methodName) {
+        this.dbName = dbName;
+        this.sql = sql;
+        this.parameters = parameters;
+        this.methodName = methodName;
+    }
+
     public void record(Object response) {
-        MockUtils.recordMocker(makeMocker(response));
+        record(response, null);
+    }
+    public void record(Object response, String serializer) {
+         MockUtils.recordMocker(makeMocker(response, serializer));
     }
 
     public MockResult replay() {
-        // TODO: Temporarily use DataBase
+        return replay(null);
+    }
+
+    public MockResult replay(String serializer) {
         boolean ignoreMockResult = IgnoreUtils.ignoreMockResult(this.dbName, methodName);
-        Mocker replayMocker = MockUtils.replayMocker(makeMocker(null));
+        Mocker replayMocker = MockUtils.replayMocker(makeMocker(null, serializer));
         Object replayResult = null;
         if (MockUtils.checkResponseMocker(replayMocker)) {
             replayResult = Serializer.deserialize(replayMocker.getTargetResponse().getBody(),
-                replayMocker.getTargetResponse().getType());
+                    replayMocker.getTargetResponse().getType(), serializer);
 
             if (replayResult != null) {
                 // restore keyHolder
@@ -68,13 +84,13 @@ public class DatabaseExtractor {
         return MockResult.success(ignoreMockResult, replayResult);
     }
 
-    private Mocker makeMocker(Object response) {
+    private Mocker makeMocker(Object response, String serializer) {
         Mocker mocker = MockUtils.createDatabase(this.methodName);
         mocker.getTargetRequest().setBody(this.sql);
         mocker.getTargetRequest().setAttribute("dbName", this.dbName);
         mocker.getTargetRequest().setAttribute("parameters", this.parameters);
         mocker.getTargetResponse().setAttribute("keyHolder", this.keyHolder);
-        mocker.getTargetResponse().setBody(Serializer.serialize(response));
+        mocker.getTargetResponse().setBody(Serializer.serialize(response, serializer));
         mocker.getTargetResponse().setType(TypeUtil.getName(response));
         return mocker;
     }
