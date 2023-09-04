@@ -71,7 +71,7 @@ public class HealthManager {
 
     public static void onEnqueueRejection() {
         if (STATE.compareAndSet(NORMAL, FAST_REJECT)) {
-            LogManager.warn("healManager.enqueueRejection", "queue overflow! switch to reject state");
+            LogManager.warn("healthManager.enqueueRejection", "queue overflow! switch to reject state");
             // Check state after 30 seconds
             scheduledFuture = TimerService.schedule(() -> {
                 RECORD_RATE_MANAGER.decelerate();
@@ -83,7 +83,7 @@ public class HealthManager {
 
     public static void onDataServiceRejection() {
         if (STATE.compareAndSet(NORMAL, FAST_REJECT) || STATE.compareAndSet(QUEUE_OVERFLOW, FAST_REJECT)) {
-            LogManager.warn("healManager.dataServiceRejection", "data service error! switch to reject state");
+            LogManager.warn("healthManager.dataServiceRejection", "data service error! switch to reject state");
             if (scheduledFuture != null) {
                 scheduledFuture.cancel(false);
             }
@@ -145,7 +145,7 @@ public class HealthManager {
                 default:
                     break;
             }
-            LogManager.warn("healManager.healthCheckTask", StringUtil.format("check result: state=%s, isRecover=%s",
+            LogManager.warn("healthManager.healthCheckTask", StringUtil.format("check result: state=%s, isRecover=%s",
                     String.valueOf(STATE.get()), String.valueOf(isRecover)));
         }
     }
@@ -178,7 +178,7 @@ public class HealthManager {
             }
 
             boolean isRecover = (fatal.get() < 3 && ((double)success.get() / total.get()) >= 0.99);
-            LogManager.warn("healManager.isRecover", StringUtil.format("isRecover=%s, fatal=%s, success=%s, total=%s",
+            LogManager.warn("healthManager.isRecover", StringUtil.format("isRecover=%s, fatal=%s, success=%s, total=%s",
                     String.valueOf(isRecover), String.valueOf(fatal), String.valueOf(success), String.valueOf(total)));
             reset();
             return isRecover;
@@ -227,7 +227,7 @@ public class HealthManager {
                 }
                 System.setProperty(ConfigConstants.CURRENT_RATE, String.format("%.2f", configRate));
                 System.setProperty(ConfigConstants.DECELERATE_CODE, DecelerateReasonEnum.NORMAL.getCodeStr());
-                LogManager.info("healManager.updateRate",
+                LogManager.info("healthManager.updateRate",
                         StringUtil.format("update rate, current rate change to: %s", String.format("%.2f", configRate)));
             }
         }
@@ -237,9 +237,9 @@ public class HealthManager {
                 return rate;
             }
             // un normally state, use current rate(maybe decelerated)
-            for (Map.Entry<String, Pair<Double, RateLimiter>> entry : RATE_LIMITER_MAP.entrySet()) {
-                Pair<Double, RateLimiter> limiterPair = entry.getValue();
-                return limiterPair.getFirst();
+            String currentRate = System.getProperty(ConfigConstants.CURRENT_RATE);
+            if (StringUtil.isNotEmpty(currentRate)) {
+                return Double.parseDouble(currentRate);
             }
             return rate;
         }
@@ -263,7 +263,7 @@ public class HealthManager {
             }
             System.setProperty(ConfigConstants.CURRENT_RATE, String.format("%.2f", targetRate));
             System.setProperty(ConfigConstants.DECELERATE_CODE, DecelerateReasonEnum.SERVICE_EXCEPTION.getCodeStr());
-            LogManager.warn("healManager.decelerate",
+            LogManager.warn("healthManager.decelerate",
                     StringUtil.format("service exception! decrement record rate, current rate change to: %s",
                             String.format("%.2f", targetRate)));
         }
@@ -284,7 +284,7 @@ public class HealthManager {
             }
             System.setProperty(ConfigConstants.CURRENT_RATE, String.format("%.2f", targetRate));
             System.setProperty(ConfigConstants.DECELERATE_CODE, DecelerateReasonEnum.QUEUE_OVERFLOW.getCodeStr());
-            LogManager.warn("healManager.decelerate",
+            LogManager.warn("healthManager.decelerate",
                     StringUtil.format("queue overflow! decrement record rate, current rate change to: %s",
                             String.format("%.2f", targetRate)));
         }
