@@ -91,7 +91,7 @@ public class ExecutionPathBuilder {
     public ExecutionPath build() {
         ExecutionPath executionPath = new ExecutionPath(this.caseId, new ArrayList<>(executionMap.values()));
         executionPath.setAppId(System.getProperty("arex.service.name"));
-        executionPath.setCategoryType(MockCategoryType.EXECUTION_PATH);
+        executionPath.setCategoryType(MockCategoryType.COVERAGE);
         executionPath.setCreationTime(System.currentTimeMillis());
         if (executionPath.getDebugMessage() != null) {
             executionPath.setTargetResponse(new Mocker.Target());

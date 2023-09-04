@@ -18,7 +18,7 @@ public class ExecutionPath extends ArexMocker {
     private String debugMessage;
 
     public ExecutionPath(String caseId, List<ExecutionPathBuilder.MethodExecutionRecord> executionData) {
-        super(MockCategoryType.EXECUTION_PATH);
+        super(MockCategoryType.COVERAGE);
         this.setRecordId(caseId);
         init(executionData);
     }
