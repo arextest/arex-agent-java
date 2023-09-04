@@ -1,5 +1,6 @@
 package io.arex.foundation.services;
 
+import io.arex.agent.bootstrap.model.ArexMocker;
 import io.arex.agent.bootstrap.model.MockStrategyEnum;
 import io.arex.agent.bootstrap.util.MapUtils;
 import io.arex.foundation.config.ConfigManager;
@@ -10,6 +11,8 @@ import io.arex.foundation.util.httpclient.AsyncHttpClientUtil;
 import io.arex.foundation.model.HttpClientResponse;
 import io.arex.foundation.util.httpclient.async.ThreadFactoryImpl;
 import io.arex.inst.runtime.log.LogManager;
+import io.arex.inst.runtime.model.InvalidCaseMocker;
+import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.service.DataCollector;
 
 import java.util.Map;
@@ -131,9 +134,12 @@ public class DataCollectorService implements DataCollector {
         return (response, throwable) -> {
             long usedTime = System.nanoTime() - entity.getQueueTime();
             if (Objects.nonNull(throwable)) {
+                final ArexMocker invalidMocker = InvalidCaseMocker.of(entity.getPostData());
                 LogManager.warn("saveMockDataConsumer", "save mock data error");
                 usedTime = -1; // -1:reject
                 HealthManager.onDataServiceRejection();
+                // save invalid case
+                AsyncHttpClientUtil.postAsyncWithZstdJson(saveApiUrl, Serializer.serialize(invalidMocker), null);
             }
             HealthManager.reportUsedTime(usedTime, false);
         };
