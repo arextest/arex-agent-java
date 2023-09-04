@@ -1,6 +1,7 @@
 package io.arex.agent.instrumentation.asm;
 
 import java.util.List;
+
 import net.bytebuddy.jar.asm.*;
 
 import static java.util.Arrays.asList;
@@ -17,13 +18,11 @@ class IgnoreMatcher {
             return true;
         }
 
-        //return false;
         return matchSuperName(superName, prefix) || matchInterfaces(interfaces, prefix);
     }
 
     public boolean matchClazzName(String clazzName, String prefix) {
         if (!clazzName.startsWith(prefix) || clazzName.indexOf("$$") >= 0) {
-            //log(clazzName, "Class", 3);
             return true;
         }
 
@@ -60,18 +59,13 @@ class IgnoreMatcher {
         return name.startsWith("<") || name.startsWith("access$");
     }
 
-    private void log(String name, String type, int code) {
-        if (name.startsWith("com/ctrip/flight")) {
-            System.out.println("[AREX] ignore class: " + name + ", type: " + type + ", code: " + code);
-        }
-    }
-
     // TODO: remove to a internal config file.
-    private static final List<String> IGNORED_NAME_CONTAINS = asList("metrics",
+    private static final List<String> IGNORED_NAME_CONTAINS = asList("metric",
             "util",
             "arex",
             "config",
             "log",
+            "converter",
             "test");
 
     private static final List<String> IGNORED_ANNOTATIONS = asList(

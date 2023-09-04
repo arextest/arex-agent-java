@@ -46,7 +46,7 @@ public class ArexContext {
         this.sequence = new AtomicInteger(0);
         this.replayId = replayId;
 
-        if (StringUtil.isNotEmpty(replayId)) {
+        if (!ExecutionPathBuilder.isClosed() && StringUtil.isNotEmpty(replayId)) {
             executionPathBuilder = ExecutionPath.builder(caseId);
         }
     }
@@ -146,14 +146,8 @@ public class ArexContext {
 
     public void postProcess() {
         if (executionPathBuilder != null) {
-            ExecutionPath executionPath = executionPathBuilder.build();
-            ArexMocker mocker = MockUtils.create(MockCategoryType.EXECUTION_PATH,
-                    String.valueOf(executionPath.getKey()));
-            mocker.setRecordId(executionPath.getCaseId());
-            mocker.getTargetResponse().setBody(executionPath.toString());
-            MockUtils.recordMocker(mocker);
+            MockUtils.recordMocker(executionPathBuilder.build());
             executionPathBuilder = null;
-            System.out.println("[AREX] ExecutionPath: " + executionPath.toString());
         }
     }
 

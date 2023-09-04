@@ -4,6 +4,9 @@ import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.CoverageSupport;
 import net.bytebuddy.jar.asm.*;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
+// class file format: https://docs.oracle.com/javase/specs/jvms/se9/html/jvms-4.html#jvms-4.7.25
 public class LineVisitor extends ClassVisitor {
     final static String SUPPORT_CLASS = Type.getInternalName(CoverageSupport.class);
     private String fixedClassName;
@@ -22,7 +25,6 @@ public class LineVisitor extends ClassVisitor {
         return changed;
     }
 
-    // class file format: https://docs.oracle.com/javase/specs/jvms/se9/html/jvms-4.html#jvms-4.7.25
     @Override
     public void visit(
             final int version,
@@ -75,10 +77,10 @@ public class LineVisitor extends ClassVisitor {
 
         return new MethodVisitor(api, mv) {
             int key;
+            private AtomicInteger branchCode = new AtomicInteger(0);
             String debugMessage;
             private boolean hasSwitchTable = false;
             private Label exceptionHandler = null;
-            private int currentLine = -1;
 
             @Override
             public void visitCode() {
@@ -100,14 +102,8 @@ public class LineVisitor extends ClassVisitor {
             }
 
             @Override
-            public void visitLineNumber(int line, Label start) {
-                super.visitLineNumber(line, start);
-                this.currentLine = line;
-            }
-
-            @Override
             public void visitInsn(int opcode) {
-                if (opcode >= Opcodes.IRETURN && opcode <= Opcodes.RETURN) {
+                if ((opcode >= Opcodes.IRETURN && opcode <= Opcodes.RETURN) || opcode == Opcodes.ATHROW) {
                     if (enableDebug) {
                         insertCoding(key, debugMessage, "exit");
                     } else {
@@ -117,16 +113,14 @@ public class LineVisitor extends ClassVisitor {
                 super.visitInsn(opcode);
             }
 
-            private int index = 0;
-
             @Override
             public void visitJumpInsn(int opcode, Label label) {
                 if (opcode != Opcodes.GOTO || hasSwitchTable) {
                     mv.visitJumpInsn(opcode, label);
-                    insertCoding(key, "execute", ++index);
+                    insertCoding(key, "execute", branchCode.incrementAndGet());
                 } else {
                     if (hasSwitchTable) {
-                        insertCoding(key, "execute", ++index);
+                        insertCoding(key, "execute", branchCode.incrementAndGet());
                     }
                     mv.visitJumpInsn(opcode, label);
                 }
@@ -143,8 +137,7 @@ public class LineVisitor extends ClassVisitor {
             public void visitLabel(Label label) {
                 super.visitLabel(label);
                 if (label == exceptionHandler) {
-                    insertCoding(key, "execute", ++index);
-                    changed = true;
+                    insertCoding(key, "execute", branchCode.incrementAndGet());
                 }
             }
 

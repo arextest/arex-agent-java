@@ -1,9 +1,19 @@
 package io.arex.agent.bootstrap.internal.converage;
 
+import io.arex.agent.bootstrap.model.MockCategoryType;
+import io.arex.agent.bootstrap.model.Mocker;
+
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ExecutionPathBuilder {
+
+    private static boolean closed = false;
+    public static boolean isClosed() {
+        return closed;
+    }
 
     private static ThreadLocal<ExecutionStack> TL_STACK = new ThreadLocal() {
         @Override
@@ -12,7 +22,7 @@ public class ExecutionPathBuilder {
         }
     };
 
-    private int count1 = 0;
+    private Map<String, ExecutionStack> execMap = new HashMap<>();
 
     public ExecutionPathBuilder(String caseId) {
         this.caseId = caseId;
@@ -28,10 +38,18 @@ public class ExecutionPathBuilder {
 
     public ExecutionPathBuilder methodEnter(int key) {
         ExecutionStack stack = TL_STACK.get();
+        if (stack.size() > 1000) {
+            closed = true;
+            stack.clear();
+            return this;
+        }
+
         MethodExecutionRecord record = stack.top();
         if (record == null || record.methodKey != key) {
             stack.push(new MethodExecutionRecord(key));
         }
+
+        execMap.computeIfAbsent(Thread.currentThread().getName(), k -> stack);
         return this;
     }
 
@@ -55,7 +73,6 @@ public class ExecutionPathBuilder {
         }
 
         if (record.methodKey == key) {
-            count1++;
             if (record.codes == 0) {
                 return this;
             }
@@ -64,15 +81,34 @@ public class ExecutionPathBuilder {
         } else {
             stack.push(record);
         }
+
+        if (stack.size() == 0) {
+            execMap.remove(Thread.currentThread().getName());
+        }
         return this;
     }
 
     public ExecutionPath build() {
-        return new ExecutionPath(this.caseId, new ArrayList<>(executionMap.values()), count1);
+        ExecutionPath executionPath = new ExecutionPath(this.caseId, new ArrayList<>(executionMap.values()));
+        executionPath.setAppId(System.getProperty("arex.service.name"));
+        executionPath.setCategoryType(MockCategoryType.EXECUTION_PATH);
+        executionPath.setCreationTime(System.currentTimeMillis());
+        if (executionPath.getDebugMessage() != null) {
+            executionPath.setTargetResponse(new Mocker.Target());
+            executionPath.getTargetResponse().setBody(executionPath.getDebugMessage());
+        }
+        executionMap.clear();
+        TL_STACK.remove();
+
+        // debug
+        StringBuilder sb = new StringBuilder();
+        for (Map.Entry<String, ExecutionStack> entry : execMap.entrySet()) {
+            sb.append(entry.getKey()).append(":").append(entry.getValue().size()).append(",");
+        }
+        return executionPath;
     }
 
     public static class MethodExecutionRecord {
-        static final int LINE_OVERFLOW_VALUE = Integer.MAX_VALUE >> 2;
 
         private int methodKey;
         private long executionKey = -1;
@@ -81,12 +117,6 @@ public class ExecutionPathBuilder {
         private String debugMessage;
         private int loopCodes = 0;
         private boolean changedMethod = false;
-
-        private String strCodes = "";
-
-        public String getStrCodes() {
-            return strCodes;
-        }
 
         public MethodExecutionRecord(int key) {
             this.methodKey = key;
@@ -109,11 +139,11 @@ public class ExecutionPathBuilder {
                 // maybe loop or recursive call
                 loopCodes |= mapCode(code);
                 return;
-            } else {
-                if (loopCodes != 0) {
-                    appendCode(loopCodes);
-                    loopCodes = 0;
-                }
+            }
+
+            if (loopCodes != 0) {
+                appendCode(loopCodes);
+                loopCodes = 0;
             }
 
             lastCode = code;
@@ -121,7 +151,7 @@ public class ExecutionPathBuilder {
         }
 
         private void appendCode(int code) {
-            this.codes = ((this.codes < LINE_OVERFLOW_VALUE) ? this.codes << 1 : this.codes) + code;
+            this.codes = 31 * this.codes + code;
         }
 
         public long executionKey() {

@@ -1,57 +1,35 @@
 package io.arex.agent.bootstrap.internal.converage;
 
+import io.arex.agent.bootstrap.model.ArexMocker;
+import io.arex.agent.bootstrap.model.MockCategoryType;
+
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
-public class ExecutionPath {
+public class ExecutionPath extends ArexMocker {
 
     public static ExecutionPathBuilder builder(String caseId) {
         return new ExecutionPathBuilder(caseId);
     }
 
-    private final String caseId;
-    private long key;
-
     List<Integer> executedChangeMethods;
 
     private String debugMessage;
 
-    public long getKey() {
-        return key;
-    }
-
-    public String getCaseId() {
-        return this.caseId;
-    }
-
     public ExecutionPath(String caseId, List<ExecutionPathBuilder.MethodExecutionRecord> executionData) {
-        this.caseId = caseId;
-        init(executionData);
-        this.count2 = executionData.size();
-    }
-
-    private int count1;
-    private int count2;
-
-    private StringBuilder builder;
-
-    public ExecutionPath(String caseId, List<ExecutionPathBuilder.MethodExecutionRecord> executionData, int count) {
-
-        this.count1 = count;
-        this.count2 = executionData.size();
-        this.caseId = caseId;
+        super(MockCategoryType.EXECUTION_PATH);
+        this.setRecordId(caseId);
         init(executionData);
     }
 
     private void init(List<ExecutionPathBuilder.MethodExecutionRecord> executionData) {
-        builder = new StringBuilder();
         executionData.sort(Comparator.comparingLong(ExecutionPathBuilder.MethodExecutionRecord::executionKey));
 
-        //StringBuilder sb = new StringBuilder();
+        long key = 0;
+        StringBuilder sb = new StringBuilder();
         for (ExecutionPathBuilder.MethodExecutionRecord record : executionData) {
-            this.key = 31 * this.key + record.executionKey();
+            key = 31 * key + record.executionKey();
 
             if (record.isChangedMethod()) {
                 if (executedChangeMethods == null) {
@@ -61,20 +39,18 @@ public class ExecutionPath {
             }
 
             if (record.getDebugMessage() != null) {
-                builder.append(record.getDebugMessage()).append('-').append(record.getStrCodes()).append(record.getCodes()).append(",");
+                sb.append(record.getDebugMessage()).append("-Code:").append(record.getCodes()).append(",");
             }
         }
 
-        String msg = "ExecutionPath(caseId=" + caseId + ",key=" + this.key + ", count1=" + count1 + ", count2=" + count2 + "): ";
-        builder.insert(0, msg);
-
-        /*if (sb.length() > 0) {
+        if (sb.length() > 0) {
             sb.deleteCharAt(sb.length() - 1);
             this.debugMessage = sb.toString();
-        }*/
+        }
+        this.setOperationName(String.valueOf(key));
     }
 
-    public String toString() {
-        return builder.toString();
+    public String getDebugMessage() {
+        return debugMessage;
     }
 }
