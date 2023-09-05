@@ -20,7 +20,11 @@ public enum AgentStatusEnum {
     /**
      * AREX is up, but not recording maybe rate=0 or allowDayOfWeeks is not match
      */
-    SLEEPING(4, "sleeping");
+    SLEEPING(4, "sleeping"),
+    /**
+     * AREX is shutdown, need to restart
+     */
+    SHUTDOWN(5, "shutdown");
 
     private final int code;
     private final String value;

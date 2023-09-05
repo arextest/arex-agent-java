@@ -49,6 +49,7 @@ public abstract class BaseAgentInstaller implements AgentInstaller {
         ClassLoader savedContextClassLoader = Thread.currentThread().getContextClassLoader();
         try {
             Thread.currentThread().setContextClassLoader(getClassLoader());
+            Runtime.getRuntime().addShutdownHook(new Thread(ConfigService.INSTANCE::shutdown, "arex-agent-shutdown-hook"));
             // Timed load config for agent delay start and dynamic retransform
             long delayMinutes = ConfigService.INSTANCE.loadAgentConfig(agentArgs);
             if (delayMinutes > 0) {

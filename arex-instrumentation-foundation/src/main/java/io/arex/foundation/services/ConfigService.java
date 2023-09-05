@@ -113,6 +113,10 @@ public class ConfigService {
     }
 
     AgentStatusEnum getAgentStatus() {
+        if (AgentStatusService.INSTANCE.isShutdown()) {
+            return AgentStatusEnum.SHUTDOWN;
+        }
+
         if (firstLoad.compareAndSet(false, true)) {
             return AgentStatusEnum.START;
         }
@@ -165,6 +169,18 @@ public class ConfigService {
         AgentStatusService.INSTANCE.report();
     }
 
+    public void shutdown() {
+        try {
+            if (AgentStatusService.INSTANCE.shutdown()) {
+                LOGGER.info("[AREX] Agent shutdown, stop working now.");
+                ConfigManager.INSTANCE.setConfigInvalid();
+                reportStatus();
+            }
+        } catch (Exception e) {
+            LOGGER.error("[AREX] Agent shutdown error, {}", e.getMessage());
+        }
+    }
+
     public boolean reloadConfig() {
         return reloadConfig.get();
     }
@@ -176,6 +192,16 @@ public class ConfigService {
 
         private static final String AGENT_STATUS_URI =
             String.format("http://%s/api/config/agent/agentStatus", ConfigManager.INSTANCE.getStorageServiceHost());
+
+        private final AtomicBoolean shutdown = new AtomicBoolean(false);
+
+        private boolean shutdown() {
+            return shutdown.compareAndSet(false, true);
+        }
+
+        public boolean isShutdown() {
+            return shutdown.get();
+        }
 
         public void report() {
             AgentStatusEnum agentStatus = ConfigService.INSTANCE.getAgentStatus();
