@@ -88,7 +88,7 @@ public class EventProcessorTest {
         // serializer
         Assertions.assertNotNull(Serializer.getINSTANCE());
         Assertions.assertEquals("gson", Serializer.getINSTANCE().getSerializer().name());
-        Assertions.assertEquals(1, Serializer.getINSTANCE().getSerializers().size());
+        Assertions.assertEquals(2, Serializer.getINSTANCE().getSerializers().size());
 
         // atomic load, only load once
         Mockito.when(ServiceLoader.load(StringSerializable.class, Thread.currentThread()

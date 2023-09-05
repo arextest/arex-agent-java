@@ -57,6 +57,7 @@ public class EventProcessor {
      * user loader to load serializer, ex: ParallelWebappClassLoader
      */
     private static void initSerializer() {
+        Serializer.initSerializerConfigMap();
         final List<StringSerializable> serializableList = ServiceLoader.load(StringSerializable.class, Thread.currentThread().getContextClassLoader());
         Serializer.builder(serializableList).build();
     }

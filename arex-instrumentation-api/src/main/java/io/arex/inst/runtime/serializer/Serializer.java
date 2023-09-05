@@ -1,9 +1,11 @@
 package io.arex.inst.runtime.serializer;
 
+import io.arex.agent.bootstrap.constants.ConfigConstants;
 import io.arex.agent.bootstrap.util.ArrayUtils;
 import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.agent.bootstrap.util.ReflectUtil;
 import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.util.TypeUtil;
 import org.slf4j.Logger;
@@ -11,9 +13,11 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Type;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Serializer {
     private static final Logger LOGGER = LoggerFactory.getLogger(Serializer.class);
+    private static final Map<String, String> SERIALIZER_CONFIG_MAP = new ConcurrentHashMap<>();
 
     private static Serializer INSTANCE;
 
@@ -32,6 +36,28 @@ public class Serializer {
     private static final String NULL_STRING = "null";
     private final StringSerializable defaultSerializer;
     private final Map<String, StringSerializable> serializers;
+
+    /**
+     * ex: DubboProvider:jackson,DubboConsumer:gson
+     */
+    public static void initSerializerConfigMap() {
+        try {
+            String serializerConfig = Config.get().getString(ConfigConstants.SERIALIZER_CONFIG);
+            if (StringUtil.isEmpty(serializerConfig)) {
+                return;
+            }
+            final String[] configArray = StringUtil.split(serializerConfig, ',');
+            for (String config : configArray) {
+                final String[] configElement = StringUtil.split(config, ':');
+                if (configElement.length != 2) {
+                    continue;
+                }
+                SERIALIZER_CONFIG_MAP.put(configElement[0], configElement[1]);
+            }
+        } catch (Exception ex) {
+            LogManager.warn("serializer.config", StringUtil.format("can not init serializer config, cause: %s", ex.toString()));
+        }
+    }
 
     /**
      * serialize throw throwable
@@ -66,6 +92,10 @@ public class Serializer {
             }
         }
         return jsonBuilder.toString();
+    }
+
+    public static String getSerializerFromType(String categoryType) {
+        return SERIALIZER_CONFIG_MAP.get(categoryType);
     }
 
     /**
@@ -265,7 +295,6 @@ public class Serializer {
             for (StringSerializable serializable : serializableList) {
                 if (serializable.isDefault()) {
                     this.defaultSerializer = serializable;
-                    continue;
                 }
                 this.serializers.put(serializable.name(), serializable);
             }
