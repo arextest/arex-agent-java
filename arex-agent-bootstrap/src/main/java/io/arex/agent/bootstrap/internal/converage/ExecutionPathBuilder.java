@@ -89,6 +89,9 @@ public class ExecutionPathBuilder {
     }
 
     public ExecutionPath build() {
+        if (executionMap.isEmpty()) {
+            return null;
+        }
         ExecutionPath executionPath = new ExecutionPath(this.caseId, new ArrayList<>(executionMap.values()));
         executionPath.setAppId(System.getProperty("arex.service.name"));
         executionPath.setCategoryType(MockCategoryType.COVERAGE);

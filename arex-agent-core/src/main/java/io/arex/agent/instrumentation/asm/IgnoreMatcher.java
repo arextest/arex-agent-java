@@ -1,5 +1,6 @@
 package io.arex.agent.instrumentation.asm;
 
+import java.util.Collections;
 import java.util.List;
 
 import net.bytebuddy.jar.asm.*;
@@ -60,13 +61,8 @@ class IgnoreMatcher {
     }
 
     // TODO: remove to a internal config file.
-    private static final List<String> IGNORED_NAME_CONTAINS = asList("metric",
-            "util",
-            "arex",
-            "config",
-            "log",
-            "converter",
-            "test");
+    // TODO: remove now for testing usage
+    private static final List<String> IGNORED_NAME_CONTAINS = Collections.emptyList();
 
     private static final List<String> IGNORED_ANNOTATIONS = asList(
             "/ArexScenarioIgnore;",

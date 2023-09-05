@@ -146,7 +146,10 @@ public class ArexContext {
 
     public void postProcess() {
         if (executionPathBuilder != null) {
-            MockUtils.recordMocker(executionPathBuilder.build());
+            ExecutionPath executionPath = executionPathBuilder.build();
+            if (executionPath != null) {
+                MockUtils.recordMocker(executionPath);
+            }
             executionPathBuilder = null;
         }
     }
