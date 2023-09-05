@@ -1,7 +1,8 @@
 package io.arex.foundation.util;
 
-import com.github.luben.zstd.ZstdInputStream;
-import com.github.luben.zstd.ZstdOutputStream;
+import com.github.luben.zstd.RecyclingBufferPool;
+import com.github.luben.zstd.ZstdInputStreamNoFinalizer;
+import com.github.luben.zstd.ZstdOutputStreamNoFinalizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +36,8 @@ public class CompressUtil {
 
         try (ByteArrayInputStream byteInputStream = new ByteArrayInputStream(original);
             ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream(byteInputStream.available());
-            ZstdOutputStreamNoFinalizer zstdOutputStream = new ZstdOutputStreamNoFinalizer(byteOutputStream)) {
+            ZstdOutputStreamNoFinalizer zstdOutputStream = new ZstdOutputStreamNoFinalizer(byteOutputStream,
+                    RecyclingBufferPool.INSTANCE)) {
 
             byte[] buffer = new byte[BYTES_BUFFER_LENGTH];
             for (int length; (length = byteInputStream.read(buffer, 0, BYTES_BUFFER_LENGTH)) != -1; ) {
@@ -52,7 +54,8 @@ public class CompressUtil {
     }
 
     public static String zstdDecompress(InputStream inputStream, Charset charsetName) {
-        try (ZstdInputStreamNoFinalizer zstdInputStream = new ZstdInputStreamNoFinalizer(inputStream);
+        try (ZstdInputStreamNoFinalizer zstdInputStream = new ZstdInputStreamNoFinalizer(inputStream,
+                RecyclingBufferPool.INSTANCE);
             ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream(inputStream.available())) {
 
             byte[] buffer = new byte[BYTES_BUFFER_LENGTH];
@@ -69,23 +72,5 @@ public class CompressUtil {
 
     public static String zstdDecompress(byte[] bytes, Charset charsetName) {
         return zstdDecompress(new ByteArrayInputStream(bytes), charsetName);
-    }
-
-    public static class ZstdInputStreamNoFinalizer extends ZstdInputStream {
-        ZstdInputStreamNoFinalizer(InputStream inputStream) throws IOException {
-            super(inputStream);
-        }
-
-        @Override
-        public void finalize() { }
-    }
-
-    public static class ZstdOutputStreamNoFinalizer extends ZstdOutputStream {
-        public ZstdOutputStreamNoFinalizer(OutputStream outStream) throws IOException {
-            super(outStream);
-        }
-
-        @Override
-        public void finalize() { }
     }
 }

@@ -86,6 +86,6 @@ public class ResponseTracingHandler extends ChannelOutboundHandlerAdapter {
             MockUtils.recordMocker(mocker);
         }
 
-        CaseEventDispatcher.onEvent(CaseEvent.ofEnterEvent());
+        CaseEventDispatcher.onEvent(CaseEvent.ofExitEvent());
     }
 }

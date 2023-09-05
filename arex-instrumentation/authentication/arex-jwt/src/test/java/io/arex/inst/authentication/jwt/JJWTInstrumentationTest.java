@@ -1,6 +1,6 @@
 package io.arex.inst.authentication.jwt;
 
-import io.arex.inst.runtime.context.ContextManager;
+import io.jsonwebtoken.Jwt;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -8,19 +8,17 @@ import org.mockito.Mockito;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class JWTInstrumentationTest {
-    static JWTInstrumentation target = null;
+class JJWTInstrumentationTest {
+    static JJWTInstrumentation target = null;
 
     @BeforeAll
     static void setUp() {
-        target = new JWTInstrumentation();
-        Mockito.mockStatic(ContextManager.class);
+        target = new JJWTInstrumentation();
     }
 
     @AfterAll
     static void tearDown() {
         target = null;
-        Mockito.clearAllCaches();
     }
 
     @Test
@@ -35,12 +33,12 @@ class JWTInstrumentationTest {
 
     @Test
     void onEnter() {
-        assertFalse(JWTInstrumentation.MethodAdvice.onEnter());
+        assertNull(JJWTInstrumentation.MethodAdvice.onEnter(null));
     }
 
     @Test
     void onExit() {
-        Mockito.when(ContextManager.needReplay()).thenReturn(true);
-        assertDoesNotThrow(() -> JWTInstrumentation.MethodAdvice.onExit("jwt", null));
+        Jwt mockJwt = Mockito.mock(Jwt.class);
+        assertDoesNotThrow(() -> JJWTInstrumentation.MethodAdvice.onExit(mockJwt, null));
     }
 }

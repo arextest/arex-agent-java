@@ -102,6 +102,11 @@ class ServletExtractorTest {
             Mockito.when(ContextManager.needRecord()).thenReturn(true);
             Mockito.when(ContextManager.currentContext()).thenReturn(ArexContext.of("mock-trace-id"));
         };
+
+        Runnable mockNotRedirectRequestAndResponseIsString = () -> {
+            Mockito.when(adapter.getAttribute(request, ServletAdviceHelper.SERVLET_RESPONSE)).thenReturn("string-response");
+        };
+
         Runnable mockRedirectRequest = () -> {
             ArexContext context = ArexContext.of("mock-trace-id");
             context.setRedirectRequest(true);
@@ -156,6 +161,7 @@ class ServletExtractorTest {
             arguments("response header contains arex trace", mockResponseHeaderContainsReplayId, verifyCopyToResponse),
             arguments("no need record or replay", mockNeedRecordOrReplayIsFalse, verifyCopyToResponse),
             arguments("record execute not redirect request", mockNotRedirectRequest, verifyResponseHeaderContainsTrace),
+            arguments("record execute not redirect request and response is String", mockNotRedirectRequestAndResponseIsString, verifyResponseHeaderContainsTrace),
             arguments("record execute redirect request", mockRedirectRequest, verifyResponseHeaderContainsTrace),
             arguments("replay execute", mockNeedRecord, verifySetResponseHeader),
             arguments("get method", mockRequestMethodIsGet, verifyGetResponseBytes),

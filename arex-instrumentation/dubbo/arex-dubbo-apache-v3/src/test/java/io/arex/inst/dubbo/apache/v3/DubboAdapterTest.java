@@ -190,4 +190,9 @@ class DubboAdapterTest {
         Mockito.when(invocation.getProtocolServiceKey()).thenReturn("mock");
         assertEquals("", adapter.getProtocol());
     }
+
+    @Test
+    void getConfigVersion() {
+        assertNull(adapter.getConfigVersion());
+    }
 }

@@ -4,6 +4,7 @@ import com.google.auto.service.AutoService;
 import io.arex.inst.extension.ModuleDescription;
 import io.arex.inst.extension.ModuleInstrumentation;
 import io.arex.inst.extension.TypeInstrumentation;
+import io.arex.agent.bootstrap.model.ComparableVersion;
 
 import java.util.List;
 
@@ -16,8 +17,9 @@ import static java.util.Arrays.asList;
 public class DubboModuleInstrumentation extends ModuleInstrumentation {
 
     public DubboModuleInstrumentation() {
+        // The reason for not add supportTo() is compatible with custom dubbo version, such as qunar.dubbo:4.0.77
         super("dubbo-apache-v2", ModuleDescription.builder()
-                .name("dubbo-all").supportFrom(2, 7).supportTo(2, 8).build());
+                .name("dubbo-all").supportFrom(ComparableVersion.of("2.7")).build());
     }
 
     @Override

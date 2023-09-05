@@ -7,6 +7,8 @@ import io.arex.inst.httpservlet.converter.HttpMessageConvertFactory;
 import io.arex.inst.httpservlet.converter.HttpMessageConverter;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
+import io.arex.inst.runtime.listener.CaseEvent;
+import io.arex.inst.runtime.listener.CaseEventDispatcher;
 import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.serializer.Serializer;
@@ -69,6 +71,7 @@ public class ServletExtractor<HttpServletRequest, HttpServletResponse> {
 
         setResponseHeader();
         doExecute();
+        CaseEventDispatcher.onEvent(CaseEvent.ofExitEvent());
         adapter.removeAttribute(httpServletRequest, ServletAdviceHelper.SERVLET_ASYNC_FLAG);
         adapter.copyBodyToResponse(httpServletResponse);
     }
@@ -105,6 +108,8 @@ public class ServletExtractor<HttpServletRequest, HttpServletResponse> {
         requestAttributes.put("RequestPath", requestPath);
         Map<String,String> requestHeaders = getRequestHeaders();
         requestAttributes.put("Headers", requestHeaders);
+        requestAttributes.put(ArexConstants.CONFIG_VERSION,
+                adapter.getAttribute(httpServletRequest, ArexConstants.CONFIG_VERSION));
 
         String originalMocker = requestHeaders.get(ArexConstants.REPLAY_ORIGINAL_MOCKER);
         MockCategoryType mockCategoryType =
@@ -116,7 +121,8 @@ public class ServletExtractor<HttpServletRequest, HttpServletResponse> {
         mocker.getTargetResponse().setAttributes(Collections.singletonMap("Headers", getResponseHeaders()));
 
         Object response = getResponse();
-        mocker.getTargetResponse().setBody(Serializer.serialize(response));
+        String responseString = response instanceof String ? (String) response : Serializer.serialize(response);
+        mocker.getTargetResponse().setBody(responseString);
         mocker.getTargetResponse().setType(TypeUtil.getName(response));
         if (ContextManager.needReplay()) {
             MockUtils.replayMocker(mocker);

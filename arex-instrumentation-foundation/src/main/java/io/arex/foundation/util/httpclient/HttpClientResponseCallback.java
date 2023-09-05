@@ -43,7 +43,7 @@ public class HttpClientResponseCallback implements FutureCallback<HttpResponse> 
             try {
                 clientResponse.setBody(responseHandler.handle(response.getEntity()));
             } catch (Exception e) {
-                LogManager.warn("completed", e);
+                LogManager.warn("ahc.completed", e.getMessage());
             }
         }
 
@@ -55,14 +55,14 @@ public class HttpClientResponseCallback implements FutureCallback<HttpResponse> 
     public void failed(Exception e) {
         LogManager.setContextMap(contextMap);
         responseFuture.completeExceptionally(e);
-        LogManager.warn("failed", e);
+        LogManager.warn("ahc.failed", e.getMessage());
     }
 
     @Override
     public void cancelled() {
         LogManager.setContextMap(contextMap);
         responseFuture.completeExceptionally(new InterruptedException("Request has been cancelled."));
-        LogManager.warn("cancelled", "Request has been cancelled.");
+        LogManager.warn("ahc.cancelled", "Request has been cancelled.");
     }
 
     private Map<String, String> convertResponseHeaders(Header[] headers) {

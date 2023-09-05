@@ -6,12 +6,14 @@ package io.arex.agent.bootstrap.model;
 public enum MockStrategyEnum {
 
     /**
-     * Try Find Last Value
+     * if the number of visits is greater than the number stored in the records,
+     * try to find the last value as mock response
      */
     FIND_LAST("0"),
 
     /**
-     * Over Storage Size break
+     * if the number of visits is greater than the number stored in the records,don't use last value as mock
+     * response,should be return null
      */
     OVER_BREAK("1"),
 

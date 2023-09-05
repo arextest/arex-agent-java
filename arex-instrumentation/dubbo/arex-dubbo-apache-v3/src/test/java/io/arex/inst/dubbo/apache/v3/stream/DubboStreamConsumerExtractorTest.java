@@ -4,6 +4,7 @@ import io.arex.agent.bootstrap.TraceContextManager;
 import io.arex.agent.bootstrap.model.ArexMocker;
 import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.agent.bootstrap.model.Mocker;
+import io.arex.agent.bootstrap.util.Assert;
 import io.arex.inst.runtime.util.MockUtils;
 import org.apache.dubbo.remoting.api.Connection;
 import org.apache.dubbo.rpc.CancellationContext;
@@ -165,9 +166,5 @@ class DubboStreamConsumerExtractorTest {
         requestMetadata.cancellationContext = cancellationContext;
         DubboStreamConsumerExtractor.close(listener, requestMetadata);
         verify(requestMetadata.cancellationContext).cancel(any());
-    }
-
-    interface Assert {
-        void verity();
     }
 }

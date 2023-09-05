@@ -5,16 +5,14 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import io.arex.agent.bootstrap.constants.ConfigConstants;
 import io.arex.agent.bootstrap.util.MapUtils;
-import io.arex.foundation.model.AgentStatusEnum;
-import io.arex.foundation.model.AgentStatusRequest;
+import io.arex.foundation.model.*;
 import io.arex.foundation.config.ConfigManager;
-import io.arex.foundation.model.ConfigQueryRequest;
-import io.arex.foundation.model.ConfigQueryResponse;
 import io.arex.foundation.util.httpclient.AsyncHttpClientUtil;
 import io.arex.foundation.util.NetUtils;
 import io.arex.agent.bootstrap.util.StringUtil;
-import io.arex.foundation.model.HttpClientResponse;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -73,15 +71,15 @@ public class ConfigService {
 
             HttpClientResponse clientResponse = AsyncHttpClientUtil.postAsyncWithJson(CONFIG_LOAD_URI, requestJson, null).join();
             if (clientResponse == null) {
-                LOGGER.warn("[arex] Load agent config, response is null, pause recording");
+                LOGGER.warn("[AREX] Load agent config, response is null, pause recording");
                 ConfigManager.INSTANCE.setConfigInvalid();
                 return;
             }
 
-            LOGGER.info("[arex] Load agent config\nrequest: {}\nresponse: {}", requestJson, clientResponse.getBody());
+            LOGGER.info("[AREX] Load agent config\nrequest: {}\nresponse: {}", requestJson, clientResponse.getBody());
 
             if (StringUtil.isEmpty(clientResponse.getBody()) || "{}".equals(clientResponse.getBody())) {
-                LOGGER.warn("[arex] Load agent config, response is null, pause recording");
+                LOGGER.warn("[AREX] Load agent config, response is null, pause recording");
                 ConfigManager.INSTANCE.setConfigInvalid();
                 return;
             }
@@ -90,12 +88,13 @@ public class ConfigService {
             if (configResponse == null || configResponse.getBody() == null ||
                 configResponse.getBody().getServiceCollectConfiguration() == null) {
                 ConfigManager.INSTANCE.setConfigInvalid();
-                LOGGER.warn("[arex] Load agent config, deserialize response is null, pause recording");
+                LOGGER.warn("[AREX] Load agent config, deserialize response is null, pause recording");
                 return;
             }
             ConfigManager.INSTANCE.updateConfigFromService(configResponse.getBody());
         } catch (Throwable e) {
-            LOGGER.warn("[arex] Load agent config error", e);
+            LOGGER.warn("[AREX] Load agent config error, pause recording. exception message: {}", e.getMessage());
+            ConfigManager.INSTANCE.setConfigInvalid();
         }
     }
 
@@ -184,23 +183,35 @@ public class ConfigService {
 
             AgentStatusRequest request = new AgentStatusRequest(ConfigManager.INSTANCE.getServiceName(),
                 NetUtils.getIpAddress(), agentStatus.name());
+            request.setCurrentRate(System.getProperty(ConfigConstants.CURRENT_RATE,
+                    String.valueOf(ConfigManager.INSTANCE.getRecordRate())));
+            request.setDecelerateCode(Integer.parseInt(System.getProperty(ConfigConstants.DECELERATE_CODE,
+                    DecelerateReasonEnum.NORMAL.getCodeStr())));
 
             String requestJson = ConfigService.INSTANCE.serialize(request);
 
             Map<String, String> requestHeaders = MapUtils.newHashMapWithExpectedSize(1);
             requestHeaders.put("If-Modified-Since", prevLastModified);
 
-            HttpClientResponse response = AsyncHttpClientUtil.postAsyncWithJson(AGENT_STATUS_URI, requestJson,
-                requestHeaders).join();
+            HttpClientResponse response;
+
+            try {
+                response = AsyncHttpClientUtil.postAsyncWithJson(AGENT_STATUS_URI, requestJson, requestHeaders).join();
+            } catch (Exception e) {
+                LOGGER.warn("[AREX] Report agent status error, {}", e.getMessage());
+                return;
+            }
 
             if (response == null || MapUtils.isEmpty(response.getHeaders())) {
-                LOGGER.info("[arex] Report agent status response is null.\nrequest: {}", requestJson);
+                LOGGER.info("[AREX] Report agent status response is null. request: {}", requestJson);
                 return;
             }
 
             // Tue, 15 Nov 1994 12:45:26 GMT, see https://datatracker.ietf.org/doc/html/rfc7232#section-3.3
-            String lastModified = response.getHeaders().get("Last-Modified");
-            LOGGER.info("[arex] Report agent status lastModified: {}.\nrequest: {}", lastModified, requestJson);
+            String lastModified = response.getHeaders()
+                .getOrDefault("Last-Modified", response.getHeaders().get("last-modified"));
+            LOGGER.info("[AREX] Report agent status, previous lastModified: {}, lastModified: {}. request: {}",
+                prevLastModified, lastModified, requestJson);
             if (StringUtil.isEmpty(lastModified)) {
                 return;
             }

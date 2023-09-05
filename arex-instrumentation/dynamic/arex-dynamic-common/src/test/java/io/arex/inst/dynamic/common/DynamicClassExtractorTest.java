@@ -156,7 +156,7 @@ class DynamicClassExtractorTest {
 
             Mockito.when(Serializer.serializeWithException(any(), anyString())).thenReturn("mock Serializer.serialize");
             Mockito.when(Serializer.serializeWithException(anyString(), anyString())).thenReturn("");
-            Mockito.when(Serializer.deserialize(anyString(), any(), anyString())).thenReturn("mock result");
+            Mockito.when(Serializer.deserialize(anyString(), anyString(), anyString())).thenReturn("mock result");
             Method testWithArexMock = DynamicClassExtractorTest.class.getDeclaredMethod("testWithArexMock", String.class);
 
             DynamicClassExtractor extractor = new DynamicClassExtractor(testWithArexMock, args, "#val", null);

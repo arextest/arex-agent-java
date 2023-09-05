@@ -6,7 +6,10 @@ import io.arex.inst.dubbo.common.DubboExtractor;
 import io.arex.inst.runtime.util.IgnoreUtils;
 import io.arex.inst.runtime.util.MockUtils;
 import org.apache.dubbo.rpc.*;
+import org.apache.dubbo.rpc.protocol.dubbo.FutureAdapter;
 import org.apache.dubbo.rpc.support.RpcUtils;
+
+import java.util.concurrent.CompletableFuture;
 
 public class DubboConsumerExtractor extends DubboExtractor {
     private final DubboAdapter adapter;
@@ -40,9 +43,12 @@ public class DubboConsumerExtractor extends DubboExtractor {
                 RpcInvocation rpcInv = (RpcInvocation) invocation;
                 rpcInv.setInvokeMode(RpcUtils.getInvokeMode(adapter.getUrl(), invocation));
             }
-            RpcContext.getContext().setFuture(asyncRpcResult);
+            // compatible with dubbo 2.7.8, refer to org.apache.dubbo.rpc.protocol.AbstractInvoker.invoke
+            CompletableFuture<AppResponse> future = new CompletableFuture<>();
+            future.complete((AppResponse)asyncRpcResult.getAppResponse());
+            RpcContext.getContext().setFuture(new FutureAdapter<AppResponse>(future));
             // save for 2.6.x compatibility, for example, TraceFilter in Zipkin uses com.alibaba.xxx.FutureAdapter
-            FutureContext.getContext().setCompatibleFuture(asyncRpcResult);
+            FutureContext.getContext().setCompatibleFuture(future);
         }
         return mockResult;
     }

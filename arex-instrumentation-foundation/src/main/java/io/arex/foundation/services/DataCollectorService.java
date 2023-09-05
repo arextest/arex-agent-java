@@ -1,6 +1,7 @@
 package io.arex.foundation.services;
 
 import io.arex.agent.bootstrap.model.MockStrategyEnum;
+import io.arex.agent.bootstrap.util.MapUtils;
 import io.arex.foundation.config.ConfigManager;
 import io.arex.foundation.healthy.HealthManager;
 import io.arex.foundation.internal.DataEntity;
@@ -11,7 +12,6 @@ import io.arex.foundation.util.httpclient.async.ThreadFactoryImpl;
 import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.service.DataCollector;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.Future;
@@ -109,9 +109,7 @@ public class DataCollectorService implements DataCollector {
     private static final String MOCK_STRATEGY = "X-AREX-Mock-Strategy-Code";
 
     void saveData(DataEntity entity) {
-        Map<String, String> requestHeaders = new HashMap<>();
-        requestHeaders.put(MOCK_STRATEGY, MockStrategyEnum.FIND_LAST.getCode());
-        AsyncHttpClientUtil.postAsyncWithZstdJson(saveApiUrl, entity.getPostData(), requestHeaders)
+        AsyncHttpClientUtil.postAsyncWithZstdJson(saveApiUrl, entity.getPostData(), null)
             .whenComplete(saveMockDataConsumer(entity));
     }
 
@@ -119,7 +117,7 @@ public class DataCollectorService implements DataCollector {
      * Query replay data
      */
     String queryReplayData(String postData, MockStrategyEnum mockStrategy) {
-        Map<String, String> requestHeaders = new HashMap<>();
+        Map<String, String> requestHeaders = MapUtils.newHashMapWithExpectedSize(1);
         requestHeaders.put(MOCK_STRATEGY, mockStrategy.getCode());
         HttpClientResponse clientResponse = AsyncHttpClientUtil.postAsyncWithZstdJson(queryApiUrl, postData,
             requestHeaders).join();

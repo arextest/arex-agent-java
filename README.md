@@ -6,11 +6,11 @@
 
 #### An Open Source Testing Framework with Real World Data
 
-- [Introduction](https://#introduction)
-- [Installation](https://#installation)
-- [Getting Started](https://#getting-started)
-- [Contributing](https://#contributing)
-- [License](https://#license)
+- [Introduction](#introduction)
+- [Installation](#installation)
+- [Getting Started](#getting-started)
+- [Contributing](#contributing)
+- [License](#license)
 
 ## Introduction
 
@@ -24,38 +24,59 @@ AREX is implemented with an unique mechanism for recording. Instead of being a p
 AREX utilizes the advanced Java technique, Instrument API, and is capable of instrumenting various libraries and frameworks which are widely used.
 
 **Libraries and frameworks supported by Arex (to be added...)**
+[maven version range rules](https://maven.apache.org/enforcer/enforcer-rules/versionRanges.html)
 
-
+#### Foundation
 - Java Executors
 - System time
-- Apache HttpClient 4.x
-- OkHttp 3.x、4.x
-- Spring WebClient 5.x
+- Dynamic Type
+#### Spring
+- Spring Boot [1.4+, 2.x+]
+- Servlet API 3+、5+
+#### Http Client
+- Apache HttpClient [4.0,)
+- OkHttp [3.0, 4.11]
+- Spring WebClient [5.0,)
+- Spring Template
+#### Redis Client
+- Jedis [2.10+, 4+]
+- Redisson [3.0,)
+- Lettuce [5.x, 6.x]
+#### Persistence framework
+- MyBatis 3.x, MyBatis-Plus, TkMyBatis
 - Hibernate 5.x
-- MyBatis 3.x
-- Redisson 3.x
-- Lettuce 6+
-- Jedis 2.10+, 4+
-- Spring Boot 1.4+-2.x+, Servlet API 3+、5+
-- Custom type
-- Netty server 4.1+
-- Dubbo 2.x、3.x
+#### NoSQL
+- MongoDB [3.x, 4.x]
+#### RPC
+- Apache Dubbo [2.x, 3.x]
+- Alibaba Dubbo 2.x
+#### Auth
 - Spring Security 5.x
 - Apache Shiro 1.x
-- Java JWT 3.x
 - JCasbin 1.x
-
+- Auth0 jwt 3.x
+- JWTK jjwt 0.1+、jjwt-api 0.10+
+#### Netty
+- Netty server 4.1+
+#### Config
+- Apollo Config [1.x, 2.x]
 ## Installation
 
 
-Simply download the latest binary from [github](https://github.com/arextest/releases) or compile it by yourself.
+Simply download the latest binary from [github](https://github.com/arextest/arex-agent-java/releases) 
+or compile it with `mvn clean package -DskipTests` by yourself.
 
 There are two agent files provided in the arex-agent-jar folder like below. They must be placed in the same directory.
 
 ```other
+arex-agent.jar
+arex-agent-bootstrap.jar
+```
+
+If you need these jar with version, you can add option: `mvn clean package -DskipTests -Pjar-with-version` 
+```other
 arex-agent-<version>.jar
 arex-agent-bootstrap-<version>.jar
-
 ```
 
 
@@ -69,7 +90,7 @@ AREX agent works along with the [AREX storage service](https://github.com/arexte
 You could just configure the host and port of them respectively, like below
 
 ```other
-java -javaagent:/path/to/arex-agent-<version>.jar
+java -javaagent:/path/to/arex-agent.jar
       -Darex.service.name=your-service-name
       -Darex.storage.service.host=[storage.service.host:port](storage.service.host:port) 
       -jar your-application.jar
@@ -87,7 +108,7 @@ arex.storage.service.host=<storage.service.host:port>
 Then simply run:
 
 ```other
-java -javaagent:/path/to/arex-agent-<version>.jar
+java -javaagent:/path/to/arex-agent.jar
       -Darex.config.path=/path/to/arex.agent.conf
       -jar your-application.jar
 ```

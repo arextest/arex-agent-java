@@ -4,6 +4,7 @@ import com.google.auto.service.AutoService;
 import io.arex.inst.extension.ModuleDescription;
 import io.arex.inst.extension.ModuleInstrumentation;
 import io.arex.inst.extension.TypeInstrumentation;
+import io.arex.agent.bootstrap.model.ComparableVersion;
 
 import java.util.List;
 
@@ -13,7 +14,7 @@ import static java.util.Collections.singletonList;
 public class MyBatisModuleInstrumentation extends ModuleInstrumentation {
     public MyBatisModuleInstrumentation() {
         super("mybatis-v3", ModuleDescription.builder()
-                .name("mybatis").supportFrom(3, 0).build());
+                .name("mybatis").supportFrom(ComparableVersion.of("3.0")).build());
     }
 
     @Override

@@ -126,6 +126,17 @@ class ServletAdviceHelperTest {
             Mockito.when(IgnoreUtils.excludeEntranceOperation(any())).thenReturn(false);
             Mockito.when(adapter.getRequestURI(any())).thenReturn(".png");
         };
+        Runnable shouldSkip6_1 = () -> {
+            Mockito.when(adapter.getRequestURI(any())).thenReturn(".js");
+        };
+        Runnable shouldSkip6_2 = () -> {
+            Mockito.when(RecordLimiter.acquire(any())).thenReturn(true);
+            Mockito.when(ContextManager.needRecordOrReplay()).thenReturn(true);
+            Mockito.when(adapter.getRequestURI(any())).thenReturn(".json");
+        };
+        Runnable shouldSkip6_3 = () -> {
+            Mockito.when(adapter.getRequestURI(any())).thenReturn(".jsp");
+        };
         Runnable shouldSkip7 = () -> {
             Mockito.when(adapter.getRequestURI(any())).thenReturn("uri");
             Mockito.when(adapter.getContentType(any())).thenReturn("image/");
@@ -134,6 +145,10 @@ class ServletAdviceHelperTest {
             Mockito.when(adapter.getContentType(any())).thenReturn("mock");
             Mockito.when(RecordLimiter.acquire(any())).thenReturn(true);
             Mockito.when(ContextManager.needRecordOrReplay()).thenReturn(true);
+        };
+        Runnable shouldSkip9 = () -> {
+            Mockito.when(adapter.getRequestHeader(any(), eq(ArexConstants.RECORD_ID))).thenReturn("mock");
+            Mockito.when(adapter.getAttribute(any(), eq(ArexConstants.SKIP_FLAG))).thenReturn(Boolean.TRUE);
         };
 
         Predicate<Pair<?, ?>> predicate1 = Objects::isNull;
@@ -152,8 +167,12 @@ class ServletAdviceHelperTest {
             arguments("shouldSkip: header: adapter.getRequestURI returns empty", shouldSkip4, predicate1),
             arguments("shouldSkip: IgnoreUtils.ignoreOperation returns true", shouldSkip5, predicate1),
             arguments("shouldSkip: adapter.getRequestURI return .png", shouldSkip6, predicate1),
+            arguments("shouldSkip: adapter.getRequestURI return .js", shouldSkip6_1, predicate1),
+            arguments("shouldSkip: adapter.getRequestURI return .json", shouldSkip6_2, predicate2),
+            arguments("shouldSkip: adapter.getRequestURI return .jsp", shouldSkip6_3, predicate2),
             arguments("shouldSkip: adapter.getContentType return image/", shouldSkip7, predicate1),
-            arguments("ContextManager.needRecordOrReplay is true", shouldSkip8, predicate2)
+            arguments("ContextManager.needRecordOrReplay is true", shouldSkip8, predicate2),
+            arguments("shouldSkip: adapter.getAttribute returns true", shouldSkip9, predicate1)
         );
     }
 

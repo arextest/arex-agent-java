@@ -183,6 +183,8 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
             .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
             .with(AgentBuilder.InitializationStrategy.NoOp.INSTANCE)
             .with(AgentBuilder.TypeStrategy.Default.REBASE)
+             // https://github.com/raphw/byte-buddy/issues/1441
+            .with(AgentBuilder.DescriptionStrategy.Default.POOL_FIRST)
             .with(AgentBuilder.LocationStrategy.ForClassLoader.STRONG
                 .withFallbackTo(ClassFileLocator.ForClassLoader.ofSystemLoader()));
 

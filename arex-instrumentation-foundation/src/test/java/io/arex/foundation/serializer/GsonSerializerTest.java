@@ -1,22 +1,16 @@
 package io.arex.foundation.serializer;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
 
-import io.arex.foundation.internal.MockEntityBuffer;
+import com.google.gson.internal.LinkedTreeMap;
 import io.arex.inst.runtime.util.TypeUtil;
 import java.sql.Time;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.Collection;
-import java.util.Collections;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
-
-import javax.xml.datatype.DatatypeConfigurationException;
 
 class GsonSerializerTest {
 
@@ -115,5 +109,29 @@ class GsonSerializerTest {
         // deserialize object
         String json  = GsonSerializer.INSTANCE.serialize(LocalDateTime.now());
         assertNotNull(GsonSerializer.INSTANCE.deserialize(json, TypeUtil.forName(TypeUtil.getName(LocalDateTime.now()))));
+    }
+
+    @Test
+    void testAddCustomSerializer() {
+        Map<String, Object> map = new LinkedTreeMap<>();
+        GsonSerializer.INSTANCE.addTypeSerializer(LinkedTreeMap.class, null);
+        // empty map
+        String json = GsonSerializer.INSTANCE.serialize(map);
+        assertEquals("{}", json);
+        final LinkedTreeMap deserialize = GsonSerializer.INSTANCE.deserialize(json, LinkedTreeMap.class);
+        assertEquals(map, deserialize);
+
+
+        map.put("key", "value");
+        map.put("long", 2L);
+        json = GsonSerializer.INSTANCE.serialize(map);
+        assertEquals("{\"key\":\"value\",\"long-java.lang.Long\":2}", json);
+        final LinkedTreeMap deserialize1 = GsonSerializer.INSTANCE.deserialize(json, LinkedTreeMap.class);
+        assertEquals(map, deserialize1);
+
+        // value is null
+        map.put("null", null);
+        json = GsonSerializer.INSTANCE.serialize(map);
+        assertEquals("{\"key\":\"value\",\"long-java.lang.Long\":2}", json);
     }
 }

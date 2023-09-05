@@ -11,6 +11,7 @@ import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Enumeration;
 
@@ -175,7 +176,15 @@ public class ServletAdapterImplV3 implements ServletAdapter<HttpServletRequest, 
     @Override
     public HttpServletRequest asHttpServletRequest(Object servletRequest) {
         if (servletRequest instanceof HttpServletRequest) {
-            return (HttpServletRequest) servletRequest;
+            HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
+            try {
+                if (httpServletRequest.getCharacterEncoding() == null) {
+                    httpServletRequest.setCharacterEncoding(StandardCharsets.UTF_8.name());
+                }
+            } catch (Exception e) {
+                // ignore
+            }
+            return httpServletRequest;
         }
         return null;
     }

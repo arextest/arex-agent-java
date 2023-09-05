@@ -4,6 +4,8 @@ package io.arex.inst.runtime.config.listener;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.arex.inst.runtime.config.Config;
+import io.arex.inst.runtime.listener.EventProcessorTest;
+import io.arex.inst.runtime.listener.EventProcessorTest.TestJacksonSerializable;
 import io.arex.inst.runtime.serializer.Serializer.Builder;
 import io.arex.inst.runtime.serializer.StringSerializable;
 import java.lang.reflect.Type;
@@ -36,7 +38,7 @@ class SerializeSkipInfoListenerTest {
     }
     @Test
     void serializeSkipInfoListenerTest() throws Exception {
-        Builder serializeBuilder = Serializer.builder(new TestSerialize());
+        Builder serializeBuilder = Serializer.builder(new TestJacksonSerializable());
         serializeBuilder.addSerializer("test", new TestSerialize()).build();
         SerializeSkipInfo skipInfo = new SerializeSkipInfo();
         skipInfo.setFullClassName("testClassName");

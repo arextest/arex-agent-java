@@ -11,6 +11,13 @@ public class AgentStatusRequest implements Serializable {
      */
     private String agentStatus;
 
+    private String currentRate;
+
+    /**
+     * see {@link DecelerateReasonEnum}
+     */
+    private int decelerateCode;
+
     public AgentStatusRequest() {
     }
 
@@ -42,5 +49,21 @@ public class AgentStatusRequest implements Serializable {
 
     public void setAgentStatus(String agentStatus) {
         this.agentStatus = agentStatus;
+    }
+
+    public String getCurrentRate() {
+        return currentRate;
+    }
+
+    public void setCurrentRate(String currentRate) {
+        this.currentRate = currentRate;
+    }
+
+    public int getDecelerateCode() {
+        return decelerateCode;
+    }
+
+    public void setDecelerateCode(int decelerateCode) {
+        this.decelerateCode = decelerateCode;
     }
 }

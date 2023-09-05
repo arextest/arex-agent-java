@@ -25,6 +25,7 @@ public class RequestTracingHandler extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
         EventProcessor.onRequest();
         if (msg instanceof HttpRequest) {
+            CaseEventDispatcher.onEvent(CaseEvent.ofEnterEvent());
             HttpRequest request = (HttpRequest) msg;
             String caseId = request.headers().get(ArexConstants.RECORD_ID);
             if (shouldSkip(request, caseId)) {

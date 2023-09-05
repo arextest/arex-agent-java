@@ -54,6 +54,15 @@ class ConfigServiceTest {
         ConfigManager.INSTANCE.setStorageServiceMode("mock-not-local");
         try (MockedStatic<AsyncHttpClientUtil> ahc = mockStatic(AsyncHttpClientUtil.class);
             MockedStatic<NetUtils> netUtils = mockStatic(NetUtils.class)){
+            // response has error
+            CompletableFuture<HttpClientResponse> errorFuture = new CompletableFuture<>();
+            errorFuture.completeExceptionally(new RuntimeException("mock error"));
+            ahc.when(() -> AsyncHttpClientUtil.postAsyncWithJson(anyString(), anyString(), anyMap())).thenReturn(errorFuture);
+            assertEquals(DELAY_MINUTES, ConfigService.INSTANCE.loadAgentConfig(null));
+            assertEquals(0, ConfigManager.INSTANCE.getRecordRate());
+            assertEquals(EnumSet.noneOf(DayOfWeek.class), ConfigManager.INSTANCE.getAllowDayOfWeeks());
+            assertEquals(AgentStatusEnum.UN_START, ConfigService.INSTANCE.getAgentStatus());
+
             // clientResponse is null
             ahc.when(() -> AsyncHttpClientUtil.postAsyncWithJson(anyString(), anyString(), eq(null))).thenReturn(CompletableFuture.completedFuture(null));
             assertEquals(DELAY_MINUTES, ConfigService.INSTANCE.loadAgentConfig(null));
@@ -138,6 +147,12 @@ class ConfigServiceTest {
         try (MockedStatic<AsyncHttpClientUtil> ahc = mockStatic(AsyncHttpClientUtil.class);
             MockedStatic<NetUtils> netUtils = mockStatic(NetUtils.class)){
             netUtils.when(NetUtils::getIpAddress).thenReturn("127.0.0.1");
+            // response has error
+            CompletableFuture<HttpClientResponse> errorFuture = new CompletableFuture<>();
+            errorFuture.completeExceptionally(new RuntimeException("mock error"));
+            ahc.when(() -> AsyncHttpClientUtil.postAsyncWithJson(anyString(), anyString(), anyMap())).thenReturn(errorFuture);
+            ConfigService.INSTANCE.reportStatus();
+            assertFalse(ConfigService.INSTANCE.reloadConfig());
 
             // response header is empty
             ahc.when(() -> AsyncHttpClientUtil.postAsyncWithJson(anyString(), anyString(), anyMap())).thenReturn(

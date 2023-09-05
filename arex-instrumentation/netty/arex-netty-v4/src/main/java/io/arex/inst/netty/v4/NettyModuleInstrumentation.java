@@ -4,6 +4,7 @@ import com.google.auto.service.AutoService;
 import io.arex.inst.extension.ModuleDescription;
 import io.arex.inst.extension.ModuleInstrumentation;
 import io.arex.inst.extension.TypeInstrumentation;
+import io.arex.agent.bootstrap.model.ComparableVersion;
 
 import java.util.List;
 
@@ -14,7 +15,7 @@ public class NettyModuleInstrumentation extends ModuleInstrumentation {
 
     public NettyModuleInstrumentation() {
         super("netty-v4.1", ModuleDescription.builder()
-                .name("io.netty.all").supportFrom(4, 0).build());
+                .name("io.netty.all").supportFrom(ComparableVersion.of("4.0")).build());
     }
 
     @Override

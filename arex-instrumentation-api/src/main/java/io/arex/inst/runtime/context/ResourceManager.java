@@ -1,7 +1,6 @@
 package io.arex.inst.runtime.context;
 
 import io.arex.agent.bootstrap.cache.LoadedModuleCache;
-import io.arex.agent.bootstrap.internal.Pair;
 import io.arex.agent.bootstrap.util.ConcurrentHashSet;
 import io.arex.agent.bootstrap.util.StringUtil;
 
@@ -52,7 +51,7 @@ public class ResourceManager {
                     if (StringUtil.isEmpty(version)) {
                         continue;
                     }
-                    LoadedModuleCache.registerProjectModule(packageName, parse(version));
+                    LoadedModuleCache.registerProjectModule(packageName, version);
                 } catch (Exception ignored) {}
             }
         } catch (Exception ignored) {}
@@ -66,19 +65,5 @@ public class ResourceManager {
             }
         }
         return null;
-    }
-
-    private static Pair<Integer, Integer> parse(String version) {
-        int index = version.indexOf('.');
-        if (index < 0) {
-            return null;
-        }
-        int major = Integer.parseInt(version.substring(0, index));
-        int next = version.indexOf('.', index + 1);
-        if (next < 0) {
-            return null;
-        }
-        int minor = Integer.parseInt(version.substring(index + 1, next));
-        return Pair.of(major, minor);
     }
 }

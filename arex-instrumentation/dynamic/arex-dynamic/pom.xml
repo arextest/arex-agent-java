@@ -22,7 +22,7 @@
         <dependency>
             <groupId>com.arextest</groupId>
             <artifactId>arex-common</artifactId>
-            <version>0.1.4</version>
+            <version>${arex-common.version}</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
