@@ -189,4 +189,23 @@ class ConfigServiceTest {
             assertFalse(ConfigService.INSTANCE.reloadConfig());
         }
     }
+
+    @Test
+    void shutdown() {
+        try (MockedStatic<AsyncHttpClientUtil> ahc = mockStatic(AsyncHttpClientUtil.class);
+            MockedStatic<NetUtils> netUtils = mockStatic(NetUtils.class)){
+            netUtils.when(NetUtils::getIpAddress).thenReturn("127.0.0.1");
+            Map<String, String> responseHeaders = new HashMap<>();
+            responseHeaders.put("Last-Modified2", "Thu, 01 Jan 1970 00:00:00 GMT");
+            ahc.when(() -> AsyncHttpClientUtil.postAsyncWithJson(anyString(), anyString(), anyMap())).thenReturn(
+                CompletableFuture.completedFuture(new HttpClientResponse(200, responseHeaders, null)));
+
+            ConfigService.INSTANCE.shutdown();
+
+            AgentStatusEnum actualResult = ConfigService.INSTANCE.getAgentStatus();
+            assertEquals(AgentStatusEnum.SHUTDOWN, actualResult);
+
+            ConfigService.INSTANCE.shutdown();
+        }
+    }
 }
