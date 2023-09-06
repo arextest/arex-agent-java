@@ -152,7 +152,7 @@ class DynamicClassExtractorTest {
             arexMocker2.setTargetResponse(new Target());
             arexMocker2.getTargetResponse().setBody("mock Body");
             arexMocker2.getTargetResponse().setType("mock Type");
-            mockService.when(() -> MockUtils.replayMocker(any())).thenReturn(arexMocker2);
+            mockService.when(() -> MockUtils.replayMocker(any(), any())).thenReturn(arexMocker2);
 
             Mockito.when(Serializer.serializeWithException(any(), anyString())).thenReturn("mock Serializer.serialize");
             Mockito.when(Serializer.serializeWithException(anyString(), anyString())).thenReturn("");
@@ -384,7 +384,7 @@ class DynamicClassExtractorTest {
             mockService.when(() -> MockUtils.createDynamicClass(any(), any())).thenReturn(arexMocker);
             mockService.when(() -> MockUtils.checkResponseMocker(any())).thenReturn(true);
             Mockito.when(ContextManager.currentContext()).thenReturn(ArexContext.of(""));
-            Mockito.when(MockUtils.replayMocker(any())).thenReturn(arexMocker2);
+            Mockito.when(MockUtils.replayMocker(any(), any())).thenReturn(arexMocker2);
 
             Method testWithArexMock = DynamicClassExtractorTest.class.getDeclaredMethod(
                     "testWithArexMock", String.class);

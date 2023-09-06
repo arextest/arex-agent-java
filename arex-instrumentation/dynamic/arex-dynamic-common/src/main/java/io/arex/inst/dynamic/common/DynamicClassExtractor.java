@@ -3,6 +3,7 @@ package io.arex.inst.dynamic.common;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import io.arex.agent.bootstrap.model.MockResult;
+import io.arex.agent.bootstrap.model.MockStrategyEnum;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.ArrayUtils;
 import io.arex.agent.bootstrap.util.StringUtil;
@@ -128,7 +129,7 @@ public class DynamicClassExtractor {
 
         // If not in cache, get replay result from mock server
         if (replayResult == null) {
-            Mocker replayMocker = MockUtils.replayMocker(makeMocker());
+            Mocker replayMocker = MockUtils.replayMocker(makeMocker(), MockStrategyEnum.FIND_LAST);
             if (MockUtils.checkResponseMocker(replayMocker)) {
                 String typeName = replayMocker.getTargetResponse().getType();
                 replayResult = deserializeResult(replayMocker, typeName);
