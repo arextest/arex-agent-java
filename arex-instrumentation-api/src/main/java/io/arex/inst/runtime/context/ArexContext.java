@@ -61,7 +61,7 @@ public class ArexContext {
     }
 
     public int calculateSequence() {
-        return sequence.get();
+        return sequence.getAndIncrement();
     }
 
     public Set<Integer> getMethodSignatureHashList() {
