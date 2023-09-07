@@ -3,7 +3,6 @@ package io.arex.foundation.config;
 import io.arex.agent.bootstrap.constants.ConfigConstants;
 import io.arex.foundation.model.ConfigQueryResponse;
 import io.arex.foundation.model.ConfigQueryResponse.DynamicClassConfiguration;
-import io.arex.foundation.util.NetUtils;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.model.DynamicClassEntity;
 import io.arex.inst.runtime.model.DynamicClassStatusEnum;
@@ -17,9 +16,6 @@ import java.util.List;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.File;
 import java.net.URISyntaxException;
@@ -28,20 +24,14 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Predicate;
-import java.util.stream.Stream;
-import org.mockito.MockedStatic;
 
-import static io.arex.agent.bootstrap.constants.ConfigConstants.ENABLE_REPORT_STATUS;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.params.provider.Arguments.arguments;
-import static org.mockito.Mockito.mockStatic;
 
 class ConfigManagerTest {
    static ConfigManager configManager = null;
 
     @BeforeAll
-    static void setUp() throws URISyntaxException {
+    static void setUp() {
         configManager = ConfigManager.INSTANCE;
     }
 
@@ -59,7 +49,6 @@ class ConfigManagerTest {
 
         assertEquals("test-your-service", configManager.getServiceName());
         assertEquals("test-storage-service.host", configManager.getStorageServiceHost());
-        assertTrue(configManager.isEnableReportStatus());
     }
 
     @Test
@@ -92,33 +81,6 @@ class ConfigManagerTest {
         excludeOperations.add("mock");
         configManager.setExcludeServiceOperations(excludeOperations);
         assertFalse(configManager.getExcludeServiceOperations().isEmpty());
-    }
-
-    @ParameterizedTest
-    @MethodSource("validCase")
-    void valid(Runnable mocker, Predicate<Boolean> predicate) {
-        mocker.run();
-        assertTrue(predicate.test(configManager.valid()));
-    }
-
-    static Stream<Arguments> validCase() {
-        Runnable mocker1 = () -> {
-            configManager.setStorageServiceMode(ConfigConstants.STORAGE_MODE);
-        };
-        Runnable mocker2 = () -> {
-            configManager.setStorageServiceMode("xxx");
-        };
-        Runnable mocker3 = () -> {
-            configManager.setTargetAddress("mock");
-        };
-
-        Predicate<Boolean> predicate1 = result -> result;
-        Predicate<Boolean> predicate2 = result -> !result;
-        return Stream.of(
-                arguments(mocker1, predicate1),
-                arguments(mocker2, predicate2),
-                arguments(mocker3, predicate2)
-        );
     }
 
     @Test
@@ -262,24 +224,6 @@ class ConfigManagerTest {
         assertEquals(4, configManager.getDynamicClassList().stream().filter(item-> DynamicClassStatusEnum.RETRANSFORM == item.getStatus()).count());
 
         assertNotNull(ConfigManager.INSTANCE.toString());
-    }
-
-    @Test
-    void getInvalidReason() {
-        try (MockedStatic<NetUtils> netUtils = mockStatic(NetUtils.class)) {
-            netUtils.when(NetUtils::getIpAddress).thenReturn("172.0.0.3");
-
-            // check target address is not match
-            ConfigManager.INSTANCE.setTargetAddress("172.0.0.1");
-            String reason = ConfigManager.INSTANCE.getInvalidReason();
-            assertEquals("response [targetAddress] is not match", reason);
-
-            // check inWorkingTime is false
-            ConfigManager.INSTANCE.setTargetAddress("172.0.0.3");
-            reason = ConfigManager.INSTANCE.getInvalidReason();
-            assertTrue(reason.startsWith("not in working time"));
-            assertFalse(reason.contains(LocalDate.now().getDayOfWeek().name()));
-        }
     }
 
     @Test

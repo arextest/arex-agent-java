@@ -40,7 +40,6 @@ public class ConfigManager {
     public static final AtomicBoolean FIRST_TRANSFORM = new AtomicBoolean(false);
     private static final int DEFAULT_RECORDING_RATE = 1;
     private boolean enableDebug;
-    private boolean enableReportStatus;
     private String agentVersion;
     private String serviceName;
     private String storageServiceHost;
@@ -87,19 +86,6 @@ public class ConfigManager {
 
         this.enableDebug = Boolean.parseBoolean(enableDebug);
         System.setProperty(ENABLE_DEBUG, enableDebug);
-    }
-
-    public boolean isEnableReportStatus() {
-        return enableReportStatus;
-    }
-
-    public void setEnableReportStatus(String enableReportStatus) {
-        if (StringUtil.isEmpty(enableReportStatus)) {
-            return;
-        }
-
-        this.enableReportStatus = Boolean.parseBoolean(enableReportStatus);
-        System.setProperty(ENABLE_REPORT_STATUS, enableReportStatus);
     }
 
     public String getServiceName() {
@@ -230,7 +216,6 @@ public class ConfigManager {
     void init() {
         agentVersion = System.getProperty(AGENT_VERSION);
         setEnableDebug(System.getProperty(ENABLE_DEBUG));
-        setEnableReportStatus(System.getProperty(ENABLE_REPORT_STATUS, Boolean.TRUE.toString()));
         setServiceName(StringUtil.strip(System.getProperty(SERVICE_NAME)));
         setStorageServiceHost(StringUtil.strip(System.getProperty(STORAGE_SERVICE_HOST)));
         configPath = StringUtil.strip(System.getProperty(CONFIG_PATH));
@@ -255,12 +240,11 @@ public class ConfigManager {
         }
 
         Map<String, String> configMap = parseConfigFile(configPath);
-        if (configMap.size() == 0) {
+        if (configMap.isEmpty()) {
             return;
         }
 
         setEnableDebug(configMap.get(ENABLE_DEBUG));
-        setEnableReportStatus(System.getProperty(ENABLE_REPORT_STATUS));
         setServiceName(configMap.get(SERVICE_NAME));
         setStorageServiceHost(configMap.get(STORAGE_SERVICE_HOST));
         setDynamicResultSizeLimit(configMap.get(DYNAMIC_RESULT_SIZE_LIMIT));
@@ -322,7 +306,7 @@ public class ConfigManager {
         configMap.put(TIME_MACHINE, String.valueOf(startTimeMachine()));
         configMap.put(DISABLE_REPLAY, System.getProperty(DISABLE_REPLAY));
         configMap.put(DISABLE_RECORD, System.getProperty(DISABLE_RECORD));
-        configMap.put(DURING_WORK, Boolean.toString(nextWorkTime() <= 0));
+        configMap.put(DURING_WORK, Boolean.toString(inWorkingTime()));
         configMap.put(AGENT_VERSION, agentVersion);
         configMap.put(IP_VALIDATE, Boolean.toString(checkTargetAddress()));
         configMap.put(STORAGE_SERVICE_MODE, storageServiceMode);
@@ -349,13 +333,6 @@ public class ConfigManager {
                 listener.load(config);
             }
         }
-    }
-
-    public boolean valid() {
-        if (isLocalStorage()) {
-            return true;
-        }
-        return checkTargetAddress() && inWorkingTime();
     }
 
     public void setConfigInvalid() {
@@ -522,7 +499,7 @@ public class ConfigManager {
         this.targetAddress = targetAddress;
     }
 
-    private boolean checkTargetAddress() {
+    public boolean checkTargetAddress() {
         String localHost = NetUtils.getIpAddress();
         // Compatible containers can't get IPAddress
         if (StringUtil.isEmpty(localHost)) {
@@ -564,17 +541,5 @@ public class ConfigManager {
             ", allowTimeOfDayTo='" + allowTimeOfDayTo + '\'' +
             ", dynamicClassList='" + dynamicClassList + '\'' +
             '}';
-    }
-
-    public String getInvalidReason() {
-        if (!checkTargetAddress()) {
-            return "response [targetAddress] is not match";
-        }
-
-        if (!inWorkingTime()) {
-            return "not in working time, allow day of weeks is " + allowDayOfWeeks + ", time is " + allowTimeOfDayFrom + "-" + allowTimeOfDayTo;
-        }
-
-        return "invalid config";
     }
 }

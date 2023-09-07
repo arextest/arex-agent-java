@@ -50,18 +50,18 @@ public abstract class BaseAgentInstaller implements AgentInstaller {
         try {
             Thread.currentThread().setContextClassLoader(getClassLoader());
             Runtime.getRuntime().addShutdownHook(new Thread(ConfigService.INSTANCE::shutdown, "arex-agent-shutdown-hook"));
-            // Timed load config for agent delay start and dynamic retransform
+            // Timed load config for dynamic retransform
             long delayMinutes = ConfigService.INSTANCE.loadAgentConfig(agentArgs);
+            if (!allowStartAgent()) {
+                ConfigService.INSTANCE.reportStatus();
+                if (!ConfigManager.FIRST_TRANSFORM.get()) {
+                    LOGGER.warn("[AREX] Agent would not install due to {}.", getInvalidReason());
+                }
+                return;
+            }
             if (delayMinutes > 0) {
                 TimerService.schedule(this::install, delayMinutes, TimeUnit.MINUTES);
                 timedReportStatus();
-            }
-            if (!ConfigManager.INSTANCE.valid()) {
-                ConfigService.INSTANCE.reportStatus();
-                if (!ConfigManager.FIRST_TRANSFORM.get()) {
-                    LOGGER.warn("[AREX] Agent would not install due to {}.", ConfigManager.INSTANCE.getInvalidReason());
-                }
-                return;
             }
             initDependentComponents();
             transform();
@@ -71,11 +71,23 @@ public abstract class BaseAgentInstaller implements AgentInstaller {
         }
     }
 
+    boolean allowStartAgent() {
+        if (ConfigManager.INSTANCE.isLocalStorage()) {
+            return true;
+        }
+        return ConfigManager.INSTANCE.checkTargetAddress();
+    }
+
+    String getInvalidReason() {
+        if (!ConfigManager.INSTANCE.checkTargetAddress()) {
+            return "response [targetAddress] is not match";
+        }
+
+        return "invalid config";
+    }
+
     private void timedReportStatus() {
         if (reportStatusTask != null) {
-            return;
-        }
-        if (!ConfigManager.INSTANCE.isEnableReportStatus()) {
             return;
         }
         reportStatusTask = TimerService.scheduleAtFixedRate(() -> {

@@ -40,7 +40,7 @@ class ConfigServiceTest {
     }
 
     @Test
-    void loadAgentConfig() {
+    void loadAgentConfig() throws Throwable {
         long DELAY_MINUTES = 15L;
         // local
         long actualResult = ConfigService.INSTANCE.loadAgentConfig("arex.service.name=unit-test-service;arex.enable.debug=true;arex.storage.mode=local");
@@ -104,10 +104,11 @@ class ConfigServiceTest {
             CompletableFuture<HttpClientResponse> response = CompletableFuture.completedFuture(new HttpClientResponse(200, null, JacksonSerializer.INSTANCE.serialize(configQueryResponse)));
             ahc.when(() -> AsyncHttpClientUtil.postAsyncWithJson(anyString(), anyString(), eq(null))).thenReturn(response);
             assertEquals(DELAY_MINUTES, ConfigService.INSTANCE.loadAgentConfig(null));
-            assertTrue(ConfigManager.INSTANCE.valid() && ConfigManager.INSTANCE.inWorkingTime() && ConfigManager.INSTANCE.getRecordRate() > 0);
+            assertTrue(ConfigManager.INSTANCE.inWorkingTime() && ConfigManager.INSTANCE.getRecordRate() > 0);
+            ConfigManager.FIRST_TRANSFORM.compareAndSet(false, true);
             assertEquals(AgentStatusEnum.WORKING, ConfigService.INSTANCE.getAgentStatus());
 
-            ConfigManager.FIRST_TRANSFORM.compareAndSet(false, true);
+
             // valid response, agentStatus=SLEEPING
             serviceCollectConfig.setAllowDayOfWeeks(0);
             response = CompletableFuture.completedFuture(
@@ -123,10 +124,8 @@ class ConfigServiceTest {
                 new HttpClientResponse(200, null, JacksonSerializer.INSTANCE.serialize(configQueryResponse)));
             ahc.when(() -> AsyncHttpClientUtil.postAsyncWithJson(anyString(), anyString(), eq(null))).thenReturn(response);
             assertEquals(DELAY_MINUTES, ConfigService.INSTANCE.loadAgentConfig(null));
-            assertTrue(ConfigManager.INSTANCE.valid() && ConfigManager.INSTANCE.inWorkingTime() && ConfigManager.INSTANCE.getRecordRate() > 0);
+            assertTrue(ConfigManager.INSTANCE.inWorkingTime() && ConfigManager.INSTANCE.getRecordRate() > 0);
             assertEquals(AgentStatusEnum.WORKING, ConfigService.INSTANCE.getAgentStatus());
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
         }
     }
 
