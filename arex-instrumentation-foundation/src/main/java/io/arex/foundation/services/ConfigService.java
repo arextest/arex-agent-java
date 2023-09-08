@@ -121,12 +121,12 @@ public class ConfigService {
             return AgentStatusEnum.START;
         }
 
-        if (ConfigManager.INSTANCE.valid() && ConfigManager.INSTANCE.getRecordRate() > 0) {
-            return AgentStatusEnum.WORKING;
-        }
-
         if (ConfigManager.FIRST_TRANSFORM.get()) {
-            return AgentStatusEnum.SLEEPING;
+            if (ConfigManager.INSTANCE.inWorkingTime() && ConfigManager.INSTANCE.getRecordRate() > 0) {
+                return AgentStatusEnum.WORKING;
+            } else {
+                return AgentStatusEnum.SLEEPING;
+            }
         }
 
         return AgentStatusEnum.UN_START;
