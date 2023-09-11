@@ -9,8 +9,8 @@ import io.arex.inst.extension.TypeInstrumentation;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
+import org.apache.http.HttpRequest;
 import org.apache.http.concurrent.FutureCallback;
-import org.apache.http.nio.protocol.HttpAsyncRequestProducer;
 
 import java.util.List;
 import java.util.concurrent.Future;
@@ -25,7 +25,7 @@ public class InternalHttpAsyncClientInstrumentation extends TypeInstrumentation 
 
     @Override
     public ElementMatcher<TypeDescription> typeMatcher() {
-        return named("org.apache.http.impl.nio.client.InternalHttpAsyncClient");
+        return named("org.apache.http.impl.nio.client.CloseableHttpAsyncClient");
     }
 
     @Override
@@ -33,8 +33,8 @@ public class InternalHttpAsyncClientInstrumentation extends TypeInstrumentation 
         return singletonList(new MethodInstrumentation(
                 isMethod().and(named("execute"))
                         .and(takesArguments(4))
-                        .and(takesArgument(0, named("org.apache.http.nio.protocol.HttpAsyncRequestProducer")))
-                        .and(takesArgument(1, named("org.apache.http.nio.protocol.HttpAsyncResponseConsumer")))
+                        .and(takesArgument(0, named("org.apache.http.HttpHost")))
+                        .and(takesArgument(1, named("org.apache.http.HttpRequest")))
                         .and(takesArgument(2, named("org.apache.http.protocol.HttpContext")))
                         .and(takesArgument(3, named("org.apache.http.concurrent.FutureCallback"))),
                 this.getClass().getName() + "$ExecuteAdvice"));
@@ -43,22 +43,22 @@ public class InternalHttpAsyncClientInstrumentation extends TypeInstrumentation 
     @SuppressWarnings("unused")
     public static class ExecuteAdvice {
         @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class, suppress = Throwable.class)
-        public static boolean onEnter(@Advice.Argument(0) HttpAsyncRequestProducer producer,
+        public static boolean onEnter(@Advice.Argument(1) HttpRequest httpRequest,
             @Advice.Argument(value = 3, readOnly = false) FutureCallback<?> callback,
             @Advice.Local("mockResult") MockResult mockResult) {
             try {
-                if (ApacheHttpClientHelper.ignoreRequest(producer.generateRequest())) {
+                if (ApacheHttpClientHelper.ignoreRequest(httpRequest)) {
                     callback = FutureCallbackWrapper.wrap(callback);
                     return false;
                 }
-            } catch (Throwable ignored) {
+            } catch (Exception ignored) {
                 callback = FutureCallbackWrapper.wrap(callback);
                 return false;
             }
 
             if (ContextManager.needRecordOrReplay() && RepeatedCollectManager.validate()) {
                 // recording works in callback wrapper
-                FutureCallbackWrapper<?> callbackWrapper = FutureCallbackWrapper.get(producer, callback);
+                FutureCallback<?> callbackWrapper = FutureCallbackWrapper.wrap(httpRequest, callback);
                 if (callbackWrapper != null) {
                     callback = callbackWrapper;
                     if (ContextManager.needReplay()) {
