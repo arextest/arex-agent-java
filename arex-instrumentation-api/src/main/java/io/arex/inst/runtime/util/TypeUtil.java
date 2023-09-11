@@ -128,7 +128,16 @@ public class TypeUtil {
                 field.setAccessible(true);
                 GENERIC_FIELD_CACHE.put(cacheKey, field);
             }
-            builder.append(filterRawGenericType(invokeGetFieldType(field, result)));
+
+            String genericType = invokeGetFieldType(field, result);
+            // only collection field need to filter raw generic type
+            if (isCollection(field.getType().getName())) {
+                genericType = filterRawGenericType(genericType);
+            }
+
+            if (StringUtil.isNotEmpty(genericType)) {
+                builder.append(genericType);
+            }
             if (i == typeParameters.length - 1) {
                return builder.toString();
             }

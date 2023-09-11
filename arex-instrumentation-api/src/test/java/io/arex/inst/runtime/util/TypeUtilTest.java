@@ -170,7 +170,7 @@ class TypeUtilTest {
 
         final Pair pairList = Pair.of(System.currentTimeMillis(), Arrays.asList("mock"));
         final String genericList = TypeUtil.getName(pairList);
-        assertEquals("io.arex.agent.bootstrap.internal.Pair-java.lang.Long,java.lang.String", genericList);
+        assertEquals("io.arex.agent.bootstrap.internal.Pair-java.lang.Long,java.util.Arrays$ArrayList-java.lang.String", genericList);
     }
 
     @Test
