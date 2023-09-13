@@ -2,6 +2,7 @@ package io.arex.inst.redisson.v3;
 
 import io.arex.agent.bootstrap.ctx.TraceTransmitter;
 import io.arex.agent.bootstrap.model.MockResult;
+import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.redis.common.RedisExtractor;
 import org.redisson.api.RFuture;
@@ -20,6 +21,9 @@ public class RedissonWrapperCommon {
 
     public static <R> RFuture<R> delegateCall(String redisUri, String cmd, String key, String field,
                                               Callable<RFuture<R>> futureCallable) {
+        if(StringUtil.isEmpty(redisUri)){
+            return null;
+        }
         if (ContextManager.needReplay()) {
             RedisExtractor extractor = new RedisExtractor(redisUri, cmd, key, field);
             MockResult mockResult = extractor.replay();

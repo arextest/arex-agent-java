@@ -2,6 +2,7 @@ package io.arex.inst.redisson.v3.wrapper;
 
 import io.arex.inst.redis.common.RedisKeyUtil;
 import io.arex.inst.redisson.v3.RedissonWrapperCommon;
+import io.arex.inst.redisson.v3.util.RedisUtil;
 import org.redisson.RedissonMap;
 import org.redisson.WriteBehindService;
 import org.redisson.api.MapOptions;
@@ -10,6 +11,7 @@ import org.redisson.api.RedissonClient;
 import org.redisson.client.codec.Codec;
 import org.redisson.client.protocol.RedisCommands;
 import org.redisson.command.CommandAsyncExecutor;
+import org.redisson.connection.ConnectionManager;
 
 import java.util.Collection;
 import java.util.List;
@@ -25,14 +27,14 @@ public class RedissonMapWrapper<K, V> extends RedissonMap<K, V> {
     public RedissonMapWrapper(CommandAsyncExecutor commandExecutor, String name, RedissonClient redisson,
         MapOptions<K, V> options, WriteBehindService writeBehindService) {
         super(commandExecutor, name, redisson, options, writeBehindService);
-        redisUri = commandExecutor.getConnectionManager().getConfig().getMasterAddress();
-    }
+        ConnectionManager connectionManager = commandExecutor.getConnectionManager();
+        redisUri = RedisUtil.getRedisUri(connectionManager);    }
 
     public RedissonMapWrapper(Codec codec, CommandAsyncExecutor commandExecutor, String name, RedissonClient redisson,
         MapOptions<K, V> options, WriteBehindService writeBehindService) {
         super(codec, commandExecutor, name, redisson, options, writeBehindService);
-        redisUri = commandExecutor.getConnectionManager().getConfig().getMasterAddress();
-    }
+        ConnectionManager connectionManager = commandExecutor.getConnectionManager();
+        redisUri = RedisUtil.getRedisUri(connectionManager);    }
 
     @Override
     public RFuture<Integer> sizeAsync() {

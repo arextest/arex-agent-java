@@ -2,11 +2,13 @@ package io.arex.inst.redisson.v3.wrapper;
 
 import io.arex.inst.redis.common.RedisKeyUtil;
 import io.arex.inst.redisson.v3.RedissonWrapperCommon;
+import io.arex.inst.redisson.v3.util.RedisUtil;
 import org.redisson.RedissonBuckets;
 import org.redisson.api.RFuture;
 import org.redisson.client.codec.Codec;
 import org.redisson.client.protocol.RedisCommands;
 import org.redisson.command.CommandAsyncExecutor;
+import org.redisson.connection.ConnectionManager;
 
 import java.util.Map;
 
@@ -18,12 +20,14 @@ public class RedissonBucketsWrapper extends RedissonBuckets {
 
     public RedissonBucketsWrapper(CommandAsyncExecutor commandExecutor) {
         super(commandExecutor);
-        redisUri = commandExecutor.getConnectionManager().getConfig().getMasterAddress();
+        ConnectionManager connectionManager = commandExecutor.getConnectionManager();
+        redisUri = RedisUtil.getRedisUri(connectionManager);
     }
 
     public RedissonBucketsWrapper(Codec codec, CommandAsyncExecutor commandExecutor) {
         super(codec, commandExecutor);
-        redisUri = commandExecutor.getConnectionManager().getConfig().getMasterAddress();
+        ConnectionManager connectionManager = commandExecutor.getConnectionManager();
+        redisUri = RedisUtil.getRedisUri(connectionManager);
     }
 
     @Override
