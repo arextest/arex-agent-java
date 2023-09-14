@@ -1,5 +1,6 @@
 package io.arex.inst.httpservlet.adapter.impl;
 
+import io.arex.agent.bootstrap.util.IOUtils;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.httpservlet.adapter.ServletAdapter;
 import io.arex.inst.httpservlet.wrapper.CachedBodyRequestWrapperV3;
@@ -165,7 +166,20 @@ public class ServletAdapterImplV3 implements ServletAdapter<HttpServletRequest, 
 
     @Override
     public byte[] getRequestBytes(HttpServletRequest httpServletRequest) {
-        return ((CachedBodyRequestWrapperV3) httpServletRequest).getContentAsByteArray();
+        CachedBodyRequestWrapperV3 requestWrapper = (CachedBodyRequestWrapperV3) httpServletRequest;
+        byte[] content =  requestWrapper.getContentAsByteArray();
+        if (content.length > 0) {
+            return content;
+        }
+        // read request body to cache
+        if (httpServletRequest.getContentLength() > 0) {
+            try {
+                return IOUtils.copyToByteArray(requestWrapper.getInputStream());
+            } catch (Exception ignore) {
+                // ignore exception
+            }
+        }
+        return content;
     }
 
     @Override
