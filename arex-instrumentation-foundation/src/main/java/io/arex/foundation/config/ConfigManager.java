@@ -279,8 +279,28 @@ public class ConfigManager {
     public void parseAgentConfig(String args) {
         Map<String, String> agentMap = StringUtil.asMap(args);
         if (!agentMap.isEmpty()) {
-            setStorageServiceMode(agentMap.get(STORAGE_SERVICE_MODE));
-            setEnableDebug(agentMap.get(ENABLE_DEBUG));
+            for (Map.Entry<String, String> entry : agentMap.entrySet()) {
+                String key = entry.getKey();
+                String value = entry.getValue();
+                if (StringUtil.isEmpty(key) || StringUtil.isEmpty(value)) {
+                    continue;
+                }
+
+                switch (key) {
+                    case ENABLE_DEBUG:
+                        setEnableDebug(value);
+                        break;
+                    case STORAGE_SERVICE_MODE:
+                        setStorageServiceMode(value);
+                        break;
+                    case STORAGE_SERVICE_HOST:
+                    case DISABLE_MODULE:
+                        continue;
+                    default:
+                        System.setProperty(key, value);
+                        break;
+                }
+            }
             updateRuntimeConfig();
         }
     }

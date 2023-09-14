@@ -13,6 +13,7 @@ import io.arex.foundation.services.DataCollectorService;
 import io.arex.foundation.services.TimerService;
 import io.arex.foundation.util.NetUtils;
 import io.arex.foundation.util.NumberTypeAdaptor;
+import io.arex.inst.extension.ExtensionTransformer;
 import io.arex.inst.runtime.context.RecordLimiter;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.service.DataCollector;
@@ -65,10 +66,21 @@ public abstract class BaseAgentInstaller implements AgentInstaller {
             }
             initDependentComponents();
             transform();
+
+            for (ExtensionTransformer transformer : loadTransformers()) {
+                if (transformer.validate()) {
+                    instrumentation.addTransformer(transformer, true);
+                }
+            }
+
             ConfigService.INSTANCE.reportStatus();
         } finally {
             Thread.currentThread().setContextClassLoader(savedContextClassLoader);
         }
+    }
+
+    private List<ExtensionTransformer> loadTransformers() {
+        return ServiceLoader.load(ExtensionTransformer.class, getClassLoader());
     }
 
     boolean allowStartAgent() {

@@ -2,11 +2,15 @@ package io.arex.inst.runtime.context;
 
 import io.arex.agent.bootstrap.TraceContextManager;
 import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.inst.runtime.listener.ContextListener;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class ContextManager {
     private static final Map<String, ArexContext> RECORD_MAP = new LatencyContextHashMap();
+    private static final List<ContextListener> LISTENERS = new ArrayList<>();
 
     /**
      * agent call this method
@@ -23,6 +27,7 @@ public class ContextManager {
         if (StringUtil.isNotEmpty(caseId)) {
             TraceContextManager.set(caseId);
             ArexContext context = ArexContext.of(caseId, TraceContextManager.generateId());
+            publish(context, true);
             // Each replay init generates the latest context(maybe exist previous recorded context)
             RECORD_MAP.put(caseId, context);
             return context;
@@ -35,7 +40,9 @@ public class ContextManager {
         }
         // first init execute
         if (createIfAbsent) {
-            return RECORD_MAP.computeIfAbsent(caseId, ArexContext::of);
+            ArexContext context = ArexContext.of(caseId);
+            publish(context, true);
+            return RECORD_MAP.put(caseId, context);
         }
         return RECORD_MAP.get(caseId);
     }
@@ -63,6 +70,23 @@ public class ContextManager {
         if (StringUtil.isEmpty(caseId)) {
             return;
         }
-        RECORD_MAP.remove(caseId);
+        ArexContext context = RECORD_MAP.remove(caseId);
+        publish(context, false);
+    }
+
+    public static void registerListener(ContextListener listener) {
+        LISTENERS.add(listener);
+    }
+
+    private static void publish(ArexContext context, boolean isCreate) {
+        if (LISTENERS.size() > 0) {
+            LISTENERS.stream().forEach(listener -> {
+                if (isCreate) {
+                    listener.onCreate(context);
+                } else {
+                    listener.onComplete(context);
+                }
+            });
+        }
     }
 }
