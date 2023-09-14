@@ -7,10 +7,14 @@ import static org.mockito.Mockito.when;
 
 import io.arex.inst.httpservlet.wrapper.CachedBodyRequestWrapperV3;
 import io.arex.inst.httpservlet.wrapper.CachedBodyResponseWrapperV3;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collections;
 import java.util.Enumeration;
 import javax.servlet.AsyncContext;
+import javax.servlet.ReadListener;
+import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.AfterEach;
@@ -189,9 +193,48 @@ class ServletAdapterImplV3Test {
         assertEquals("mock-header-name", instance.getResponseHeaderNames(mockResponse).stream().findFirst().get());
     }
 
+    static class MockServletInputStream extends ServletInputStream {
+        private final InputStream delegate;
+        public MockServletInputStream(byte[] body) {
+            this.delegate = new ByteArrayInputStream(body);
+        }
+        @Override
+        public boolean isFinished() {
+            return false;
+        }
+
+        @Override
+        public boolean isReady() {
+            return true;
+        }
+
+        @Override
+        public void setReadListener(ReadListener readListener) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public int read() throws IOException {
+            return this.delegate.read();
+        }
+    }
+
     @Test
-    void getRequestBytes() {
-        assertEquals(0, instance.getRequestBytes(instance.wrapRequest(mockRequest)).length);
+    void getRequestBytes() throws IOException {
+        HttpServletRequest requestWrapper = instance.wrapRequest(mockRequest);
+        // content empty
+        assertArrayEquals(new byte[0], instance.getRequestBytes(requestWrapper));
+
+
+        byte[] body = "mock".getBytes();
+        when(mockRequest.getInputStream()).thenReturn(new MockServletInputStream(body));
+        when(mockRequest.getContentLength()).thenReturn(body.length);
+
+        // read request body to cache
+        assertArrayEquals(body, instance.getRequestBytes(requestWrapper));
+
+        // getContentAsByteArray.length > 0
+        assertArrayEquals(body, instance.getRequestBytes(requestWrapper));
     }
 
     @Test
