@@ -50,16 +50,6 @@ import java.util.function.Supplier;
  */
 public class ApolloConfigHelper {
     private static Field configInstancesField;
-    private static boolean isLoadedApollo = false;
-
-    static {
-        try {
-            Class.forName("com.ctrip.framework.apollo.ConfigService");
-            isLoadedApollo = true;
-        } catch (ClassNotFoundException e) {
-            // ignore, means business application unLoad apollo-client
-        }
-    }
 
     public static void initAndRecord(Supplier<String> recordIdSpl, Supplier<String> versionSpl) {
         String recordId = recordIdSpl.get();
@@ -222,9 +212,5 @@ public class ApolloConfigHelper {
      */
     private static String getReleaseKey() {
         return ArexConstants.PREFIX + ApolloConfigExtractor.currentReplayConfigBatchNo();
-    }
-
-    public static boolean unloadApollo() {
-        return !isLoadedApollo;
     }
 }

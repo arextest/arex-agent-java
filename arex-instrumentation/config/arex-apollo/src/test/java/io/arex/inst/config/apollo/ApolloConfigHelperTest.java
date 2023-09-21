@@ -176,9 +176,4 @@ class ApolloConfigHelperTest {
                 arguments(mocker2, previous3, predicate_nonNull)
         );
     }
-
-    @Test
-    void unloadApollo() {
-        assertFalse(ApolloConfigHelper.unloadApollo());
-    }
 }

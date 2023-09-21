@@ -19,16 +19,17 @@ public class RequestHandlerManager {
     }
 
     public static void preHandle(Object request, String name) {
-        try {
-            final List<RequestHandler> requestHandlers = REQUEST_HANDLER_CACHE.get(name);
-            if (CollectionUtil.isEmpty(requestHandlers)) {
-                return;
-            }
-            for (RequestHandler requestHandler : requestHandlers) {
+        final List<RequestHandler> requestHandlers = REQUEST_HANDLER_CACHE.get(name);
+        if (CollectionUtil.isEmpty(requestHandlers)) {
+            return;
+        }
+        for (RequestHandler requestHandler : requestHandlers) {
+            try {
                 requestHandler.preHandle(request);
+            } catch (Throwable ex) {
+                // avoid affecting the remaining handlers when one handler fails
+                LogManager.warn("preHandler", ex.getMessage());
             }
-        } catch (Throwable ex) {
-            LogManager.warn("preHandler", ex.getMessage());
         }
     }
 
