@@ -7,6 +7,7 @@ import io.arex.agent.bootstrap.util.ReflectUtil;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.log.LogManager;
+import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.util.TypeUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,6 +68,10 @@ public class Serializer {
             return null;
         }
 
+        if (object instanceof Throwable) {
+            return INSTANCE.getSerializer(ArexConstants.GSON_SERIALIZER).serialize(object);
+        }
+
         Collection<Collection<?>> nestedCollection = TypeUtil.toNestedCollection(object);
         if (nestedCollection != null) {
             return serializeNestedCollection(serializer, nestedCollection);
@@ -105,9 +110,6 @@ public class Serializer {
      * @return result string
      */
     public static String serialize(Object object) {
-        if (object instanceof Throwable) {
-            return serialize(object, "gson");
-        }
         return serialize(object, null);
     }
 
@@ -153,6 +155,9 @@ public class Serializer {
         }
 
         try {
+            if (Throwable.class.isAssignableFrom(TypeUtil.getRawClass(type))) {
+                serializer = ArexConstants.GSON_SERIALIZER;
+            }
             return INSTANCE.getSerializer(serializer).deserialize(value, type);
         } catch (Throwable ex) {
             LogManager.warn("serializer-deserialize-type", StringUtil.format("can not deserialize value %s to type %s, cause: %s", value, type.getTypeName(), ex.toString()));
@@ -174,10 +179,6 @@ public class Serializer {
     public static <T> T deserialize(String value, String typeName, String serializer) {
         if (StringUtil.isEmpty(value) || StringUtil.isEmpty(typeName)) {
             return null;
-        }
-
-        if (typeName.endsWith("Exception")) {
-            serializer = "gson";
         }
 
         if (typeName.startsWith(HASH_MAP_VALUES_CLASS)) {
