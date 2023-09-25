@@ -149,4 +149,14 @@ class SerializerTest {
         assertEquals("gson", Serializer.getSerializerFromType("soa"));
         assertNull(Serializer.getSerializerFromType("httpRequest"));
     }
+
+    @Test
+    void testTypeIsException() {
+        final RuntimeException runtimeException = new RuntimeException();
+        final String json = Serializer.serialize(runtimeException);
+        String typeName = TypeUtil.getName(runtimeException);
+        assertNotNull(json);
+        final RuntimeException actualResult = Serializer.deserialize(json, TypeUtil.forName(typeName));
+        assertEquals(runtimeException.getClass(), actualResult.getClass());
+    }
 }
