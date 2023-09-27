@@ -24,6 +24,7 @@ public class ArexContext {
     private Map<String, Object> attachments = null;
 
     private boolean isRedirectRequest;
+    private boolean isInvalidCase;
 
     public static ArexContext of(String caseId) {
         return of(caseId, null);
@@ -107,6 +108,14 @@ public class ArexContext {
 
     public void setRedirectRequest(boolean redirectRequest) {
         isRedirectRequest = redirectRequest;
+    }
+
+    public boolean isInvalidCase() {
+        return isInvalidCase;
+    }
+
+    public void setInvalidCase(boolean invalidCase) {
+        isInvalidCase = invalidCase;
     }
 
     public boolean isRedirectRequest(String referer) {

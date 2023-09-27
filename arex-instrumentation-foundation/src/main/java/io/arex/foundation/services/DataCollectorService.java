@@ -1,7 +1,7 @@
 package io.arex.foundation.services;
 
-import io.arex.agent.bootstrap.model.ArexMocker;
 import io.arex.agent.bootstrap.model.MockStrategyEnum;
+import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.MapUtils;
 import io.arex.foundation.config.ConfigManager;
 import io.arex.foundation.healthy.HealthManager;
@@ -11,8 +11,7 @@ import io.arex.foundation.util.httpclient.AsyncHttpClientUtil;
 import io.arex.foundation.model.HttpClientResponse;
 import io.arex.foundation.util.httpclient.async.ThreadFactoryImpl;
 import io.arex.inst.runtime.log.LogManager;
-import io.arex.inst.runtime.model.InvalidCaseMocker;
-import io.arex.inst.runtime.serializer.Serializer;
+import io.arex.inst.runtime.util.CaseManager;
 import io.arex.inst.runtime.service.DataCollector;
 
 import java.util.Map;
@@ -42,13 +41,14 @@ public class DataCollectorService implements DataCollector {
     }
 
     @Override
-    public void save(String mockData) {
+    public void save(Mocker requestMocker) {
         if (HealthManager.isFastRejection()) {
             return;
         }
 
-        if (!buffer.put(new DataEntity(mockData))) {
+        if (!buffer.put(new DataEntity(requestMocker))) {
             HealthManager.onEnqueueRejection();
+            CaseManager.invalid(requestMocker.getRecordId(), requestMocker.getOperationName());
         }
     }
 
@@ -112,6 +112,9 @@ public class DataCollectorService implements DataCollector {
     private static final String MOCK_STRATEGY = "X-AREX-Mock-Strategy-Code";
 
     void saveData(DataEntity entity) {
+        if (entity == null || CaseManager.isInvalidCase(entity.getRecordId())) {
+            return;
+        }
         AsyncHttpClientUtil.postAsyncWithZstdJson(saveApiUrl, entity.getPostData(), null)
             .whenComplete(saveMockDataConsumer(entity));
     }
@@ -134,12 +137,10 @@ public class DataCollectorService implements DataCollector {
         return (response, throwable) -> {
             long usedTime = System.nanoTime() - entity.getQueueTime();
             if (Objects.nonNull(throwable)) {
-                final ArexMocker invalidMocker = InvalidCaseMocker.of(entity.getPostData());
+                CaseManager.invalid(entity.getRecordId(), entity.getOperationName());
                 LogManager.warn("saveMockDataConsumer", "save mock data error");
                 usedTime = -1; // -1:reject
                 HealthManager.onDataServiceRejection();
-                // save invalid case
-                AsyncHttpClientUtil.postAsyncWithZstdJson(saveApiUrl, Serializer.serialize(invalidMocker), null);
             }
             HealthManager.reportUsedTime(usedTime, false);
         };
