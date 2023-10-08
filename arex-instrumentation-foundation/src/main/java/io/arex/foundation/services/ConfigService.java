@@ -34,7 +34,7 @@ public class ConfigService {
 
     public static final ConfigService INSTANCE = new ConfigService();
     private static final String CONFIG_LOAD_URI =
-        String.format("http://%s/api/config/agent/load", ConfigManager.INSTANCE.getStorageServiceHost());
+        String.format("http://%s/api/config/agent/load", ConfigManager.INSTANCE.getConfigServiceHost());
 
     private final AtomicBoolean firstLoad = new AtomicBoolean(false);
     private final AtomicBoolean reloadConfig = new AtomicBoolean(false);
@@ -191,7 +191,7 @@ public class ConfigService {
         private String prevLastModified;
 
         private static final String AGENT_STATUS_URI =
-            String.format("http://%s/api/config/agent/agentStatus", ConfigManager.INSTANCE.getStorageServiceHost());
+            String.format("http://%s/api/config/agent/agentStatus", ConfigManager.INSTANCE.getConfigServiceHost());
 
         private final AtomicBoolean shutdown = new AtomicBoolean(false);
 

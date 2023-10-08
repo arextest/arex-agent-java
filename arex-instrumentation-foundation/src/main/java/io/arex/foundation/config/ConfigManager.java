@@ -43,6 +43,7 @@ public class ConfigManager {
     private String agentVersion;
     private String serviceName;
     private String storageServiceHost;
+    private String configServiceHost;
     private String configPath;
 
     private String storageServiceMode;
@@ -115,6 +116,21 @@ public class ConfigManager {
         }
         this.storageServiceHost = storageServiceHost;
         System.setProperty(STORAGE_SERVICE_HOST, storageServiceHost);
+    }
+
+    public String getConfigServiceHost() {
+        if (StringUtil.isNotEmpty(configServiceHost)) {
+            return configServiceHost;
+        }
+        return storageServiceHost;
+    }
+
+    public void setConfigServiceHost(String configServiceHost) {
+        if (StringUtil.isEmpty(configServiceHost)) {
+            return;
+        }
+        this.configServiceHost = configServiceHost;
+        System.setProperty(CONFIG_SERVICE_HOST, configServiceHost);
     }
 
     public void setRecordRate(int recordRate) {
@@ -218,6 +234,7 @@ public class ConfigManager {
         setEnableDebug(System.getProperty(ENABLE_DEBUG));
         setServiceName(StringUtil.strip(System.getProperty(SERVICE_NAME)));
         setStorageServiceHost(StringUtil.strip(System.getProperty(STORAGE_SERVICE_HOST)));
+        setConfigServiceHost(StringUtil.strip(System.getProperty(CONFIG_SERVICE_HOST)));
         configPath = StringUtil.strip(System.getProperty(CONFIG_PATH));
         setRecordRate(DEFAULT_RECORDING_RATE);
 
@@ -247,6 +264,7 @@ public class ConfigManager {
         setEnableDebug(configMap.get(ENABLE_DEBUG));
         setServiceName(configMap.get(SERVICE_NAME));
         setStorageServiceHost(configMap.get(STORAGE_SERVICE_HOST));
+        setConfigServiceHost(configMap.get(CONFIG_SERVICE_HOST));
         setDynamicResultSizeLimit(configMap.get(DYNAMIC_RESULT_SIZE_LIMIT));
         setTimeMachine(configMap.get(TIME_MACHINE));
         setStorageServiceMode(configMap.get(STORAGE_SERVICE_MODE));
