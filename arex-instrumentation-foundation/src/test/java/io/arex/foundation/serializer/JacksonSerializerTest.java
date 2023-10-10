@@ -1,11 +1,13 @@
 package io.arex.foundation.serializer;
 
+import io.arex.foundation.serializer.custom.FastUtilAdapterFactoryTest;
+import io.arex.foundation.serializer.custom.FastUtilAdapterFactoryTest.TestType;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.arex.inst.runtime.util.TypeUtil;
 import java.sql.Time;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -137,6 +139,14 @@ class JacksonSerializerTest {
         // error deserialize object
         String json  = JacksonSerializer.INSTANCE.serialize(LocalDateTime.now());
         assertNotNull(JacksonSerializer.INSTANCE.deserialize(json, TypeUtil.forName(TypeUtil.getName(LocalDateTime.now()))));
+    }
+
+    @Test
+    void testFastUtil() throws Throwable {
+        final TestType testType = FastUtilAdapterFactoryTest.getTestType();
+        final String jackJson = JacksonSerializer.INSTANCE.serialize(testType);
+        final TestType deserializeJackTestType = JacksonSerializer.INSTANCE.deserialize(jackJson, TestType.class);
+        assertNotNull(deserializeJackTestType);
     }
 
 }
