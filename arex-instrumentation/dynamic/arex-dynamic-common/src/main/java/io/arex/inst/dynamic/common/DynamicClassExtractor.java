@@ -289,9 +289,10 @@ public class DynamicClassExtractor {
                 size = Array.getLength(result);
             }
             if (size > RESULT_SIZE_MAX) {
+                String methodInfo = methodSignatureKey == null ? buildDuplicateMethodKey() : methodSignatureKey;
                 LogManager.warn(NEED_RECORD_TITLE,
                         StringUtil.format("do not record method, cuz result size:%s > max limit: %s, method info: %s",
-                                String.valueOf(size), String.valueOf(RESULT_SIZE_MAX), methodSignatureKey));
+                                String.valueOf(size), String.valueOf(RESULT_SIZE_MAX), methodInfo));
                 return false;
             }
         } catch (Throwable e) {

@@ -149,4 +149,37 @@ class JacksonSerializerTest {
         assertNotNull(deserializeJackTestType);
     }
 
+    @Test
+    void testCaseSensitiveProperties() throws Throwable {
+        final CaseSensitive caseSensitive = new CaseSensitive();
+        caseSensitive.setAmountPaid("100");
+        caseSensitive.setAmountpaid("200");
+        final String jackJson = JacksonSerializer.INSTANCE.serialize(caseSensitive);
+        final CaseSensitive deserializeJackTestType = JacksonSerializer.INSTANCE.deserialize(jackJson, CaseSensitive.class);
+        assertNotNull(deserializeJackTestType);
+        assertEquals("100", deserializeJackTestType.getAmountPaid());
+        assertEquals("200", deserializeJackTestType.getAmountpaid());
+    }
+
+    static class CaseSensitive {
+        private String amountPaid;
+        private String amountpaid;
+
+        public String getAmountPaid() {
+            return amountPaid;
+        }
+
+        public void setAmountPaid(String amountPaid) {
+            this.amountPaid = amountPaid;
+        }
+
+        public String getAmountpaid() {
+            return amountpaid;
+        }
+
+        public void setAmountpaid(String amountpaid) {
+            this.amountpaid = amountpaid;
+        }
+    }
+
 }
