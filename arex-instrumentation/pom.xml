@@ -49,7 +49,6 @@
         <module>authentication/arex-spring-security</module>
         <module>authentication/arex-shiro</module>
         <module>authentication/arex-jcasbin</module>
-        <module>foundation/arex-serializer</module>
         <module>config/arex-apollo</module>
     </modules>
     <dependencies>

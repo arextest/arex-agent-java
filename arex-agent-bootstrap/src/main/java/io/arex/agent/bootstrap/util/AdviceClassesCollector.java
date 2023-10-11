@@ -15,6 +15,7 @@ public class AdviceClassesCollector {
     public static final AdviceClassesCollector INSTANCE = new AdviceClassesCollector();
     private static final String EXCLUDE_CLASS_PREFIX = "shaded";
     private static final String CLASS_AREX_AGENT_PREFIX = "io/arex/inst";
+    private static final String CLASS_SERIALIZER_PREFIX = "io/arex/foundation/serializer";
     private static final String CLASS_SUFFIX = ".class";
     private static final int CLASS_SUFFIX_LENGTH = CLASS_SUFFIX.length();
 
@@ -53,7 +54,8 @@ public class AdviceClassesCollector {
                     String className = entryName.replace('/', '.');
                     String realClassName = className.substring(0,
                             className.length() - CLASS_SUFFIX_LENGTH);
-                    if (isExtensionJar || entryName.startsWith(CLASS_AREX_AGENT_PREFIX)) {
+                    // classes that meet these conditions will be loaded by User classLoader
+                    if (isExtensionJar || entryName.startsWith(CLASS_AREX_AGENT_PREFIX) || entryName.startsWith(CLASS_SERIALIZER_PREFIX)) {
                         addClassToInjectorCache(realClassName);
                     }
                 }

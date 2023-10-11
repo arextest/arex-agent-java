@@ -1,4 +1,4 @@
-package io.arex.foundation.util;
+package io.arex.foundation.serializer.custom;
 
 import com.google.gson.Gson;
 import com.google.gson.TypeAdapter;

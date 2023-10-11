@@ -3,18 +3,13 @@ package io.arex.agent.instrumentation;
 import io.arex.agent.bootstrap.AgentInstaller;
 import io.arex.agent.bootstrap.TraceContextManager;
 import io.arex.agent.bootstrap.util.CollectionUtil;
-import io.arex.agent.bootstrap.util.AdviceClassesCollector;
 import io.arex.foundation.config.ConfigManager;
 import io.arex.foundation.healthy.HealthManager;
-import io.arex.foundation.serializer.GsonSerializer;
 import io.arex.foundation.serializer.JacksonSerializer;
-import io.arex.foundation.serializer.custom.FastUtilAdapterFactory;
-import io.arex.foundation.serializer.custom.GuavaRangeSerializer;
 import io.arex.foundation.services.ConfigService;
 import io.arex.foundation.services.DataCollectorService;
 import io.arex.foundation.services.TimerService;
 import io.arex.foundation.util.NetUtils;
-import io.arex.foundation.util.NumberTypeAdaptor;
 import io.arex.inst.extension.ExtensionTransformer;
 import io.arex.inst.runtime.context.RecordLimiter;
 import io.arex.inst.runtime.serializer.Serializer;
@@ -130,11 +125,6 @@ public abstract class BaseAgentInstaller implements AgentInstaller {
      * add class to user loader search. ex: ParallelWebappClassLoader
      */
     private void initSerializer() {
-        AdviceClassesCollector.INSTANCE.addClassToLoaderSearch(JacksonSerializer.class);
-        AdviceClassesCollector.INSTANCE.addClassToLoaderSearch(GsonSerializer.class);
-        AdviceClassesCollector.INSTANCE.addClassToLoaderSearch(NumberTypeAdaptor.class);
-        AdviceClassesCollector.INSTANCE.addClassToLoaderSearch(GuavaRangeSerializer.class);
-        AdviceClassesCollector.INSTANCE.addClassToLoaderSearch(FastUtilAdapterFactory.class);
         Serializer.builder(JacksonSerializer.INSTANCE).build();
     }
     private void initDataCollector() {
