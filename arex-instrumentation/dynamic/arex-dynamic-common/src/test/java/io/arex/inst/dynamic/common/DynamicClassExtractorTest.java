@@ -42,6 +42,7 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 import org.mockito.stubbing.Answer;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -437,5 +438,12 @@ class DynamicClassExtractorTest {
         // invalid operation replay return ignore
         final MockResult replay = extractor.replay();
         assertEquals(MockResult.IGNORE_MOCK_RESULT, replay);
+    }
+
+    @Test
+    void emptyMethodKeyAndExceedSize() throws NoSuchMethodException {
+        Method testEmptyArgs = DynamicClassExtractorTest.class.getDeclaredMethod("invalidOperation");
+        DynamicClassExtractor extractor = new DynamicClassExtractor(testEmptyArgs, new Object[0]);
+        assertDoesNotThrow(() -> extractor.recordResponse(new int[1001]));
     }
 }

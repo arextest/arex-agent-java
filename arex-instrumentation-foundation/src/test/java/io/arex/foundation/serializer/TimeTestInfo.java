@@ -1,5 +1,6 @@
 package io.arex.foundation.serializer;
 
+import com.google.common.collect.Range;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
@@ -42,6 +43,16 @@ public class TimeTestInfo {
     private Timestamp timestamp = new Timestamp(System.currentTimeMillis());
 
     private Instant instant = Instant.now();
+
+    private Range range;
+
+    public Range getRange() {
+        return range;
+    }
+
+    public void setRange(Range range) {
+        this.range = range;
+    }
 
     public Instant getInstant() {
         return instant;

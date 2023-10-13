@@ -8,6 +8,8 @@ import io.arex.foundation.config.ConfigManager;
 import io.arex.foundation.healthy.HealthManager;
 import io.arex.foundation.serializer.GsonSerializer;
 import io.arex.foundation.serializer.JacksonSerializer;
+import io.arex.foundation.serializer.custom.FastUtilAdapterFactory;
+import io.arex.foundation.serializer.custom.GuavaRangeSerializer;
 import io.arex.foundation.services.ConfigService;
 import io.arex.foundation.services.DataCollectorService;
 import io.arex.foundation.services.TimerService;
@@ -131,6 +133,8 @@ public abstract class BaseAgentInstaller implements AgentInstaller {
         AdviceClassesCollector.INSTANCE.addClassToLoaderSearch(JacksonSerializer.class);
         AdviceClassesCollector.INSTANCE.addClassToLoaderSearch(GsonSerializer.class);
         AdviceClassesCollector.INSTANCE.addClassToLoaderSearch(NumberTypeAdaptor.class);
+        AdviceClassesCollector.INSTANCE.addClassToLoaderSearch(GuavaRangeSerializer.class);
+        AdviceClassesCollector.INSTANCE.addClassToLoaderSearch(FastUtilAdapterFactory.class);
         Serializer.builder(JacksonSerializer.INSTANCE).build();
     }
     private void initDataCollector() {

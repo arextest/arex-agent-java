@@ -29,6 +29,7 @@ class MockUtilsTest {
     @BeforeAll
     static void setUp() {
         Mockito.mockStatic(ContextManager.class);
+        Mockito.mockStatic(CaseManager.class);
 
         configBuilder = ConfigBuilder.create("test");
         dataCollector = Mockito.mock(DataCollector.class);
@@ -51,6 +52,10 @@ class MockUtilsTest {
         configBuilder.enableDebug(true);
         configBuilder.build();
         ArexMocker dynamicClass = MockUtils.createDynamicClass("test", "test");
+        Assertions.assertDoesNotThrow(() -> MockUtils.recordMocker(dynamicClass));
+
+        // invalid case
+        Mockito.when(CaseManager.isInvalidCase(any())).thenReturn(true);
         Assertions.assertDoesNotThrow(() -> MockUtils.recordMocker(dynamicClass));
     }
 

@@ -1,11 +1,13 @@
 package io.arex.foundation.serializer;
 
+import io.arex.foundation.serializer.custom.FastUtilAdapterFactoryTest;
+import io.arex.foundation.serializer.custom.FastUtilAdapterFactoryTest.TestType;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.arex.inst.runtime.util.TypeUtil;
 import java.sql.Time;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -137,6 +139,47 @@ class JacksonSerializerTest {
         // error deserialize object
         String json  = JacksonSerializer.INSTANCE.serialize(LocalDateTime.now());
         assertNotNull(JacksonSerializer.INSTANCE.deserialize(json, TypeUtil.forName(TypeUtil.getName(LocalDateTime.now()))));
+    }
+
+    @Test
+    void testFastUtil() throws Throwable {
+        final TestType testType = FastUtilAdapterFactoryTest.getTestType();
+        final String jackJson = JacksonSerializer.INSTANCE.serialize(testType);
+        final TestType deserializeJackTestType = JacksonSerializer.INSTANCE.deserialize(jackJson, TestType.class);
+        assertNotNull(deserializeJackTestType);
+    }
+
+    @Test
+    void testCaseSensitiveProperties() throws Throwable {
+        final CaseSensitive caseSensitive = new CaseSensitive();
+        caseSensitive.setAmountPaid("100");
+        caseSensitive.setAmountpaid("200");
+        final String jackJson = JacksonSerializer.INSTANCE.serialize(caseSensitive);
+        final CaseSensitive deserializeJackTestType = JacksonSerializer.INSTANCE.deserialize(jackJson, CaseSensitive.class);
+        assertNotNull(deserializeJackTestType);
+        assertEquals("100", deserializeJackTestType.getAmountPaid());
+        assertEquals("200", deserializeJackTestType.getAmountpaid());
+    }
+
+    static class CaseSensitive {
+        private String amountPaid;
+        private String amountpaid;
+
+        public String getAmountPaid() {
+            return amountPaid;
+        }
+
+        public void setAmountPaid(String amountPaid) {
+            this.amountPaid = amountPaid;
+        }
+
+        public String getAmountpaid() {
+            return amountpaid;
+        }
+
+        public void setAmountpaid(String amountpaid) {
+            this.amountpaid = amountpaid;
+        }
     }
 
 }

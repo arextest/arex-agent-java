@@ -1,6 +1,7 @@
 package io.arex.foundation.services;
 
 import io.arex.agent.bootstrap.model.MockStrategyEnum;
+import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.MapUtils;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.foundation.config.ConfigManager;
@@ -11,6 +12,7 @@ import io.arex.foundation.util.httpclient.AsyncHttpClientUtil;
 import io.arex.foundation.model.HttpClientResponse;
 import io.arex.foundation.util.httpclient.async.ThreadFactoryImpl;
 import io.arex.inst.runtime.log.LogManager;
+import io.arex.inst.runtime.util.CaseManager;
 import io.arex.inst.runtime.service.DataCollector;
 
 import java.util.Map;
@@ -40,13 +42,14 @@ public class DataCollectorService implements DataCollector {
     }
 
     @Override
-    public void save(String mockData) {
+    public void save(Mocker requestMocker) {
         if (HealthManager.isFastRejection()) {
             return;
         }
 
-        if (!buffer.put(new DataEntity(mockData))) {
+        if (!buffer.put(new DataEntity(requestMocker))) {
             HealthManager.onEnqueueRejection();
+            CaseManager.invalid(requestMocker.getRecordId(), requestMocker.getOperationName());
         }
     }
 
@@ -110,6 +113,9 @@ public class DataCollectorService implements DataCollector {
     private static final String MOCK_STRATEGY = "X-AREX-Mock-Strategy-Code";
 
     void saveData(DataEntity entity) {
+        if (entity == null || CaseManager.isInvalidCase(entity.getRecordId())) {
+            return;
+        }
         AsyncHttpClientUtil.postAsyncWithZstdJson(saveApiUrl, entity.getPostData(), null)
             .whenComplete(saveMockDataConsumer(entity));
     }
@@ -132,7 +138,8 @@ public class DataCollectorService implements DataCollector {
         return (response, throwable) -> {
             long usedTime = System.nanoTime() - entity.getQueueTime();
             if (Objects.nonNull(throwable)) {
-                LogManager.warn("saveMockDataConsumer.error", StringUtil.format("save mock data error: %s, post data: %s",
+                CaseManager.invalid(entity.getRecordId(), entity.getOperationName());
+                LogManager.warn("saveMockDataConsumer", StringUtil.format("save mock data error: %s, post data: %s",
                         throwable.toString(), entity.getPostData()));
                 usedTime = -1; // -1:reject
                 HealthManager.onDataServiceRejection();

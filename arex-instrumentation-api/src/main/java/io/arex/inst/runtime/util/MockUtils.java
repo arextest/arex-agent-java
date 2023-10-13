@@ -89,13 +89,15 @@ public final class MockUtils {
     }
 
     public static void recordMocker(Mocker requestMocker) {
-        String postJson = Serializer.serialize(requestMocker);
-
-        if (Config.get().isEnableDebug()) {
-            LogManager.info(requestMocker.recordLogTitle(), StringUtil.format("%s%nrequest: %s", requestMocker.logBuilder().toString(), postJson));
+        if (CaseManager.isInvalidCase(requestMocker.getRecordId())) {
+            return;
         }
 
-        DataService.INSTANCE.save(postJson);
+        if (Config.get().isEnableDebug()) {
+            LogManager.info(requestMocker.recordLogTitle(), StringUtil.format("%s%nrequest: %s", requestMocker.logBuilder().toString(), Serializer.serialize(requestMocker)));
+        }
+
+        DataService.INSTANCE.save(requestMocker);
     }
 
     public static Mocker replayMocker(Mocker requestMocker) {
