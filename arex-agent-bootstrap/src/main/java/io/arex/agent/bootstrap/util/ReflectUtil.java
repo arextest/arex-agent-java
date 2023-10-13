@@ -1,18 +1,13 @@
 package io.arex.agent.bootstrap.util;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.TreeSet;
+import java.util.*;
 
 public class ReflectUtil {
 
-    public static Object getFieldOrInvokeMethod(Reflector<Object> reflector, Object obj) throws Exception {
+    public static Object getFieldOrInvokeMethod(Reflector<Object> reflector, Object obj, Object... args) throws Exception {
         Object result = null;
         Object instance = reflector.reflect();
         if (instance instanceof Field) {
@@ -30,7 +25,7 @@ public class ReflectUtil {
             if (!accessible) {
                 method.setAccessible(true);
             }
-            result = method.invoke(obj);
+            result = method.invoke(obj, args);
             method.setAccessible(accessible);
         }
         return result;
@@ -70,6 +65,32 @@ public class ReflectUtil {
 
         try {
             return (Collection<T>) Class.forName(typeName).getDeclaredConstructor().newInstance();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public static Method getMethod(Class<?> clazz, String methodName, Class<?>... argTypes) {
+        try {
+            return clazz.getDeclaredMethod(methodName, argTypes);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public static Method getMethod(Class<?> clazz, String methodName, Class<?> argType, int argCount) {
+        try {
+            Class<?>[] argTypes = new Class[argCount];
+            Arrays.fill(argTypes, argType);
+            return getMethod(clazz, methodName, argTypes);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public static <T> Constructor<T> getConstructor(Class<T> clazz, Class<?>... argTypes) {
+        try {
+            return clazz.getDeclaredConstructor(argTypes);
         } catch (Exception e) {
             return null;
         }

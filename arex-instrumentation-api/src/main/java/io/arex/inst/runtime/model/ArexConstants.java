@@ -35,4 +35,5 @@ public class ArexConstants {
     public static final String PREFIX = "arex-";
     public static final String CONFIG_VERSION = "configBatchNo";
     public static final String SKIP_FLAG = "arex-skip-flag";
+    public static final String NETTY_TRACING_MOCKER = "arex-netty-server-mocker";
 }

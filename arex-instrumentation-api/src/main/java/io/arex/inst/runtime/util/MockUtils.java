@@ -65,6 +65,10 @@ public final class MockUtils {
         return create(MockCategoryType.DUBBO_STREAM_PROVIDER, operationName);
     }
 
+    public static ArexMocker createNettyProvider(String pattern) {
+        return create(MockCategoryType.NETTY_PROVIDER, pattern);
+    }
+
     public static ArexMocker create(MockCategoryType categoryType, String operationName) {
         ArexMocker mocker = new ArexMocker();
         long createTime = System.currentTimeMillis();
