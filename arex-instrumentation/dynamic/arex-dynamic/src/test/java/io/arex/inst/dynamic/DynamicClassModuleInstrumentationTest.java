@@ -49,6 +49,6 @@ class DynamicClassModuleInstrumentationTest {
             .addProperties(new HashMap<>())
             .build();
         assertEquals(1, target.instrumentationTypes().size());
-        assertTrue(Config.get().getDynamicClassList().stream().allMatch(item -> DynamicClassStatusEnum.UNCHANGED == item.getStatus()));
+        assertTrue(Config.get().getDynamicClassList().stream().allMatch(item -> DynamicClassStatusEnum.RETRANSFORM == item.getStatus()));
     }
 }

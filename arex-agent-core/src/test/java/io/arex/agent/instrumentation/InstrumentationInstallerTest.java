@@ -89,7 +89,7 @@ class InstrumentationInstallerTest {
         Runnable resetAndRetransformClassNotEmpty = () -> {
             DynamicClassEntity resetEntity = new DynamicClassEntity("reset-entity", null, null, null);
             resetEntity.setStatus(DynamicClassStatusEnum.RESET);
-            config.getDynamicClassList().add(resetEntity);
+            config.getResetClassSet().add(resetEntity.getClazzName());
 
             DynamicClassEntity retransformEntity = new DynamicClassEntity("retransform-resetEntity", null, null, null);
             retransformEntity.setStatus(DynamicClassStatusEnum.RETRANSFORM);

@@ -69,21 +69,12 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
     }
 
     private void resetClass() {
-        Set<String> resetClassSet = new HashSet<>();
-        Map<String, List<DynamicClassEntity>> dynamicMap = ConfigManager.INSTANCE.getDynamicClassList().stream()
-            .collect(Collectors.groupingBy(DynamicClassEntity::getClazzName));
-        for (Map.Entry<String, List<DynamicClassEntity>> entry : dynamicMap.entrySet()) {
-            if (entry.getValue().stream().allMatch(item-> DynamicClassStatusEnum.RESET == item.getStatus())) {
-                resetClassSet.add(entry.getKey());
-            }
-        }
-
-        ConfigManager.INSTANCE.getDynamicClassList().removeIf(item -> DynamicClassStatusEnum.RESET == item.getStatus());
-
+        Set<String> resetClassSet = ConfigManager.INSTANCE.getResetClassSet();
         if (CollectionUtil.isEmpty(resetClassSet)) {
             return;
         }
 
+        instrumentation.removeTransformer(resettableClassFileTransformer);
         // TODO: optimize reset abstract class
         for (Class<?> clazz : this.instrumentation.getAllLoadedClasses()) {
             if (resetClassSet.contains(clazz.getName())) {
