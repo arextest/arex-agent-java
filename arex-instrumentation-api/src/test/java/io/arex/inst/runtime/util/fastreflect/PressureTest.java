@@ -8,6 +8,14 @@ import org.junit.jupiter.api.Test;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 
+/**
+ * <pre>
+ * invoke 100000 times instance-method、constructor and static-method cost:
+ * direct  cost: 30ms
+ * lambda  cost: 59ms
+ * reflect cost: 275ms
+ * </pre>
+ */
 public class PressureTest {
     static FastReflectTest caller;
 
@@ -66,7 +74,7 @@ public class PressureTest {
     }
 
     @Test
-    void record() throws Exception {
+    void test() throws Exception {
         int loop = 100000;
         testDirectCall(loop);
         testLambda(loop);
