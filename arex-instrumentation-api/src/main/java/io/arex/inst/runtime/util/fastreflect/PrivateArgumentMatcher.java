@@ -61,7 +61,6 @@ public enum PrivateArgumentMatcher {
         try {
             return action.make();
         } catch (Throwable throwable) {
-            throwable.printStackTrace();
             return null;
         }
     }

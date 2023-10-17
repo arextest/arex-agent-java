@@ -44,10 +44,6 @@ public class MethodSignature {
         return returnType;
     }
 
-    public int getParamCount() {
-        return paramCount;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) {

@@ -49,4 +49,14 @@ class ReflectUtilTest {
         actualResult = ReflectUtil.getCollectionInstance("java.util.HashMap");
         assertNull(actualResult);
     }
+
+    @Test
+    void getMethod() {
+        assertNotNull(ReflectUtil.getMethod(String.class, "indexOf", int.class, 2));
+    }
+
+    @Test
+    void getConstructor() {
+        assertNotNull(ReflectUtil.getConstructor(String.class));
+    }
 }

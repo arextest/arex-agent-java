@@ -47,10 +47,8 @@ public class NettyHelper {
     public static String getHeader(HttpMessage message, String name) {
         // direct call(< 3.10.0)
         if (GET_HEADER_METHOD != null) {
-            System.out.println("direct call");
             return message.getHeader(name);
         }
-        System.out.println("reflect call");
         // reflect call(>= 3.10.0)
         HttpHeaders httpHeaders = getHttpHeaders(message);
         if (getHeaderMH != null) {

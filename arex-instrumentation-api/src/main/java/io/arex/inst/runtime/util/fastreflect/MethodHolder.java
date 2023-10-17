@@ -8,7 +8,7 @@ import java.lang.reflect.Modifier;
 
 /**
  * refer: https://github.com/CrissNamon/aide
- * note: support 5 parameters invoke, if method parameters > 5, need add LambdaWrapper.accept/apply
+ * <p><strong>note:</strong> support 5 parameters invoke, if method parameters > 5, need add LambdaWrapper.accept/apply
  */
 public class MethodHolder<R> {
     private LambdaMetadata metadata;
@@ -61,7 +61,6 @@ public class MethodHolder<R> {
                     methodHandle.type());
             return new MethodHolder<>(executable, metadata, methodHandle, callSite);
         } catch (Throwable e) {
-            e.printStackTrace();
             return new MethodHolder<>();
         }
     }
@@ -78,7 +77,6 @@ public class MethodHolder<R> {
             LambdaWrapper func = (LambdaWrapper) callSite.getTarget().invoke();
             return (R) metadata.getMatcher().apply(func, args);
         } catch (Throwable e) {
-            e.printStackTrace();
             return null;
         }
     }
@@ -91,7 +89,6 @@ public class MethodHolder<R> {
         try {
             return (R) metadata.getMatcher().apply(methodHandle, args);
         } catch (Throwable e) {
-            e.printStackTrace();
             return null;
         }
     }

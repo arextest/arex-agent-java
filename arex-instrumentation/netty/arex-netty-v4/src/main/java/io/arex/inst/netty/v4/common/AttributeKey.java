@@ -23,7 +23,6 @@ public class AttributeKey {
         } catch (Exception e) {
             // ignore, < 4.1.0 not exist valueOf method
         }
-        System.out.println("arex initAttributeKey instance: " + instance);
         if (instance instanceof io.netty.util.AttributeKey) {
             return (io.netty.util.AttributeKey<Mocker>) instance;
         }

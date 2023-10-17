@@ -3,19 +3,11 @@ package io.arex.inst.netty.v3;
 import io.arex.agent.bootstrap.internal.CallDepth;
 import io.arex.inst.extension.MethodInstrumentation;
 import io.arex.inst.extension.TypeInstrumentation;
-import io.arex.inst.netty.v3.server.RequestTracingHandler;
-import io.arex.inst.netty.v3.server.ResponseTracingHandler;
-import io.arex.inst.netty.v3.server.ServerCodecTracingHandler;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
 import org.jboss.netty.channel.ChannelHandler;
-import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelPipeline;
-import org.jboss.netty.handler.codec.http.HttpRequestDecoder;
-import org.jboss.netty.handler.codec.http.HttpResponseEncoder;
-import org.jboss.netty.handler.codec.http.HttpServerCodec;
-
 import java.util.List;
 
 import static java.util.Arrays.asList;
@@ -59,28 +51,7 @@ public class ChannelPipelineInstrumentation extends TypeInstrumentation {
                                   @Advice.Argument(0) String handlerName,
                                   @Advice.Argument(1) ChannelHandler handler,
                                   @Advice.Local("callDepth") CallDepth callDepth) {
-            if (callDepth.decrementAndGet() > 0 || handler.getClass().getName().startsWith("io.arex.inst")) {
-                return;
-            }
-
-            String name = handlerName;
-            if (name == null) {
-                ChannelHandlerContext context = pipeline.getContext(handler);
-                if (context == null) {
-                    return;
-                }
-                name = context.getName();
-            }
-            if (handler instanceof HttpRequestDecoder) {
-                pipeline.addAfter(name, "io.arex.inst.netty.v3.server.RequestTracingHandler",
-                        new RequestTracingHandler());
-            } else if (handler instanceof HttpResponseEncoder) {
-                pipeline.addAfter(name, "io.arex.inst.netty.v3.server.ResponseTracingHandler",
-                        new ResponseTracingHandler());
-            } else if (handler instanceof HttpServerCodec) {
-                pipeline.addAfter(name, "io.arex.inst.netty.v3.server.ServerCodecTracingHandler",
-                        new ServerCodecTracingHandler());
-            }
+            ChannelPipelineHelper.addHandler(pipeline, handlerName, handler, callDepth);
         }
     }
 
@@ -98,28 +69,7 @@ public class ChannelPipelineInstrumentation extends TypeInstrumentation {
                                   @Advice.Argument(1) String handlerName,
                                   @Advice.Argument(2) ChannelHandler handler,
                                   @Advice.Local("callDepth") CallDepth callDepth) {
-            if (callDepth.decrementAndGet() > 0 || handler.getClass().getName().startsWith("io.arex.inst")) {
-                return;
-            }
-
-            String name = handlerName;
-            if (name == null) {
-                ChannelHandlerContext context = pipeline.getContext(handler);
-                if (context == null) {
-                    return;
-                }
-                name = context.getName();
-            }
-            if (handler instanceof HttpRequestDecoder) {
-                pipeline.addAfter(name, "io.arex.inst.netty.v3.server.RequestTracingHandler",
-                        new RequestTracingHandler());
-            } else if (handler instanceof HttpResponseEncoder) {
-                pipeline.addAfter(name, "io.arex.inst.netty.v3.server.ResponseTracingHandler",
-                        new ResponseTracingHandler());
-            } else if (handler instanceof HttpServerCodec) {
-                pipeline.addAfter(name, "io.arex.inst.netty.v3.server.ServerCodecTracingHandler",
-                        new ServerCodecTracingHandler());
-            }
+            ChannelPipelineHelper.addHandler(pipeline, handlerName, handler, callDepth);
         }
     }
 }
