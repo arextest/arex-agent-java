@@ -2,12 +2,12 @@ package io.arex.inst.netty.v3.server;
 
 import org.jboss.netty.channel.*;
 
-public class CombinedSimpleChannelHandler<UPSTREAM extends SimpleChannelUpstreamHandler,
-        DOWNSTREAM extends SimpleChannelDownstreamHandler> extends SimpleChannelHandler {
-    private final UPSTREAM upstream;
-    private final DOWNSTREAM downstream;
+public class CombinedSimpleChannelHandler<U extends SimpleChannelUpstreamHandler,
+        D extends SimpleChannelDownstreamHandler> extends SimpleChannelHandler {
+    private final U upstream;
+    private final D downstream;
 
-    public CombinedSimpleChannelHandler(UPSTREAM upstream, DOWNSTREAM downstream) {
+    public CombinedSimpleChannelHandler(U upstream, D downstream) {
         this.upstream = upstream;
         this.downstream = downstream;
     }
