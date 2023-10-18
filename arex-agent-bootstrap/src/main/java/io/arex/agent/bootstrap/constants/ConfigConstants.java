@@ -30,4 +30,5 @@ public class ConfigConstants {
     public static final String CURRENT_RATE = "arex.current.rate";
     public static final String DECELERATE_CODE = "arex.decelerate.code";
     public static final String SERIALIZER_CONFIG = "arex.serializer.config";
+    public static final String BUFFER_SIZE = "arex.buffer.size";
 }

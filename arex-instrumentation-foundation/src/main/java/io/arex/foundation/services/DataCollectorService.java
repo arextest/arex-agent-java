@@ -71,7 +71,7 @@ public class DataCollectorService implements DataCollector {
 
     private void init() {
         if (buffer == null) {
-            buffer = new MockEntityBuffer(1024);
+            buffer = new MockEntityBuffer(ConfigManager.INSTANCE.getBufferSize());
         }
 
         if (executeFuture == null) {

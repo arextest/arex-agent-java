@@ -65,4 +65,9 @@ class DataCollectorServiceTest {
         actualResult = DataCollectorService.INSTANCE.queryReplayData("test", MockStrategyEnum.OVER_BREAK);
         assertEquals("test", actualResult);
     }
+
+    @Test
+    void start() {
+        assertDoesNotThrow(DataCollectorService.INSTANCE::start);
+    }
 }
