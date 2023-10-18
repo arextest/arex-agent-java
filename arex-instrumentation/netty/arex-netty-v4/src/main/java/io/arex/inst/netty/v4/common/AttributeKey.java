@@ -19,7 +19,7 @@ public class AttributeKey {
             // the user's Netty version is only known at runtime
             instance = ReflectUtil.getFieldOrInvokeMethod(
                     () -> io.netty.util.AttributeKey.class.getDeclaredMethod("valueOf", Class.class, String.class),
-                    null, AttributeKey.class, ArexConstants.NETTY_TRACING_MOCKER);
+                    null, AttributeKey.class, "arex-netty-server-mocker");
         } catch (Exception e) {
             // ignore, < 4.1.0 not exist valueOf method
         }
@@ -27,6 +27,6 @@ public class AttributeKey {
             return (io.netty.util.AttributeKey<Mocker>) instance;
         }
         // direct call
-        return new io.netty.util.AttributeKey<>(ArexConstants.NETTY_TRACING_MOCKER);
+        return new io.netty.util.AttributeKey<>("arex-netty-server-mocker");
     }
 }

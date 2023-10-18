@@ -24,7 +24,7 @@ public class ResponseTracingHandler extends SimpleChannelDownstreamHandler {
         try {
             if (event.getMessage() instanceof HttpResponse) {
                 HttpResponse response = (HttpResponse) event.getMessage();
-                Object mockerObj = ContextManager.currentContext().getAttachment(ArexConstants.NETTY_TRACING_MOCKER);
+                Object mockerObj = ContextManager.currentContext().getAttachment("arex-netty-server-mocker");
                 if (mockerObj == null) {
                     return;
                 }

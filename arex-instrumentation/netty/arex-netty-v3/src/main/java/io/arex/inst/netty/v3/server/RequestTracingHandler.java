@@ -44,7 +44,7 @@ public class RequestTracingHandler extends SimpleChannelUpstreamHandler {
                     // save request body, if the request body too large, it will be separated into multiple HttpContent
                     setContent(request.getContent(), mocker);
                     // cache mocker for writeComplete and writeRequested, not use ctx.setAttachment(mocker), because it maybe used by user handler
-                    ContextManager.currentContext().setAttachment(ArexConstants.NETTY_TRACING_MOCKER, mocker);
+                    ContextManager.currentContext().setAttachment("arex-netty-server-mocker", mocker);
                 }
             }
         } catch (Throwable e) {
@@ -74,7 +74,7 @@ public class RequestTracingHandler extends SimpleChannelUpstreamHandler {
             if (context == null) {
                 return;
             }
-            Object mockerObj = context.getAttachment(ArexConstants.NETTY_TRACING_MOCKER);
+            Object mockerObj = context.getAttachment("arex-netty-server-mocker");
             if (mockerObj == null) {
                 return;
             }
@@ -86,7 +86,7 @@ public class RequestTracingHandler extends SimpleChannelUpstreamHandler {
             }
             CaseEventDispatcher.onEvent(CaseEvent.ofExitEvent());
             // clear mocker
-            context.setAttachment(ArexConstants.NETTY_TRACING_MOCKER, null);
+            context.setAttachment("arex-netty-server-mocker", null);
         } catch (Throwable e) {
             LogManager.warn("netty writeComplete error", e);
         } finally {

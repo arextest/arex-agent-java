@@ -17,10 +17,10 @@ public class NettyHelper {
      * determine the Netty version used by the user
      */
     private static final Method GET_HEADER_METHOD = ReflectUtil.getMethod(HttpMessage.class, "getHeader", String.class);
-    private static MethodHolder<String> getHeaderMH = null;
-    private static MethodHolder<HttpHeaders> headersMH = null;
-    private static MethodHolder<Void> setHeaderMH = null;
-    private static MethodHolder<List<Map.Entry<String, String>>> getHeadersMH = null;
+    private static MethodHolder<String> getHeaderHolder = null;
+    private static MethodHolder<HttpHeaders> headersHolder = null;
+    private static MethodHolder<Void> setHeaderHolder = null;
+    private static MethodHolder<List<Map.Entry<String, String>>> getHeadersHolder = null;
 
     public static Map<String, String> parseHeaders(List<Map.Entry<String, String>> headerList) {
         Map<String, String> headers = new HashMap<>();
@@ -51,12 +51,12 @@ public class NettyHelper {
         }
         // reflect call(>= 3.10.0)
         HttpHeaders httpHeaders = getHttpHeaders(message);
-        if (getHeaderMH != null) {
-            return getHeaderMH.invoke(httpHeaders, name);
+        if (getHeaderHolder != null) {
+            return getHeaderHolder.invoke(httpHeaders, name);
         }
         Method getMethod = ReflectUtil.getMethod(HttpHeaders.class, "get", String.class);
-        getHeaderMH = MethodHolder.build(getMethod);
-        return getHeaderMH.invoke(httpHeaders, name);
+        getHeaderHolder = MethodHolder.build(getMethod);
+        return getHeaderHolder.invoke(httpHeaders, name);
     }
 
     /**
@@ -72,13 +72,13 @@ public class NettyHelper {
 
         // reflect call(>= 3.10.0)
         HttpHeaders httpHeaders = getHttpHeaders(message);
-        if (setHeaderMH != null) {
-            setHeaderMH.invoke(httpHeaders, name, value);
+        if (setHeaderHolder != null) {
+            setHeaderHolder.invoke(httpHeaders, name, value);
             return;
         }
         Method setMethod = ReflectUtil.getMethod(HttpHeaders.class, "set", String.class, Object.class);
-        setHeaderMH = MethodHolder.build(setMethod);
-        setHeaderMH.invoke(httpHeaders, name, value);
+        setHeaderHolder = MethodHolder.build(setMethod);
+        setHeaderHolder.invoke(httpHeaders, name, value);
     }
 
     /**
@@ -93,20 +93,20 @@ public class NettyHelper {
 
         // >= 3.10.0
         HttpHeaders httpHeaders = getHttpHeaders(message);
-        if (getHeadersMH != null) {
-            return getHeadersMH.invoke(httpHeaders);
+        if (getHeadersHolder != null) {
+            return getHeadersHolder.invoke(httpHeaders);
         }
         Method entriesMethod = ReflectUtil.getMethod(HttpHeaders.class, "entries");
-        getHeadersMH = MethodHolder.build(entriesMethod);
-        return getHeadersMH.invoke(httpHeaders);
+        getHeadersHolder = MethodHolder.build(entriesMethod);
+        return getHeadersHolder.invoke(httpHeaders);
     }
 
     private static HttpHeaders getHttpHeaders(HttpMessage message) {
-        if (headersMH != null) {
-            return headersMH.invoke(message);
+        if (headersHolder != null) {
+            return headersHolder.invoke(message);
         }
         Method headersMethod = ReflectUtil.getMethod(HttpMessage.class, "headers");
-        headersMH = MethodHolder.build(headersMethod);
-        return headersMH.invoke(message);
+        headersHolder = MethodHolder.build(headersMethod);
+        return headersHolder.invoke(message);
     }
 }
