@@ -96,7 +96,8 @@ class IgnoreUtilsTest {
         } else {
             assertFalse(IgnoreUtils.excludeEntranceOperation(targetName));
         }
-
+        Mockito.when(ContextManager.needReplay()).thenReturn(true);
+        assertTrue(IgnoreUtils.excludeEntranceOperation("api/v3"));
     }
 
     @Test
