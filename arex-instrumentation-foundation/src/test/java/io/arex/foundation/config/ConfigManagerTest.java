@@ -54,6 +54,7 @@ class ConfigManagerTest {
         System.setProperty("arex.config.service.host", "test-config-service.host");
         configManager.init();
         assertEquals("test-config-service.host", configManager.getConfigServiceHost());
+        assertEquals(1024, configManager.getBufferSize());
     }
 
     @Test

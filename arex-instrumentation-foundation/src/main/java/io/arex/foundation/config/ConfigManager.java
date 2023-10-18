@@ -64,6 +64,7 @@ public class ConfigManager {
     private int dubboStreamReplayThreshold;
     private List<ConfigListener> listeners = new ArrayList<>();
     private Map<String, String> extendField;
+    private int bufferSize;
 
     private ConfigManager() {
         init();
@@ -248,6 +249,7 @@ public class ConfigManager {
         setRetransformModules(System.getProperty(RETRANSFORM_MODULE));
         setExcludeServiceOperations(System.getProperty(EXCLUDE_SERVICE_OPERATION));
         setDubboStreamReplayThreshold(System.getProperty(DUBBO_STREAM_REPLAY_THRESHOLD, "100"));
+        setBufferSize(System.getProperty(BUFFER_SIZE, "1024"));
     }
 
     @VisibleForTesting
@@ -273,6 +275,7 @@ public class ConfigManager {
         setExcludeServiceOperations(configMap.get(EXCLUDE_SERVICE_OPERATION));
         System.setProperty(DISABLE_REPLAY, StringUtil.defaultString(configMap.get(DISABLE_REPLAY)));
         System.setProperty(DISABLE_RECORD, StringUtil.defaultString(configMap.get(DISABLE_RECORD)));
+        setBufferSize(configMap.get(BUFFER_SIZE));
     }
 
     private static Map<String, String> parseConfigFile(String configPath) {
@@ -561,6 +564,18 @@ public class ConfigManager {
 
     public void setExtendField(Map<String, String> extendField) {
         this.extendField = extendField;
+    }
+
+    public int getBufferSize() {
+        return bufferSize;
+    }
+
+    public void setBufferSize(String bufferSize) {
+        if (StringUtil.isEmpty(bufferSize)) {
+            return;
+        }
+        this.bufferSize = Integer.parseInt(bufferSize);
+        System.setProperty(BUFFER_SIZE, bufferSize);
     }
 
     @Override
