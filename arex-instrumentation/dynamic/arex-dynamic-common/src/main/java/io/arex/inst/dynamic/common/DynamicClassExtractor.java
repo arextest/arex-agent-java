@@ -3,6 +3,7 @@ package io.arex.inst.dynamic.common;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import io.arex.agent.bootstrap.model.MockResult;
+import io.arex.agent.bootstrap.model.MockStrategyEnum;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.ArrayUtils;
 import io.arex.agent.bootstrap.util.StringUtil;
@@ -128,7 +129,7 @@ public class DynamicClassExtractor {
 
         // If not in cache, get replay result from mock server
         if (replayResult == null) {
-            Mocker replayMocker = MockUtils.replayMocker(makeMocker());
+            Mocker replayMocker = MockUtils.replayMocker(makeMocker(), MockStrategyEnum.FIND_LAST);
             if (MockUtils.checkResponseMocker(replayMocker)) {
                 String typeName = replayMocker.getTargetResponse().getType();
                 replayResult = deserializeResult(replayMocker, typeName);
@@ -288,9 +289,10 @@ public class DynamicClassExtractor {
                 size = Array.getLength(result);
             }
             if (size > RESULT_SIZE_MAX) {
+                String methodInfo = methodSignatureKey == null ? buildDuplicateMethodKey() : methodSignatureKey;
                 LogManager.warn(NEED_RECORD_TITLE,
                         StringUtil.format("do not record method, cuz result size:%s > max limit: %s, method info: %s",
-                                String.valueOf(size), String.valueOf(RESULT_SIZE_MAX), methodSignatureKey));
+                                String.valueOf(size), String.valueOf(RESULT_SIZE_MAX), methodInfo));
                 return false;
             }
         } catch (Throwable e) {

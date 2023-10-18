@@ -8,11 +8,14 @@ import io.arex.foundation.config.ConfigManager;
 import io.arex.foundation.healthy.HealthManager;
 import io.arex.foundation.serializer.GsonSerializer;
 import io.arex.foundation.serializer.JacksonSerializer;
+import io.arex.foundation.serializer.custom.FastUtilAdapterFactory;
+import io.arex.foundation.serializer.custom.GuavaRangeSerializer;
 import io.arex.foundation.services.ConfigService;
 import io.arex.foundation.services.DataCollectorService;
 import io.arex.foundation.services.TimerService;
 import io.arex.foundation.util.NetUtils;
 import io.arex.foundation.util.NumberTypeAdaptor;
+import io.arex.inst.extension.ExtensionTransformer;
 import io.arex.inst.runtime.context.RecordLimiter;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.service.DataCollector;
@@ -49,32 +52,56 @@ public abstract class BaseAgentInstaller implements AgentInstaller {
         ClassLoader savedContextClassLoader = Thread.currentThread().getContextClassLoader();
         try {
             Thread.currentThread().setContextClassLoader(getClassLoader());
-            // Timed load config for agent delay start and dynamic retransform
+            Runtime.getRuntime().addShutdownHook(new Thread(ConfigService.INSTANCE::shutdown, "arex-agent-shutdown-hook"));
+            // Timed load config for dynamic retransform
             long delayMinutes = ConfigService.INSTANCE.loadAgentConfig(agentArgs);
+            if (!allowStartAgent()) {
+                ConfigService.INSTANCE.reportStatus();
+                if (!ConfigManager.FIRST_TRANSFORM.get()) {
+                    LOGGER.warn("[AREX] Agent would not install due to {}.", getInvalidReason());
+                }
+                return;
+            }
             if (delayMinutes > 0) {
                 TimerService.schedule(this::install, delayMinutes, TimeUnit.MINUTES);
                 timedReportStatus();
             }
-            if (!ConfigManager.INSTANCE.valid()) {
-                ConfigService.INSTANCE.reportStatus();
-                if (!ConfigManager.FIRST_TRANSFORM.get()) {
-                    LOGGER.warn("[AREX] Agent would not install due to {}.", ConfigManager.INSTANCE.getInvalidReason());
-                }
-                return;
-            }
             initDependentComponents();
             transform();
+
+            for (ExtensionTransformer transformer : loadTransformers()) {
+                if (transformer.validate()) {
+                    instrumentation.addTransformer(transformer, true);
+                }
+            }
+
             ConfigService.INSTANCE.reportStatus();
         } finally {
             Thread.currentThread().setContextClassLoader(savedContextClassLoader);
         }
     }
 
+    private List<ExtensionTransformer> loadTransformers() {
+        return ServiceLoader.load(ExtensionTransformer.class, getClassLoader());
+    }
+
+    boolean allowStartAgent() {
+        if (ConfigManager.INSTANCE.isLocalStorage()) {
+            return true;
+        }
+        return ConfigManager.INSTANCE.checkTargetAddress();
+    }
+
+    String getInvalidReason() {
+        if (!ConfigManager.INSTANCE.checkTargetAddress()) {
+            return "response [targetAddress] is not match";
+        }
+
+        return "invalid config";
+    }
+
     private void timedReportStatus() {
         if (reportStatusTask != null) {
-            return;
-        }
-        if (!ConfigManager.INSTANCE.isEnableReportStatus()) {
             return;
         }
         reportStatusTask = TimerService.scheduleAtFixedRate(() -> {
@@ -106,6 +133,8 @@ public abstract class BaseAgentInstaller implements AgentInstaller {
         AdviceClassesCollector.INSTANCE.addClassToLoaderSearch(JacksonSerializer.class);
         AdviceClassesCollector.INSTANCE.addClassToLoaderSearch(GsonSerializer.class);
         AdviceClassesCollector.INSTANCE.addClassToLoaderSearch(NumberTypeAdaptor.class);
+        AdviceClassesCollector.INSTANCE.addClassToLoaderSearch(GuavaRangeSerializer.class);
+        AdviceClassesCollector.INSTANCE.addClassToLoaderSearch(FastUtilAdapterFactory.class);
         Serializer.builder(JacksonSerializer.INSTANCE).build();
     }
     private void initDataCollector() {

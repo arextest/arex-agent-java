@@ -24,6 +24,7 @@
         <module>database/arex-database-common</module>
         <module>database/arex-database-hibernate</module>
         <module>database/arex-database-mybatis3</module>
+        <module>database/arex-database-mongo</module>
         <module>redis/arex-redis-common</module>
         <module>redis/arex-jedis-v2</module>
         <module>redis/arex-jedis-v4</module>
@@ -39,6 +40,7 @@
         <module>httpclient/arex-httpclient-apache-v4</module>
         <module>httpclient/arex-httpclient-webclient-v5</module>
         <module>httpclient/arex-httpclient-resttemplate</module>
+        <module>netty/arex-netty-v3</module>
         <module>netty/arex-netty-v4</module>
         <module>dubbo/arex-dubbo-apache-v2</module>
         <module>dubbo/arex-dubbo-apache-v3</module>

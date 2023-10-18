@@ -2,12 +2,17 @@ package io.arex.inst.netty.v4.server;
 
 import io.arex.agent.bootstrap.model.ArexMocker;
 import io.arex.agent.bootstrap.model.Mocker.Target;
+import io.arex.agent.bootstrap.util.Assert;
 import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.context.RecordLimiter;
+import io.arex.inst.runtime.listener.CaseEventDispatcher;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.netty.v4.common.NettyHelper;
 import io.arex.inst.runtime.util.IgnoreUtils;
+import io.arex.inst.runtime.util.MockUtils;
+import io.netty.buffer.EmptyByteBuf;
+import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.*;
@@ -18,6 +23,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -25,8 +31,8 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
 
 @ExtendWith(MockitoExtension.class)
 class RequestTracingHandlerTest {
@@ -34,6 +40,7 @@ class RequestTracingHandlerTest {
     static ChannelHandlerContext ctx;
     static HttpRequest request;
     static HttpHeaders headers;
+    static MockedStatic<CaseEventDispatcher> mockCaseEvent;
 
     @BeforeAll
     static void setUp() {
@@ -48,6 +55,8 @@ class RequestTracingHandlerTest {
         Mockito.mockStatic(RecordLimiter.class);
         Mockito.mockStatic(Config.class);
         Mockito.when(Config.get()).thenReturn(Mockito.mock(Config.class));
+        mockCaseEvent = Mockito.mockStatic(CaseEventDispatcher.class);
+        Mockito.mockStatic(MockUtils.class);
     }
 
     @AfterAll
@@ -56,6 +65,7 @@ class RequestTracingHandlerTest {
         ctx = null;
         request = null;
         headers = null;
+        mockCaseEvent = null;
         Mockito.clearAllCaches();
     }
 
@@ -74,7 +84,7 @@ class RequestTracingHandlerTest {
         Runnable mocker2 = () -> {
             Mockito.when(headers.get(ArexConstants.RECORD_ID)).thenReturn("");
             Mockito.when(headers.get(ArexConstants.FORCE_RECORD)).thenReturn("true");
-            Mockito.when(request.method()).thenReturn(HttpMethod.POST);
+            Mockito.when(request.getMethod()).thenReturn(HttpMethod.POST);
         };
         Runnable mocker3 = () -> {
             Mockito.when(headers.get(ArexConstants.FORCE_RECORD)).thenReturn("false");
@@ -92,20 +102,28 @@ class RequestTracingHandlerTest {
         };
         Channel channel = Mockito.mock(Channel.class);
         Attribute attribute = Mockito.mock(Attribute.class);
+        ArexMocker mocker = new ArexMocker();
         Runnable mocker6 = () -> {
             Mockito.when(ContextManager.needRecordOrReplay()).thenReturn(true);
             Mockito.when(ctx.channel()).thenReturn(channel);
             Mockito.when(channel.attr(any())).thenReturn(attribute);
+            Mockito.when(MockUtils.createNettyProvider(any())).thenReturn(mocker);
         };
+
+        LastHttpContent httpContent = Mockito.mock(LastHttpContent.class);
         Runnable mocker7 = () -> {
-            ArexMocker mocker = new ArexMocker();
             mocker.setTargetRequest(new Target());
             mocker.setTargetResponse(new Target());
             Mockito.when(attribute.get()).thenReturn(mocker);
-            Mockito.when(NettyHelper.parseBody(any())).thenReturn("mock");
+            Mockito.when(httpContent.content()).thenReturn(new EmptyByteBuf(new UnpooledByteBufAllocator(false)));
         };
 
-        LastHttpContent content = Mockito.mock(LastHttpContent.class);
+        Runnable mocker8 = () -> {
+            Mockito.when(httpContent.content()).thenReturn(UnpooledByteBufAllocator.DEFAULT.buffer().writeBytes("mock".getBytes()));
+        };
+        Runnable mocker9 = () -> {
+            mocker.getTargetRequest().setBody("mock");
+        };
 
         return Stream.of(
                 arguments(mocker1, request),
@@ -115,7 +133,51 @@ class RequestTracingHandlerTest {
                 arguments(mocker4_1, request),
                 arguments(mocker5, request),
                 arguments(mocker6, request),
-                arguments(mocker7, content)
+                arguments(mocker7, httpContent),
+                arguments(mocker8, httpContent),
+                arguments(mocker9, httpContent)
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("channelReadCompleteCase")
+    void channelReadComplete(Runnable mocker, Assert asserts) throws Exception {
+        mocker.run();
+        target.channelReadComplete(ctx);
+        asserts.verity();
+    }
+
+    static Stream<Arguments> channelReadCompleteCase() {
+        Channel channel = Mockito.mock(Channel.class);
+        Attribute attribute = Mockito.mock(Attribute.class);
+        Runnable mocker1 = () -> {
+            Mockito.when(ctx.channel()).thenReturn(channel);
+            Mockito.when(channel.attr(any())).thenReturn(attribute);
+        };
+
+        ArexMocker mocker = new ArexMocker();
+        Runnable mocker2 = () -> {
+            mocker.setTargetRequest(new Target());
+            mocker.setTargetResponse(new Target());
+            Mockito.when(attribute.getAndSet(null)).thenReturn(mocker);
+            Mockito.when(ContextManager.needReplay()).thenReturn(true);
+        };
+        Runnable mocker3 = () -> {
+            Mockito.when(ContextManager.needReplay()).thenReturn(false);
+            Mockito.when(ContextManager.needRecord()).thenReturn(true);
+        };
+
+        Assert asserts1 = () -> {
+            mockCaseEvent.verify(() -> CaseEventDispatcher.onEvent(any()), times(0));
+        };
+        Assert asserts2 = () -> {
+            mockCaseEvent.verify(() -> CaseEventDispatcher.onEvent(any()), atLeastOnce());
+        };
+
+        return Stream.of(
+                arguments(mocker1, asserts1),
+                arguments(mocker2, asserts2),
+                arguments(mocker3, asserts2)
         );
     }
 }

@@ -63,9 +63,12 @@ public class IgnoreUtils {
         if (StringUtil.isEmpty(targetName) || Config.get() == null) {
             return false;
         }
-
         Set<String> excludeServiceOperations = Config.get().excludeServiceOperations();
-        return operationMatched(targetName, excludeServiceOperations);
+        boolean isOperationMatched = operationMatched(targetName, excludeServiceOperations);
+        if (isOperationMatched && ContextManager.needReplay()) {
+            LogManager.warn("replay.hitBlockList", StringUtil.format("Hit block list, target name: %s", targetName));
+        }
+        return isOperationMatched;
     }
 
     /**

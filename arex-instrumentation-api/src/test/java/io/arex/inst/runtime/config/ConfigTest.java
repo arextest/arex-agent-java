@@ -31,7 +31,11 @@ class ConfigTest {
 
     static Stream<Arguments> invalidCase() {
         ConfigBuilder config = ConfigBuilder.create("mock");
+        Runnable mocker1 = () -> {
+            config.addProperty(ConfigConstants.STORAGE_SERVICE_MODE, "local").build();;
+        };
         Runnable mocker2 = () -> {
+            config.addProperty(ConfigConstants.STORAGE_SERVICE_MODE, "").build();;
             config.recordRate(0).build();
         };
         Runnable mocker3 = () -> {
@@ -52,6 +56,7 @@ class ConfigTest {
         Predicate<Boolean> assertFalse = result -> !result;
         Predicate<Boolean> assertTrue = result -> result;
         return Stream.of(
+            arguments(mocker1, assertFalse),
             arguments(mocker2, assertTrue),
             arguments(mocker3, assertTrue),
             arguments(mocker4, assertTrue),

@@ -65,6 +65,10 @@ public final class MockUtils {
         return create(MockCategoryType.DUBBO_STREAM_PROVIDER, operationName);
     }
 
+    public static ArexMocker createNettyProvider(String pattern) {
+        return create(MockCategoryType.NETTY_PROVIDER, pattern);
+    }
+
     public static ArexMocker create(MockCategoryType categoryType, String operationName) {
         ArexMocker mocker = new ArexMocker();
         long createTime = System.currentTimeMillis();
@@ -85,17 +89,19 @@ public final class MockUtils {
     }
 
     public static void recordMocker(Mocker requestMocker) {
-        String postJson = Serializer.serialize(requestMocker);
-
-        if (Config.get().isEnableDebug()) {
-            LogManager.info(requestMocker.recordLogTitle(), StringUtil.format("%s%nrequest: %s", requestMocker.logBuilder().toString(), postJson));
+        if (CaseManager.isInvalidCase(requestMocker.getRecordId())) {
+            return;
         }
 
-        DataService.INSTANCE.save(postJson);
+        if (Config.get().isEnableDebug()) {
+            LogManager.info(requestMocker.recordLogTitle(), StringUtil.format("%s%nrequest: %s", requestMocker.logBuilder().toString(), Serializer.serialize(requestMocker)));
+        }
+
+        DataService.INSTANCE.save(requestMocker);
     }
 
     public static Mocker replayMocker(Mocker requestMocker) {
-        return replayMocker(requestMocker, MockStrategyEnum.FIND_LAST);
+        return replayMocker(requestMocker, MockStrategyEnum.OVER_BREAK);
     }
 
     public static Mocker replayMocker(Mocker requestMocker, MockStrategyEnum mockStrategy) {
@@ -122,7 +128,7 @@ public final class MockUtils {
     }
 
     public static Object replayBody(Mocker requestMocker) {
-        return replayBody(requestMocker, MockStrategyEnum.FIND_LAST);
+        return replayBody(requestMocker, MockStrategyEnum.OVER_BREAK);
     }
 
     public static Object replayBody(Mocker requestMocker, MockStrategyEnum mockStrategy) {

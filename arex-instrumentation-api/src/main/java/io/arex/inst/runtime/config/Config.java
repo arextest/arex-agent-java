@@ -14,6 +14,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
+import static io.arex.agent.bootstrap.constants.ConfigConstants.STORAGE_MODE;
+import static io.arex.agent.bootstrap.constants.ConfigConstants.STORAGE_SERVICE_MODE;
+
 public class Config {
 
     private static Config INSTANCE = null;
@@ -174,6 +177,10 @@ public class Config {
         return includeServiceOperations;
     }
 
+    public boolean isLocalStorage() {
+        return STORAGE_MODE.equalsIgnoreCase(getString(STORAGE_SERVICE_MODE));
+    }
+
     /**
      * Conditions for determining invalid recording configuration:<br/>
      * 1. rate <= 0 <br/>
@@ -185,6 +192,9 @@ public class Config {
      * @return true: invalid, false: valid
      */
     public boolean invalidRecord(String path) {
+        if (isLocalStorage()) {
+            return false;
+        }
         if (getRecordRate() <= 0) {
             return true;
         }

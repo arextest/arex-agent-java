@@ -40,7 +40,7 @@ final class LatencyContextHashMap extends ConcurrentHashMap<String, ArexContext>
     }
 
     private void overdueCleanUp() {
-        if (latencyMap != null && CLEANUP_LOCK.tryLock() && latencyMap.mappingCount() > CLEANUP_THRESHOLD) {
+        if (latencyMap != null && CLEANUP_LOCK.tryLock()) {
             try {
                 long now = System.currentTimeMillis();
                 for (Map.Entry<String, ArexContext> entry: latencyMap.entrySet()) {
@@ -56,7 +56,7 @@ final class LatencyContextHashMap extends ConcurrentHashMap<String, ArexContext>
         }
 
         // Compatible where map.remove() not called
-        if (CLEANUP_LOCK.tryLock() && this.mappingCount() > CLEANUP_THRESHOLD) {
+        if (this.mappingCount() > CLEANUP_THRESHOLD && CLEANUP_LOCK.tryLock()) {
             try {
                 long now = System.currentTimeMillis();
                 for (Map.Entry<String, ArexContext> entry: super.entrySet()) {

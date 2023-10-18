@@ -121,23 +121,48 @@ public class TypeUtil {
             String cacheKey = rawClassName + typeName;
             Field field = GENERIC_FIELD_CACHE.get(cacheKey);
             if (field == null) {
-                for (Field declaredField : rawClass.getDeclaredFields()) {
-                    // java.util.List<T> contains T
-                    if (declaredField.getGenericType().getTypeName().contains(typeName)) {
-                        declaredField.setAccessible(true);
-                        GENERIC_FIELD_CACHE.put(cacheKey, declaredField);
-                        field = declaredField;
-                        break;
-                    }
+                field = getGenericFieldFromClass(rawClass, typeName);
+                if (field == null) {
+                    return builder.toString();
                 }
+                field.setAccessible(true);
+                GENERIC_FIELD_CACHE.put(cacheKey, field);
             }
-            builder.append(filterRawGenericType(invokeGetFieldType(field, result)));
+
+            String genericType = invokeGetFieldType(field, result);
+            // only collection field need to filter raw generic type
+            if (isCollection(field.getType().getName())) {
+                genericType = filterRawGenericType(genericType);
+            }
+
+            if (StringUtil.isNotEmpty(genericType)) {
+                builder.append(genericType);
+            }
             if (i == typeParameters.length - 1) {
                return builder.toString();
             }
             builder.append(COMMA);
         }
         return builder.toString();
+    }
+
+    private static Field getGenericFieldFromClass(Class<?> rawClass, String typeName) {
+        if (rawClass == null) {
+            return null;
+        }
+        for (Field declaredField : rawClass.getDeclaredFields()) {
+            final String fieldGenericType = declaredField.getGenericType().getTypeName();
+            // equals T
+            if (fieldGenericType.equals(typeName)) {
+                return declaredField;
+            }
+            // java.util.List<T> contains T && field is collection
+            if (fieldGenericType.contains(typeName) && isCollection(declaredField.getType().getName())) {
+                return declaredField;
+            }
+        }
+        // search super class
+        return getGenericFieldFromClass(rawClass.getSuperclass(), typeName);
     }
 
     private static String invokeGetFieldType(Field field, Object result) {
@@ -325,15 +350,18 @@ public class TypeUtil {
             // this case means that the generic field is not assigned a value
             return StringUtil.EMPTY;
         }
-        StringBuilder builder = new StringBuilder();
+        StringBuilder builder = null;
         String[] types = StringUtil.split(genericType, HORIZONTAL_LINE);
         for (String type : types) {
             if (StringUtil.isNullWord(type) || isCollection(type)) {
                 continue;
             }
+            if (builder == null) {
+                builder = new StringBuilder();
+            }
             builder.append(HORIZONTAL_LINE).append(type);
         }
-        return builder.substring(1);
+        return builder == null ? StringUtil.EMPTY : builder.substring(1);
     }
 
     public static boolean isCollection(String genericType) {
@@ -341,6 +369,8 @@ public class TypeUtil {
             return false;
         }
         switch (genericType) {
+            case "java.util.List":
+            case "java.util.Set":
             case "java.util.ArrayList":
             case "java.util.LinkedList":
             case "java.util.HashSet":

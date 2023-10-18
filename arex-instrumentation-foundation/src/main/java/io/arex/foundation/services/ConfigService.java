@@ -5,16 +5,14 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import io.arex.agent.bootstrap.constants.ConfigConstants;
 import io.arex.agent.bootstrap.util.MapUtils;
-import io.arex.foundation.model.AgentStatusEnum;
-import io.arex.foundation.model.AgentStatusRequest;
+import io.arex.foundation.model.*;
 import io.arex.foundation.config.ConfigManager;
-import io.arex.foundation.model.ConfigQueryRequest;
-import io.arex.foundation.model.ConfigQueryResponse;
 import io.arex.foundation.util.httpclient.AsyncHttpClientUtil;
 import io.arex.foundation.util.NetUtils;
 import io.arex.agent.bootstrap.util.StringUtil;
-import io.arex.foundation.model.HttpClientResponse;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -36,7 +34,7 @@ public class ConfigService {
 
     public static final ConfigService INSTANCE = new ConfigService();
     private static final String CONFIG_LOAD_URI =
-        String.format("http://%s/api/config/agent/load", ConfigManager.INSTANCE.getStorageServiceHost());
+        String.format("http://%s/api/config/agent/load", ConfigManager.INSTANCE.getConfigServiceHost());
 
     private final AtomicBoolean firstLoad = new AtomicBoolean(false);
     private final AtomicBoolean reloadConfig = new AtomicBoolean(false);
@@ -115,16 +113,20 @@ public class ConfigService {
     }
 
     AgentStatusEnum getAgentStatus() {
+        if (AgentStatusService.INSTANCE.isShutdown()) {
+            return AgentStatusEnum.SHUTDOWN;
+        }
+
         if (firstLoad.compareAndSet(false, true)) {
             return AgentStatusEnum.START;
         }
 
-        if (ConfigManager.INSTANCE.valid() && ConfigManager.INSTANCE.getRecordRate() > 0) {
-            return AgentStatusEnum.WORKING;
-        }
-
         if (ConfigManager.FIRST_TRANSFORM.get()) {
-            return AgentStatusEnum.SLEEPING;
+            if (ConfigManager.INSTANCE.inWorkingTime() && ConfigManager.INSTANCE.getRecordRate() > 0) {
+                return AgentStatusEnum.WORKING;
+            } else {
+                return AgentStatusEnum.SLEEPING;
+            }
         }
 
         return AgentStatusEnum.UN_START;
@@ -167,6 +169,18 @@ public class ConfigService {
         AgentStatusService.INSTANCE.report();
     }
 
+    public void shutdown() {
+        try {
+            if (AgentStatusService.INSTANCE.shutdown()) {
+                LOGGER.info("[AREX] Agent shutdown, stop working now.");
+                ConfigManager.INSTANCE.setConfigInvalid();
+                reportStatus();
+            }
+        } catch (Exception e) {
+            LOGGER.error("[AREX] Agent shutdown error, {}", e.getMessage());
+        }
+    }
+
     public boolean reloadConfig() {
         return reloadConfig.get();
     }
@@ -177,7 +191,17 @@ public class ConfigService {
         private String prevLastModified;
 
         private static final String AGENT_STATUS_URI =
-            String.format("http://%s/api/config/agent/agentStatus", ConfigManager.INSTANCE.getStorageServiceHost());
+            String.format("http://%s/api/config/agent/agentStatus", ConfigManager.INSTANCE.getConfigServiceHost());
+
+        private final AtomicBoolean shutdown = new AtomicBoolean(false);
+
+        private boolean shutdown() {
+            return shutdown.compareAndSet(false, true);
+        }
+
+        public boolean isShutdown() {
+            return shutdown.get();
+        }
 
         public void report() {
             AgentStatusEnum agentStatus = ConfigService.INSTANCE.getAgentStatus();
@@ -185,6 +209,10 @@ public class ConfigService {
 
             AgentStatusRequest request = new AgentStatusRequest(ConfigManager.INSTANCE.getServiceName(),
                 NetUtils.getIpAddress(), agentStatus.name());
+            request.setCurrentRate(System.getProperty(ConfigConstants.CURRENT_RATE,
+                    String.valueOf(ConfigManager.INSTANCE.getRecordRate())));
+            request.setDecelerateCode(Integer.parseInt(System.getProperty(ConfigConstants.DECELERATE_CODE,
+                    DecelerateReasonEnum.NORMAL.getCodeStr())));
 
             String requestJson = ConfigService.INSTANCE.serialize(request);
 

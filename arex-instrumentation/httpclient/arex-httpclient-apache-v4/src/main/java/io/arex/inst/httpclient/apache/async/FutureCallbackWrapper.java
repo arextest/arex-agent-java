@@ -9,12 +9,8 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.concurrent.BasicFuture;
 import org.apache.http.concurrent.FutureCallback;
-import org.apache.http.nio.protocol.HttpAsyncRequestProducer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class FutureCallbackWrapper<T> implements FutureCallback<T> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(FutureCallbackWrapper.class);
     private final FutureCallback<T> delegate;
     private final TraceTransmitter traceTransmitter;
 
@@ -38,7 +34,9 @@ public class FutureCallbackWrapper<T> implements FutureCallback<T> {
                 HttpResponse response = (HttpResponse) t;
                 extractor.record(response);
             }
-            delegate.completed(t);
+            if (delegate != null) {
+                delegate.completed(t);
+            }
         }
     }
 
@@ -48,14 +46,18 @@ public class FutureCallbackWrapper<T> implements FutureCallback<T> {
             if (extractor != null) {
                 extractor.record(e);
             }
-            delegate.failed(e);
+            if (delegate != null) {
+                delegate.failed(e);
+            }
         }
     }
 
     @Override
     public void cancelled() {
         try (TraceTransmitter tm = traceTransmitter.transmit()) {
-            delegate.cancelled();
+            if (delegate != null) {
+                delegate.cancelled();
+            }
         }
     }
 
@@ -73,27 +75,24 @@ public class FutureCallbackWrapper<T> implements FutureCallback<T> {
         return basicFuture;
     }
 
-    public static <T> FutureCallbackWrapper<T> get(HttpAsyncRequestProducer requestProducer, FutureCallback<T> delegate) {
+    public static <T> FutureCallback<T> wrap(HttpRequest httpRequest, FutureCallback<T> delegate) {
         if (delegate instanceof FutureCallbackWrapper) {
-            return ((FutureCallbackWrapper<T>) delegate);
+            return delegate;
         }
-        ApacheHttpClientAdapter adapter;
-        HttpClientExtractor<HttpRequest, HttpResponse> extractor;
-
-        try {
-            adapter = new ApacheHttpClientAdapter(requestProducer.generateRequest());
-            if (adapter.skipRemoteStorageRequest()) {
-                return null;
-            }
-            extractor = new HttpClientExtractor<>(adapter);
-        } catch (Throwable ex) {
-            LOGGER.warn("create async wrapper error:{}, record or replay was skipped", ex.getMessage(), ex);
+        ApacheHttpClientAdapter adapter = new ApacheHttpClientAdapter(httpRequest);
+        if (adapter.skipRemoteStorageRequest()) {
             return null;
         }
-        return new FutureCallbackWrapper<>(extractor, delegate);
+        return new FutureCallbackWrapper<>(new HttpClientExtractor<>(adapter), delegate);
     }
 
+    /**
+     * Wrap the delegate with FutureCallbackWrapper for arex trace propagation
+     */
     public static <T> FutureCallback<T> wrap(FutureCallback<T> delegate) {
+        if (delegate instanceof FutureCallbackWrapper) {
+            return delegate;
+        }
         return new FutureCallbackWrapper<>(delegate);
     }
 }

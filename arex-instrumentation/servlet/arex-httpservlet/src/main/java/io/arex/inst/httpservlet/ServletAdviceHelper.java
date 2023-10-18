@@ -229,7 +229,7 @@ public class ServletAdviceHelper {
         }
 
         // Filter invalid servlet path suffix
-        if (FILTERED_GET_URL_SUFFIX.stream().anyMatch(requestURI::contains)) {
+        if (FILTERED_GET_URL_SUFFIX.stream().anyMatch(requestURI::endsWith)) {
             return true;
         }
 

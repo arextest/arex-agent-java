@@ -1,6 +1,7 @@
 package io.arex.inst.runtime.service;
 
 import io.arex.agent.bootstrap.model.MockStrategyEnum;
+import io.arex.agent.bootstrap.model.Mocker;
 
 public class DataService {
 
@@ -16,8 +17,8 @@ public class DataService {
         this.saver = dataSaver;
     }
 
-    public void save(String data) {
-        saver.save(data);
+    public void save(Mocker requestMocker) {
+        saver.save(requestMocker);
     }
 
     public String query(String data, MockStrategyEnum mockStrategy) {

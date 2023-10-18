@@ -73,7 +73,17 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
+            <artifactId>arex-database-mongo</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
             <artifactId>arex-redis-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>arex-jedis-v2</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -119,6 +129,11 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>arex-httpclient-okhttp-v3</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>arex-netty-v3</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

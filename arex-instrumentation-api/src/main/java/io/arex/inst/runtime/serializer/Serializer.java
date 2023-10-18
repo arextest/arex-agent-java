@@ -1,19 +1,24 @@
 package io.arex.inst.runtime.serializer;
 
+import io.arex.agent.bootstrap.constants.ConfigConstants;
 import io.arex.agent.bootstrap.util.ArrayUtils;
 import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.agent.bootstrap.util.ReflectUtil;
 import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.log.LogManager;
+import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.util.TypeUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Type;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Serializer {
     private static final Logger LOGGER = LoggerFactory.getLogger(Serializer.class);
+    private static final Map<String, String> SERIALIZER_CONFIG_MAP = new ConcurrentHashMap<>();
 
     private static Serializer INSTANCE;
 
@@ -34,11 +39,37 @@ public class Serializer {
     private final Map<String, StringSerializable> serializers;
 
     /**
+     * ex: DubboProvider:jackson,DubboConsumer:gson
+     */
+    public static void initSerializerConfigMap() {
+        try {
+            String serializerConfig = Config.get().getString(ConfigConstants.SERIALIZER_CONFIG);
+            if (StringUtil.isEmpty(serializerConfig)) {
+                return;
+            }
+            final String[] configArray = StringUtil.split(serializerConfig, ',');
+            for (String config : configArray) {
+                final String[] configElement = StringUtil.split(config, ':');
+                if (configElement.length != 2) {
+                    continue;
+                }
+                SERIALIZER_CONFIG_MAP.put(configElement[0], configElement[1]);
+            }
+        } catch (Exception ex) {
+            LogManager.warn("serializer.config", StringUtil.format("can not init serializer config, cause: %s", ex.toString()));
+        }
+    }
+
+    /**
      * serialize throw throwable
      */
     public static String serializeWithException(Object object, String serializer) throws Throwable {
         if (object == null || INSTANCE == null) {
             return null;
+        }
+
+        if (object instanceof Throwable) {
+            return INSTANCE.getSerializer(ArexConstants.GSON_SERIALIZER).serialize(object);
         }
 
         Collection<Collection<?>> nestedCollection = TypeUtil.toNestedCollection(object);
@@ -68,6 +99,10 @@ public class Serializer {
         return jsonBuilder.toString();
     }
 
+    public static String getSerializerFromType(String categoryType) {
+        return SERIALIZER_CONFIG_MAP.get(categoryType);
+    }
+
     /**
      * Serialize to string
      *
@@ -75,9 +110,6 @@ public class Serializer {
      * @return result string
      */
     public static String serialize(Object object) {
-        if (object instanceof Throwable) {
-            return serialize(object, "gson");
-        }
         return serialize(object, null);
     }
 
@@ -123,6 +155,9 @@ public class Serializer {
         }
 
         try {
+            if (Throwable.class.isAssignableFrom(TypeUtil.getRawClass(type))) {
+                serializer = ArexConstants.GSON_SERIALIZER;
+            }
             return INSTANCE.getSerializer(serializer).deserialize(value, type);
         } catch (Throwable ex) {
             LogManager.warn("serializer-deserialize-type", StringUtil.format("can not deserialize value %s to type %s, cause: %s", value, type.getTypeName(), ex.toString()));
@@ -144,10 +179,6 @@ public class Serializer {
     public static <T> T deserialize(String value, String typeName, String serializer) {
         if (StringUtil.isEmpty(value) || StringUtil.isEmpty(typeName)) {
             return null;
-        }
-
-        if (typeName.endsWith("Exception")) {
-            serializer = "gson";
         }
 
         if (typeName.startsWith(HASH_MAP_VALUES_CLASS)) {
@@ -265,7 +296,6 @@ public class Serializer {
             for (StringSerializable serializable : serializableList) {
                 if (serializable.isDefault()) {
                     this.defaultSerializer = serializable;
-                    continue;
                 }
                 this.serializers.put(serializable.name(), serializable);
             }

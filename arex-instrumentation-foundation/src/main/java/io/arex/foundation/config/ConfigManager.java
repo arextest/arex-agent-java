@@ -40,16 +40,17 @@ public class ConfigManager {
     public static final AtomicBoolean FIRST_TRANSFORM = new AtomicBoolean(false);
     private static final int DEFAULT_RECORDING_RATE = 1;
     private boolean enableDebug;
-    private boolean enableReportStatus;
     private String agentVersion;
     private String serviceName;
     private String storageServiceHost;
+    private String configServiceHost;
     private String configPath;
 
     private String storageServiceMode;
     private int recordRate;
     private int dynamicResultSizeLimit;
-    private final List<DynamicClassEntity> dynamicClassList = new ArrayList<>();
+    private List<DynamicClassEntity> dynamicClassList = new ArrayList<>();
+    private Set<String> resetClassSet = new HashSet<>();
     /**
      * use only replay
      */
@@ -89,19 +90,6 @@ public class ConfigManager {
         System.setProperty(ENABLE_DEBUG, enableDebug);
     }
 
-    public boolean isEnableReportStatus() {
-        return enableReportStatus;
-    }
-
-    public void setEnableReportStatus(String enableReportStatus) {
-        if (StringUtil.isEmpty(enableReportStatus)) {
-            return;
-        }
-
-        this.enableReportStatus = Boolean.parseBoolean(enableReportStatus);
-        System.setProperty(ENABLE_REPORT_STATUS, enableReportStatus);
-    }
-
     public String getServiceName() {
         return serviceName;
     }
@@ -131,6 +119,21 @@ public class ConfigManager {
         System.setProperty(STORAGE_SERVICE_HOST, storageServiceHost);
     }
 
+    public String getConfigServiceHost() {
+        if (StringUtil.isNotEmpty(configServiceHost)) {
+            return configServiceHost;
+        }
+        return storageServiceHost;
+    }
+
+    public void setConfigServiceHost(String configServiceHost) {
+        if (StringUtil.isEmpty(configServiceHost)) {
+            return;
+        }
+        this.configServiceHost = configServiceHost;
+        System.setProperty(CONFIG_SERVICE_HOST, configServiceHost);
+    }
+
     public void setRecordRate(int recordRate) {
         if (recordRate < 0) {
             return;
@@ -151,22 +154,28 @@ public class ConfigManager {
         System.setProperty(TIME_MACHINE, timeMachine);
     }
 
+    public Set<String> getResetClassSet() {
+        return resetClassSet;
+    }
+
     public List<DynamicClassEntity> getDynamicClassList() {
         return dynamicClassList;
     }
 
+    /**
+     * DynamicClass retransform rules:
+     * 1. addEntity: all entity of the same class of the added entity class need to be set to retransform
+     * 2. resetEntity: resetEntityClassSet only contains the class not in newDynamicClassList
+     * ex: oldDynamicClassList: ClassA methodA, ClassB methodB, ClassC methodC
+     *     newDynamicClassList: ClassA methodA, ClassA methodA2, ClassB methodB2
+     *     addEntityClassSet: ClassA, ClassB
+     *     resetEntityClassSet: ClassC
+     *     retransform: ClassA: methodA, methodA2, ClassB methodB2
+     */
     public void setDynamicClassList(List<DynamicClassConfiguration> newDynamicConfigList) {
         if (newDynamicConfigList == null) {
             return;
         }
-        // reset previously configured dynamic classes
-        if (newDynamicConfigList.isEmpty()) {
-            for (DynamicClassEntity item : dynamicClassList) {
-                item.setStatus(DynamicClassStatusEnum.RESET);
-            }
-            return;
-        }
-
         List<DynamicClassEntity> newDynamicClassList = new ArrayList<>(newDynamicConfigList.size());
         // keyFormula: java.lang.System.currentTimeMillis,java.util.UUID.randomUUID -> 2 dynamic classes will be created
         for (DynamicClassConfiguration config : newDynamicConfigList) {
@@ -182,47 +191,71 @@ public class ConfigManager {
             }
         }
 
-        // if old dynamic class list is empty, add all new dynamic class list
-        if (dynamicClassList.isEmpty()) {
-            dynamicClassList.addAll(newDynamicClassList);
-            return;
-        }
-
         // check if dynamic classes changed
         if (dynamicClassList.size() == newDynamicClassList.size() && dynamicClassList.equals(newDynamicClassList)) {
+            setRetransformClassCollection(Collections.emptySet(), newDynamicClassList);
             return;
         }
 
-        Set<String> resetClassSet = new HashSet<>();
-        List<DynamicClassEntity> unchangedList = new ArrayList<>();
-        for (DynamicClassEntity entity : dynamicClassList) {
-            if (newDynamicClassList.contains(entity)) {
-                entity.setStatus(DynamicClassStatusEnum.UNCHANGED);
-                unchangedList.add(entity);
-            } else {
-                entity.setStatus(DynamicClassStatusEnum.RESET);
-                resetClassSet.add(entity.getClazzName());
+        final Map<String, List<DynamicClassEntity>> newDynamicMap = newDynamicClassList.stream()
+                .collect(Collectors.groupingBy(DynamicClassEntity::getClazzName));
+        Set<String> changedClassSet = getDiffClassSet(dynamicClassList, newDynamicClassList);
+        for (String clazzName : changedClassSet) {
+            final List<DynamicClassEntity> needRetransformEntities = newDynamicMap.get(clazzName);
+            if (CollectionUtil.isEmpty(needRetransformEntities)) {
+                continue;
             }
-        }
-        // reset unchanged dynamic classes status to retransform
-        for (DynamicClassEntity entity : unchangedList) {
-            if (resetClassSet.contains(entity.getClazzName())) {
+            for (DynamicClassEntity entity : needRetransformEntities) {
                 entity.setStatus(DynamicClassStatusEnum.RETRANSFORM);
             }
         }
-        List<DynamicClassEntity> retransformList = new ArrayList<>();
+
+        // resetEntityClassSet only contains the class not in newDynamicClassList
+        changedClassSet.removeAll(newDynamicMap.keySet());
+        setRetransformClassCollection(changedClassSet, newDynamicClassList);
+    }
+
+    private Set<String> getDiffClassSet(List<DynamicClassEntity> dynamicClassList, List<DynamicClassEntity> newDynamicClassList) {
+        Set<String> changedClassSet = new HashSet<>();
+        // if old dynamic class list is empty, add all new dynamic class list
+        if (CollectionUtil.isEmpty(dynamicClassList)) {
+            for (DynamicClassEntity entity : newDynamicClassList) {
+                changedClassSet.add(entity.getClazzName());
+            }
+            return changedClassSet;
+        }
+
+        if (CollectionUtil.isEmpty(newDynamicClassList)) {
+            for (DynamicClassEntity entity : dynamicClassList) {
+                changedClassSet.add(entity.getClazzName());
+            }
+            return changedClassSet;
+        }
+
+        // addedEntityClassSet = newDynamicClassList - oldDynamicClassList
         for (DynamicClassEntity entity : newDynamicClassList) {
             if (!dynamicClassList.contains(entity)) {
-                retransformList.add(entity);
+                changedClassSet.add(entity.getClazzName());
             }
         }
-        dynamicClassList.addAll(retransformList);
+        // removeEntityClassSet = oldDynamicClassList - newDynamicClassList
+        for (DynamicClassEntity entity : dynamicClassList) {
+            if (!newDynamicClassList.contains(entity)) {
+                changedClassSet.add(entity.getClazzName());
+            }
+        }
+        return changedClassSet;
+    }
+
+    private void setRetransformClassCollection(Set<String> resetClassSet, List<DynamicClassEntity> newDynamicClassList) {
+        this.resetClassSet = resetClassSet;
+        this.dynamicClassList = newDynamicClassList;
     }
 
     private DynamicClassEntity createDynamicClass(DynamicClassConfiguration config, String keyFormula) {
         DynamicClassEntity newItem = new DynamicClassEntity(config.getFullClassName(), config.getMethodName(),
                 config.getParameterTypes(), keyFormula);
-        newItem.setStatus(DynamicClassStatusEnum.RETRANSFORM);
+        newItem.setStatus(DynamicClassStatusEnum.UNCHANGED);
         return newItem;
     }
 
@@ -230,9 +263,9 @@ public class ConfigManager {
     void init() {
         agentVersion = System.getProperty(AGENT_VERSION);
         setEnableDebug(System.getProperty(ENABLE_DEBUG));
-        setEnableReportStatus(System.getProperty(ENABLE_REPORT_STATUS, Boolean.TRUE.toString()));
         setServiceName(StringUtil.strip(System.getProperty(SERVICE_NAME)));
         setStorageServiceHost(StringUtil.strip(System.getProperty(STORAGE_SERVICE_HOST)));
+        setConfigServiceHost(StringUtil.strip(System.getProperty(CONFIG_SERVICE_HOST)));
         configPath = StringUtil.strip(System.getProperty(CONFIG_PATH));
         setRecordRate(DEFAULT_RECORDING_RATE);
 
@@ -255,14 +288,14 @@ public class ConfigManager {
         }
 
         Map<String, String> configMap = parseConfigFile(configPath);
-        if (configMap.size() == 0) {
+        if (configMap.isEmpty()) {
             return;
         }
 
         setEnableDebug(configMap.get(ENABLE_DEBUG));
-        setEnableReportStatus(System.getProperty(ENABLE_REPORT_STATUS));
         setServiceName(configMap.get(SERVICE_NAME));
         setStorageServiceHost(configMap.get(STORAGE_SERVICE_HOST));
+        setConfigServiceHost(configMap.get(CONFIG_SERVICE_HOST));
         setDynamicResultSizeLimit(configMap.get(DYNAMIC_RESULT_SIZE_LIMIT));
         setTimeMachine(configMap.get(TIME_MACHINE));
         setStorageServiceMode(configMap.get(STORAGE_SERVICE_MODE));
@@ -295,8 +328,28 @@ public class ConfigManager {
     public void parseAgentConfig(String args) {
         Map<String, String> agentMap = StringUtil.asMap(args);
         if (!agentMap.isEmpty()) {
-            setStorageServiceMode(agentMap.get(STORAGE_SERVICE_MODE));
-            setEnableDebug(agentMap.get(ENABLE_DEBUG));
+            for (Map.Entry<String, String> entry : agentMap.entrySet()) {
+                String key = entry.getKey();
+                String value = entry.getValue();
+                if (StringUtil.isEmpty(key) || StringUtil.isEmpty(value)) {
+                    continue;
+                }
+
+                switch (key) {
+                    case ENABLE_DEBUG:
+                        setEnableDebug(value);
+                        break;
+                    case STORAGE_SERVICE_MODE:
+                        setStorageServiceMode(value);
+                        break;
+                    case STORAGE_SERVICE_HOST:
+                    case DISABLE_MODULE:
+                        continue;
+                    default:
+                        System.setProperty(key, value);
+                        break;
+                }
+            }
             updateRuntimeConfig();
         }
     }
@@ -322,9 +375,10 @@ public class ConfigManager {
         configMap.put(TIME_MACHINE, String.valueOf(startTimeMachine()));
         configMap.put(DISABLE_REPLAY, System.getProperty(DISABLE_REPLAY));
         configMap.put(DISABLE_RECORD, System.getProperty(DISABLE_RECORD));
-        configMap.put(DURING_WORK, Boolean.toString(nextWorkTime() <= 0));
+        configMap.put(DURING_WORK, Boolean.toString(inWorkingTime()));
         configMap.put(AGENT_VERSION, agentVersion);
         configMap.put(IP_VALIDATE, Boolean.toString(checkTargetAddress()));
+        configMap.put(STORAGE_SERVICE_MODE, storageServiceMode);
         Map<String, String> extendFieldMap = getExtendField();
         if (MapUtils.isNotEmpty(extendFieldMap)) {
             configMap.putAll(extendFieldMap);
@@ -333,8 +387,7 @@ public class ConfigManager {
         ConfigBuilder.create(getServiceName())
             .enableDebug(isEnableDebug())
             .addProperties(configMap)
-            .dynamicClassList(getDynamicClassList().stream()
-                .filter(item -> DynamicClassStatusEnum.RESET != item.getStatus()).collect(Collectors.toList()))
+            .dynamicClassList(getDynamicClassList())
             .excludeServiceOperations(getExcludeServiceOperations())
             .dubboStreamReplayThreshold(getDubboStreamReplayThreshold())
             .recordRate(getRecordRate())
@@ -348,13 +401,6 @@ public class ConfigManager {
                 listener.load(config);
             }
         }
-    }
-
-    public boolean valid() {
-        if (isLocalStorage()) {
-            return true;
-        }
-        return checkTargetAddress() && inWorkingTime();
     }
 
     public void setConfigInvalid() {
@@ -521,7 +567,7 @@ public class ConfigManager {
         this.targetAddress = targetAddress;
     }
 
-    private boolean checkTargetAddress() {
+    public boolean checkTargetAddress() {
         String localHost = NetUtils.getIpAddress();
         // Compatible containers can't get IPAddress
         if (StringUtil.isEmpty(localHost)) {
@@ -563,17 +609,5 @@ public class ConfigManager {
             ", allowTimeOfDayTo='" + allowTimeOfDayTo + '\'' +
             ", dynamicClassList='" + dynamicClassList + '\'' +
             '}';
-    }
-
-    public String getInvalidReason() {
-        if (!checkTargetAddress()) {
-            return "response [targetAddress] is not match";
-        }
-
-        if (!inWorkingTime()) {
-            return "not in working time, allow day of weeks is " + allowDayOfWeeks + ", time is " + allowTimeOfDayFrom + "-" + allowTimeOfDayTo;
-        }
-
-        return "invalid config";
     }
 }

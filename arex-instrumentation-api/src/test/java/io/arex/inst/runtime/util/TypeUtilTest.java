@@ -11,6 +11,7 @@ import java.lang.reflect.Type;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -169,7 +170,7 @@ class TypeUtilTest {
 
         final Pair pairList = Pair.of(System.currentTimeMillis(), Arrays.asList("mock"));
         final String genericList = TypeUtil.getName(pairList);
-        assertEquals("io.arex.agent.bootstrap.internal.Pair-java.lang.Long,java.lang.String", genericList);
+        assertEquals("io.arex.agent.bootstrap.internal.Pair-java.lang.Long,java.util.Arrays$ArrayList-java.lang.String", genericList);
     }
 
     @Test
@@ -352,10 +353,41 @@ class TypeUtilTest {
         assertEquals(Integer2String.class.getName(), type2.getTypeName());
     }
 
+    @Test
+    void testGenericFieldInFather() {
+        final ChildClass<Object> childClass = new ChildClass<>();
+        final ArrayList<Object> list = new ArrayList<>();
+        childClass.setValue(list);
+        String name = TypeUtil.getName(childClass);
+        assertEquals("io.arex.inst.runtime.util.TypeUtilTest$ChildClass-", name);
+        list.add("test");
+        childClass.setValue(list);
+        name = TypeUtil.getName(childClass);
+        assertEquals("io.arex.inst.runtime.util.TypeUtilTest$ChildClass-java.lang.String", name);
+    }
+
 
     static class SingleTypeMap<V> extends HashMap<Integer, V> {
     }
 
     static class Integer2String extends HashMap<Integer, String> {
+    }
+
+    static class ChildClass<T> extends ParentClass<T> {
+        private String childValue;
+        public ChildClass() {
+
+        }
+    }
+
+    static class ParentClass<T> {
+        private List<T> value;
+        public ParentClass() {
+
+        }
+
+        public void setValue(List<T> value) {
+            this.value = value;
+        }
     }
 }
