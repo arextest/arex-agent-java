@@ -145,69 +145,69 @@ class ConfigManagerTest {
         configManager.setDynamicClassList(null);
         assertEquals(0, configManager.getDynamicClassList().size());
 
-        // new list is empty
-        configManager.getDynamicClassList().add(new DynamicClassEntity("mock1", null, null, null));
-        configManager.getDynamicClassList().add(new DynamicClassEntity("mock2", null, null, null));
-        configManager.setDynamicClassList(new ArrayList<>());
-        assertTrue(configManager.getDynamicClassList().stream().allMatch(item -> item.getStatus().equals(DynamicClassStatusEnum.RESET)));
-
-        // new list is not empty
+        // add new list
         List<DynamicClassConfiguration> newList = new ArrayList<>();
         DynamicClassConfiguration classAMethodA = new DynamicClassConfiguration();
         classAMethodA.setFullClassName("ClassA");
         classAMethodA.setMethodName("MethodA");
+        newList.add(classAMethodA);
+        updateDynamicClassAndPrint(newList);
+        assertEquals(0, configManager.getResetClassSet().size());
+        assertEquals(1, configManager.getDynamicClassList().size());
+        assertEquals(DynamicClassStatusEnum.RETRANSFORM, configManager.getDynamicClassList().get(0).getStatus());
 
+        // not change list
+        updateDynamicClassAndPrint(newList);
+        assertEquals(0, configManager.getResetClassSet().size());
+        assertEquals(1, configManager.getDynamicClassList().size());
+        assertEquals(DynamicClassStatusEnum.UNCHANGED, configManager.getDynamicClassList().get(0).getStatus());
+
+        // add new dynamic and class is new
+        DynamicClassConfiguration classBMethodA = new DynamicClassConfiguration();
+        classBMethodA.setFullClassName("ClassB");
+        classBMethodA.setMethodName("MethodA");
+        newList.add(classBMethodA);
+        updateDynamicClassAndPrint(newList);
+        assertEquals(0, configManager.getResetClassSet().size());
+        assertEquals(2, configManager.getDynamicClassList().size());
+        assertEquals(DynamicClassStatusEnum.UNCHANGED, configManager.getDynamicClassList().get(0).getStatus());
+        assertEquals(DynamicClassStatusEnum.RETRANSFORM, configManager.getDynamicClassList().get(1).getStatus());
+
+        // add new dynamic and class is exist in old dynamic class list
         DynamicClassConfiguration classAMethodB = new DynamicClassConfiguration();
         classAMethodB.setFullClassName("ClassA");
         classAMethodB.setMethodName("MethodB");
-
-        DynamicClassConfiguration classAmethodC = new DynamicClassConfiguration();
-        classAmethodC.setFullClassName("ClassA");
-        classAmethodC.setMethodName("MethodC");
-
-        DynamicClassConfiguration classBmethodA = new DynamicClassConfiguration();
-        classBmethodA.setFullClassName("ClassB");
-        classBmethodA.setMethodName("MethodA");
-
-        DynamicClassConfiguration classCmethodA = new DynamicClassConfiguration();
-        classCmethodA.setFullClassName("ClassC");
-        classCmethodA.setMethodName("MethodA");
-
-        newList.add(classAMethodA);
         newList.add(classAMethodB);
-        newList.add(classAmethodC);
-        newList.add(classBmethodA);
-        newList.add(classCmethodA);
-        configManager.getDynamicClassList().clear();
-        configManager.setDynamicClassList(newList);
-        for (DynamicClassEntity entity : configManager.getDynamicClassList()) {
-            assertEquals(DynamicClassStatusEnum.RETRANSFORM, entity.getStatus());
-            entity.setStatus(DynamicClassStatusEnum.UNCHANGED);
-        }
+        updateDynamicClassAndPrint(newList);
+        assertEquals(0, configManager.getResetClassSet().size());
+        assertEquals(3, configManager.getDynamicClassList().size());
+        assertEquals(DynamicClassStatusEnum.RETRANSFORM, configManager.getDynamicClassList().get(0).getStatus());
+        assertEquals(DynamicClassStatusEnum.UNCHANGED, configManager.getDynamicClassList().get(1).getStatus());
+        assertEquals(DynamicClassStatusEnum.RETRANSFORM, configManager.getDynamicClassList().get(2).getStatus());
 
-        // old list equals new list
-        configManager.setDynamicClassList(newList);
-        for (DynamicClassEntity entity : configManager.getDynamicClassList()) {
-            assertEquals(DynamicClassStatusEnum.UNCHANGED, entity.getStatus());
-        }
+        // remove dynamic and class is exist in new dynamic class list
+        newList.remove(classAMethodB);
+        updateDynamicClassAndPrint(newList);
+        assertEquals(0, configManager.getResetClassSet().size());
+        assertEquals(2, configManager.getDynamicClassList().size());
+        assertEquals(DynamicClassStatusEnum.RETRANSFORM, configManager.getDynamicClassList().get(0).getStatus());
+        assertEquals(DynamicClassStatusEnum.UNCHANGED, configManager.getDynamicClassList().get(1).getStatus());
 
-        //　new list is not empty and old list is not empty
+        // remove dynamic and class is not exist in new dynamic class list
+        newList.remove(classAMethodA);
+        updateDynamicClassAndPrint(newList);
+        assertEquals(1, configManager.getResetClassSet().size());
+        assertEquals(1, configManager.getDynamicClassList().size());
+        assertEquals(DynamicClassStatusEnum.UNCHANGED, configManager.getDynamicClassList().get(0).getStatus());
+
+        // remove all dynamic
         newList.clear();
+        updateDynamicClassAndPrint(newList);
+        assertEquals(1, configManager.getResetClassSet().size());
+        assertEquals(0, configManager.getDynamicClassList().size());
+    }
 
-        DynamicClassConfiguration classAmethodD = new DynamicClassConfiguration();
-        classAmethodD.setFullClassName("ClassA");
-        classAmethodD.setMethodName("MethodD");
-
-        DynamicClassConfiguration classDmethodA = new DynamicClassConfiguration();
-        classDmethodA.setFullClassName("ClassD");
-        classDmethodA.setMethodName("MethodA");
-
-        newList.add(classAMethodB);
-        newList.add(classAmethodC);
-        newList.add(classAmethodD);
-        newList.add(classCmethodA);
-        newList.add(classDmethodA);
-
+    private void updateDynamicClassAndPrint(List<DynamicClassConfiguration> newList) {
         System.out.println("current dynamic class as follows: ");
         for (DynamicClassEntity entity : configManager.getDynamicClassList()) {
             System.out.printf("clazzName: %s, methodName: %s\n", entity.getClazzName(), entity.getOperation());
@@ -223,12 +223,7 @@ class ConfigManagerTest {
         for (DynamicClassEntity entity : configManager.getDynamicClassList()) {
             System.out.printf("clazzName: %s, methodName: %s, status: %s\n", entity.getClazzName(), entity.getOperation(), entity.getStatus());
         }
-        assertEquals(7, configManager.getDynamicClassList().size());
-        assertEquals(2, configManager.getDynamicClassList().stream().filter(item-> DynamicClassStatusEnum.RESET == item.getStatus()).count());
-        assertEquals(1, configManager.getDynamicClassList().stream().filter(item-> DynamicClassStatusEnum.UNCHANGED == item.getStatus()).count());
-        assertEquals(4, configManager.getDynamicClassList().stream().filter(item-> DynamicClassStatusEnum.RETRANSFORM == item.getStatus()).count());
-
-        assertNotNull(ConfigManager.INSTANCE.toString());
+        System.out.println();
     }
 
     @Test
