@@ -3,6 +3,7 @@ package io.arex.foundation.services;
 import io.arex.agent.bootstrap.model.MockStrategyEnum;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.MapUtils;
+import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.foundation.config.ConfigManager;
 import io.arex.foundation.healthy.HealthManager;
 import io.arex.foundation.internal.DataEntity;
@@ -138,7 +139,8 @@ public class DataCollectorService implements DataCollector {
             long usedTime = System.nanoTime() - entity.getQueueTime();
             if (Objects.nonNull(throwable)) {
                 CaseManager.invalid(entity.getRecordId(), entity.getOperationName());
-                LogManager.warn("saveMockDataConsumer", "save mock data error");
+                LogManager.warn("saveMockDataConsumer", StringUtil.format("save mock data error: %s, post data: %s",
+                        throwable.toString(), entity.getPostData()));
                 usedTime = -1; // -1:reject
                 HealthManager.onDataServiceRejection();
             }
