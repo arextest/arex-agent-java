@@ -567,6 +567,9 @@ public class ConfigManager {
     }
 
     public int getBufferSize() {
+        if (extendField != null && extendField.containsKey(BUFFER_SIZE)) {
+            return Integer.parseInt(extendField.get(BUFFER_SIZE));
+        }
         return bufferSize;
     }
 
