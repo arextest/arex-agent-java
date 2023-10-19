@@ -2,15 +2,22 @@ package io.arex.foundation.serializer.custom;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.google.common.reflect.TypeToken;
+import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.foundation.serializer.GsonSerializer;
+import io.arex.foundation.serializer.ProtoJsonSerializer;
+import io.arex.foundation.serializer.ProtoTest.HelloProtoRequestType;
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
 import it.unimi.dsi.fastutil.floats.FloatList;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.longs.LongLinkedOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 public class FastUtilAdapterFactoryTest {

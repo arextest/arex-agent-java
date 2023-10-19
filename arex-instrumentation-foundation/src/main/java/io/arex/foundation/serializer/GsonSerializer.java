@@ -7,11 +7,12 @@ import io.arex.agent.thirdparty.util.time.DateFormatUtils;
 import io.arex.foundation.serializer.JacksonSerializer.DateFormatParser;
 import io.arex.foundation.serializer.custom.FastUtilAdapterFactory;
 import io.arex.foundation.serializer.custom.GuavaRangeSerializer;
-import io.arex.foundation.util.NumberTypeAdaptor;
+import io.arex.foundation.serializer.custom.NumberTypeAdaptor;
 import io.arex.agent.bootstrap.util.StringUtil;
 import com.google.gson.Gson;
 import com.google.gson.JsonDeserializer;
 
+import io.arex.foundation.serializer.custom.ProtobufAdapterFactory;
 import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.serializer.StringSerializable;
 import io.arex.inst.runtime.util.TypeUtil;
@@ -206,6 +207,7 @@ public class GsonSerializer implements StringSerializable {
                 .registerTypeAdapter(Class.class, CLASS_JSON_DESERIALIZER)
                 .registerTypeAdapter(Range.class, new GuavaRangeSerializer.GsonRangeSerializer())
                 .registerTypeAdapterFactory(new FastUtilAdapterFactory())
+                .registerTypeAdapterFactory(new ProtobufAdapterFactory())
                 .enableComplexMapKeySerialization()
                 .setExclusionStrategies(new ExcludeField())
                 .disableHtmlEscaping();

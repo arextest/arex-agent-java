@@ -1,10 +1,9 @@
 package io.arex.foundation.util;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import io.arex.foundation.serializer.TimeTestInfo;
+import io.arex.foundation.serializer.custom.NumberTypeAdaptor;
 import java.util.Arrays;
 import javax.xml.datatype.DatatypeConfigurationException;
 import org.junit.jupiter.api.AfterAll;

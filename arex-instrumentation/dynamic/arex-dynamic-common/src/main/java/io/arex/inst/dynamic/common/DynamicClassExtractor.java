@@ -7,7 +7,6 @@ import io.arex.agent.bootstrap.model.MockStrategyEnum;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.ArrayUtils;
 import io.arex.agent.bootstrap.util.StringUtil;
-import io.arex.inst.serializer.ProtoJsonSerializer;
 import io.arex.inst.dynamic.common.listener.ListenableFutureAdapter;
 import io.arex.inst.dynamic.common.listener.ResponseConsumer;
 import io.arex.inst.runtime.config.Config;
@@ -30,10 +29,8 @@ import java.util.concurrent.Future;
 public class DynamicClassExtractor {
     private static final int RESULT_SIZE_MAX = Integer.parseInt(System.getProperty("arex.dynamic.result.size.limit", "1000"));
     private static final String SERIALIZER = "gson";
-    private static final String PROTOCOL_BUFFERS = "protobuf";
     private static final String LISTENABLE_FUTURE = "com.google.common.util.concurrent.ListenableFuture";
     private static final String COMPLETABLE_FUTURE = "java.util.concurrent.CompletableFuture";
-    private static final String PROTOBUF_PACKAGE_NAME = "com.google.protobuf";
     private static final String NEED_RECORD_TITLE = "dynamic.needRecord";
     private static final String NEED_REPLAY_TITLE = "dynamic.needReplay";
     private final String clazzName;
@@ -82,34 +79,11 @@ public class DynamicClassExtractor {
         if (needRecord()) {
             this.resultClazz = buildResultClazz(TypeUtil.getName(response));
             Mocker mocker = makeMocker();
-            if (isProtobufObject(response)) {
-                mocker.getTargetResponse().setAttribute("Format", PROTOCOL_BUFFERS);
-                this.serializedResult = ProtoJsonSerializer.getInstance().serialize(this.result);
-            } else {
-                this.serializedResult = serialize(this.result);
-            }
+            this.serializedResult = serialize(this.result);
             mocker.getTargetResponse().setBody(this.serializedResult);
             MockUtils.recordMocker(mocker);
             cacheMethodSignature();
         }
-    }
-
-    private boolean isProtobufObject(Object result) {
-        if (result == null) {
-            return false;
-        }
-        if (result instanceof Collection<?>) {
-            Collection<?> collection = (Collection<?>) result;
-            if (collection.isEmpty()) {
-                return false;
-            }
-            return isProtobufObject(collection.iterator().next());
-        }
-        Class<?> clazz = result.getClass();
-        if (clazz.getSuperclass() == null) {
-            return false;
-        }
-        return PROTOBUF_PACKAGE_NAME.equals(clazz.getSuperclass().getPackage().getName());
     }
 
     public MockResult replay() {
@@ -145,10 +119,6 @@ public class DynamicClassExtractor {
     }
 
     private Object deserializeResult(Mocker replayMocker, String typeName) {
-        if (PROTOCOL_BUFFERS.equals(replayMocker.getTargetResponse().getAttribute("Format"))) {
-            return ProtoJsonSerializer.getInstance().deserialize(replayMocker.getTargetResponse().getBody(),
-                    TypeUtil.forName(typeName));
-        }
         return Serializer.deserialize(replayMocker.getTargetResponse().getBody(), typeName, SERIALIZER);
     }
 

@@ -19,22 +19,5 @@
             <version>${springframework.version}</version>
             <scope>provided</scope>
         </dependency>
-        <dependency>
-            <groupId>io.arex</groupId>
-            <artifactId>arex-serializer</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.google.protobuf</groupId>
-            <artifactId>protobuf-java</artifactId>
-            <version>3.17.2</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.google.protobuf</groupId>
-            <artifactId>protobuf-java-util</artifactId>
-            <version>3.6.0</version>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 </project>
