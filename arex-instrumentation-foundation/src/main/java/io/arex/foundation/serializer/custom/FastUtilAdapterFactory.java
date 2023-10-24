@@ -34,7 +34,7 @@ public class FastUtilAdapterFactory implements TypeAdapterFactory {
                 return getImplType(getImplClassPrefix(rawClassName, 4), "ArrayList");
             }
             if (rawClassName.endsWith(MAP_NAME)) {
-                return getImplType(getImplClassPrefix(rawClassName, 3), "OpenHashMap");
+                return FastUtilMapTypeSerializer.getAdapter(type);
             }
         }
 
