@@ -24,6 +24,9 @@ public class CaseManager {
     }
 
     public static boolean isInvalidCase(String recordId) {
+        if (StringUtil.isEmpty(recordId)) {
+            return true;
+        }
         final ArexContext context = ContextManager.getRecordContext(recordId);
         if (context == null) {
             return false;

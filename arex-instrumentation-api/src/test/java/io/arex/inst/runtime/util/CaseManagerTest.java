@@ -30,6 +30,10 @@ class CaseManagerTest {
 
     @Test
     void invalid() {
+        // empty recordId
+        Assertions.assertDoesNotThrow(() -> CaseManager.invalid(null, "testOperationName"));
+        Assertions.assertTrue(CaseManager.isInvalidCase(null));
+
         final ArexContext context = ArexContext.of("testRecordId");
         Mockito.when(ContextManager.getRecordContext("testRecordId")).thenReturn(context);
         Assertions.assertFalse(context.isInvalidCase());
