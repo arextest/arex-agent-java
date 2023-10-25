@@ -1,5 +1,6 @@
 package io.arex.agent.bootstrap;
 
+import io.arex.agent.bootstrap.constants.ConfigConstants;
 import io.arex.agent.bootstrap.util.AdviceClassesCollector;
 import java.io.File;
 import java.lang.instrument.Instrumentation;
@@ -16,6 +17,8 @@ public class AgentInitializer {
         }
 
         System.setProperty("arex.agent.jar.file.path", agentFile.getAbsolutePath());
+        System.setProperty(ConfigConstants.SHADED_LOGGER_SHOW_DATE_TIME, "true");
+        System.setProperty(ConfigConstants.SHADED_LOGGER_DATE_TIME_FORMAT, "yyyy-MM-dd HH:mm:ss:SSS");
         File[] extensionFiles = getExtensionJarFiles(agentFile);
         classLoader = createAgentClassLoader(agentFile, extensionFiles);
         InstrumentationHolder.setAgentClassLoader(classLoader);
