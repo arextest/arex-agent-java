@@ -16,12 +16,18 @@ final class LatencyContextHashMap extends ConcurrentHashMap<String, ArexContext>
 
     @Override
     public ArexContext get(Object key) {
+        if (key == null) {
+            return null;
+        }
         ArexContext context = super.get(key);
         return context == null ? initOrGet(key) : context;
     }
 
     @Override
     public ArexContext remove(Object key) {
+        if (key == null) {
+            return null;
+        }
         ArexContext context = super.remove(key);
         overdueCleanUp();
         if (latencyMap != null && context != null) {

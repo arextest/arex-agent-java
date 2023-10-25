@@ -11,6 +11,10 @@ class LatencyContextHashMapTest {
 
     @Test
     void test() {
+        // null key
+        assertNull(RECORD_MAP.get(null));
+        assertNull(RECORD_MAP.remove(null));
+
         String key = "arex-test-id-1";
         // create key
         ArexContext context = RECORD_MAP.computeIfAbsent(key, ArexContext::of);
