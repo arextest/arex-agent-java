@@ -1,5 +1,6 @@
 package io.arex.agent.bootstrap.cache;
 
+import io.arex.agent.bootstrap.AgentClassLoader;
 import io.arex.agent.bootstrap.internal.Cache;
 import net.bytebuddy.dynamic.loading.ClassInjector;
 
@@ -19,7 +20,7 @@ public class AdviceInjectorCache {
     }
 
     public static Class<?> getAdviceClass(String name, ClassLoader loader) {
-        if (loader == null || injectorCache == null) {
+        if (loader == null || injectorCache == null || loader instanceof AgentClassLoader) {
             return null;
         }
 
