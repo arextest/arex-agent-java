@@ -7,7 +7,7 @@
 #### An Open Source Testing Framework with Real World Data
 
 - [Introduction](#introduction)
-- [Installation](#installation)
+- [Building](#building)
 - [Getting Started](#getting-started)
 - [Contributing](#contributing)
 - [License](#license)
@@ -60,24 +60,25 @@ AREX utilizes the advanced Java technique, Instrument API, and is capable of ins
 - Netty server [3.x, 4.x]
 #### Config
 - Apollo Config [1.x, 2.x]
-## Installation
 
+## Building
 
-Simply download the latest binary from [github](https://github.com/arextest/arex-agent-java/releases) 
-or compile it with `mvn clean package -DskipTests` by yourself.
+Simply download the latest binary from [releases](https://github.com/arextest/arex-agent-java/releases) 
+or build the artifacts with the following commands. The build process supports JDK 8 - 17.
 
-There are two agent files provided in the arex-agent-jar folder like below. They must be placed in the same directory.
+`mvn clean install -DskipTests`
+
+The agent jar is in the folder `arex-agent-jar/` after the build process.
+There will be two jar files in the folder.
 
 ```other
 arex-agent.jar
 arex-agent-bootstrap.jar
 ```
 
-If you need these jar with version, you can add option: `mvn clean package -DskipTests -Pjar-with-version` 
-```other
-arex-agent-<version>.jar
-arex-agent-bootstrap-<version>.jar
-```
+If you wanna jar with version, build the artifacts with the following commands. 
+
+`mvn clean install -DskipTests -Pjar-with-version`
 
 
 ## Getting Started
@@ -90,17 +91,14 @@ AREX agent works along with the [AREX storage service](https://github.com/arexte
 You could just configure the host and port of them respectively, like below
 
 ```other
-java -javaagent:/path/to/arex-agent.jar
-      -Darex.service.name=your-service-name
-      -Darex.storage.service.host=[storage.service.host:port](storage.service.host:port) 
-      -jar your-application.jar
+java -javaagent:/path/to/arex-agent.jar -Darex.service.name=my-service-name -Darex.storage.service.host=<storage.service.host:port> -jar my-application.jar
 ```
 
 
 Alternatively, you can put those configuration item in `arex.agent.conf` file, like below
 
 ```other
-arex.service.name=your-service-name  
+arex.service.name=my-service-name
 arex.storage.service.host=<storage.service.host:port> 
 ```
 
@@ -108,9 +106,7 @@ arex.storage.service.host=<storage.service.host:port>
 Then simply run:
 
 ```other
-java -javaagent:/path/to/arex-agent.jar
-      -Darex.config.path=/path/to/arex.agent.conf
-      -jar your-application.jar
+java -javaagent:/path/to/arex-agent.jar -Darex.config.path=/path/to/arex.agent.conf -jar my-application.jar
 ```
 
 
