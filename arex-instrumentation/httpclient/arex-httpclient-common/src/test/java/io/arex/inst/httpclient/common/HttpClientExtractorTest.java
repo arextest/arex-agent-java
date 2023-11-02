@@ -99,7 +99,7 @@ public class HttpClientExtractorTest {
             // replay null
             mockUtils.when(() -> MockUtils.replayBody(any())).thenReturn(new Object());
             mockResult = httpClientExtractor.replay();
-            assertNull(mockResult);
+            assertNull(mockResult.getResult());
         }
     }
 }

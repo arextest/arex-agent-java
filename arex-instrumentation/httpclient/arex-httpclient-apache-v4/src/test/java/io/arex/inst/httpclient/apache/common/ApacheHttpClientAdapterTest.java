@@ -1,9 +1,13 @@
 package io.arex.inst.httpclient.apache.common;
 
 import io.arex.inst.httpclient.common.HttpResponseWrapper;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.zip.GZIPInputStream;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
+import org.apache.http.client.entity.GzipCompressingEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.BasicHttpEntity;
@@ -53,13 +57,20 @@ class ApacheHttpClientAdapterTest {
 
     @ParameterizedTest
     @MethodSource("getRequestBytesCase")
-    void getRequestBytes(HttpRequestBase httpRequest, Predicate<byte[]> predicate) {
+    void getRequestBytes(HttpRequestBase httpRequest, byte[] expected) {
         target = new ApacheHttpClientAdapter(httpRequest);
-        byte[] result = target.getRequestBytes();
-        assertTrue(predicate.test(result));
+        byte[] actual = target.getRequestBytes();
+        assertEquals(Base64.getEncoder().encodeToString(expected), Base64.getEncoder().encodeToString(actual));
     }
 
     static Stream<Arguments> getRequestBytesCase() {
+        // test GzipCompressingEntity
+        BasicHttpEntity httpEntity = new BasicHttpEntity();
+        httpEntity.setContent(new ByteArrayInputStream("mock".getBytes()));
+        GzipCompressingEntity gzipCompressingEntity = new GzipCompressingEntity(httpEntity);
+        HttpPost httpPostWithGzipEntity = new HttpPost();
+        httpPostWithGzipEntity.setEntity(gzipCompressingEntity);
+
         // Normally read request bytes
         BasicHttpEntity entity = new BasicHttpEntity();
         entity.setContent(new ByteArrayInputStream("mock".getBytes()));
@@ -73,14 +84,12 @@ class ApacheHttpClientAdapterTest {
         // null entity
         HttpPost nullEntityRequest = new HttpPost();
 
-        Predicate<byte[]> returnZeroByte = bytes -> Arrays.equals(new byte[0], bytes);
-        Predicate<byte[]> returnNormally = bytes -> Arrays.equals("mock".getBytes(), bytes);
-
         return Stream.of(
-                arguments(request, returnZeroByte),
-                arguments(httpPost, returnNormally),
-                arguments(httpPostWithoutContent, returnZeroByte),
-                arguments(nullEntityRequest, returnZeroByte)
+                arguments(httpPostWithGzipEntity, new byte[]{31, -117, 8, 0, 0, 0, 0, 0, 0, -1, -53, -51, 79, -50, 6, 0, 107, -4, 51, 63, 4, 0, 0, 0}),
+                arguments(request, new byte[0]),
+                arguments(httpPost, "mock".getBytes()),
+                arguments(httpPostWithoutContent, new byte[0]),
+                arguments(nullEntityRequest, new byte[0])
         );
     }
 

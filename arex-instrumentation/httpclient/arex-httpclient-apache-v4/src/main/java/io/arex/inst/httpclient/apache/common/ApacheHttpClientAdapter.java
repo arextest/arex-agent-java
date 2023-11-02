@@ -6,12 +6,14 @@ import io.arex.inst.httpclient.common.HttpClientAdapter;
 import io.arex.inst.httpclient.common.HttpResponseWrapper;
 import io.arex.inst.httpclient.common.HttpResponseWrapper.StringTuple;
 import io.arex.inst.runtime.log.LogManager;
+import java.io.ByteArrayOutputStream;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
+import org.apache.http.client.entity.GzipCompressingEntity;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.entity.HttpEntityWrapper;
@@ -21,6 +23,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import org.apache.http.util.EntityUtils;
 
 public class ApacheHttpClientAdapter implements HttpClientAdapter<HttpRequest, HttpResponse> {
     private final HttpUriRequest httpRequest;
@@ -44,6 +47,10 @@ public class ApacheHttpClientAdapter implements HttpClientAdapter<HttpRequest, H
         HttpEntity entity = enclosingRequest.getEntity();
         if (entity == null) {
             return ZERO_BYTE;
+        }
+        // getContent will throw UnsupportedOperationException
+        if (entity instanceof GzipCompressingEntity) {
+            return writeTo((GzipCompressingEntity) entity);
         }
         if (entity instanceof CachedHttpEntityWrapper) {
             return ((CachedHttpEntityWrapper) entity).getCachedBody();
@@ -77,14 +84,17 @@ public class ApacheHttpClientAdapter implements HttpClientAdapter<HttpRequest, H
     public HttpResponseWrapper wrap(HttpResponse response) {
         HttpEntity httpEntity = response.getEntity();
         if (!check(httpEntity)) {
+            LogManager.info("AHC.wrap", "AHC response wrap failed, uri: " + getUri());
             return null;
         }
 
         byte[] responseBody;
         try {
             responseBody = IOUtils.copyToByteArray(httpEntity.getContent());
+            // For release connection, see PoolingHttpClientConnectionManager#requestConnection,releaseConnection
+            EntityUtils.consumeQuietly(httpEntity);
         } catch (Exception e) {
-            LogManager.warn("copyToByteArray", "getResponseBody error, uri: " + getUri(), e);
+            LogManager.warn("AHC.wrap", "AHC copyToByteArray error, uri: " + getUri(), e);
             return null;
         }
 
@@ -167,5 +177,16 @@ public class ApacheHttpClientAdapter implements HttpClientAdapter<HttpRequest, H
             return (HttpEntityEnclosingRequest) httpRequest;
         }
         return null;
+    }
+
+    private byte[] writeTo(GzipCompressingEntity entity) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try {
+            entity.writeTo(out);
+            return out.toByteArray();
+        } catch (Exception e) {
+            LogManager.warn("writeTo", "getRequestBytes error, uri: " + getUri(), e);
+            return ZERO_BYTE;
+        }
     }
 }
