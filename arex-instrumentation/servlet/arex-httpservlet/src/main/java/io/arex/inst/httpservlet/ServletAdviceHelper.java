@@ -224,7 +224,8 @@ public class ServletAdviceHelper {
             return false;
         }
 
-        if (IgnoreUtils.excludeEntranceOperation(requestURI)) {
+        if (IgnoreUtils.excludeEntranceOperation(adapter.getPattern(httpServletRequest))
+            || IgnoreUtils.excludeEntranceOperation(requestURI)) {
             return true;
         }
 
