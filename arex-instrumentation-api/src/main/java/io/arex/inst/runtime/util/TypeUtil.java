@@ -275,9 +275,13 @@ public class TypeUtil {
         StringBuilder builder = new StringBuilder();
         builder.append(resultClassName).append(HORIZONTAL_LINE);
 
-        // only get the first element
+        // only get the first not empty element
         for (Map.Entry<?, ?> entry : result.entrySet()) {
-            String valueClassName = entry.getValue() == null ? DEFAULT_CLASS_NAME : getName(entry.getValue());
+            final Object value = entry.getValue();
+            if (isEmpty(value)) {
+                continue;
+            }
+            String valueClassName = getName(value);
 
             if (typeParameters.length == 1) {
                 builder.append(valueClassName);
@@ -289,6 +293,19 @@ public class TypeUtil {
         }
 
         return builder.toString();
+    }
+
+    private static boolean isEmpty(Object value) {
+        if (value == null) {
+            return true;
+        }
+        if (value instanceof Collection<?>) {
+            return ((Collection<?>) value).isEmpty();
+        }
+        if (value instanceof Map<?, ?>) {
+            return ((Map<?, ?>) value).isEmpty();
+        }
+        return false;
     }
 
     private static Class<?> classForName(String type) {
