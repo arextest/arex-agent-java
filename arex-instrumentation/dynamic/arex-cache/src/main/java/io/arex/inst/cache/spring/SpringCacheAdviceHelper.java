@@ -2,7 +2,6 @@ package io.arex.inst.cache.spring;
 
 import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.ContextManager;
-import io.arex.inst.runtime.model.DynamicClassEntity;
 
 import java.lang.reflect.Method;
 
@@ -11,16 +10,22 @@ public class SpringCacheAdviceHelper {
         if (!ContextManager.needRecordOrReplay() || method == null) {
             return false;
         }
-
-        String methodSignature = buildMethodSignature(method);
-
-        DynamicClassEntity dynamicEntity = Config.get().getDynamicEntity(methodSignature);
-
-        return dynamicEntity != null;
+        String className = method.getDeclaringClass().getName();
+        return onlyClassMatch(className, method) || methodSignatureMatch(className, method);
     }
 
-    private static String buildMethodSignature(Method method) {
-        String className = method.getDeclaringClass().getName();
+    private static boolean onlyClassMatch(String className, Method method) {
+        return Config.get().getDynamicEntity(className) != null &&
+                method.getParameterTypes().length > 0 &&
+                method.getReturnType() != void.class;
+    }
+
+    private static boolean methodSignatureMatch(String className, Method method) {
+        String methodSignature = buildMethodSignature(className, method);
+        return Config.get().getDynamicEntity(methodSignature) != null;
+    }
+
+    private static String buildMethodSignature(String className, Method method) {
         String methodName = method.getName();
         Class<?>[] parameterTypes = method.getParameterTypes();
         if (parameterTypes.length == 0) {
