@@ -180,7 +180,7 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
                 return;
             }
             if (ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate() && extractor != null) {
-                extractor.recordResponse(throwable != null ? throwable : result);
+                result = extractor.recordResponse(throwable != null ? throwable : result);
             }
         }
     }

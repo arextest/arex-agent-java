@@ -94,7 +94,7 @@ class ArexMockInstrumentationTest {
 
         // record
         try(MockedConstruction ignored = Mockito.mockConstruction(DynamicClassExtractor.class, ((extractor, context) -> {
-            Mockito.doNothing().when(extractor).recordResponse(throwable);
+            Mockito.doReturn(true).when(extractor).recordResponse(throwable);
         }))) {
             Mockito.when(ContextManager.needRecord()).thenReturn(true);
             Mockito.when(RepeatedCollectManager.exitAndValidate()).thenReturn(true);

@@ -15,6 +15,7 @@
     <properties>
         <springframework.version>5.3.24</springframework.version>
         <arex-common.version>0.1.6</arex-common.version>
+        <reactor.version>3.4.16</reactor.version>
     </properties>
 
     <modules>
