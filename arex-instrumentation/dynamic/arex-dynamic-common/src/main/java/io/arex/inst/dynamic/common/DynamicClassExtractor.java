@@ -25,6 +25,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
+import java.util.function.Consumer;
+import reactor.core.publisher.Mono;
 
 public class DynamicClassExtractor {
     private static final int RESULT_SIZE_MAX = Integer.parseInt(System.getProperty("arex.dynamic.result.size.limit", "1000"));
@@ -33,6 +35,7 @@ public class DynamicClassExtractor {
     private static final String COMPLETABLE_FUTURE = "java.util.concurrent.CompletableFuture";
     private static final String NEED_RECORD_TITLE = "dynamic.needRecord";
     private static final String NEED_REPLAY_TITLE = "dynamic.needReplay";
+    public static final String MONO = "reactor.core.publisher.Mono";
     private final String clazzName;
     private final String methodName;
     private final String methodKey;
@@ -65,15 +68,20 @@ public class DynamicClassExtractor {
         this.methodReturnType = TypeUtil.getName(method.getReturnType());
         this.actualType = null;
     }
-    public void recordResponse(Object response) {
+
+    public Object recordResponse(Object response) {
         if (IgnoreUtils.invalidOperation(dynamicSignature)) {
             LogManager.warn(NEED_RECORD_TITLE,
                     StringUtil.format("do not record invalid operation: %s, can not serialize args or response", dynamicSignature));
-            return;
+            return response;
         }
         if (response instanceof Future<?>) {
             this.setFutureResponse((Future<?>) response);
-            return;
+            return response;
+        }
+        // Compatible with not import package reactor-core
+        if (MONO.equals(methodReturnType) && response instanceof Mono<?>) {
+            return this.resetMonoResponse((Mono<?>) response);
         }
         this.result = response;
         if (needRecord()) {
@@ -84,6 +92,7 @@ public class DynamicClassExtractor {
             MockUtils.recordMocker(mocker);
             cacheMethodSignature();
         }
+        return response;
     }
 
     public MockResult replay() {
@@ -132,6 +141,12 @@ public class DynamicClassExtractor {
         if (LISTENABLE_FUTURE.equals(methodReturnType)) {
             ListenableFutureAdapter.addCallBack((ListenableFuture<?>) result, this);
         }
+    }
+
+    public Mono<?> resetMonoResponse(Mono<?> result) {
+        return result
+            .doOnError(this::recordResponse)
+            .doOnSuccess((Consumer<Object>) this::recordResponse);
     }
 
     String buildResultClazz(String resultClazz) {
@@ -222,6 +237,13 @@ public class DynamicClassExtractor {
             }
 
             return completableFuture;
+        }
+
+        if (MONO.equals((this.methodReturnType))) {
+            if (result instanceof Throwable) {
+                return Mono.error((Throwable) result);
+            }
+            return Mono.justOrEmpty(result);
         }
 
         return result;

@@ -13,15 +13,14 @@ import io.arex.inst.runtime.model.DynamicClassEntity;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.util.IgnoreUtils;
 import io.arex.inst.runtime.util.MockUtils;
-import io.arex.inst.runtime.util.TypeUtil;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.lang.reflect.Type;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Consumer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -40,6 +39,7 @@ import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import org.mockito.stubbing.Answer;
+import reactor.core.publisher.Mono;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -81,14 +81,44 @@ class DynamicClassExtractorTest {
                 System.out.println("mock MockService.recordMocker");
                 return null;
             });
-
-            Method testWithArexMock = DynamicClassExtractorTest.class.getDeclaredMethod("testWithArexMock", String.class);
+            Method testWithArexMock;
+            if (result instanceof Mono) {
+                testWithArexMock = Mono.class.getDeclaredMethod("just", Object.class);
+            } else {
+                testWithArexMock = DynamicClassExtractorTest.class.getDeclaredMethod("testWithArexMock", String.class);
+            }
             DynamicClassExtractor extractor = new DynamicClassExtractor(testWithArexMock, args);
 
             extractor.recordResponse(result);
             assertTrue(predicate.test(result));
         }
     }
+
+    @Test
+    void resetMonoResponse() {
+        try {
+            Method testWithArexMock = DynamicClassExtractorTest.class.getDeclaredMethod("testWithArexMock",
+                String.class);
+            final Object[] args = {"errorSerialize"};
+            final DynamicClassExtractor extractor = new DynamicClassExtractor(testWithArexMock, args);
+            final Predicate<Object> nonNull = Objects::nonNull;
+
+            //exception
+            Mono<?> result = monoExceptionTest();
+            result = extractor.resetMonoResponse(result);
+            result.subscribe();
+            assertTrue(nonNull.test(result));
+
+            //nomal
+            result = monoTest();
+            result = extractor.resetMonoResponse(result);
+            result.subscribe();
+            assertTrue(nonNull.test(result));
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 
     static Stream<Arguments> recordCase() {
         ArexContext context = Mockito.mock(ArexContext.class);
@@ -125,6 +155,7 @@ class DynamicClassExtractorTest {
             arguments(resultIsNull, new Object[]{"mock"}, Collections.singletonMap("key", "val"), nonNull),
             arguments(resultIsNull, new Object[]{"mock"}, new int[1001], nonNull),
             arguments(resultIsNull, null, null, isNull),
+            arguments(resultIsNull, null, Mono.just("mono test"), nonNull),
             arguments(resultIsNull, null, Futures.immediateFuture("mock-future"), nonNull)
         );
     }
@@ -226,6 +257,18 @@ class DynamicClassExtractorTest {
         extractor = new DynamicClassExtractor(testWithArexMock, new Object[]{"mock"}, "#val", null);
         actualResult = extractor.restoreResponse("test-value");
         assertEquals("test-value", actualResult);
+
+        //mono value
+        Method testReturnMono = DynamicClassExtractorTest.class.getDeclaredMethod("testReturnMono", String.class,
+            Throwable.class);
+        DynamicClassExtractor monoTestExtractor = new DynamicClassExtractor(testReturnMono, new Object[]{"mock"},
+            "#val", null);
+        Object monoTestExtractorActualResult = monoTestExtractor.restoreResponse("test-value");
+        assertEquals("test-value", ((Mono<?>) monoTestExtractorActualResult).block());
+
+        monoTestExtractorActualResult = monoTestExtractor.restoreResponse(new RuntimeException("test-exception"));
+        Object monoTestFinalActualResult = monoTestExtractorActualResult;
+        assertThrows(RuntimeException.class, () -> ((Mono<?>) monoTestFinalActualResult).block());
     }
 
     @Test
@@ -349,5 +392,24 @@ class DynamicClassExtractorTest {
         Method testEmptyArgs = DynamicClassExtractorTest.class.getDeclaredMethod("invalidOperation");
         DynamicClassExtractor extractor = new DynamicClassExtractor(testEmptyArgs, new Object[0]);
         assertDoesNotThrow(() -> extractor.recordResponse(new int[1001]));
+    }
+
+    public Mono<String> testReturnMono(String val, Throwable t) {
+        if (t != null) {
+            return Mono.error(t);
+        }
+        return Mono.justOrEmpty(val + "testReturnMono");
+    }
+
+    public static Mono<String> monoTest() {
+        return Mono.justOrEmpty("Mono test")
+            .doOnNext(value -> System.out.println("Mono context:" + value))
+            .onErrorResume(t -> Mono.empty());
+    }
+
+    public static Mono<Object> monoExceptionTest() {
+        return Mono.error(new RuntimeException("e"))
+            .doOnError(throwable -> System.out.println("Mono error:" + throwable))
+            .doOnSuccess(object -> System.out.println("Mono success:" + object.getClass()));
     }
 }
