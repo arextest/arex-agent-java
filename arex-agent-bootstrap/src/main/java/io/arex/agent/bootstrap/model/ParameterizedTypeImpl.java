@@ -207,7 +207,9 @@ public class ParameterizedTypeImpl implements ParameterizedType {
             for(Type t: actualTypeArguments) {
                 if (!first)
                     sb.append(", ");
-                sb.append(t.getTypeName());
+                if (t != null) {
+                    sb.append(t.getTypeName());
+                }
                 first = false;
             }
             sb.append(">");
