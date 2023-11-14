@@ -43,12 +43,16 @@ class ContextManagerTest {
         Runnable mocker1 = () -> {
             Mockito.when(TraceContextManager.get(any(Boolean.class))).thenReturn("mock");
         };
+        Runnable mocker2 = () -> {
+            Mockito.when(TraceContextManager.get(any(Boolean.class))).thenReturn("mock2");
+        };
         Predicate<ArexContext> predicate1 = Objects::isNull;
         Predicate<ArexContext> predicate2 = Objects::nonNull;
         return Stream.of(
-                arguments(true, "mock", emptyMocker, predicate2),
+                arguments(true, "mock", emptyMocker, predicate1),
                 arguments(true, null, emptyMocker, predicate1),
                 arguments(true, null, mocker1, predicate2),
+                arguments(true, "mock", mocker2, predicate2),
                 arguments(false, null, emptyMocker, predicate2)
         );
     }
