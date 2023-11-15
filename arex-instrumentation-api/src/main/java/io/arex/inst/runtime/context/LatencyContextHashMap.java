@@ -28,11 +28,12 @@ final class LatencyContextHashMap extends ConcurrentHashMap<String, ArexContext>
         if (key == null) {
             return null;
         }
-        ArexContext context = super.remove(key);
-        overdueCleanUp();
+        ArexContext context = super.get(key);
         if (latencyMap != null && context != null) {
             latencyMap.put(String.valueOf(key), context);
         }
+        super.remove(key);
+        overdueCleanUp();
 
         return context;
     }
