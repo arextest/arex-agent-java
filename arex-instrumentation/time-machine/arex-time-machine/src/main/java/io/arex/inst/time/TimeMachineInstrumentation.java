@@ -30,9 +30,7 @@ public class TimeMachineInstrumentation extends TypeInstrumentation {
 
     @Override
     public Transformer transformer() {
-        return (builder, typeDescription, classLoader, module) -> {
-            return builder.method(isNative().and(isStatic()).and(named("currentTimeMillis")))
-                .intercept(Advice.to(TimeMachineInterceptor.class));
-        };
+        return (builder, typeDescription, classLoader, module, domain) -> builder.method(isNative().and(isStatic()).and(named("currentTimeMillis")))
+            .intercept(Advice.to(TimeMachineInterceptor.class));
     }
 }

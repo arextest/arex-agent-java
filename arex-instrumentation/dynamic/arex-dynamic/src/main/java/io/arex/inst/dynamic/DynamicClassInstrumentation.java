@@ -78,7 +78,7 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
         if (replaceMethodsProvider == null) {
             return null;
         }
-        return (builder, typeDescription, classLoader, module) -> {
+        return (builder, typeDescription, classLoader, module, domain) -> {
             for (Map.Entry<String, List<String>> entry : replaceMethodsProvider.getSearchMethodMap().entrySet()) {
                 builder = builder.visit(replaceMethod(entry.getValue(), entry.getKey()));
             }
