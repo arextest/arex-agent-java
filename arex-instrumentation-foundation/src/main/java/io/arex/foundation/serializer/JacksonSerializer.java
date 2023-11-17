@@ -80,11 +80,15 @@ public final class JacksonSerializer implements StringSerializable {
     }
 
     private void customTypeResolver() {
-        TypeResolverBuilder<?> typeResolver = new CustomTypeResolverBuilder();
-        typeResolver.init(JsonTypeInfo.Id.CLASS, null);
-        typeResolver.inclusion(JsonTypeInfo.As.PROPERTY);
-        typeResolver.typeProperty("@CLASS");
-        MAPPER.setDefaultTyping(typeResolver);
+        try {
+            TypeResolverBuilder<?> typeResolver = new CustomTypeResolverBuilder();
+            typeResolver.init(JsonTypeInfo.Id.CLASS, null);
+            typeResolver.inclusion(JsonTypeInfo.As.PROPERTY);
+            typeResolver.typeProperty("@CLASS");
+            MAPPER.setDefaultTyping(typeResolver);
+        } catch (Throwable ignored) {
+            // jackson version is too low, ignore
+        }
     }
 
     private void buildSkipInfoMap() {

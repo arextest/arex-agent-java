@@ -65,7 +65,7 @@ AREX utilizes the advanced Java technique, Instrument API, and is capable of ins
 ## Building
 
 Simply download the latest binary from [releases](https://github.com/arextest/arex-agent-java/releases) 
-or build the artifacts with the following commands. The build process supports JDK 8 - 17.
+or build the artifacts with the following commands. The build process supports JDK 8 - 21.
 
 `mvn clean install -DskipTests`
 
