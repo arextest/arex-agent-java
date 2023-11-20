@@ -3,12 +3,11 @@ package io.arex.inst.runtime.context;
 import io.arex.agent.bootstrap.util.ConcurrentHashSet;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.model.ArexConstants;
+import io.arex.inst.runtime.model.MergeResultDTO;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ArexContext {
@@ -18,13 +17,16 @@ public class ArexContext {
     private final long createTime;
     private final AtomicInteger sequence;
     private Set<Integer> methodSignatureHashList;
-    private Map<String, Object> cachedReplayResultMap;
+    private Map<Integer, MergeResultDTO> cachedReplayResultMap;
     private Map<String, Set<String>> excludeMockTemplate;
 
     private Map<String, Object> attachments = null;
 
+    private LinkedBlockingQueue<MergeResultDTO> mergeRecordQueue;
+
     private boolean isRedirectRequest;
     private boolean isInvalidCase;
+    private boolean isMainEntryEnd;
 
     public static ArexContext of(String caseId) {
         return of(caseId, null);
@@ -72,7 +74,7 @@ public class ArexContext {
         return methodSignatureHashList;
     }
 
-    public Map<String, Object> getCachedReplayResultMap() {
+    public Map<Integer, MergeResultDTO> getCachedReplayResultMap() {
         if (cachedReplayResultMap == null) {
             cachedReplayResultMap = new ConcurrentHashMap<>();
         }
@@ -138,6 +140,21 @@ public class ArexContext {
         return isRedirectRequest;
     }
 
+    public LinkedBlockingQueue<MergeResultDTO> getMergeRecordQueue() {
+        if (mergeRecordQueue == null) {
+            mergeRecordQueue = new LinkedBlockingQueue<>(2048);
+        }
+        return mergeRecordQueue;
+    }
+
+    public boolean isMainEntryEnd() {
+        return isMainEntryEnd;
+    }
+
+    public void setMainEntryEnd(boolean mainEntryEnd) {
+        isMainEntryEnd = mainEntryEnd;
+    }
+
     public void clear() {
         if (methodSignatureHashList != null) {
             methodSignatureHashList.clear();
@@ -150,6 +167,9 @@ public class ArexContext {
         }
         if (attachments != null) {
             attachments.clear();
+        }
+        if (mergeRecordQueue != null) {
+            mergeRecordQueue.clear();
         }
     }
 }

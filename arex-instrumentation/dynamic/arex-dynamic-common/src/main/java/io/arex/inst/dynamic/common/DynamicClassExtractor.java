@@ -2,6 +2,7 @@ package io.arex.inst.dynamic.common;
 
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import io.arex.agent.bootstrap.model.MockCategoryType;
 import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.agent.bootstrap.model.MockStrategyEnum;
 import io.arex.agent.bootstrap.model.Mocker;
@@ -12,23 +13,21 @@ import io.arex.inst.dynamic.common.listener.ResponseConsumer;
 import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
+import io.arex.inst.runtime.model.ArexConstants;
+import io.arex.inst.runtime.model.MergeResultDTO;
 import io.arex.inst.runtime.model.DynamicClassEntity;
 import io.arex.inst.runtime.serializer.Serializer;
-import io.arex.inst.runtime.util.IgnoreUtils;
+import io.arex.inst.runtime.util.*;
 import io.arex.inst.runtime.log.LogManager;
-import io.arex.inst.runtime.util.MockUtils;
-import io.arex.inst.runtime.util.TypeUtil;
+
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 
 public class DynamicClassExtractor {
     private static final int RESULT_SIZE_MAX = Integer.parseInt(System.getProperty("arex.dynamic.result.size.limit", "1000"));
-    private static final String SERIALIZER = "gson";
     private static final String LISTENABLE_FUTURE = "com.google.common.util.concurrent.ListenableFuture";
     private static final String COMPLETABLE_FUTURE = "java.util.concurrent.CompletableFuture";
     private static final String NEED_RECORD_TITLE = "dynamic.needRecord";
@@ -79,11 +78,28 @@ public class DynamicClassExtractor {
         if (needRecord()) {
             this.resultClazz = buildResultClazz(TypeUtil.getName(response));
             Mocker mocker = makeMocker();
-            this.serializedResult = serialize(this.result);
-            mocker.getTargetResponse().setBody(this.serializedResult);
+            // merge record, no parameter method not merge(currently only support accurate match)
+            if (Config.get().getBoolean(ArexConstants.MERGE_RECORD_ENABLE, true) && StringUtil.isNotEmpty(this.methodKey)) {
+                buildMergeMocker(mocker);
+            } else {
+                this.serializedResult = serialize(this.result);
+                mocker.getTargetResponse().setBody(this.serializedResult);
+            }
             MockUtils.recordMocker(mocker);
             cacheMethodSignature();
         }
+    }
+
+    private void buildMergeMocker(Mocker mocker) {
+        MergeResultDTO mergeResultDTO = MergeResultDTO.of(MockCategoryType.DYNAMIC_CLASS.getName(),
+                this.clazzName,
+                this.methodName,
+                this.args,
+                this.result, // do not serialize(this.result), avoid generate new json string, will increase memory
+                this.resultClazz,
+                buildMethodSignatureKey(),
+                ArexConstants.GSON_SERIALIZER);
+        mocker.getTargetRequest().setAttribute(ArexConstants.MERGE_RECORD_KEY, mergeResultDTO);
     }
 
     public MockResult replay() {
@@ -92,34 +108,39 @@ public class DynamicClassExtractor {
                     StringUtil.format("do not replay invalid operation: %s, can not serialize args or response", dynamicSignature));
             return MockResult.IGNORE_MOCK_RESULT;
         }
-        String key = buildCacheKey();
-        Map<String, Object> cachedReplayResultMap = ContextManager.currentContext()
-                .getCachedReplayResultMap();
+        int signatureHashKey = buildMethodSignatureKey();
+        Map<Integer, MergeResultDTO> cachedReplayResultMap = ContextManager.currentContext().getCachedReplayResultMap();
         Object replayResult = null;
         // First get replay result from cache
-        if (key != null) {
-            replayResult = cachedReplayResultMap.get(key);
-        }
-
-        // If not in cache, get replay result from mock server
-        if (replayResult == null) {
+        MergeResultDTO mergeResultDTO = cachedReplayResultMap.get(signatureHashKey);
+        String replayBody;
+        if (mergeResultDTO != null && MockCategoryType.DYNAMIC_CLASS.getName().equals(mergeResultDTO.getCategory())) {
+            replayBody = Serializer.serialize(mergeResultDTO.getResult(), ArexConstants.GSON_SERIALIZER);
+            replayResult = deserializeResult(replayBody, mergeResultDTO.getResultClazz());
+        } else {
+            // compatible with old process logic: single replay
+            // If not in cache, get replay result from mock server
             Mocker replayMocker = MockUtils.replayMocker(makeMocker(), MockStrategyEnum.FIND_LAST);
+            String typeName = "";
             if (MockUtils.checkResponseMocker(replayMocker)) {
-                String typeName = replayMocker.getTargetResponse().getType();
-                replayResult = deserializeResult(replayMocker, typeName);
+                typeName = replayMocker.getTargetResponse().getType();
+                replayBody = replayMocker.getTargetResponse().getBody();
+                replayResult = deserializeResult(replayBody, typeName);
             }
-            replayResult = restoreResponse(replayResult);
-            // no key no cache, no parameter methods may return different values
-            if (key != null && replayResult != null) {
-                cachedReplayResultMap.put(key, replayResult);
+            // no parameter no cache, no parameter methods may return different values
+            if (StringUtil.isNotEmpty(this.methodKey) && replayResult != null) {
+                mergeResultDTO = MergeResultDTO.of(MockCategoryType.DYNAMIC_CLASS.getName(), this.clazzName,
+                        this.methodName, this.args, replayResult, typeName, signatureHashKey, null);
+                cachedReplayResultMap.put(signatureHashKey, mergeResultDTO);
             }
         }
+        replayResult = restoreResponse(replayResult);
         boolean ignoreMockResult = IgnoreUtils.ignoreMockResult(clazzName, methodName);
         return MockResult.success(ignoreMockResult, replayResult);
     }
 
-    private Object deserializeResult(Mocker replayMocker, String typeName) {
-        return Serializer.deserialize(replayMocker.getTargetResponse().getBody(), typeName, SERIALIZER);
+    private Object deserializeResult(String replayResult, String typeName) {
+        return Serializer.deserialize(replayResult, typeName, ArexConstants.GSON_SERIALIZER);
     }
 
     void setFutureResponse(Future<?> result) {
@@ -200,7 +221,6 @@ public class DynamicClassExtractor {
     private Mocker makeMocker() {
         Mocker mocker = MockUtils.createDynamicClass(this.clazzName, this.methodName);
         mocker.getTargetRequest().setBody(this.methodKey);
-        mocker.getTargetResponse().setBody(this.serializedResult);
         mocker.getTargetResponse().setType(this.resultClazz);
         return mocker;
     }
@@ -302,13 +322,6 @@ public class DynamicClassExtractor {
         }
     }
 
-    private String buildCacheKey() {
-        if (StringUtil.isNotEmpty(this.methodKey)) {
-            return String.format("%s_%s_%s", this.clazzName, this.methodName, this.methodKey);
-        }
-        return null;
-    }
-
     public String getSerializedResult() {
         return serializedResult;
     }
@@ -318,11 +331,15 @@ public class DynamicClassExtractor {
             return null;
         }
         try {
-            return Serializer.serializeWithException(object, SERIALIZER);
+            return Serializer.serializeWithException(object, ArexConstants.GSON_SERIALIZER);
         } catch (Throwable ex) {
             IgnoreUtils.addInvalidOperation(dynamicSignature);
             LogManager.warn("serializeWithException", StringUtil.format("can not serialize object: %s, cause: %s", TypeUtil.errorSerializeToString(object), ex.toString()));
             return null;
         }
+    }
+
+    private int buildMethodSignatureKey() {
+        return StringUtil.encodeAndHash(String.format("%s_%s_%s", clazzName, methodName, methodKey));
     }
 }

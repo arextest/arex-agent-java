@@ -5,14 +5,19 @@ import io.arex.agent.bootstrap.model.MockCategoryType;
 import io.arex.agent.bootstrap.model.MockStrategyEnum;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.model.Mocker.Target;
+import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
+import io.arex.inst.runtime.model.ArexConstants;
+import io.arex.inst.runtime.model.MergeResultDTO;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.service.DataService;
 
+import java.util.List;
+import java.util.Map;
 
 public final class MockUtils {
 
@@ -92,7 +97,24 @@ public final class MockUtils {
         if (CaseManager.isInvalidCase(requestMocker.getRecordId())) {
             return;
         }
+        if (requestMocker.getCategoryType().isMergeRecord() && requestMocker.getTargetRequest().getAttribute(ArexConstants.MERGE_RECORD_KEY) != null) {
+            mergeRecord(requestMocker);
+            return;
+        }
 
+        executeRecord(requestMocker);
+
+        if (requestMocker.getCategoryType().isEntryPoint()) {
+            ArexContext context = ContextManager.currentContext();
+            if (context != null) {
+                context.setMainEntryEnd(true);
+            }
+            // after main entry record finished, record remain merge mocker that have not reached the merge threshold once(such as dynamicClass)
+            mergeRecordRemain();
+        }
+    }
+
+    public static void executeRecord(Mocker requestMocker) {
         if (Config.get().isEnableDebug()) {
             LogManager.info(requestMocker.recordLogTitle(), StringUtil.format("%s%nrequest: %s", requestMocker.logBuilder().toString(), Serializer.serialize(requestMocker)));
         }
@@ -164,5 +186,74 @@ public final class MockUtils {
         }
 
         return true;
+    }
+
+    /**
+     * <pre>
+     * <strong>tip:</strong>
+     * 1. if user change result object after merge, it will also change the result in cache
+     * 2. if serialize fail, mean this list all fail, need to troubleshoot based on error log
+     * 3. if async record, main entry point has recorded end, merge record will not be executed which no reach the merge threshold
+     * 4. currently not support fuzzy match
+     * </pre>
+     */
+    private static void mergeRecord(Mocker requestMocker) {
+        List<List<MergeResultDTO>> splitList = MergeSplitUtil.merge(requestMocker);
+        if (CollectionUtil.isEmpty(splitList)) {
+            return;
+        }
+        batchRecord(splitList);
+    }
+
+    private static void batchRecord(List<List<MergeResultDTO>> splitList) {
+        String serializeType = ArexConstants.JACKSON_SERIALIZER;
+        MockCategoryType categoryType;
+        for (List<MergeResultDTO> mergeRecords : splitList) {
+            if (mergeRecords.get(0).getSerializeType() != null) {
+                serializeType = mergeRecords.get(0).getSerializeType();
+            }
+            categoryType = MockCategoryType.of(mergeRecords.get(0).getCategory());
+            Mocker mergeMocker = MockUtils.create(categoryType, ArexConstants.MERGE_RECORD_NAME);
+            mergeMocker.getTargetResponse().setBody(Serializer.serialize(mergeRecords, serializeType));
+            mergeMocker.getTargetResponse().setType(ArexConstants.MERGE_RESULT_TYPE);
+            executeRecord(mergeMocker);
+            LogManager.info("merge record", "size:"+mergeRecords.size());
+        }
+    }
+
+    private static void mergeRecordRemain() {
+        List<List<MergeResultDTO>> splitList = MergeSplitUtil.mergeRemain();
+        if (CollectionUtil.isEmpty(splitList)) {
+            return;
+        }
+        batchRecord(splitList);
+    }
+
+    /**
+     * init replay and cached dynamic class
+     */
+    public static void mergeReplay() {
+        int replayThreshold = Config.get().getInt(ArexConstants.MERGE_REPLAY_THRESHOLD, ArexConstants.MERGE_REPLAY_THRESHOLD_DEFAULT);
+        for (MockCategoryType categoryType : MockCategoryType.values()) {
+            if (!categoryType.isMergeRecord()) {
+                continue;
+            }
+            Mocker mergeMocker = create(categoryType, ArexConstants.MERGE_RECORD_NAME);
+            Map<Integer, MergeResultDTO> cachedDynamicClassMap = ContextManager.currentContext().getCachedReplayResultMap();
+            for (int i = 0; i < replayThreshold; i++) {
+                // loop replay until over storage size break or over max times
+                Object result = replayBody(mergeMocker);
+                if (result == null) {
+                    break;
+                }
+                List<MergeResultDTO> mergeRecordList = (List<MergeResultDTO>) result;
+                for (MergeResultDTO mergeResultDTO : mergeRecordList) {
+                    if (mergeResultDTO == null) {
+                        continue;
+                    }
+                    cachedDynamicClassMap.put(mergeResultDTO.getMethodSignatureKey(), mergeResultDTO);
+                }
+            }
+        }
     }
 }

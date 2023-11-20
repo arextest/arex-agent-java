@@ -80,7 +80,7 @@ public class ContextManager {
 
     private static void publish(ArexContext context, boolean isCreate) {
         if (LISTENERS.size() > 0) {
-            LISTENERS.stream().forEach(listener -> {
+            LISTENERS.forEach(listener -> {
                 if (isCreate) {
                     listener.onCreate(context);
                 } else {

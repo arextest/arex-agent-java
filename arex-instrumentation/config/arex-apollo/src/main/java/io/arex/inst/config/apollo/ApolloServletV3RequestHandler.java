@@ -16,7 +16,10 @@ public class ApolloServletV3RequestHandler implements RequestHandler<HttpServlet
     }
 
     @Override
-    public void preHandle(HttpServletRequest request) {
+    public void preHandle(HttpServletRequest request) {}
+
+    @Override
+    public void handleAfterCreateContext(HttpServletRequest request) {
         // check business application if loaded apollo-client
         if (ApolloConfigChecker.unloadApollo()) {
             return;
