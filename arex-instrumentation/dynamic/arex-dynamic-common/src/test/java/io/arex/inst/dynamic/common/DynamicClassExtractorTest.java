@@ -394,6 +394,29 @@ class DynamicClassExtractorTest {
         assertDoesNotThrow(() -> extractor.recordResponse(new int[1001]));
     }
 
+    @Test
+    void normalizeArgsTest() throws Exception {
+        Method testEmptyArgs = DynamicClassExtractorTest.class.getDeclaredMethod("normalizeArgsTest");
+        DynamicClassExtractor extractor = new DynamicClassExtractor(testEmptyArgs, new Object[0]);
+        Method normalizeArgs = DynamicClassExtractor.class.getDeclaredMethod("normalizeArgs", Object[].class);
+        normalizeArgs.setAccessible(true);
+
+        // args is empty
+        Object[] emptyArg = (Object[]) normalizeArgs.invoke(extractor, new Object[]{new Object[0]});
+        assertEquals(0, emptyArg.length);
+
+        // args is null
+        Object[] nullArg = (Object[]) normalizeArgs.invoke(extractor, new Object[]{new Object[]{null}});
+        assertEquals(1, nullArg.length);
+        assertNull(nullArg[0]);
+
+        // args is not empty and arg1 is String, arg2 is Time
+        Object[] args = (Object[]) normalizeArgs.invoke(extractor, new Object[]{new Object[]{"mock", LocalDateTime.now()}});
+        assertEquals(2, args.length);
+        assertEquals("mock", args[0]);
+        assertEquals(LocalDateTime.class.getName(), args[1]);
+    }
+
     public Mono<String> testReturnMono(String val, Throwable t) {
         if (t != null) {
             return Mono.error(t);
