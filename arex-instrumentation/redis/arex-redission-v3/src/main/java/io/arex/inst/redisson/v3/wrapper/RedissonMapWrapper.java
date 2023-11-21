@@ -2,6 +2,7 @@ package io.arex.inst.redisson.v3.wrapper;
 
 import io.arex.inst.redis.common.RedisKeyUtil;
 import io.arex.inst.redisson.v3.RedissonWrapperCommon;
+import io.arex.inst.redisson.v3.common.RedissonHelper;
 import org.redisson.RedissonMap;
 import org.redisson.WriteBehindService;
 import org.redisson.api.MapOptions;
@@ -25,13 +26,13 @@ public class RedissonMapWrapper<K, V> extends RedissonMap<K, V> {
     public RedissonMapWrapper(CommandAsyncExecutor commandExecutor, String name, RedissonClient redisson,
         MapOptions<K, V> options, WriteBehindService writeBehindService) {
         super(commandExecutor, name, redisson, options, writeBehindService);
-        redisUri = commandExecutor.getConnectionManager().getConfig().getMasterAddress();
+        redisUri = RedissonHelper.getRedisUri(commandExecutor.getConnectionManager());
     }
 
     public RedissonMapWrapper(Codec codec, CommandAsyncExecutor commandExecutor, String name, RedissonClient redisson,
         MapOptions<K, V> options, WriteBehindService writeBehindService) {
         super(codec, commandExecutor, name, redisson, options, writeBehindService);
-        redisUri = commandExecutor.getConnectionManager().getConfig().getMasterAddress();
+        redisUri = RedissonHelper.getRedisUri(commandExecutor.getConnectionManager());
     }
 
     @Override
