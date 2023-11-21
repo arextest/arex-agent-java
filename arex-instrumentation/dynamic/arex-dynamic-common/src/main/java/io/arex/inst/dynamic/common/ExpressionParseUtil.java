@@ -6,6 +6,8 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import io.arex.inst.runtime.serializer.Serializer;
 import org.springframework.core.DefaultParameterNameDiscoverer;
 import org.springframework.core.ParameterNameDiscoverer;
 import org.springframework.expression.EvaluationContext;
@@ -49,14 +51,24 @@ public class ExpressionParseUtil {
             for (int i = 0; i < args.length; i++) {
                 context.setVariable(parameterNames[i], args[i]);
             }
-            return expression.getValue(context, String.class);
+            Object expressionValue = expression.getValue(context);
+            if (expressionValue instanceof String) {
+                return (String) expressionValue;
+            }
+            return Serializer.serialize(expressionValue);
         } catch (Exception e) {
             return null;
         }
     }
 
     public static String replaceToExpression(Method method, String additionalSignature) {
-        if (method == null || StringUtil.isEmpty(additionalSignature) || !additionalSignature.contains("$")) {
+        if (method == null || StringUtil.isEmpty(additionalSignature)) {
+            return null;
+        }
+        if (additionalSignature.contains("#")) {
+            return additionalSignature;
+        }
+        if (!additionalSignature.contains("$")) {
             return null;
         }
 

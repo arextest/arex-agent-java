@@ -20,7 +20,9 @@ import io.arex.inst.runtime.util.MockUtils;
 import io.arex.inst.runtime.util.TypeUtil;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
+import java.util.Calendar;
 import java.util.Collection;
+import java.util.Date;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -182,7 +184,34 @@ public class DynamicClassExtractor {
             return key;
         }
 
-        return serialize(args);
+        return serialize(normalizeArgs(args));
+    }
+
+    /**
+     * There will be a second-level difference between time type recording and playback,
+     * resulting in inability to accurately match data. Use className to represent the time value.
+     */
+    private Object[] normalizeArgs(Object[] args) {
+        if (ArrayUtils.isEmpty(args)) {
+            return args;
+        }
+        Object[] normalizedArgs = new Object[args.length];
+        for (int i = 0; i < args.length; i++) {
+            if (isTime(args[i])) {
+                normalizedArgs[i] = args[i].getClass().getName();
+            } else {
+                normalizedArgs[i] = args[i];
+            }
+        }
+        return normalizedArgs;
+    }
+
+    private boolean isTime(Object arg) {
+        if (arg == null) {
+            return false;
+        }
+        String className = arg.getClass().getName();
+        return arg instanceof Calendar || arg instanceof Date || className.startsWith("java.time") || className.startsWith("org.joda.time");
     }
 
     String buildMethodKey(Method method, Object[] args) {
@@ -196,7 +225,7 @@ public class DynamicClassExtractor {
 
         DynamicClassEntity dynamicEntity = Config.get().getDynamicEntity(dynamicSignature);
         if (dynamicEntity == null || StringUtil.isEmpty(dynamicEntity.getAdditionalSignature())) {
-            return serialize(args);
+            return serialize(normalizeArgs(args));
         }
 
         String keyExpression = ExpressionParseUtil.replaceToExpression(method, dynamicEntity.getAdditionalSignature());
