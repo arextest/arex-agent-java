@@ -4,6 +4,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import io.arex.agent.bootstrap.model.ArexMocker;
 import io.arex.agent.bootstrap.model.Mocker.Target;
+import io.arex.agent.thirdparty.util.time.DateFormatUtils;
 import io.arex.inst.runtime.config.ConfigBuilder;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
@@ -15,12 +16,25 @@ import io.arex.inst.runtime.util.IgnoreUtils;
 import io.arex.inst.runtime.util.MockUtils;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAccessor;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
+
+import org.joda.time.format.DateTimeFormat;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -40,6 +54,8 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 import org.mockito.stubbing.Answer;
 import reactor.core.publisher.Mono;
+
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -398,23 +414,64 @@ class DynamicClassExtractorTest {
     void normalizeArgsTest() throws Exception {
         Method testEmptyArgs = DynamicClassExtractorTest.class.getDeclaredMethod("normalizeArgsTest");
         DynamicClassExtractor extractor = new DynamicClassExtractor(testEmptyArgs, new Object[0]);
-        Method normalizeArgs = DynamicClassExtractor.class.getDeclaredMethod("normalizeArgs", Object[].class);
-        normalizeArgs.setAccessible(true);
+        Method normalizeArgsMethod = DynamicClassExtractor.class.getDeclaredMethod("normalizeArgs", Object[].class);
+        normalizeArgsMethod.setAccessible(true);
 
-        // args is empty
-        Object[] emptyArg = (Object[]) normalizeArgs.invoke(extractor, new Object[]{new Object[0]});
-        assertEquals(0, emptyArg.length);
+        String zeroSecond = "00.000";
 
-        // args is null
-        Object[] nullArg = (Object[]) normalizeArgs.invoke(extractor, new Object[]{new Object[]{null}});
-        assertEquals(1, nullArg.length);
-        assertNull(nullArg[0]);
+        // null
+        Object[] args = new Object[]{null};
+        Object[] normalizedArgs = (Object[]) normalizeArgsMethod.invoke(extractor, new Object[]{args});
+        assertNull(normalizedArgs[0]);
 
-        // args is not empty and arg1 is String, arg2 is Time
-        Object[] args = (Object[]) normalizeArgs.invoke(extractor, new Object[]{new Object[]{"mock", LocalDateTime.now()}});
-        assertEquals(2, args.length);
-        assertEquals("mock", args[0]);
-        assertEquals(LocalDateTime.class.getName(), args[1]);
+        // String
+        args = new Object[]{"test"};
+        normalizedArgs = (Object[]) normalizeArgsMethod.invoke(extractor, new Object[]{args});
+        assertEquals("test", normalizedArgs[0]);
+
+        // LocalDateTime
+        LocalDateTime localDateTime = LocalDateTime.now();
+        normalizedArgs = (Object[]) normalizeArgsMethod.invoke(extractor, new Object[]{new Object[]{localDateTime}});
+        String text = DateFormatUtils.format(localDateTime, "yyyy-MM-dd HH:mm:ss.SSS");
+        assertEquals(text.substring(0, text.length() - zeroSecond.length()) + zeroSecond, normalizedArgs[0]);
+        System.out.println("localDateTime: " + normalizedArgs[0]);
+
+        // LocalTime
+        LocalTime localTime = LocalTime.now();
+        normalizedArgs = (Object[]) normalizeArgsMethod.invoke(extractor, new Object[]{new Object[]{localTime}});
+        text = DateFormatUtils.format(localTime, "HH:mm:ss.SSS");
+        assertEquals(text.substring(0, text.length() - zeroSecond.length()) + zeroSecond, normalizedArgs[0]);
+        System.out.println("localTime: " + normalizedArgs[0]);
+
+        // Calendar
+        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("GMT-01:00"));
+        normalizedArgs = (Object[]) normalizeArgsMethod.invoke(extractor, new Object[]{new Object[]{calendar}});
+        text = DateFormatUtils.format(calendar, "yyyy-MM-dd HH:mm:ss.SSS", calendar.getTimeZone());
+        assertEquals(text.substring(0, text.length() - zeroSecond.length()) + zeroSecond, normalizedArgs[0]);
+        System.out.println("calendar: " + normalizedArgs[0]);
+
+        // Date
+        Date date = new Date();
+        normalizedArgs = (Object[]) normalizeArgsMethod.invoke(extractor, new Object[]{new Object[]{date}});
+        text = DateFormatUtils.format(date, "yyyy-MM-dd HH:mm:ss.SSS");
+        assertEquals(text.substring(0, text.length() - zeroSecond.length()) + zeroSecond, normalizedArgs[0]);
+        System.out.println("date: " + normalizedArgs[0]);
+
+        // joda LocalDateTime
+        org.joda.time.LocalDateTime jodaLocalDateTime = org.joda.time.LocalDateTime.now();
+        String originalTimeString = jodaLocalDateTime.toString("yyyy-MM-dd HH:mm:ss.SSS");
+        args = new Object[]{jodaLocalDateTime};
+        normalizedArgs = (Object[]) normalizeArgsMethod.invoke(extractor, new Object[]{args});
+        assertEquals(originalTimeString.substring(0, originalTimeString.length() - zeroSecond.length()) + zeroSecond, normalizedArgs[0]);
+        System.out.println("jodaLocalDateTime: " + normalizedArgs[0]);
+
+        // joda LocalTime
+        org.joda.time.LocalTime jodaLocalTime = org.joda.time.LocalTime.now();
+        originalTimeString = jodaLocalTime.toString("HH:mm:ss.SSS");
+        args = new Object[]{jodaLocalTime};
+        normalizedArgs = (Object[]) normalizeArgsMethod.invoke(extractor, new Object[]{args});
+        assertEquals(originalTimeString.substring(0, originalTimeString.length() - zeroSecond.length()) + zeroSecond, normalizedArgs[0]);
+        System.out.println("jodaLocalTime: " + normalizedArgs[0]);
     }
 
     public Mono<String> testReturnMono(String val, Throwable t) {
