@@ -8,6 +8,7 @@ import io.arex.foundation.config.ConfigManager;
 import io.arex.foundation.healthy.HealthManager;
 import io.arex.foundation.internal.DataEntity;
 import io.arex.foundation.internal.MockEntityBuffer;
+import io.arex.foundation.model.DecelerateReasonEnum;
 import io.arex.foundation.util.httpclient.AsyncHttpClientUtil;
 import io.arex.foundation.model.HttpClientResponse;
 import io.arex.foundation.util.httpclient.async.ThreadFactoryImpl;
@@ -36,6 +37,7 @@ public class DataCollectorService implements DataCollector {
 
     private static String queryApiUrl;
     private static String saveApiUrl;
+    private static String invalidCaseApiUrl;
 
     static {
         initServiceHost();
@@ -49,8 +51,13 @@ public class DataCollectorService implements DataCollector {
 
         if (!buffer.put(new DataEntity(requestMocker))) {
             HealthManager.onEnqueueRejection();
-            CaseManager.invalid(requestMocker.getRecordId(), requestMocker.getOperationName());
+            CaseManager.invalid(requestMocker.getRecordId(), requestMocker.getOperationName(), DecelerateReasonEnum.QUEUE_OVERFLOW.getValue());
         }
+    }
+
+    @Override
+    public void invalidCase(String postData) {
+        AsyncHttpClientUtil.postAsyncWithJson(invalidCaseApiUrl, postData, null);
     }
 
     @Override
@@ -138,7 +145,7 @@ public class DataCollectorService implements DataCollector {
         return (response, throwable) -> {
             long usedTime = System.nanoTime() - entity.getQueueTime();
             if (Objects.nonNull(throwable)) {
-                CaseManager.invalid(entity.getRecordId(), entity.getOperationName());
+                CaseManager.invalid(entity.getRecordId(), entity.getOperationName(), DecelerateReasonEnum.SERVICE_EXCEPTION.getValue());
                 LogManager.warn("saveMockDataConsumer", StringUtil.format("save mock data error: %s, post data: %s",
                         throwable.toString(), entity.getPostData()));
                 usedTime = -1; // -1:reject
@@ -153,5 +160,6 @@ public class DataCollectorService implements DataCollector {
 
         queryApiUrl = String.format("http://%s/api/storage/record/query", storeServiceHost);
         saveApiUrl = String.format("http://%s/api/storage/record/save", storeServiceHost);
+        invalidCaseApiUrl = String.format("http://%s/api/storage/record/invalidCase", storeServiceHost);
     }
 }

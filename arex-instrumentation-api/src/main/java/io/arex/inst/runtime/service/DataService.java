@@ -21,6 +21,10 @@ public class DataService {
         saver.save(requestMocker);
     }
 
+    public void invalidCase(String postData) {
+        saver.invalidCase(postData);
+    }
+
     public String query(String data, MockStrategyEnum mockStrategy) {
         return saver.query(data, mockStrategy);
     }
