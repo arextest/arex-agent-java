@@ -82,10 +82,21 @@ public class DynamicClassExtractor {
         this.requestType = buildRequestType(method);
     }
 
+    public DynamicClassExtractor(String clazzName, String methodName, Object[] args) {
+        this.clazzName = clazzName;
+        this.methodName = methodName;
+        this.args = args;
+        this.dynamicSignature = getDynamicEntitySignature();
+        this.methodKey = serialize(args, ArexConstants.GSON_REQUEST_SERIALIZER);
+        this.methodReturnType = null;
+        this.actualType = null;
+        this.requestType = null;
+    }
+
     public Object recordResponse(Object response) {
         if (IgnoreUtils.invalidOperation(dynamicSignature)) {
             LogManager.warn(NEED_RECORD_TITLE, StringUtil.format(
-                    "do not record invalid operation: %s, can not serialize request or response",
+                    "do not record invalid operation: %s, can not serialize request/response or response is exceed memory max limit.",
                     dynamicSignature));
             return response;
         }
@@ -335,6 +346,7 @@ public class DynamicClassExtractor {
                 LogManager.warn(ArexConstants.EXCEED_MAX_SIZE_TITLE, StringUtil.format("method:%s, exceed memory max limit:%s, " +
                                 "record result will be null, please check method return size, suggest replace it",
                         this.dynamicSignature, AgentSizeOf.humanReadableUnits(ArexConstants.MEMORY_SIZE_1MB)));
+                IgnoreUtils.addInvalidOperation(dynamicSignature);
                 return null;
             }
             this.serializedResult = serialize(this.result, ArexConstants.GSON_SERIALIZER);

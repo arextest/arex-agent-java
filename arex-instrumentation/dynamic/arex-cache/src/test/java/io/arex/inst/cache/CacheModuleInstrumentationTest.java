@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 class CacheModuleInstrumentationTest {
     @Test
     void testInstrumentationTypes() {
-        assertEquals(2, new CacheModuleInstrumentation().instrumentationTypes().size());
+        assertEquals(3, new CacheModuleInstrumentation().instrumentationTypes().size());
     }
 
 }

@@ -32,6 +32,7 @@ import java.util.function.Function;
 
 import io.arex.inst.runtime.util.sizeof.AgentSizeOf;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -349,6 +350,7 @@ class DynamicClassExtractorTest {
 
     @Test
     void testBuildMethodKey() throws Throwable {
+        IgnoreUtils.clearInvalidOperation();
         Method testWithArexMock = DynamicClassExtractorTest.class.getDeclaredMethod("testWithArexMock", String.class);
         DynamicClassExtractor extractor = new DynamicClassExtractor(testWithArexMock, null, "#val", String.class);
 
@@ -493,5 +495,16 @@ class DynamicClassExtractorTest {
         return Flux.error(new RuntimeException("e"))
             .doOnError(throwable -> System.out.println("Flux error:" + throwable))
             .doOnNext(object -> System.out.println("Flux success:" + object.getClass()));
+    }
+
+    /**
+     * for guava cache/caffeine cache DynamicClassExtractor constructor test
+     */
+    @Test
+    void cacheExtractorTest() throws Exception {
+        DynamicClassExtractor extractor = new DynamicClassExtractor("cacheClass", "cacheMethod", null);
+        Field clazzName = DynamicClassExtractor.class.getDeclaredField("clazzName");
+        clazzName.setAccessible(true);
+        assertEquals("cacheClass", clazzName.get(extractor));
     }
 }
