@@ -44,7 +44,9 @@ public class DynamicClassExtractor {
     private static final String JODA_LOCAL_DATE_TIME = "org.joda.time.LocalDateTime";
     private static final String JODA_LOCAL_TIME = "org.joda.time.LocalTime";
     public static final String SIMPLE_DATE_FORMAT_MILLIS = "yyyy-MM-dd HH:mm:";
+    private static final String SIMPLE_DATE_FORMAT_MILLIS_WITH_ZONE = "yyyy-MM-dd'T'HH:mm:";
     public static final String SHORT_TIME_FORMAT_MILLISECOND = "HH:mm:";
+    private static final String TIME_ZONE = "ZZZ";
     private static final String ZERO_SECOND_TIME = "00.000";
     private final String clazzName;
     private final String methodName;
@@ -227,7 +229,8 @@ public class DynamicClassExtractor {
 
         if (arg instanceof Calendar) {
             Calendar calendar = (Calendar) arg;
-            return zeroTimeSecond(DateFormatUtils.format(calendar, SIMPLE_DATE_FORMAT_MILLIS, calendar.getTimeZone()));
+            String timeZone = DateFormatUtils.format(calendar, TIME_ZONE, calendar.getTimeZone());
+            return zeroTimeSecond(DateFormatUtils.format(calendar, SIMPLE_DATE_FORMAT_MILLIS_WITH_ZONE, calendar.getTimeZone())) + timeZone;
         }
 
         if (arg instanceof Date) {
