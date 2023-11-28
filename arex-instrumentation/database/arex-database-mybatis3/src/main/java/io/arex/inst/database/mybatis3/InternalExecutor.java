@@ -16,7 +16,7 @@ public class InternalExecutor {
     private static final char KEYHOLDER_TYPE_SEPARATOR = ',';
 
     public static MockResult replay(MappedStatement ms, Object o, BoundSql boundSql, String methodName) {
-        DatabaseExtractor extractor = createExtractor(ms, boundSql, o, methodName);
+        DatabaseExtractor extractor = createExtractor(ms, boundSql, o, methodName, null);
         return extractor.replay();
     }
 
@@ -28,8 +28,9 @@ public class InternalExecutor {
         return replayResult;
     }
 
-    public static <U> void record(MappedStatement ms, Object o, BoundSql boundSql, U result, Throwable throwable, String methodName) {
-        DatabaseExtractor extractor = createExtractor(ms, boundSql, o, methodName);
+    public static <U> void record(MappedStatement ms, Object o, BoundSql boundSql, U result,
+                                  Throwable throwable, String methodName, String originalSql) {
+        DatabaseExtractor extractor = createExtractor(ms, boundSql, o, methodName, originalSql);
         if (throwable != null) {
             extractor.record(throwable);
         } else {
@@ -132,9 +133,12 @@ public class InternalExecutor {
         return StringUtil.containsIgnoreCase(executor.getSql(), "insert");
     }
 
-    public static DatabaseExtractor createExtractor(MappedStatement mappedStatement,
-                                                    BoundSql boundSql, Object parameters, String methodName) {
-        boundSql = boundSql == null ? mappedStatement.getBoundSql(parameters) : boundSql;
-        return new DatabaseExtractor(boundSql.getSql(), Serializer.serialize(parameters), methodName);
+    public static DatabaseExtractor createExtractor(MappedStatement mappedStatement, BoundSql boundSql,
+                                                    Object parameters, String methodName, String originalSql) {
+        if (StringUtil.isEmpty(originalSql)) {
+            boundSql = boundSql == null ? mappedStatement.getBoundSql(parameters) : boundSql;
+            originalSql = boundSql.getSql();
+        }
+        return new DatabaseExtractor(originalSql, Serializer.serialize(parameters), methodName);
     }
 }

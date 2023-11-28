@@ -25,14 +25,12 @@ import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.reflection.Reflector;
 import org.apache.ibatis.reflection.invoker.Invoker;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.NullSource;
 import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
@@ -98,7 +96,7 @@ class InternalExecutorTest {
         try (MockedConstruction<DatabaseExtractor> mocked = Mockito.mockConstruction(DatabaseExtractor.class, (mock, context) -> {
             atomicReference.set(mock);
         })) {
-            target.record(mappedStatement, new Object(), boundSql, result, throwable, "insert");
+            target.record(mappedStatement, new Object(), boundSql, result, throwable, "insert", null);
             if (throwable != null) {
                 Mockito.verify(atomicReference.get(), Mockito.times(1)).record(throwable);
             } else {
