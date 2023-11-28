@@ -444,10 +444,11 @@ class DynamicClassExtractorTest {
         System.out.println("localTime: " + normalizedArgs[0]);
 
         // Calendar
+        String zeroSecondWithZone = "00.000+08:00";
         Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("GMT-01:00"));
         normalizedArgs = (Object[]) normalizeArgsMethod.invoke(extractor, new Object[]{new Object[]{calendar}});
-        text = DateFormatUtils.format(calendar, "yyyy-MM-dd HH:mm:ss.SSS", calendar.getTimeZone());
-        assertEquals(text.substring(0, text.length() - zeroSecond.length()) + zeroSecond, normalizedArgs[0]);
+        text = DateFormatUtils.format(calendar, "yyyy-MM-dd'T'HH:mm:ss.SSSZZZ", calendar.getTimeZone());
+        assertEquals(text.substring(0, text.length() - zeroSecondWithZone.length()) + "00.000-01:00", normalizedArgs[0]);
         System.out.println("calendar: " + normalizedArgs[0]);
 
         // Date
