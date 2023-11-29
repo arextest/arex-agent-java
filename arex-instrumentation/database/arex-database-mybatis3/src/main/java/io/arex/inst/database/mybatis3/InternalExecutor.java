@@ -6,7 +6,6 @@ import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.database.common.DatabaseExtractor;
 
 import org.apache.ibatis.binding.MapperMethod.ParamMap;
-import org.apache.ibatis.mapping.BoundSql;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.reflection.Reflector;
 
@@ -15,8 +14,8 @@ public class InternalExecutor {
     private static final char KEYHOLDER_SEPARATOR = ';';
     private static final char KEYHOLDER_TYPE_SEPARATOR = ',';
 
-    public static MockResult replay(MappedStatement ms, Object o, BoundSql boundSql, String methodName) {
-        DatabaseExtractor extractor = createExtractor(ms, boundSql, o, methodName);
+    public static MockResult replay(MappedStatement ms, Object o, String originalSql, String methodName) {
+        DatabaseExtractor extractor = createExtractor(ms, originalSql, o, methodName);
         return extractor.replay();
     }
 
@@ -28,8 +27,8 @@ public class InternalExecutor {
         return replayResult;
     }
 
-    public static <U> void record(MappedStatement ms, Object o, BoundSql boundSql, U result, Throwable throwable, String methodName) {
-        DatabaseExtractor extractor = createExtractor(ms, boundSql, o, methodName);
+    public static <U> void record(MappedStatement ms, Object o, String originalSql, U result, Throwable throwable, String methodName) {
+        DatabaseExtractor extractor = createExtractor(ms, originalSql, o, methodName);
         if (throwable != null) {
             extractor.record(throwable);
         } else {
@@ -133,8 +132,10 @@ public class InternalExecutor {
     }
 
     public static DatabaseExtractor createExtractor(MappedStatement mappedStatement,
-                                                    BoundSql boundSql, Object parameters, String methodName) {
-        boundSql = boundSql == null ? mappedStatement.getBoundSql(parameters) : boundSql;
-        return new DatabaseExtractor(boundSql.getSql(), Serializer.serialize(parameters), methodName);
+                                                    String originalSql, Object parameters, String methodName) {
+        if (StringUtil.isEmpty(originalSql) && mappedStatement != null && mappedStatement.getBoundSql(parameters) != null) {
+            originalSql = mappedStatement.getBoundSql(parameters).getSql();
+        }
+        return new DatabaseExtractor(originalSql, Serializer.serialize(parameters), methodName);
     }
 }
