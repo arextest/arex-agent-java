@@ -78,7 +78,7 @@ public class ExecutorInstrumentation extends TypeInstrumentation {
             originalSql = boundSql != null ? boundSql.getSql() : null;
             RepeatedCollectManager.enter();
             if (ContextManager.needReplay()) {
-                mockResult = InternalExecutor.replay(var1, var2, METHOD_NAME_QUERY);
+                mockResult = InternalExecutor.replay(var1, var2, originalSql, METHOD_NAME_QUERY);
             }
             return mockResult != null && mockResult.notIgnoreMockResult();
         }
@@ -104,7 +104,7 @@ public class ExecutorInstrumentation extends TypeInstrumentation {
             }
 
             if (ContextManager.needRecord()) {
-                InternalExecutor.record(var1, var2, result, throwable, METHOD_NAME_QUERY, originalSql);
+                InternalExecutor.record(var1, var2, originalSql, result, throwable, METHOD_NAME_QUERY);
             }
         }
     }
@@ -131,7 +131,7 @@ public class ExecutorInstrumentation extends TypeInstrumentation {
                  * Generate executor in advance, because the insert operation will modify sql and parameters,
                  * resulting in inconsistent record and replay
                  */
-                extractor = InternalExecutor.createExtractor(var1, var2, METHOD_NAME_UPDATE, null);
+                extractor = InternalExecutor.createExtractor(var1, null, var2, METHOD_NAME_UPDATE);
                 if (ContextManager.needReplay()) {
                     mockResult = InternalExecutor.replay(extractor, var1, var2);
                 }
@@ -215,8 +215,7 @@ public class ExecutorInstrumentation extends TypeInstrumentation {
                      * resulting in inconsistent record and replay
                      */
                     for (Object parameterObject : batchResult.getParameterObjects()) {
-                        DatabaseExtractor extractor = InternalExecutor.createExtractor(
-                                ms, parameterObject, METHOD_NAME_BATCH_FLUSH, null);
+                        DatabaseExtractor extractor = InternalExecutor.createExtractor(ms, null, parameterObject, METHOD_NAME_BATCH_FLUSH);
                         if (ContextManager.needRecord()) {
                             extractorList.add(extractor);
                             continue;

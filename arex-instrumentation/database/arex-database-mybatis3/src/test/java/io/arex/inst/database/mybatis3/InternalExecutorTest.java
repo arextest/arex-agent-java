@@ -72,7 +72,7 @@ class InternalExecutorTest {
             mocker.setTargetResponse(new Target());
             mockService.when(() -> MockUtils.createDatabase(any())).thenReturn(mocker);
 
-            assertNotNull(InternalExecutor.replay(mappedStatement, new Object(), "insert"));
+            assertNotNull(InternalExecutor.replay(mappedStatement, new Object(), null, "insert"));
         }
     }
 
@@ -96,7 +96,7 @@ class InternalExecutorTest {
             atomicReference.set(mock);
         })) {
             Mockito.when(mappedStatement.getBoundSql(any())).thenReturn(boundSql);
-            target.record(mappedStatement, new Object(), result, throwable, "insert", null);
+            target.record(mappedStatement, new Object(), null, result, throwable, "insert");
             if (throwable != null) {
                 Mockito.verify(atomicReference.get(), Mockito.times(1)).record(throwable);
             } else {

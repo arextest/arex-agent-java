@@ -14,8 +14,8 @@ public class InternalExecutor {
     private static final char KEYHOLDER_SEPARATOR = ';';
     private static final char KEYHOLDER_TYPE_SEPARATOR = ',';
 
-    public static MockResult replay(MappedStatement ms, Object o, String methodName) {
-        DatabaseExtractor extractor = createExtractor(ms, o, methodName, null);
+    public static MockResult replay(MappedStatement ms, Object o, String originalSql, String methodName) {
+        DatabaseExtractor extractor = createExtractor(ms, originalSql, o, methodName);
         return extractor.replay();
     }
 
@@ -27,9 +27,8 @@ public class InternalExecutor {
         return replayResult;
     }
 
-    public static <U> void record(MappedStatement ms, Object o, U result,
-                                  Throwable throwable, String methodName, String originalSql) {
-        DatabaseExtractor extractor = createExtractor(ms, o, methodName, originalSql);
+    public static <U> void record(MappedStatement ms, Object o, String originalSql, U result, Throwable throwable, String methodName) {
+        DatabaseExtractor extractor = createExtractor(ms, originalSql, o, methodName);
         if (throwable != null) {
             extractor.record(throwable);
         } else {
@@ -132,8 +131,8 @@ public class InternalExecutor {
         return StringUtil.containsIgnoreCase(executor.getSql(), "insert");
     }
 
-    public static DatabaseExtractor createExtractor(MappedStatement mappedStatement, Object parameters,
-                                                    String methodName, String originalSql) {
+    public static DatabaseExtractor createExtractor(MappedStatement mappedStatement,
+                                                    String originalSql, Object parameters, String methodName) {
         if (StringUtil.isEmpty(originalSql) && mappedStatement != null && mappedStatement.getBoundSql(parameters) != null) {
             originalSql = mappedStatement.getBoundSql(parameters).getSql();
         }
