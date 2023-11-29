@@ -176,11 +176,15 @@ class TypeUtilTest {
 
         final Pair pairNull = Pair.of(System.currentTimeMillis(), null);
         final String genericNull = TypeUtil.getName(pairNull);
-        assertEquals("io.arex.agent.bootstrap.internal.Pair-java.lang.Long,", genericNull);
+        assertEquals("io.arex.agent.bootstrap.internal.Pair-java.lang.Long,java.lang.String", genericNull);
 
         final Pair pairList = Pair.of(System.currentTimeMillis(), Arrays.asList("mock"));
         final String genericList = TypeUtil.getName(pairList);
         assertEquals("io.arex.agent.bootstrap.internal.Pair-java.lang.Long,java.util.Arrays$ArrayList-java.lang.String", genericList);
+
+        final Pair pairFirstNull = Pair.of(null, System.currentTimeMillis());
+        final String genericFirstNull = TypeUtil.getName(pairFirstNull);
+        assertEquals("io.arex.agent.bootstrap.internal.Pair-java.lang.String,java.lang.Long", genericFirstNull);
     }
 
     @Test
@@ -369,7 +373,7 @@ class TypeUtilTest {
         final ArrayList<Object> list = new ArrayList<>();
         childClass.setValue(list);
         String name = TypeUtil.getName(childClass);
-        assertEquals("io.arex.inst.runtime.util.TypeUtilTest$ChildClass-", name);
+        assertEquals("io.arex.inst.runtime.util.TypeUtilTest$ChildClass-java.lang.String", name);
         list.add("test");
         childClass.setValue(list);
         name = TypeUtil.getName(childClass);

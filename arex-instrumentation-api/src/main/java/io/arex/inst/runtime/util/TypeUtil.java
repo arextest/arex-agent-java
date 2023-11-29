@@ -134,10 +134,8 @@ public class TypeUtil {
             if (isCollection(field.getType().getName())) {
                 genericType = filterRawGenericType(genericType);
             }
-
-            if (StringUtil.isNotEmpty(genericType)) {
-                builder.append(genericType);
-            }
+            genericType = StringUtil.isEmpty(genericType) ? DEFAULT_CLASS_NAME : genericType;
+            builder.append(genericType);
             if (i == typeParameters.length - 1) {
                return builder.toString();
             }
