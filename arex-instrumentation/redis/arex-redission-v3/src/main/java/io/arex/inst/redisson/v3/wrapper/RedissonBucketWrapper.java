@@ -2,6 +2,7 @@ package io.arex.inst.redisson.v3.wrapper;
 
 import io.arex.inst.redis.common.RedisKeyUtil;
 import io.arex.inst.redisson.v3.RedissonWrapperCommon;
+import io.arex.inst.redisson.v3.common.RedissonHelper;
 import org.redisson.RedissonBucket;
 import org.redisson.api.RFuture;
 import org.redisson.client.codec.Codec;
@@ -20,12 +21,12 @@ public class RedissonBucketWrapper<V> extends RedissonBucket<V> {
 
     public RedissonBucketWrapper(CommandAsyncExecutor commandExecutor, String name) {
         super(commandExecutor, name);
-        redisUri = commandExecutor.getConnectionManager().getConfig().getMasterAddress();
+        redisUri = RedissonHelper.getRedisUri(commandExecutor.getConnectionManager());
     }
 
     public RedissonBucketWrapper(Codec codec, CommandAsyncExecutor commandExecutor, String name) {
         super(codec, commandExecutor, name);
-        redisUri = commandExecutor.getConnectionManager().getConfig().getMasterAddress();
+        redisUri = RedissonHelper.getRedisUri(commandExecutor.getConnectionManager());
     }
 
     // region RedissonBucket

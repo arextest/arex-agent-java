@@ -4,7 +4,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import io.arex.agent.bootstrap.model.ArexMocker;
 import io.arex.agent.bootstrap.model.Mocker.Target;
-import io.arex.inst.serializer.ProtoJsonSerializer;
+import io.arex.agent.thirdparty.util.time.DateFormatUtils;
 import io.arex.inst.runtime.config.ConfigBuilder;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
@@ -14,15 +14,27 @@ import io.arex.inst.runtime.model.DynamicClassEntity;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.util.IgnoreUtils;
 import io.arex.inst.runtime.util.MockUtils;
-import io.arex.inst.runtime.util.TypeUtil;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.lang.reflect.Type;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAccessor;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Consumer;
+
+import org.joda.time.format.DateTimeFormat;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -41,6 +53,9 @@ import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import org.mockito.stubbing.Answer;
+import reactor.core.publisher.Mono;
+
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -55,19 +70,16 @@ import static org.mockito.Mockito.times;
 
 @ExtendWith(MockitoExtension.class)
 class DynamicClassExtractorTest {
-    private static MockedStatic<ProtoJsonSerializer> mockedProtoJson = null;
     @BeforeAll
     static void setUp() {
         Mockito.mockStatic(ContextManager.class);
         Mockito.mockStatic(Serializer.class);
-        mockedProtoJson = mockStatic(ProtoJsonSerializer.class);
         ConfigBuilder.create("test").enableDebug(true).build();
     }
 
     @AfterAll
     static void tearDown() {
         Mockito.clearAllCaches();
-        mockedProtoJson = null;
     }
 
     @ParameterizedTest
@@ -85,14 +97,44 @@ class DynamicClassExtractorTest {
                 System.out.println("mock MockService.recordMocker");
                 return null;
             });
-
-            Method testWithArexMock = DynamicClassExtractorTest.class.getDeclaredMethod("testWithArexMock", String.class);
+            Method testWithArexMock;
+            if (result instanceof Mono) {
+                testWithArexMock = Mono.class.getDeclaredMethod("just", Object.class);
+            } else {
+                testWithArexMock = DynamicClassExtractorTest.class.getDeclaredMethod("testWithArexMock", String.class);
+            }
             DynamicClassExtractor extractor = new DynamicClassExtractor(testWithArexMock, args);
 
             extractor.recordResponse(result);
             assertTrue(predicate.test(result));
         }
     }
+
+    @Test
+    void resetMonoResponse() {
+        try {
+            Method testWithArexMock = DynamicClassExtractorTest.class.getDeclaredMethod("testWithArexMock",
+                String.class);
+            final Object[] args = {"errorSerialize"};
+            final DynamicClassExtractor extractor = new DynamicClassExtractor(testWithArexMock, args);
+            final Predicate<Object> nonNull = Objects::nonNull;
+
+            //exception
+            Mono<?> result = monoExceptionTest();
+            result = extractor.resetMonoResponse(result);
+            result.subscribe();
+            assertTrue(nonNull.test(result));
+
+            //nomal
+            result = monoTest();
+            result = extractor.resetMonoResponse(result);
+            result.subscribe();
+            assertTrue(nonNull.test(result));
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 
     static Stream<Arguments> recordCase() {
         ArexContext context = Mockito.mock(ArexContext.class);
@@ -129,6 +171,7 @@ class DynamicClassExtractorTest {
             arguments(resultIsNull, new Object[]{"mock"}, Collections.singletonMap("key", "val"), nonNull),
             arguments(resultIsNull, new Object[]{"mock"}, new int[1001], nonNull),
             arguments(resultIsNull, null, null, isNull),
+            arguments(resultIsNull, null, Mono.just("mono test"), nonNull),
             arguments(resultIsNull, null, Futures.immediateFuture("mock-future"), nonNull)
         );
     }
@@ -230,6 +273,18 @@ class DynamicClassExtractorTest {
         extractor = new DynamicClassExtractor(testWithArexMock, new Object[]{"mock"}, "#val", null);
         actualResult = extractor.restoreResponse("test-value");
         assertEquals("test-value", actualResult);
+
+        //mono value
+        Method testReturnMono = DynamicClassExtractorTest.class.getDeclaredMethod("testReturnMono", String.class,
+            Throwable.class);
+        DynamicClassExtractor monoTestExtractor = new DynamicClassExtractor(testReturnMono, new Object[]{"mock"},
+            "#val", null);
+        Object monoTestExtractorActualResult = monoTestExtractor.restoreResponse("test-value");
+        assertEquals("test-value", ((Mono<?>) monoTestExtractorActualResult).block());
+
+        monoTestExtractorActualResult = monoTestExtractor.restoreResponse(new RuntimeException("test-exception"));
+        Object monoTestFinalActualResult = monoTestExtractorActualResult;
+        assertThrows(RuntimeException.class, () -> ((Mono<?>) monoTestFinalActualResult).block());
     }
 
     @Test
@@ -329,98 +384,6 @@ class DynamicClassExtractorTest {
     }
 
     @Test
-    public void testProtoBufResultRecord() throws Exception {
-        try (MockedStatic<MockUtils> mockService = mockStatic(MockUtils.class)) {
-            ArexMocker arexMocker = new ArexMocker();
-            arexMocker.setTargetRequest(new Target());
-            arexMocker.setTargetResponse(new Target());
-            mockService.when(() -> MockUtils.createDynamicClass(any(), any())).thenReturn(arexMocker);
-            mockService.when(() -> MockUtils.checkResponseMocker(any())).thenReturn(true);
-            Method testWithArexMock = DynamicClassExtractorTest.class.getDeclaredMethod(
-                    "testWithArexMock", String.class);
-            DynamicClassExtractor extractor = new DynamicClassExtractor(testWithArexMock,
-                    new Object[]{"mock"}, "#val", String.class);
-            ProtoBufClassTest protoBufClassTest1 = new ProtoBufClassTest();
-            ProtoBufClassTest protoBufClassTest2 = new ProtoBufClassTest();
-            ProtoBufClassTest protoBufClassTest3 = new ProtoBufClassTest();
-
-            ProtoJsonSerializer mock = Mockito.mock(ProtoJsonSerializer.class);
-            mockedProtoJson.when(ProtoJsonSerializer::getInstance).thenReturn(mock);
-            Mockito.when(mock.serialize(any())).thenReturn("mock Serializer.serialize");
-
-            // single protoBuf
-            extractor.recordResponse(protoBufClassTest1);
-            Mockito.verify(mock, Mockito.times(1)).serialize(protoBufClassTest1);
-
-            final ArrayList<ProtoBufClassTest> list = new ArrayList<>();
-
-            // empty list
-            extractor.recordResponse(list);
-            Mockito.verify(mock, Mockito.times(0)).serialize(list);
-
-            // list protoBuf
-            list.add(protoBufClassTest2);
-            list.add(protoBufClassTest3);
-
-            extractor.recordResponse(list);
-            Mockito.verify(mock, Mockito.times(1)).serialize(list);
-            mockedProtoJson.clearInvocations();
-        }
-    }
-
-    @Test
-    public void testProtoBufResultReplay() {
-        try (MockedStatic<MockUtils> mockService = mockStatic(MockUtils.class)) {
-            ArexMocker arexMocker = new ArexMocker();
-            arexMocker.setTargetRequest(new Target());
-            arexMocker.setTargetResponse(new Target());
-
-            ArexMocker arexMocker2 = new ArexMocker();
-            arexMocker2.setTargetRequest(new Target());
-            arexMocker2.setTargetResponse(new Target());
-            arexMocker2.getTargetResponse().setBody("valueJson");
-            arexMocker2.getTargetResponse().setType(ProtoBufClassTest.class.getName());
-            arexMocker2.getTargetResponse().setAttribute("Format", "protobuf");
-
-            mockService.when(() -> MockUtils.createDynamicClass(any(), any())).thenReturn(arexMocker);
-            mockService.when(() -> MockUtils.checkResponseMocker(any())).thenReturn(true);
-            Mockito.when(ContextManager.currentContext()).thenReturn(ArexContext.of(""));
-            Mockito.when(MockUtils.replayMocker(any(), any())).thenReturn(arexMocker2);
-
-            Method testWithArexMock = DynamicClassExtractorTest.class.getDeclaredMethod(
-                    "testWithArexMock", String.class);
-            DynamicClassExtractor extractor = new DynamicClassExtractor(testWithArexMock,
-                    new Object[]{"mock"}, "#val", String.class);
-
-            ProtoJsonSerializer mock = Mockito.mock(ProtoJsonSerializer.class);
-            mockedProtoJson.when(ProtoJsonSerializer::getInstance).thenReturn(mock);
-
-            // single protoBuf deserialize
-            extractor.replay();
-            Mockito.clearInvocations(mock);
-
-            // list protoBuf deserialize
-
-            String listJson = "valueJson1" + Serializer.SERIALIZE_SEPARATOR + "valueJson2" + Serializer.SERIALIZE_SEPARATOR;
-            String listTypeName = ArrayList.class.getName() + TypeUtil.HORIZONTAL_LINE + ProtoBufClassTest.class.getName();
-
-            ArexMocker arexMocker3 = new ArexMocker();
-            arexMocker3.setTargetRequest(new Target());
-            arexMocker3.setTargetResponse(new Target());
-            arexMocker3.getTargetResponse().setBody(listJson);
-            arexMocker3.getTargetResponse().setType(listTypeName);
-            arexMocker3.getTargetResponse().setAttribute("Format", "protobuf");
-            Mockito.when(MockUtils.replayMocker(any())).thenReturn(arexMocker3);
-            final Type type = TypeUtil.forName(listTypeName);
-            extractor.replay();
-
-            mockedProtoJson.verify(() -> ProtoJsonSerializer.getInstance(), times(2));
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Test
     void invalidOperation() throws Throwable {
         Method testWithArexMock = DynamicClassExtractorTest.class.getDeclaredMethod("testWithArexMock", String.class);
         final Object[] args = {"errorSerialize"};
@@ -445,5 +408,89 @@ class DynamicClassExtractorTest {
         Method testEmptyArgs = DynamicClassExtractorTest.class.getDeclaredMethod("invalidOperation");
         DynamicClassExtractor extractor = new DynamicClassExtractor(testEmptyArgs, new Object[0]);
         assertDoesNotThrow(() -> extractor.recordResponse(new int[1001]));
+    }
+
+    @Test
+    void normalizeArgsTest() throws Exception {
+        Method testEmptyArgs = DynamicClassExtractorTest.class.getDeclaredMethod("normalizeArgsTest");
+        DynamicClassExtractor extractor = new DynamicClassExtractor(testEmptyArgs, new Object[0]);
+        Method normalizeArgsMethod = DynamicClassExtractor.class.getDeclaredMethod("normalizeArgs", Object[].class);
+        normalizeArgsMethod.setAccessible(true);
+
+        String zeroSecond = "00.000";
+
+        // null
+        Object[] args = new Object[]{null};
+        Object[] normalizedArgs = (Object[]) normalizeArgsMethod.invoke(extractor, new Object[]{args});
+        assertNull(normalizedArgs[0]);
+
+        // String
+        args = new Object[]{"test"};
+        normalizedArgs = (Object[]) normalizeArgsMethod.invoke(extractor, new Object[]{args});
+        assertEquals("test", normalizedArgs[0]);
+
+        // LocalDateTime
+        LocalDateTime localDateTime = LocalDateTime.now();
+        normalizedArgs = (Object[]) normalizeArgsMethod.invoke(extractor, new Object[]{new Object[]{localDateTime}});
+        String text = DateFormatUtils.format(localDateTime, "yyyy-MM-dd HH:mm:ss.SSS");
+        assertEquals(text.substring(0, text.length() - zeroSecond.length()) + zeroSecond, normalizedArgs[0]);
+        System.out.println("localDateTime: " + normalizedArgs[0]);
+
+        // LocalTime
+        LocalTime localTime = LocalTime.now();
+        normalizedArgs = (Object[]) normalizeArgsMethod.invoke(extractor, new Object[]{new Object[]{localTime}});
+        text = DateFormatUtils.format(localTime, "HH:mm:ss.SSS");
+        assertEquals(text.substring(0, text.length() - zeroSecond.length()) + zeroSecond, normalizedArgs[0]);
+        System.out.println("localTime: " + normalizedArgs[0]);
+
+        // Calendar
+        String zeroSecondWithZone = "00.000+08:00";
+        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("GMT-01:00"));
+        normalizedArgs = (Object[]) normalizeArgsMethod.invoke(extractor, new Object[]{new Object[]{calendar}});
+        text = DateFormatUtils.format(calendar, "yyyy-MM-dd'T'HH:mm:ss.SSSZZZ", calendar.getTimeZone());
+        assertEquals(text.substring(0, text.length() - zeroSecondWithZone.length()) + "00.000-01:00", normalizedArgs[0]);
+        System.out.println("calendar: " + normalizedArgs[0]);
+
+        // Date
+        Date date = new Date();
+        normalizedArgs = (Object[]) normalizeArgsMethod.invoke(extractor, new Object[]{new Object[]{date}});
+        text = DateFormatUtils.format(date, "yyyy-MM-dd HH:mm:ss.SSS");
+        assertEquals(text.substring(0, text.length() - zeroSecond.length()) + zeroSecond, normalizedArgs[0]);
+        System.out.println("date: " + normalizedArgs[0]);
+
+        // joda LocalDateTime
+        org.joda.time.LocalDateTime jodaLocalDateTime = org.joda.time.LocalDateTime.now();
+        String originalTimeString = jodaLocalDateTime.toString("yyyy-MM-dd HH:mm:ss.SSS");
+        args = new Object[]{jodaLocalDateTime};
+        normalizedArgs = (Object[]) normalizeArgsMethod.invoke(extractor, new Object[]{args});
+        assertEquals(originalTimeString.substring(0, originalTimeString.length() - zeroSecond.length()) + zeroSecond, normalizedArgs[0]);
+        System.out.println("jodaLocalDateTime: " + normalizedArgs[0]);
+
+        // joda LocalTime
+        org.joda.time.LocalTime jodaLocalTime = org.joda.time.LocalTime.now();
+        originalTimeString = jodaLocalTime.toString("HH:mm:ss.SSS");
+        args = new Object[]{jodaLocalTime};
+        normalizedArgs = (Object[]) normalizeArgsMethod.invoke(extractor, new Object[]{args});
+        assertEquals(originalTimeString.substring(0, originalTimeString.length() - zeroSecond.length()) + zeroSecond, normalizedArgs[0]);
+        System.out.println("jodaLocalTime: " + normalizedArgs[0]);
+    }
+
+    public Mono<String> testReturnMono(String val, Throwable t) {
+        if (t != null) {
+            return Mono.error(t);
+        }
+        return Mono.justOrEmpty(val + "testReturnMono");
+    }
+
+    public static Mono<String> monoTest() {
+        return Mono.justOrEmpty("Mono test")
+            .doOnNext(value -> System.out.println("Mono context:" + value))
+            .onErrorResume(t -> Mono.empty());
+    }
+
+    public static Mono<Object> monoExceptionTest() {
+        return Mono.error(new RuntimeException("e"))
+            .doOnError(throwable -> System.out.println("Mono error:" + throwable))
+            .doOnSuccess(object -> System.out.println("Mono success:" + object.getClass()));
     }
 }

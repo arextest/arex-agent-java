@@ -60,7 +60,7 @@ public class HttpClientExtractor<TRequest, TResponse> {
             TResponse response = this.adapter.unwrap((HttpResponseWrapper) object);
             return MockResult.success(ignoreResult, response);
         }
-        return null;
+        return MockResult.success(ignoreResult, null);
     }
 
     private Mocker makeMocker() {

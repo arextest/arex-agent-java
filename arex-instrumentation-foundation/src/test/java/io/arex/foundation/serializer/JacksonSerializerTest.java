@@ -144,6 +144,8 @@ class JacksonSerializerTest {
     @Test
     void testFastUtil() throws Throwable {
         final TestType testType = FastUtilAdapterFactoryTest.getTestType();
+        testType.setObject2DoubleMap(null);
+        testType.setDoubleRangeObject2DoubleMap(null);
         final String jackJson = JacksonSerializer.INSTANCE.serialize(testType);
         final TestType deserializeJackTestType = JacksonSerializer.INSTANCE.deserialize(jackJson, TestType.class);
         assertNotNull(deserializeJackTestType);

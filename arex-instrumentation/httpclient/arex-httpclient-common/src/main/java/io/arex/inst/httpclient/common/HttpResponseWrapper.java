@@ -8,6 +8,16 @@ public class HttpResponseWrapper {
     private byte[] content;
     private StringTuple locale;
     private List<StringTuple> headers;
+    private String reason;
+
+    public String getReason() {
+        return reason;
+    }
+
+    public void setReason(String reason) {
+        this.reason = reason;
+    }
+
     public void setHeaders(List<StringTuple> headers) {
         this.headers = headers;
     }

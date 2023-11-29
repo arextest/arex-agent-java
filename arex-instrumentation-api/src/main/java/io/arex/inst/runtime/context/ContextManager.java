@@ -21,30 +21,33 @@ public class ContextManager {
 
     /**
      * agent will call this method
+     * record scene: recordId is map key
+     * replay scene: replayId is map key
      */
-    public static ArexContext currentContext(boolean createIfAbsent, String caseId) {
-        // replay scene
-        if (StringUtil.isNotEmpty(caseId)) {
-            TraceContextManager.set(caseId);
-            ArexContext context = ArexContext.of(caseId, TraceContextManager.generateId());
-            publish(context, true);
-            // Each replay init generates the latest context(maybe exist previous recorded context)
-            RECORD_MAP.put(caseId, context);
-            return context;
-        }
-
-        // record scene
-        caseId = TraceContextManager.get(createIfAbsent);
-        if (StringUtil.isEmpty(caseId)) {
+    public static ArexContext currentContext(boolean createIfAbsent, String recordId) {
+        String traceId = TraceContextManager.get(createIfAbsent);
+        if (StringUtil.isEmpty(traceId)) {
             return null;
         }
-        // first init execute
         if (createIfAbsent) {
-            ArexContext context = ArexContext.of(caseId);
-            publish(context, true);
-            return RECORD_MAP.put(caseId, context);
+            final ArexContext arexContext = createContext(recordId, traceId);
+            publish(arexContext, true);
+            RECORD_MAP.put(traceId, arexContext);
+            return arexContext;
         }
-        return RECORD_MAP.get(caseId);
+        return RECORD_MAP.get(traceId);
+    }
+
+    /**
+     *  ArexContext.of(recordId, replayId)
+     */
+    private static ArexContext createContext(String recordId, String traceId) {
+        // replay scene: traceId is replayId
+        if (StringUtil.isNotEmpty(recordId)) {
+            return ArexContext.of(recordId, traceId);
+        }
+        // record scene: traceId is recordId
+        return ArexContext.of(traceId);
     }
 
     public static ArexContext getRecordContext(String recordId) {

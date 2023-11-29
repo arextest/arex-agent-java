@@ -1,17 +1,31 @@
 package io.arex.inst.dynamic.common;
 
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.lang.reflect.Method;
 import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+
+import io.arex.inst.runtime.serializer.Serializer;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.Mockito;
 
 class ExpressionParseUtilTest {
+    @BeforeAll
+    static void setUp() {
+        Mockito.mockStatic(Serializer.class);
+        Mockito.when(Serializer.serialize(Mockito.any())).thenReturn("mock");
+    }
+
+    @AfterAll
+    static void tearDown() {
+        Mockito.clearAllCaches();
+    }
 
     @ParameterizedTest
     @MethodSource("generateKeyArgs")
@@ -78,6 +92,17 @@ class ExpressionParseUtilTest {
                 (Predicate<String>) Objects::isNull
             ),
             Arguments.of(
+                    new Object[]{
+                            new Foo2("p1", 1),
+                            new Foo2("p2", 2),
+                            new Foo1(new Foo2("p3", 3))
+                    },
+                    ExpressionParseUtilTest.class.getDeclaredMethod("testParseMethodKey3", Foo2.class, Foo2.class,
+                            Foo1.class),
+                    "#f3.getFoo2()",
+                    (Predicate<String>) "mock"::equals
+            ),
+            Arguments.of(
                 new Object[]{
                     new Foo2("p1", 1),
                     new Foo2("p2", 2),
@@ -114,6 +139,12 @@ class ExpressionParseUtilTest {
                     Foo1.class),
                 "String.valueOf($1.getF2()) + $2.f2.toString() + $3.getFoo2().f1",
                 (Predicate<String>) "T(String).valueOf(#f1.getF2()) + #f2.f2.toString() + #f3.getFoo2().f1"::equals
+            ),
+            Arguments.of(
+                    ExpressionParseUtilTest.class.getDeclaredMethod("testParseMethodKey3", Foo2.class, Foo2.class,
+                            Foo1.class),
+                    "#1.foo2.f1",
+                    (Predicate<String>) "#1.foo2.f1"::equals
             )
         );
     }

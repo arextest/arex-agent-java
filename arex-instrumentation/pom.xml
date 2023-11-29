@@ -15,6 +15,7 @@
     <properties>
         <springframework.version>5.3.24</springframework.version>
         <arex-common.version>0.1.6</arex-common.version>
+        <reactor.version>3.4.16</reactor.version>
     </properties>
 
     <modules>
@@ -40,6 +41,7 @@
         <module>httpclient/arex-httpclient-apache-v4</module>
         <module>httpclient/arex-httpclient-webclient-v5</module>
         <module>httpclient/arex-httpclient-resttemplate</module>
+        <module>httpclient/arex-httpclient-feign</module>
         <module>netty/arex-netty-v3</module>
         <module>netty/arex-netty-v4</module>
         <module>dubbo/arex-dubbo-apache-v2</module>
@@ -51,7 +53,6 @@
         <module>authentication/arex-spring-security</module>
         <module>authentication/arex-shiro</module>
         <module>authentication/arex-jcasbin</module>
-        <module>foundation/arex-serializer</module>
         <module>config/arex-apollo</module>
     </modules>
     <dependencies>

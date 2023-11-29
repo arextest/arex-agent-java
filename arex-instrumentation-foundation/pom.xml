@@ -72,6 +72,18 @@
             <version>8.2.2</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java-util</artifactId>
+            <version>3.6.0</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+            <version>2.6</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -99,6 +111,7 @@
                                         <exclude>com.google.common.collect.Range</exclude>
                                         <exclude>com.google.common.collect.RangeGwtSerializationDependencies</exclude>
                                         <exclude>com.google.common.collect.BoundType</exclude>
+                                        <exclude>com.google.protobuf.*</exclude>
                                     </excludes>
                                 </relocation>
                             </relocations>

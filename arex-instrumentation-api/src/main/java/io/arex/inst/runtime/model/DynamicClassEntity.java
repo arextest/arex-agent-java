@@ -68,7 +68,8 @@ public class DynamicClassEntity {
             ArexConstants.CURRENT_TIME_MILLIS_SIGNATURE.equals(additionalSignature) ||
             ArexConstants.NEXT_INT_SIGNATURE.equals(additionalSignature) ||
             // Compatible with $1.getVal()
-            additionalSignature.contains("$");
+            additionalSignature.contains("$") ||
+            additionalSignature.contains("#");
     }
 
     public String getSignature() {

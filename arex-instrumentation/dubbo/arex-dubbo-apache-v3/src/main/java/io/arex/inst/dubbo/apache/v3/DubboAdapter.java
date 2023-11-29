@@ -47,6 +47,10 @@ public class DubboAdapter extends AbstractAdapter {
         return getPath() + "." + getOperationName();
     }
     public String getRequest() {
+        Object originalRequest = invocation.getAttributes().get(ArexConstants.ORIGINAL_REQUEST);
+        if (originalRequest != null) {
+            return String.valueOf(originalRequest);
+        }
         return parseRequest(invocation.getArguments(), Serializer::serialize);
     }
     /**

@@ -7,7 +7,7 @@ import io.arex.agent.bootstrap.model.MockStrategyEnum;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.ArrayUtils;
 import io.arex.agent.bootstrap.util.StringUtil;
-import io.arex.inst.serializer.ProtoJsonSerializer;
+import io.arex.agent.thirdparty.util.time.DateFormatUtils;
 import io.arex.inst.dynamic.common.listener.ListenableFutureAdapter;
 import io.arex.inst.dynamic.common.listener.ResponseConsumer;
 import io.arex.inst.runtime.config.Config;
@@ -21,21 +21,33 @@ import io.arex.inst.runtime.util.MockUtils;
 import io.arex.inst.runtime.util.TypeUtil;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.Calendar;
 import java.util.Collection;
+import java.util.Date;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
+import java.util.function.Consumer;
+import reactor.core.publisher.Mono;
 
 public class DynamicClassExtractor {
     private static final int RESULT_SIZE_MAX = Integer.parseInt(System.getProperty("arex.dynamic.result.size.limit", "1000"));
     private static final String SERIALIZER = "gson";
-    private static final String PROTOCOL_BUFFERS = "protobuf";
     private static final String LISTENABLE_FUTURE = "com.google.common.util.concurrent.ListenableFuture";
     private static final String COMPLETABLE_FUTURE = "java.util.concurrent.CompletableFuture";
-    private static final String PROTOBUF_PACKAGE_NAME = "com.google.protobuf";
     private static final String NEED_RECORD_TITLE = "dynamic.needRecord";
     private static final String NEED_REPLAY_TITLE = "dynamic.needReplay";
+    public static final String MONO = "reactor.core.publisher.Mono";
+    private static final String JODA_LOCAL_DATE_TIME = "org.joda.time.LocalDateTime";
+    private static final String JODA_LOCAL_TIME = "org.joda.time.LocalTime";
+    public static final String SIMPLE_DATE_FORMAT_MILLIS = "yyyy-MM-dd HH:mm:";
+    private static final String SIMPLE_DATE_FORMAT_MILLIS_WITH_ZONE = "yyyy-MM-dd'T'HH:mm:";
+    public static final String SHORT_TIME_FORMAT_MILLISECOND = "HH:mm:";
+    private static final String TIME_ZONE = "ZZZ";
+    private static final String ZERO_SECOND_TIME = "00.000";
     private final String clazzName;
     private final String methodName;
     private final String methodKey;
@@ -68,48 +80,31 @@ public class DynamicClassExtractor {
         this.methodReturnType = TypeUtil.getName(method.getReturnType());
         this.actualType = null;
     }
-    public void recordResponse(Object response) {
+
+    public Object recordResponse(Object response) {
         if (IgnoreUtils.invalidOperation(dynamicSignature)) {
             LogManager.warn(NEED_RECORD_TITLE,
                     StringUtil.format("do not record invalid operation: %s, can not serialize args or response", dynamicSignature));
-            return;
+            return response;
         }
         if (response instanceof Future<?>) {
             this.setFutureResponse((Future<?>) response);
-            return;
+            return response;
+        }
+        // Compatible with not import package reactor-core
+        if (MONO.equals(methodReturnType) && response instanceof Mono<?>) {
+            return this.resetMonoResponse((Mono<?>) response);
         }
         this.result = response;
         if (needRecord()) {
             this.resultClazz = buildResultClazz(TypeUtil.getName(response));
             Mocker mocker = makeMocker();
-            if (isProtobufObject(response)) {
-                mocker.getTargetResponse().setAttribute("Format", PROTOCOL_BUFFERS);
-                this.serializedResult = ProtoJsonSerializer.getInstance().serialize(this.result);
-            } else {
-                this.serializedResult = serialize(this.result);
-            }
+            this.serializedResult = serialize(this.result);
             mocker.getTargetResponse().setBody(this.serializedResult);
             MockUtils.recordMocker(mocker);
             cacheMethodSignature();
         }
-    }
-
-    private boolean isProtobufObject(Object result) {
-        if (result == null) {
-            return false;
-        }
-        if (result instanceof Collection<?>) {
-            Collection<?> collection = (Collection<?>) result;
-            if (collection.isEmpty()) {
-                return false;
-            }
-            return isProtobufObject(collection.iterator().next());
-        }
-        Class<?> clazz = result.getClass();
-        if (clazz.getSuperclass() == null) {
-            return false;
-        }
-        return PROTOBUF_PACKAGE_NAME.equals(clazz.getSuperclass().getPackage().getName());
+        return response;
     }
 
     public MockResult replay() {
@@ -145,10 +140,6 @@ public class DynamicClassExtractor {
     }
 
     private Object deserializeResult(Mocker replayMocker, String typeName) {
-        if (PROTOCOL_BUFFERS.equals(replayMocker.getTargetResponse().getAttribute("Format"))) {
-            return ProtoJsonSerializer.getInstance().deserialize(replayMocker.getTargetResponse().getBody(),
-                    TypeUtil.forName(typeName));
-        }
         return Serializer.deserialize(replayMocker.getTargetResponse().getBody(), typeName, SERIALIZER);
     }
 
@@ -162,6 +153,12 @@ public class DynamicClassExtractor {
         if (LISTENABLE_FUTURE.equals(methodReturnType)) {
             ListenableFutureAdapter.addCallBack((ListenableFuture<?>) result, this);
         }
+    }
+
+    public Mono<?> resetMonoResponse(Mono<?> result) {
+        return result
+            .doOnError(this::recordResponse)
+            .doOnSuccess((Consumer<Object>) this::recordResponse);
     }
 
     String buildResultClazz(String resultClazz) {
@@ -197,8 +194,64 @@ public class DynamicClassExtractor {
             return key;
         }
 
-        return serialize(args);
+        return serialize(normalizeArgs(args));
     }
+
+    /**
+     * There will be a second-level difference between time type recording and playback,
+     * resulting in inability to accurately match data. And in order to be compatible with previously recorded data,
+     * the second time is cleared to zero.
+     * ex: 2023-01-01 12:12:01.123 -> 2023-01-01 12:12:00.000
+     */
+    private Object[] normalizeArgs(Object[] args) {
+        if (ArrayUtils.isEmpty(args)) {
+            return args;
+        }
+        Object[] normalizedArgs = new Object[args.length];
+        for (int i = 0; i < args.length; i++) {
+            normalizedArgs[i] = normalizeArg(args[i]);
+        }
+        return normalizedArgs;
+    }
+
+    private Object normalizeArg(Object arg) {
+        if (arg == null) {
+            return null;
+        }
+
+        if (arg instanceof LocalDateTime) {
+            return zeroTimeSecond(DateFormatUtils.format((LocalDateTime) arg, SIMPLE_DATE_FORMAT_MILLIS));
+        }
+
+        if (arg instanceof LocalTime) {
+            return zeroTimeSecond(DateFormatUtils.format((LocalTime) arg, SHORT_TIME_FORMAT_MILLISECOND));
+        }
+
+        if (arg instanceof Calendar) {
+            Calendar calendar = (Calendar) arg;
+            String timeZone = DateFormatUtils.format(calendar, TIME_ZONE, calendar.getTimeZone());
+            return zeroTimeSecond(DateFormatUtils.format(calendar, SIMPLE_DATE_FORMAT_MILLIS_WITH_ZONE, calendar.getTimeZone())) + timeZone;
+        }
+
+        if (arg instanceof Date) {
+            return zeroTimeSecond(DateFormatUtils.format((Date) arg, SIMPLE_DATE_FORMAT_MILLIS));
+        }
+
+        if (JODA_LOCAL_DATE_TIME.equals(arg.getClass().getName())) {
+            return zeroTimeSecond(((org.joda.time.LocalDateTime) arg).toString(SIMPLE_DATE_FORMAT_MILLIS));
+        }
+
+        if (JODA_LOCAL_TIME.equals(arg.getClass().getName())) {
+            return zeroTimeSecond(((org.joda.time.LocalTime) arg).toString(SHORT_TIME_FORMAT_MILLISECOND));
+        }
+
+        return arg;
+    }
+
+    private String zeroTimeSecond(String text) {
+        return text + ZERO_SECOND_TIME;
+    }
+
 
     String buildMethodKey(Method method, Object[] args) {
         if (ArrayUtils.isEmpty(args)) {
@@ -211,7 +264,7 @@ public class DynamicClassExtractor {
 
         DynamicClassEntity dynamicEntity = Config.get().getDynamicEntity(dynamicSignature);
         if (dynamicEntity == null || StringUtil.isEmpty(dynamicEntity.getAdditionalSignature())) {
-            return serialize(args);
+            return serialize(normalizeArgs(args));
         }
 
         String keyExpression = ExpressionParseUtil.replaceToExpression(method, dynamicEntity.getAdditionalSignature());
@@ -252,6 +305,13 @@ public class DynamicClassExtractor {
             }
 
             return completableFuture;
+        }
+
+        if (MONO.equals((this.methodReturnType))) {
+            if (result instanceof Throwable) {
+                return Mono.error((Throwable) result);
+            }
+            return Mono.justOrEmpty(result);
         }
 
         return result;

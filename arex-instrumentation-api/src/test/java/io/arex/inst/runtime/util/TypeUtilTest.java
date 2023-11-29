@@ -104,6 +104,11 @@ class TypeUtilTest {
     void testDoubleMap() {
         Map<String, Map<String, LocalDateTime>> map = new HashMap<>();
         Map<String, LocalDateTime> innerMap = new HashMap<>();
+        // value is empty map
+        map.put("emptyMap", new HashMap<>());
+        String valueEmptyMapActualResult = TypeUtil.getName(map);
+        assertEquals("java.util.HashMap-", valueEmptyMapActualResult);
+
         innerMap.put("key1", LocalDateTime.now());
         map.put("key", innerMap);
         String actualResult = TypeUtil.getName(map);
@@ -128,6 +133,11 @@ class TypeUtilTest {
     @Test
     void testMapList() {
         Map<String, List<LocalDateTime>> map = new HashMap<>();
+        // value is empty list
+        map.put("emptyList", new ArrayList<>());
+        String valueEmptyListActualResult = TypeUtil.getName(map);
+        assertEquals("java.util.HashMap-", valueEmptyListActualResult);
+
         List<LocalDateTime> innerList = new ArrayList<>();
         innerList.add(LocalDateTime.now());
         map.put("key", innerList);

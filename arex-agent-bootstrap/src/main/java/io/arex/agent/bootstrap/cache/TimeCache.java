@@ -25,8 +25,12 @@ public class TimeCache {
             CACHE.put(traceId, Pair.of(value, System.nanoTime()));
         }
     }
+
     public static void remove() {
-        String traceId = TraceContextManager.get();
+        remove(TraceContextManager.get());
+    }
+
+    public static void remove(String traceId) {
         if (traceId != null) {
             CACHE.remove(traceId);
         }

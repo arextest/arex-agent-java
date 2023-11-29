@@ -46,29 +46,31 @@ public class InternalHttpAsyncClientInstrumentation extends TypeInstrumentation 
         public static boolean onEnter(@Advice.Argument(1) HttpRequest httpRequest,
             @Advice.Argument(value = 3, readOnly = false) FutureCallback<?> callback,
             @Advice.Local("mockResult") MockResult mockResult) {
-            try {
-                if (ApacheHttpClientHelper.ignoreRequest(httpRequest)) {
-                    callback = FutureCallbackWrapper.wrap(callback);
-                    return false;
-                }
-            } catch (Exception ignored) {
+            if (ApacheHttpClientHelper.ignoreRequest(httpRequest)) {
+                // for transmit trace context
                 callback = FutureCallbackWrapper.wrap(callback);
                 return false;
             }
 
             if (ContextManager.needRecordOrReplay() && RepeatedCollectManager.validate()) {
-                // recording works in callback wrapper
                 FutureCallback<?> callbackWrapper = FutureCallbackWrapper.wrap(httpRequest, callback);
                 if (callbackWrapper != null) {
-                    callback = callbackWrapper;
-                    if (ContextManager.needReplay()) {
-                        mockResult = ((FutureCallbackWrapper<?>)callback).replay();
-                        return mockResult != null && mockResult.notIgnoreMockResult();
+                    if (ContextManager.needRecord()) {
+                        // recording works in callback wrapper
+                        callback = callbackWrapper;
+                    } else if (ContextManager.needReplay()) {
+                        mockResult = ((FutureCallbackWrapper<?>)callbackWrapper).replay();
+                        boolean result = mockResult != null && mockResult.notIgnoreMockResult();
+                        // callback wrapper only set when mock result is not ignored
+                        if (result) {
+                            callback = callbackWrapper;
+                            return true;
+                        }
                     }
                 }
-            } else {
-                callback = FutureCallbackWrapper.wrap(callback);
             }
+
+            callback = FutureCallbackWrapper.wrap(callback);
             return false;
         }
 

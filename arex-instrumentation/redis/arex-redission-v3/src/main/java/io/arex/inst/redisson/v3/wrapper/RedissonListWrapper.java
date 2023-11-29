@@ -2,6 +2,7 @@ package io.arex.inst.redisson.v3.wrapper;
 
 import io.arex.inst.redis.common.RedisKeyUtil;
 import io.arex.inst.redisson.v3.RedissonWrapperCommon;
+import io.arex.inst.redisson.v3.common.RedissonHelper;
 import org.redisson.RedissonList;
 import org.redisson.api.RFuture;
 import org.redisson.api.RedissonClient;
@@ -21,13 +22,13 @@ public class RedissonListWrapper<V> extends RedissonList<V> {
     private final String redisUri;
     public RedissonListWrapper(CommandAsyncExecutor commandExecutor, String name, RedissonClient redisson) {
         super(commandExecutor, name, redisson);
-        redisUri = commandExecutor.getConnectionManager().getConfig().getMasterAddress();
+        redisUri = RedissonHelper.getRedisUri(commandExecutor.getConnectionManager());
     }
 
     public RedissonListWrapper(Codec codec, CommandAsyncExecutor commandExecutor, String name,
         RedissonClient redisson) {
         super(codec, commandExecutor, name, redisson);
-        redisUri = commandExecutor.getConnectionManager().getConfig().getMasterAddress();
+        redisUri = RedissonHelper.getRedisUri(commandExecutor.getConnectionManager());
     }
 
     @Override

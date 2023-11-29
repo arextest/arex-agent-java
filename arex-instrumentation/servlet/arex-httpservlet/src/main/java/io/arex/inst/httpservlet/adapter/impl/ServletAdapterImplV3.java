@@ -141,7 +141,12 @@ public class ServletAdapterImplV3 implements ServletAdapter<HttpServletRequest, 
         if (pattern != null) {
             return String.valueOf(pattern);
         }
-        return httpServletRequest.getRequestURI();
+        final String requestURI = httpServletRequest.getRequestURI();
+        if (StringUtil.isNotEmpty(httpServletRequest.getContextPath()) && requestURI.contains(
+            httpServletRequest.getContextPath())) {
+            return requestURI.replace(httpServletRequest.getContextPath(), "");
+        }
+        return requestURI;
     }
 
     @Override

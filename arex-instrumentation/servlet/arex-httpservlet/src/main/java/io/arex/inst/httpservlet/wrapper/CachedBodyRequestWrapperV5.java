@@ -21,6 +21,7 @@ import java.util.Map;
  */
 public class CachedBodyRequestWrapperV5 extends HttpServletRequestWrapper {
     private static final String FORM_CONTENT_TYPE = "application/x-www-form-urlencoded";
+    private static final String FORM_DATA_CONTENT_TYPE = "multipart/form-data";
 
 
     private final ByteArrayOutputStream cachedContent;
@@ -116,7 +117,7 @@ public class CachedBodyRequestWrapperV5 extends HttpServletRequestWrapper {
 
     private boolean isFormPost() {
         String contentType = getContentType();
-        return (contentType != null && contentType.contains(FORM_CONTENT_TYPE) && "POST".equals(getMethod()));
+        return (contentType != null && (contentType.contains(FORM_CONTENT_TYPE) || contentType.contains(FORM_DATA_CONTENT_TYPE) && "POST".equals(getMethod())));
     }
 
     private void writeRequestParametersToCachedContent() {

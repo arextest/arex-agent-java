@@ -30,4 +30,7 @@ public class ConfigConstants {
     public static final String CURRENT_RATE = "arex.current.rate";
     public static final String DECELERATE_CODE = "arex.decelerate.code";
     public static final String SERIALIZER_CONFIG = "arex.serializer.config";
+    public static final String BUFFER_SIZE = "arex.buffer.size";
+    public static final String SHADED_LOGGER_SHOW_DATE_TIME = "shaded.org.slf4j.simpleLogger.showDateTime";
+    public static final String SHADED_LOGGER_DATE_TIME_FORMAT = "shaded.org.slf4j.simpleLogger.dateTimeFormat";
 }

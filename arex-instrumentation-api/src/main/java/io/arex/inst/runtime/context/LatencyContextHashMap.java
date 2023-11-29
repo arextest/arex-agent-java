@@ -1,5 +1,7 @@
 package io.arex.inst.runtime.context;
 
+import io.arex.agent.bootstrap.cache.TimeCache;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -16,17 +18,28 @@ final class LatencyContextHashMap extends ConcurrentHashMap<String, ArexContext>
 
     @Override
     public ArexContext get(Object key) {
+        if (key == null) {
+            return null;
+        }
         ArexContext context = super.get(key);
         return context == null ? initOrGet(key) : context;
     }
 
     @Override
     public ArexContext remove(Object key) {
-        ArexContext context = super.remove(key);
-        overdueCleanUp();
+        if (key == null) {
+            return null;
+        }
+        ArexContext context = super.get(key);
         if (latencyMap != null && context != null) {
             latencyMap.put(String.valueOf(key), context);
         }
+        // todo: time put into ArexContext
+        if (latencyMap == null) {
+            TimeCache.remove(String.valueOf(key));
+        }
+        super.remove(key);
+        overdueCleanUp();
 
         return context;
     }
@@ -48,6 +61,7 @@ final class LatencyContextHashMap extends ConcurrentHashMap<String, ArexContext>
                         // clear context attachments
                         entry.getValue().clear();
                         latencyMap.remove(entry.getKey());
+                        TimeCache.remove(entry.getKey());
                     }
                 }
             } finally {
