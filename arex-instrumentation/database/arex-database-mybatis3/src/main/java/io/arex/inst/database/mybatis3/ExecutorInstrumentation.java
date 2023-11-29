@@ -78,7 +78,7 @@ public class ExecutorInstrumentation extends TypeInstrumentation {
             originalSql = boundSql != null ? boundSql.getSql() : null;
             RepeatedCollectManager.enter();
             if (ContextManager.needReplay()) {
-                mockResult = InternalExecutor.replay(var1, var2, boundSql, METHOD_NAME_QUERY);
+                mockResult = InternalExecutor.replay(var1, var2, METHOD_NAME_QUERY);
             }
             return mockResult != null && mockResult.notIgnoreMockResult();
         }
@@ -86,7 +86,6 @@ public class ExecutorInstrumentation extends TypeInstrumentation {
         @Advice.OnMethodExit(onThrowable = Throwable.class, suppress = Throwable.class)
         public static void onExit(@Advice.Argument(0) MappedStatement var1,
                                   @Advice.Argument(1) Object var2,
-                                  @Advice.Argument(5) BoundSql boundSql,
                                   @Advice.Thrown(readOnly = false) Throwable throwable,
                                   @Advice.Return(readOnly = false) List<?> result,
                                   @Advice.Local("mockResult") MockResult mockResult,
@@ -105,7 +104,7 @@ public class ExecutorInstrumentation extends TypeInstrumentation {
             }
 
             if (ContextManager.needRecord()) {
-                InternalExecutor.record(var1, var2, boundSql, result, throwable, METHOD_NAME_QUERY, originalSql);
+                InternalExecutor.record(var1, var2, result, throwable, METHOD_NAME_QUERY, originalSql);
             }
         }
     }
@@ -132,7 +131,7 @@ public class ExecutorInstrumentation extends TypeInstrumentation {
                  * Generate executor in advance, because the insert operation will modify sql and parameters,
                  * resulting in inconsistent record and replay
                  */
-                extractor = InternalExecutor.createExtractor(var1, null, var2, METHOD_NAME_UPDATE, null);
+                extractor = InternalExecutor.createExtractor(var1, var2, METHOD_NAME_UPDATE, null);
                 if (ContextManager.needReplay()) {
                     mockResult = InternalExecutor.replay(extractor, var1, var2);
                 }
@@ -217,7 +216,7 @@ public class ExecutorInstrumentation extends TypeInstrumentation {
                      */
                     for (Object parameterObject : batchResult.getParameterObjects()) {
                         DatabaseExtractor extractor = InternalExecutor.createExtractor(
-                                ms, null, parameterObject, METHOD_NAME_BATCH_FLUSH, null);
+                                ms, parameterObject, METHOD_NAME_BATCH_FLUSH, null);
                         if (ContextManager.needRecord()) {
                             extractorList.add(extractor);
                             continue;

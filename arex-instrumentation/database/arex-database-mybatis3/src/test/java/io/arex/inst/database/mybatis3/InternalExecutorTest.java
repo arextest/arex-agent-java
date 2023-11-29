@@ -52,7 +52,6 @@ class InternalExecutorTest {
         mappedStatement = Mockito.mock(MappedStatement.class);
         Mockito.when(mappedStatement.getKeyProperties()).thenReturn(new String[]{"key"});
         boundSql = Mockito.mock(BoundSql.class);
-        Mockito.when(boundSql.getSql()).thenReturn("insert into");
         Mockito.mockStatic(ContextManager.class);
     }
 
@@ -73,7 +72,7 @@ class InternalExecutorTest {
             mocker.setTargetResponse(new Target());
             mockService.when(() -> MockUtils.createDatabase(any())).thenReturn(mocker);
 
-            assertNotNull(InternalExecutor.replay(mappedStatement, new Object(), boundSql, "insert"));
+            assertNotNull(InternalExecutor.replay(mappedStatement, new Object(), "insert"));
         }
     }
 
@@ -96,7 +95,8 @@ class InternalExecutorTest {
         try (MockedConstruction<DatabaseExtractor> mocked = Mockito.mockConstruction(DatabaseExtractor.class, (mock, context) -> {
             atomicReference.set(mock);
         })) {
-            target.record(mappedStatement, new Object(), boundSql, result, throwable, "insert", null);
+            Mockito.when(mappedStatement.getBoundSql(any())).thenReturn(boundSql);
+            target.record(mappedStatement, new Object(), result, throwable, "insert", null);
             if (throwable != null) {
                 Mockito.verify(atomicReference.get(), Mockito.times(1)).record(throwable);
             } else {

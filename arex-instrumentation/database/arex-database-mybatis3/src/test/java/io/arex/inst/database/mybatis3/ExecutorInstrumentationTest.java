@@ -74,7 +74,7 @@ class ExecutorInstrumentationTest {
     @MethodSource("onExitCase")
     void onExit(Runnable mocker, MockResult mockResult, Predicate<MockResult> predicate) {
         mocker.run();
-        ExecutorInstrumentation.QueryAdvice.onExit(null, null, null, null, null, mockResult, null);
+        ExecutorInstrumentation.QueryAdvice.onExit(null, null, null, null, mockResult, null);
         assertTrue(predicate.test(mockResult));
     }
 
