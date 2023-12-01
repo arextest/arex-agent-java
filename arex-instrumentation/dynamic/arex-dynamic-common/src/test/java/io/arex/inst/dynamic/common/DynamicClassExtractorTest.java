@@ -5,6 +5,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import io.arex.agent.bootstrap.model.ArexMocker;
 import io.arex.agent.bootstrap.model.Mocker.Target;
 import io.arex.agent.thirdparty.util.time.DateFormatUtils;
+import io.arex.inst.dynamic.common.listener.MonoConsumer;
 import io.arex.inst.runtime.config.ConfigBuilder;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
@@ -16,25 +17,15 @@ import io.arex.inst.runtime.util.IgnoreUtils;
 import io.arex.inst.runtime.util.MockUtils;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.TemporalAccessor;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.HashSet;
-import java.util.Locale;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.function.Consumer;
-
-import org.joda.time.format.DateTimeFormat;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -55,8 +46,6 @@ import java.util.stream.Stream;
 import org.mockito.stubbing.Answer;
 import reactor.core.publisher.Mono;
 
-import javax.xml.datatype.XMLGregorianCalendar;
-
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -66,7 +55,6 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.times;
 
 @ExtendWith(MockitoExtension.class)
 class DynamicClassExtractorTest {
@@ -119,15 +107,16 @@ class DynamicClassExtractorTest {
             final DynamicClassExtractor extractor = new DynamicClassExtractor(testWithArexMock, args);
             final Predicate<Object> nonNull = Objects::nonNull;
 
-            //exception
+            // exception
             Mono<?> result = monoExceptionTest();
-            result = extractor.resetMonoResponse(result);
+            MonoConsumer monoConsumer = new MonoConsumer(extractor);
+            result = monoConsumer.accept(result);
             result.subscribe();
             assertTrue(nonNull.test(result));
 
-            //nomal
+            // normal
             result = monoTest();
-            result = extractor.resetMonoResponse(result);
+            result = monoConsumer.accept(result);
             result.subscribe();
             assertTrue(nonNull.test(result));
         } catch (NoSuchMethodException e) {
