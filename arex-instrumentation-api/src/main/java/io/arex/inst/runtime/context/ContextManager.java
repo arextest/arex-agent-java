@@ -1,6 +1,7 @@
 package io.arex.inst.runtime.context;
 
 import io.arex.agent.bootstrap.TraceContextManager;
+import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.listener.ContextListener;
 
@@ -50,8 +51,8 @@ public class ContextManager {
         return ArexContext.of(traceId);
     }
 
-    public static ArexContext getRecordContext(String recordId) {
-        return RECORD_MAP.get(recordId);
+    public static ArexContext getContext(String traceId) {
+        return RECORD_MAP.get(traceId);
     }
 
     public static boolean needRecord() {
@@ -82,7 +83,7 @@ public class ContextManager {
     }
 
     private static void publish(ArexContext context, boolean isCreate) {
-        if (LISTENERS.size() > 0) {
+        if (CollectionUtil.isNotEmpty(LISTENERS)) {
             LISTENERS.stream().forEach(listener -> {
                 if (isCreate) {
                     listener.onCreate(context);

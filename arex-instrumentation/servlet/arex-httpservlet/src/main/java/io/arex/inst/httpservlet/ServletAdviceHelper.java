@@ -256,7 +256,7 @@ public class ServletAdviceHelper {
             return null;
         }
 
-        ArexContext context = ContextManager.getRecordContext(redirectRecordId);
+        ArexContext context = ContextManager.getContext(redirectRecordId);
         if (context.isRedirectRequest(referer)) {
             return redirectRecordId;
         }

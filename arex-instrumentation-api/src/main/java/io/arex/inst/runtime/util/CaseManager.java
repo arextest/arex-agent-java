@@ -12,28 +12,34 @@ public class CaseManager {
     private CaseManager() {
     }
 
-    public static void invalid(String recordId, String operationName, String invalidReason) {
+    public static void invalid(
+            String recordId, String replayId, String operationName, String invalidReason) {
         try {
-            final ArexContext context = ContextManager.getRecordContext(recordId);
+            final ArexContext context =
+                    StringUtil.isNotEmpty(replayId)
+                            ? ContextManager.getContext(replayId)
+                            : ContextManager.getContext(recordId);
             if (context == null || context.isInvalidCase()) {
                 return;
             }
             context.setInvalidCase(true);
-            String invalidCaseJson = StringUtil.format("{\"appId\":\"%s\",\"recordId\":\"%s\",\"reason\":\"%s\"}",
-                    System.getProperty(ConfigConstants.SERVICE_NAME), recordId, invalidReason);
+            String invalidCaseJson =
+                    StringUtil.format(
+                            "{\"appId\":\"%s\",\"recordId\":\"%s\",\"replayId\":\"%s\",\"reason\":\"%s\"}",
+                            System.getProperty(ConfigConstants.SERVICE_NAME), recordId, replayId, invalidReason);
             DataService.INSTANCE.invalidCase(invalidCaseJson);
             LogManager.warn("invalidCase",
-                    StringUtil.format("invalid case: recordId: %s operation: %s reason: %s", recordId,  operationName, invalidReason));
+                    StringUtil.format("invalid case: recordId: %s, replayId: %s, operation: %s, reason: %s", recordId, replayId, operationName, invalidReason));
         } catch (Exception ex) {
             LogManager.warn("invalidCase.remove", ex);
         }
     }
 
-    public static boolean isInvalidCase(String recordId) {
-        if (StringUtil.isEmpty(recordId)) {
+    public static boolean isInvalidCase(String traceId) {
+        if (StringUtil.isEmpty(traceId)) {
             return true;
         }
-        final ArexContext context = ContextManager.getRecordContext(recordId);
+        final ArexContext context = ContextManager.getContext(traceId);
         if (context == null) {
             return false;
         }
