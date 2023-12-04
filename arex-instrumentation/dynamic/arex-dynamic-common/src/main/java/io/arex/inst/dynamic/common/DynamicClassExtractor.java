@@ -9,6 +9,7 @@ import io.arex.agent.bootstrap.util.ArrayUtils;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.agent.thirdparty.util.time.DateFormatUtils;
 import io.arex.inst.dynamic.common.listener.ListenableFutureAdapter;
+import io.arex.inst.dynamic.common.listener.MonoConsumer;
 import io.arex.inst.dynamic.common.listener.ResponseConsumer;
 import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.ArexContext;
@@ -93,7 +94,7 @@ public class DynamicClassExtractor {
         }
         // Compatible with not import package reactor-core
         if (MONO.equals(methodReturnType) && response instanceof Mono<?>) {
-            return this.resetMonoResponse((Mono<?>) response);
+            return new MonoConsumer(this).accept((Mono<?>) response);
         }
         this.result = response;
         if (needRecord()) {
@@ -153,12 +154,6 @@ public class DynamicClassExtractor {
         if (LISTENABLE_FUTURE.equals(methodReturnType)) {
             ListenableFutureAdapter.addCallBack((ListenableFuture<?>) result, this);
         }
-    }
-
-    public Mono<?> resetMonoResponse(Mono<?> result) {
-        return result
-            .doOnError(this::recordResponse)
-            .doOnSuccess((Consumer<Object>) this::recordResponse);
     }
 
     String buildResultClazz(String resultClazz) {
