@@ -110,5 +110,7 @@ class IgnoreUtilsTest {
     void invalidOperation() {
         IgnoreUtils.addInvalidOperation("testClass.testMethod");
         assertTrue(IgnoreUtils.invalidOperation("testClass.testMethod"));
+        IgnoreUtils.clearInvalidOperation();
+        assertFalse(IgnoreUtils.invalidOperation("testClass.testMethod"));
     }
 }

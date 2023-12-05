@@ -125,4 +125,8 @@ public class IgnoreUtils {
         INVALID_OPERATION_HASH_CACHE.add(operationSignature.hashCode());
     }
 
+    public static void clearInvalidOperation() {
+        INVALID_OPERATION_HASH_CACHE.clear();
+    }
+
 }
