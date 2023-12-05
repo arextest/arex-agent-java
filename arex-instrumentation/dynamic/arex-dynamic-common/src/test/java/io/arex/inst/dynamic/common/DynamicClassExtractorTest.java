@@ -350,10 +350,23 @@ class DynamicClassExtractorTest {
         ConfigBuilder.create("mock-service").dynamicClassList(list).build();
         actualResult = extractor.buildMethodKey(testWithArexMock, new Object[]{"mock-method-key"});
         assertEquals("mock-method-key", actualResult);
+
+        // express is null
+        Method testWithArexMockList = DynamicClassExtractorTest.class.getDeclaredMethod("testWithArexMock", List.class);
+        extractor = new DynamicClassExtractor(testWithArexMockList, new Object[]{new ArrayList<>()}, null, String.class);
+        list.clear();
+        list.add(new DynamicClassEntity("io.arex.inst.dynamic.common.DynamicClassExtractorTest", "testWithArexMock", "mock", "$1.get(0)"));
+        ConfigBuilder.create("mock-service").dynamicClassList(list).build();
+        actualResult = extractor.buildMethodKey(testWithArexMockList, new Object[]{new ArrayList<>()});
+        assertNull(actualResult);
     }
 
     public String testWithArexMock(String val) {
         return val + "testWithArexMock";
+    }
+
+    public String testWithArexMock(List list) {
+       return "testWithArexMock";
     }
 
     public ListenableFuture<String> testReturnListenableFuture(String val, Throwable t) {

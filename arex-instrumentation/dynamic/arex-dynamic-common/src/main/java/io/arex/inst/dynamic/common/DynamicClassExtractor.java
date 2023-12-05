@@ -31,7 +31,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
-import java.util.function.Consumer;
 import reactor.core.publisher.Mono;
 
 public class DynamicClassExtractor {
@@ -185,7 +184,7 @@ public class DynamicClassExtractor {
         }
 
         String key = ExpressionParseUtil.generateKey(method, args, keyExpression);
-        if (key != null) {
+        if (key != null || StringUtil.isNotEmpty(keyExpression)) {
             return key;
         }
 
