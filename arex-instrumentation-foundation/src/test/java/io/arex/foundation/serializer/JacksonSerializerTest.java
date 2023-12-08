@@ -6,6 +6,8 @@ import io.arex.foundation.serializer.custom.FastUtilAdapterFactoryTest.TestType;
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.arex.inst.runtime.util.TypeUtil;
+
+import java.math.BigDecimal;
 import java.sql.Time;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -163,9 +165,34 @@ class JacksonSerializerTest {
         assertEquals("200", deserializeJackTestType.getAmountpaid());
     }
 
+    @Test
+    void testBigDecimal() throws Throwable {
+        BigDecimal bigDecimal = new BigDecimal("0.916520000");
+        String json3 = JacksonSerializer.INSTANCE.serialize(bigDecimal);
+        BigDecimal actualResult3 = JacksonSerializer.INSTANCE.deserialize(json3, TypeUtil.forName(TypeUtil.getName(bigDecimal)));
+        String json4 = GsonSerializer.INSTANCE.serialize(bigDecimal);
+        BigDecimal actualResult4 = GsonSerializer.INSTANCE.deserialize(json4, TypeUtil.forName(TypeUtil.getName(bigDecimal)));
+
+        CaseSensitive caseSensitive = new CaseSensitive();
+        caseSensitive.setBigDecimal(bigDecimal);
+        String json = JacksonSerializer.INSTANCE.serialize(caseSensitive);
+        CaseSensitive actualResult = JacksonSerializer.INSTANCE.deserialize(json, CaseSensitive.class);
+        String json2 = GsonSerializer.INSTANCE.serialize(caseSensitive);
+        CaseSensitive actualResult2 = GsonSerializer.INSTANCE.deserialize(json2, CaseSensitive.class);
+    }
+
     static class CaseSensitive {
         private String amountPaid;
         private String amountpaid;
+        private BigDecimal bigDecimal;
+
+        public BigDecimal getBigDecimal() {
+            return bigDecimal;
+        }
+
+        public void setBigDecimal(BigDecimal bigDecimal) {
+            this.bigDecimal = bigDecimal;
+        }
 
         public String getAmountPaid() {
             return amountPaid;

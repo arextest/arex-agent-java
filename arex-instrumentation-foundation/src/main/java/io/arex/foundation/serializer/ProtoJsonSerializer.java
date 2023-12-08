@@ -16,8 +16,19 @@ import io.arex.inst.runtime.util.TypeUtil;
 
 public class ProtoJsonSerializer implements StringSerializable{
     private static final ProtoJsonSerializer INSTANCE = new ProtoJsonSerializer();
-    private static final JsonFormat.Printer JSON_PRINTER = JsonFormat.printer().omittingInsignificantWhitespace();
-    private static final JsonFormat.Parser JSON_PARSER = JsonFormat.parser().ignoringUnknownFields();
+    private static JsonFormat.Printer JSON_PRINTER;
+    private static JsonFormat.Parser JSON_PARSER;
+
+    static {
+        try {
+            JSON_PRINTER = JsonFormat.printer().omittingInsignificantWhitespace();
+            JSON_PARSER = JsonFormat.parser().ignoringUnknownFields();
+        } catch (Throwable e) {
+            LogManager.warn("proto-serializer", e);
+            LogManager.info("proto-serializer", "init classloader: " + Thread.currentThread().getContextClassLoader().toString());
+            LogManager.info("proto-serializer", "JsonFormat classloader: " + JsonFormat.class.getClassLoader().toString());
+        }
+    }
 
     public static ProtoJsonSerializer getInstance() {
         return INSTANCE;
