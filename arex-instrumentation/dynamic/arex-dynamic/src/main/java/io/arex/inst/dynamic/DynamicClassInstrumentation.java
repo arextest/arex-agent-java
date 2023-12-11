@@ -106,7 +106,7 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
     public List<MethodInstrumentation> methodAdvices() {
         ElementMatcher.Junction<MethodDescription> matcher = null;
         if (onlyClass != null) {
-            matcher = isMethod().and(not(takesNoArguments()))
+            matcher = isMethod().and(isPublic()).and(not(takesNoArguments()))
                 .and(not(isAnnotatedWith(namedOneOf(DynamiConstants.SPRING_CACHE, DynamiConstants.AREX_MOCK))));
             if (isNotAbstractClass(onlyClass.getClazzName())) {
                 matcher = matcher.and(not(isOverriddenFrom(namedOneOf(Config.get().getDynamicAbstractClassList()))));
