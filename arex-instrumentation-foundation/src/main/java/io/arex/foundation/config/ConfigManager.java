@@ -557,6 +557,7 @@ public class ConfigManager {
 
     public void setExcludeServiceOperations(Set<String> excludeServiceOperationSet) {
         if (CollectionUtil.isEmpty(excludeServiceOperationSet)) {
+            this.excludeServiceOperations = Collections.emptySet();
             return;
         }
         this.excludeServiceOperations = excludeServiceOperationSet;
