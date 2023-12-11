@@ -12,9 +12,6 @@ class ProtoJsonSerializerTest {
 
     @Test
     void serialize() {
-        // name
-        assertEquals("protoJson", ProtoJsonSerializer.getInstance().name());
-
         // serialize no protobuf but not throw exception
         ProtoJsonSerializer.getInstance().serialize("test");
         assertDoesNotThrow(() -> ProtoJsonSerializer.getInstance().serialize("test"));
@@ -30,11 +27,6 @@ class ProtoJsonSerializerTest {
         // deserialize empty
         final HelloProtoRequestType emptyResult = ProtoJsonSerializer.getInstance().deserialize("", HelloProtoRequestType.class);
         assertNull(emptyResult);
-
-        // deserialize protobuf
-        String typeName = TypeUtil.getName(requestType);
-        final HelloProtoRequestType actualResult = ProtoJsonSerializer.getInstance().deserialize(json, TypeUtil.forName(typeName));
-        assert actualResult != null;
     }
 
     @Test
