@@ -23,7 +23,7 @@ public class ForkJoinTaskInstrumentation extends TypeInstrumentation {
     @Override
     public List<MethodInstrumentation> methodAdvices() {
         return Collections.singletonList(
-                new MethodInstrumentation(isMethod().and(named("exec")).and(not(isAbstract())),
+                new MethodInstrumentation(isMethod().and(namedOneOf("exec", "run")).and(not(isAbstract())),
                 "io.arex.inst.executors.ForkJoinTaskInstrumentation$ExecAdvice"));
     }
 
