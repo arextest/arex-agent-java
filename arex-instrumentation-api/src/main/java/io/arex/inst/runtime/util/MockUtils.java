@@ -105,6 +105,10 @@ public final class MockUtils {
     }
 
     public static Mocker replayMocker(Mocker requestMocker, MockStrategyEnum mockStrategy) {
+        if (CaseManager.isInvalidCase(requestMocker.getReplayId())) {
+            return null;
+        }
+
         String postJson = Serializer.serialize(requestMocker);
 
         String data = DataService.INSTANCE.query(postJson, mockStrategy);

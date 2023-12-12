@@ -72,7 +72,8 @@ class MockUtilsTest {
         configBuilder.build();
         String responseJson = "{\"id\":\"64ec180f7071c91a03cde866\",\"categoryType\":{\"name\":\"DynamicClass\",\"entryPoint\":false,\"skipComparison\":true},\"replayId\":null,\"recordId\":\"AREX-10-4-202-26-46993323299502\",\"appId\":\"arex-test-app\",\"recordEnvironment\":0,\"creationTime\":1693194255518,\"updateTime\":0,\"expirationTime\":1693539855663,\"targetRequest\":{\"body\":null,\"attributes\":null,\"type\":null},\"targetResponse\":{\"body\":\"1693194255518\",\"attributes\":null,\"type\":\"java.lang.Long\"},\"operationName\":\"java.lang.System.currentTimeMillis\",\"recordVersion\":\"0.3.8\"}";
         Mockito.when(dataCollector.query(anyString(), any())).thenReturn(responseJson);
-        Mockito.when(ContextManager.currentContext()).thenReturn(ArexContext.of("mock-trace-id"));
+        Mockito.when(CaseManager.isInvalidCase("mock-replay-id")).thenReturn(false);
+        Mockito.when(ContextManager.currentContext()).thenReturn(ArexContext.of("mock-trace-id", "mock-replay-id"));
         dynamicClass = MockUtils.createDynamicClass("test", "test");
         Object actualResult = MockUtils.replayBody(dynamicClass);
         assertEquals(1693194255518L, actualResult);

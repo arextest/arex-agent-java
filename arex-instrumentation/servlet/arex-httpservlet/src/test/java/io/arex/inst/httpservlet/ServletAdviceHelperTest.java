@@ -107,7 +107,7 @@ class ServletAdviceHelperTest {
             Mockito.when(adapter.getRequestHeader(any(), eq("referer"))).thenReturn("mock-referer");
             ArexContext context = ArexContext.of("mock-record-id");
             context.setAttachment(ArexConstants.REDIRECT_REFERER, "mock-referer");
-            Mockito.when(ContextManager.getRecordContext(anyString())).thenReturn(context);
+            Mockito.when(ContextManager.getContext(anyString())).thenReturn(context);
         };
         Runnable shouldSkip2 = () -> {
             Mockito.when(adapter.getRequestHeader(any(), eq(ArexConstants.RECORD_ID))).thenReturn("");
