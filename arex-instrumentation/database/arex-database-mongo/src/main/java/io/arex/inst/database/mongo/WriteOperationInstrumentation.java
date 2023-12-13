@@ -84,15 +84,14 @@ public class WriteOperationInstrumentation extends TypeInstrumentation {
         }
 
         @Advice.OnMethodExit(onThrowable = Throwable.class ,suppress = Throwable.class)
-        public static void onExit(@Advice.Enter boolean needReplay,
-                                  @Advice.Origin Method method,
+        public static void onExit(@Advice.Origin Method method,
                                   @Advice.FieldValue("namespace") MongoNamespace namespace,
                                   @Advice.Origin("#m") String methodName,
                                   @Advice.Argument(1) Object filter,
                                   @Advice.Return(readOnly = false, typing = Assigner.Typing.DYNAMIC) Object result,
                                   @Advice.Thrown(readOnly = false) Throwable throwable,
                                   @Advice.Local("mockResult") MockResult mockResult) {
-            if (needReplay) {
+            if (mockResult != null && mockResult.notIgnoreMockResult()) {
                 if (throwable != null) {
                     throwable = mockResult.getThrowable();
                 } else {
