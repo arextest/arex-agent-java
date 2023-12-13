@@ -352,6 +352,9 @@ public class StringUtil {
     }
 
     public static boolean startWith(String source, String prefix) {
+        if (source == null || prefix == null) {
+            return source == null && prefix == null;
+        }
         return startWithFrom(source, prefix, 0);
     }
 

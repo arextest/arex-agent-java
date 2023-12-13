@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import io.arex.agent.bootstrap.constants.ConfigConstants;
+import io.arex.agent.bootstrap.model.ArexMocker;
 import io.arex.agent.bootstrap.util.MapUtils;
 import io.arex.foundation.model.*;
 import io.arex.foundation.config.ConfigManager;
@@ -18,6 +19,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,6 +35,7 @@ public class ConfigService {
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     public static final ConfigService INSTANCE = new ConfigService();
+    private static final String TAGS_PREFIX = "arex.tags.";
     private static final String CONFIG_LOAD_URI =
         String.format("http://%s/api/config/agent/load", ConfigManager.INSTANCE.getConfigServiceHost());
 
@@ -134,11 +137,23 @@ public class ConfigService {
 
     public Map<String, String> getSystemProperties() {
         Properties properties = System.getProperties();
-        Map<String, String> map = new HashMap<>(properties.size());
+        Map<String, String> map = MapUtils.newHashMapWithExpectedSize(properties.size());
         for (Map.Entry<Object, Object> entry : properties.entrySet()) {
-            map.put(String.valueOf(entry.getKey()), String.valueOf(entry.getValue()));
+            String key = String.valueOf(entry.getKey());
+            String value = String.valueOf(entry.getValue());
+            map.put(key, value);
+            buildTags(key, value);
         }
         return map;
+    }
+
+    /**
+     * ex: -Darex.tags.xxx=xxx
+     */
+    private void buildTags(String key, String value) {
+        if (StringUtil.startWith(key, TAGS_PREFIX)) {
+            ArexMocker.TAGS.put(key.substring(TAGS_PREFIX.length()), value);
+        }
     }
 
     public String serialize(Object object) {
