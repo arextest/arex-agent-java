@@ -1,5 +1,6 @@
 package io.arex.inst.database.common;
 
+import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.serializer.Serializer;
 import org.hibernate.engine.spi.QueryParameters;
 import org.hibernate.engine.spi.TypedValue;
@@ -23,7 +24,7 @@ public class DatabaseHelper {
         for (Map.Entry<String, TypedValue> entry : parameters.entrySet()) {
             parameterMap.put(entry.getKey(), entry.getValue().getValue());
         }
-        return Serializer.serialize(parameterMap);
+        return Serializer.serialize(parameterMap, ArexConstants.JACKSON_REQUEST_SERIALIZER);
     }
 }
 

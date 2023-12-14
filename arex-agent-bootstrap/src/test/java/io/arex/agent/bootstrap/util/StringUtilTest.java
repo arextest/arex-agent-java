@@ -319,4 +319,14 @@ class StringUtilTest {
         assertTrue(StringUtil.startWith(null, null));
         assertFalse(StringUtil.startWith("", "M"));
     }
+
+    @Test
+    void countMatches() {
+        assertEquals(0, StringUtil.countMatches(null, null));
+        assertEquals(0, StringUtil.countMatches(null, ""));
+        assertEquals(0, StringUtil.countMatches("", null));
+        assertEquals(0, StringUtil.countMatches("", ""));
+        assertEquals(0, StringUtil.countMatches("mock", "M"));
+        assertEquals(1, StringUtil.countMatches("mock", "m"));
+    }
 }

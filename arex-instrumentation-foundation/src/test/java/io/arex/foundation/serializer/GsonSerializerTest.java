@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.google.gson.internal.LinkedTreeMap;
 import io.arex.agent.bootstrap.internal.Pair;
+import io.arex.foundation.serializer.gson.GsonSerializer;
 import io.arex.inst.runtime.util.TypeUtil;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
@@ -15,7 +16,6 @@ import java.sql.Time;
 import java.time.LocalDateTime;
 import java.util.Map;
 
-import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 
@@ -150,6 +150,14 @@ class GsonSerializerTest {
         final IntSet deserialize = GsonSerializer.INSTANCE.deserialize(json, IntSet.class);
         assert deserialize != null;
         assertEquals(hashSet, deserialize);
+    }
+
+    @Test
+    void testClass() {
+        String className = GsonSerializer.INSTANCE.serialize(String.class);
+        assertEquals("\"java.lang.String\"", className);
+        Object deserialize1 = GsonSerializer.INSTANCE.deserialize(className, Class.class);
+        assertEquals(String.class, deserialize1);
     }
 
     @Test

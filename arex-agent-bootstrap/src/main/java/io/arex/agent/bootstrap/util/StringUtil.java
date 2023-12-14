@@ -1,7 +1,5 @@
 package io.arex.agent.bootstrap.util;
 
-import io.arex.agent.thirdparty.util.CharSequenceUtils;
-
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
@@ -532,6 +530,10 @@ public class StringUtil {
         return true;
     }
 
+    public static boolean isNotNumeric(final String cs) {
+        return !isNumeric(cs);
+    }
+
     /**
      * get the first occurrence of a number in a string
      * example: 1-SNAPSHOT -> 1
@@ -549,5 +551,18 @@ public class StringUtil {
 
     public static boolean isNullWord(String str) {
         return equals(str, "null") || equals(str, "NULL");
+    }
+
+    public static int countMatches(final String str, final String sub) {
+        if (isEmpty(str) || isEmpty(sub)) {
+            return 0;
+        }
+        int count = 0;
+        int idx = 0;
+        while ((idx = CharSequenceUtils.indexOf(str, sub, idx)) != INDEX_NOT_FOUND) {
+            count++;
+            idx += sub.length();
+        }
+        return count;
     }
 }

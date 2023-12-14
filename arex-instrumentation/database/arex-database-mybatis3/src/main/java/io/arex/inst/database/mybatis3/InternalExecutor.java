@@ -6,6 +6,7 @@ import io.arex.agent.bootstrap.util.ArrayUtils;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
+import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.database.common.DatabaseExtractor;
 
@@ -210,6 +211,6 @@ public class InternalExecutor {
         if (StringUtil.isEmpty(originalSql) && mappedStatement != null && mappedStatement.getBoundSql(parameters) != null) {
             originalSql = mappedStatement.getBoundSql(parameters).getSql();
         }
-        return new DatabaseExtractor(originalSql, Serializer.serialize(parameters), methodName);
+        return new DatabaseExtractor(originalSql, Serializer.serialize(parameters, ArexConstants.JACKSON_REQUEST_SERIALIZER), methodName);
     }
 }

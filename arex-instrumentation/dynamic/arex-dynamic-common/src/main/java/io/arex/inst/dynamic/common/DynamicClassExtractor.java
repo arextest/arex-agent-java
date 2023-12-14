@@ -7,7 +7,6 @@ import io.arex.agent.bootstrap.model.MockStrategyEnum;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.ArrayUtils;
 import io.arex.agent.bootstrap.util.StringUtil;
-import io.arex.agent.thirdparty.util.time.DateFormatUtils;
 import io.arex.inst.common.util.FluxRecordFunction;
 import io.arex.inst.common.util.FluxReplayUtil;
 import io.arex.inst.common.util.FluxReplayUtil.FluxResult;
@@ -25,9 +24,9 @@ import io.arex.inst.runtime.log.LogManager;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.*;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.function.Function;
@@ -45,13 +44,6 @@ public class DynamicClassExtractor {
     private static final String NEED_REPLAY_TITLE = "dynamic.needReplay";
     public static final String MONO = "reactor.core.publisher.Mono";
     public static final String FLUX = "reactor.core.publisher.Flux";
-    private static final String JODA_LOCAL_DATE_TIME = "org.joda.time.LocalDateTime";
-    private static final String JODA_LOCAL_TIME = "org.joda.time.LocalTime";
-    public static final String SIMPLE_DATE_FORMAT_MILLIS = "yyyy-MM-dd HH:mm:";
-    private static final String SIMPLE_DATE_FORMAT_MILLIS_WITH_ZONE = "yyyy-MM-dd'T'HH:mm:";
-    public static final String SHORT_TIME_FORMAT_MILLISECOND = "HH:mm:";
-    private static final String TIME_ZONE = "ZZZ";
-    private static final String ZERO_SECOND_TIME = "00.000";
     private final String clazzName;
     private final String methodName;
     private final String methodKey;
@@ -197,68 +189,12 @@ public class DynamicClassExtractor {
             return key;
         }
 
-        return serialize(normalizeArgs(args));
+        return serialize(args, ArexConstants.GSON_REQUEST_SERIALIZER);
     }
 
     String buildRequestType(Method method) {
         return ArrayUtils.toString(method.getParameterTypes(), obj -> ((Class<?>)obj).getTypeName());
     }
-
-    /**
-     * There will be a second-level difference between time type recording and playback,
-     * resulting in inability to accurately match data. And in order to be compatible with previously recorded data,
-     * the second time is cleared to zero.
-     * ex: 2023-01-01 12:12:01.123 -> 2023-01-01 12:12:00.000
-     */
-    private Object[] normalizeArgs(Object[] args) {
-        if (ArrayUtils.isEmpty(args)) {
-            return args;
-        }
-        Object[] normalizedArgs = new Object[args.length];
-        for (int i = 0; i < args.length; i++) {
-            normalizedArgs[i] = normalizeArg(args[i]);
-        }
-        return normalizedArgs;
-    }
-
-    private Object normalizeArg(Object arg) {
-        if (arg == null) {
-            return null;
-        }
-
-        if (arg instanceof LocalDateTime) {
-            return zeroTimeSecond(DateFormatUtils.format((LocalDateTime) arg, SIMPLE_DATE_FORMAT_MILLIS));
-        }
-
-        if (arg instanceof LocalTime) {
-            return zeroTimeSecond(DateFormatUtils.format((LocalTime) arg, SHORT_TIME_FORMAT_MILLISECOND));
-        }
-
-        if (arg instanceof Calendar) {
-            Calendar calendar = (Calendar) arg;
-            String timeZone = DateFormatUtils.format(calendar, TIME_ZONE, calendar.getTimeZone());
-            return zeroTimeSecond(DateFormatUtils.format(calendar, SIMPLE_DATE_FORMAT_MILLIS_WITH_ZONE, calendar.getTimeZone())) + timeZone;
-        }
-
-        if (arg instanceof Date) {
-            return zeroTimeSecond(DateFormatUtils.format((Date) arg, SIMPLE_DATE_FORMAT_MILLIS));
-        }
-
-        if (JODA_LOCAL_DATE_TIME.equals(arg.getClass().getName())) {
-            return zeroTimeSecond(((org.joda.time.LocalDateTime) arg).toString(SIMPLE_DATE_FORMAT_MILLIS));
-        }
-
-        if (JODA_LOCAL_TIME.equals(arg.getClass().getName())) {
-            return zeroTimeSecond(((org.joda.time.LocalTime) arg).toString(SHORT_TIME_FORMAT_MILLISECOND));
-        }
-
-        return arg;
-    }
-
-    private String zeroTimeSecond(String text) {
-        return text + ZERO_SECOND_TIME;
-    }
-
 
     String buildMethodKey(Method method, Object[] args) {
         if (ArrayUtils.isEmpty(args)) {
@@ -266,12 +202,12 @@ public class DynamicClassExtractor {
         }
 
         if (Config.get() == null || Config.get().getDynamicClassSignatureMap().isEmpty()) {
-            return serialize(args);
+            return serialize(args, ArexConstants.GSON_REQUEST_SERIALIZER);
         }
 
         DynamicClassEntity dynamicEntity = Config.get().getDynamicEntity(dynamicSignature);
         if (dynamicEntity == null || StringUtil.isEmpty(dynamicEntity.getAdditionalSignature())) {
-            return serialize(normalizeArgs(args));
+            return serialize(args, ArexConstants.GSON_REQUEST_SERIALIZER);
         }
 
         String keyExpression = ExpressionParseUtil.replaceToExpression(method, dynamicEntity.getAdditionalSignature());
@@ -401,17 +337,17 @@ public class DynamicClassExtractor {
                         this.dynamicSignature, AgentSizeOf.humanReadableUnits(ArexConstants.MEMORY_SIZE_1MB)));
                 return null;
             }
-            this.serializedResult = serialize(this.result);
+            this.serializedResult = serialize(this.result, ArexConstants.GSON_SERIALIZER);
         }
         return this.serializedResult;
     }
 
-    private String serialize(Object object) {
+    private String serialize(Object object, String serializer) {
         if (IgnoreUtils.invalidOperation(dynamicSignature)) {
             return null;
         }
         try {
-            return Serializer.serializeWithException(object, ArexConstants.GSON_SERIALIZER);
+            return Serializer.serializeWithException(object, serializer);
         } catch (Throwable ex) {
             IgnoreUtils.addInvalidOperation(dynamicSignature);
             LogManager.warn("serializeWithException", StringUtil.format("can not serialize object: %s, cause: %s", TypeUtil.errorSerializeToString(object), ex.toString()));

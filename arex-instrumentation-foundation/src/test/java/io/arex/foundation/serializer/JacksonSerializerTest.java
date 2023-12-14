@@ -1,13 +1,10 @@
 package io.arex.foundation.serializer;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.arex.agent.bootstrap.model.MockCategoryType;
-import io.arex.foundation.serializer.custom.FastUtilAdapterFactoryTest;
-import io.arex.foundation.serializer.custom.FastUtilAdapterFactoryTest.TestType;
+import io.arex.foundation.serializer.FastUtilAdapterFactoryTest.TestType;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import io.arex.foundation.serializer.jackson.JacksonSerializer;
 import io.arex.inst.runtime.util.TypeUtil;
 import java.sql.Time;
 import java.time.LocalDateTime;

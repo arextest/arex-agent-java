@@ -10,7 +10,7 @@ import io.arex.foundation.healthy.HealthManager;
 import io.arex.foundation.internal.DataEntity;
 import io.arex.foundation.model.DecelerateReasonEnum;
 import io.arex.foundation.model.HttpClientResponse;
-import io.arex.foundation.serializer.GsonSerializer;
+import io.arex.foundation.serializer.gson.GsonSerializer;
 import io.arex.foundation.util.httpclient.AsyncHttpClientUtil;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
