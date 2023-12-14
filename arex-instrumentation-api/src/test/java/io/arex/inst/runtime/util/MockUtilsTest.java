@@ -77,6 +77,19 @@ class MockUtilsTest {
         dynamicClass = MockUtils.createDynamicClass("test", "test");
         Object actualResult = MockUtils.replayBody(dynamicClass);
         assertEquals(1693194255518L, actualResult);
+
+        // invalid case
+        Mockito.when(CaseManager.isInvalidCase("mock-replay-id")).thenReturn(true);
+        assertNull(MockUtils.replayBody(dynamicClass));
+
+        // null replayId but is not config file
+        Mockito.when(CaseManager.isInvalidCase(null)).thenReturn(true);
+        Mockito.when(ContextManager.currentContext()).thenReturn(ArexContext.of("mock-trace-id", null));
+        assertNull(MockUtils.replayBody(dynamicClass));
+
+        // null replayId and is config file
+        ArexMocker configFile = MockUtils.createConfigFile("test");
+        assertNotNull(MockUtils.replayBody(configFile));
     }
 
     @Test
