@@ -4,16 +4,18 @@ import io.arex.agent.bootstrap.util.ReflectUtil;
 import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.Set;
+import org.redisson.Redisson;
+import org.redisson.api.RedissonClient;
+import org.redisson.command.CommandAsyncExecutor;
 import org.redisson.config.MasterSlaveServersConfig;
 import org.redisson.connection.ConnectionManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import io.arex.inst.runtime.log.LogManager;
 
 public class RedissonHelper {
 
     private static Method getConfigMethod = ReflectUtil.getMethod(ConnectionManager.class, "getConfig");
     private static Set<MasterSlaveServersConfig> masterSlaveServersConfigSet = new HashSet<>(1);
+    private static Method getCommandExecutorMethod = ReflectUtil.getMethod(Redisson.class, "getCommandExecutor");
 
     private RedissonHelper() {
     }
@@ -57,4 +59,21 @@ public class RedissonHelper {
         }
     }
 
+    /**
+     * compatible with redisson versions lower than 3.16.0 (<3.16.0)
+     *
+     * @param redisson
+     * @return
+     */
+    public static CommandAsyncExecutor getCommandAsyncExecutor(RedissonClient redisson) {
+        if (redisson == null || getCommandExecutorMethod == null) {
+            return null;
+        }
+        try {
+            return (CommandAsyncExecutor) getCommandExecutorMethod.invoke(redisson);
+        } catch (Exception e) {
+            LogManager.warn("redis.commandExecutor", e);
+            return null;
+        }
+    }
 }
