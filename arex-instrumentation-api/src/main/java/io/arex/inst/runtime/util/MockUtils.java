@@ -105,6 +105,11 @@ public final class MockUtils {
     }
 
     public static Mocker replayMocker(Mocker requestMocker, MockStrategyEnum mockStrategy) {
+        if (CaseManager.isInvalidCase(requestMocker.getReplayId()) &&
+                isNotConfigFile(requestMocker.getCategoryType())) {
+            return null;
+        }
+
         String postJson = Serializer.serialize(requestMocker);
 
         String data = DataService.INSTANCE.query(postJson, mockStrategy);
@@ -125,6 +130,10 @@ public final class MockUtils {
         }
 
         return Serializer.deserialize(data, ArexMocker.class);
+    }
+
+    private static boolean isNotConfigFile(MockCategoryType mockCategoryType) {
+        return !MockCategoryType.CONFIG_FILE.equals(mockCategoryType);
     }
 
     public static Object replayBody(Mocker requestMocker) {

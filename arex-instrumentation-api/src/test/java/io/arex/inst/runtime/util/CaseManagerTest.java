@@ -36,26 +36,26 @@ class CaseManagerTest {
     @Test
     void invalid() {
         // empty recordId
-        Assertions.assertDoesNotThrow(() -> CaseManager.invalid(null, "testOperationName", "queueOverflow"));
+        Assertions.assertDoesNotThrow(() -> CaseManager.invalid(null, null, "testOperationName", "queueOverflow"));
         Assertions.assertTrue(CaseManager.isInvalidCase(null));
 
         final ArexContext context = ArexContext.of("testRecordId");
-        Mockito.when(ContextManager.getRecordContext("testRecordId")).thenReturn(context);
+        Mockito.when(ContextManager.getContext("testRecordId")).thenReturn(context);
         Assertions.assertFalse(context.isInvalidCase());
         Assertions.assertFalse(CaseManager.isInvalidCase("testRecordId"));
         System.setProperty("arex.service.name", "testServiceName");
-        CaseManager.invalid("testRecordId", "testOperationName", "queueOverflow");
+        CaseManager.invalid("testRecordId", null, "testOperationName", "queueOverflow");
         Assertions.assertTrue(context.isInvalidCase());
         Assertions.assertTrue(CaseManager.isInvalidCase("testRecordId"));
         Mockito.verify(dataCollector, Mockito.times(1)).invalidCase(Mockito.anyString());
 
         // test invalid case with null context
-        Mockito.when(ContextManager.getRecordContext("testRecordId")).thenReturn(null);
+        Mockito.when(ContextManager.getContext("testRecordId")).thenReturn(null);
         Assertions.assertFalse(CaseManager.isInvalidCase("testRecordId"));
-        Assertions.assertDoesNotThrow(() -> CaseManager.invalid("testRecordId", "testOperationName", "queueOverflow"));
+        Assertions.assertDoesNotThrow(() -> CaseManager.invalid("testRecordId", null, "testOperationName", "queueOverflow"));
 
         // test invalid case with exception
-        Mockito.when(ContextManager.getRecordContext("testRecordId")).thenThrow(new RuntimeException("test exception"));
-        Assertions.assertDoesNotThrow(() -> CaseManager.invalid("testRecordId", "testOperationName", "queueOverflow"));
+        Mockito.when(ContextManager.getContext("testRecordId")).thenThrow(new RuntimeException("test exception"));
+        Assertions.assertDoesNotThrow(() -> CaseManager.invalid("testRecordId", null, "testOperationName", "queueOverflow"));
     }
 }

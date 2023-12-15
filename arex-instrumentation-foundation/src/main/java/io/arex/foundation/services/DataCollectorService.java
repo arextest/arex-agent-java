@@ -1,5 +1,6 @@
 package io.arex.foundation.services;
 
+import io.arex.agent.bootstrap.model.ArexMocker;
 import io.arex.agent.bootstrap.model.MockStrategyEnum;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.MapUtils;
@@ -13,17 +14,20 @@ import io.arex.foundation.util.httpclient.AsyncHttpClientUtil;
 import io.arex.foundation.model.HttpClientResponse;
 import io.arex.foundation.util.httpclient.async.ThreadFactoryImpl;
 import io.arex.inst.runtime.log.LogManager;
+import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.util.CaseManager;
 import io.arex.inst.runtime.service.DataCollector;
 
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 
 public class DataCollectorService implements DataCollector {
     public static final DataCollectorService INSTANCE = new DataCollectorService();
@@ -51,7 +55,7 @@ public class DataCollectorService implements DataCollector {
 
         if (!buffer.put(new DataEntity(requestMocker))) {
             HealthManager.onEnqueueRejection();
-            CaseManager.invalid(requestMocker.getRecordId(), requestMocker.getOperationName(), DecelerateReasonEnum.QUEUE_OVERFLOW.getValue());
+            CaseManager.invalid(requestMocker.getRecordId(), null, requestMocker.getOperationName(), DecelerateReasonEnum.QUEUE_OVERFLOW.getValue());
         }
     }
 
@@ -133,19 +137,36 @@ public class DataCollectorService implements DataCollector {
     String queryReplayData(String postData, MockStrategyEnum mockStrategy) {
         Map<String, String> requestHeaders = MapUtils.newHashMapWithExpectedSize(1);
         requestHeaders.put(MOCK_STRATEGY, mockStrategy.getCode());
-        HttpClientResponse clientResponse = AsyncHttpClientUtil.postAsyncWithZstdJson(queryApiUrl, postData,
-            requestHeaders).join();
+
+        CompletableFuture<HttpClientResponse> responseCompletableFuture = AsyncHttpClientUtil.postAsyncWithZstdJson(queryApiUrl, postData,
+                requestHeaders).handle(queryMockDataFunction(postData));
+
+        HttpClientResponse clientResponse = responseCompletableFuture.join();
         if (clientResponse == null) {
             return null;
         }
         return clientResponse.getBody();
     }
 
+    private BiFunction<HttpClientResponse, Throwable, HttpClientResponse> queryMockDataFunction(String postData) {
+        return (response, throwable) -> {
+            if (Objects.nonNull(throwable)) {
+                // avoid real calls during replay and return null value when throwable occurs.
+                Mocker mocker = Serializer.deserialize(postData, ArexMocker.class);
+                if (mocker != null) {
+                    CaseManager.invalid(mocker.getRecordId(), mocker.getReplayId(), mocker.getOperationName(), DecelerateReasonEnum.SERVICE_EXCEPTION.getValue());
+                }
+                return null;
+            }
+            return response;
+        };
+    }
+
     private <T> BiConsumer<T, Throwable> saveMockDataConsumer(DataEntity entity) {
         return (response, throwable) -> {
             long usedTime = System.nanoTime() - entity.getQueueTime();
             if (Objects.nonNull(throwable)) {
-                CaseManager.invalid(entity.getRecordId(), entity.getOperationName(), DecelerateReasonEnum.SERVICE_EXCEPTION.getValue());
+                CaseManager.invalid(entity.getRecordId(), null, entity.getOperationName(), DecelerateReasonEnum.SERVICE_EXCEPTION.getValue());
                 LogManager.warn("saveMockDataConsumer", StringUtil.format("save mock data error: %s, post data: %s",
                         throwable.toString(), entity.getPostData()));
                 usedTime = -1; // -1:reject

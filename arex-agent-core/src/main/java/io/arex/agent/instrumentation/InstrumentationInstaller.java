@@ -13,6 +13,8 @@ import io.arex.inst.runtime.model.DynamicClassEntity;
 import io.arex.inst.runtime.model.DynamicClassStatusEnum;
 import io.arex.agent.bootstrap.util.ServiceLoader;
 import java.util.stream.Collectors;
+
+import io.arex.inst.runtime.util.IgnoreUtils;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.agent.builder.ResettableClassFileTransformer;
@@ -61,7 +63,7 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
             LOGGER.info("[AREX] No Change in dynamic class config, no need to retransform.");
             return resettableClassFileTransformer;
         }
-
+        IgnoreUtils.clearInvalidOperation();
         instrumentation.removeTransformer(resettableClassFileTransformer);
         resettableClassFileTransformer = install(getAgentBuilder(), true);
         LOGGER.info("[AREX] Agent retransform successfully.");
@@ -73,7 +75,7 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
         if (CollectionUtil.isEmpty(resetClassSet)) {
             return;
         }
-
+        IgnoreUtils.clearInvalidOperation();
         instrumentation.removeTransformer(resettableClassFileTransformer);
         // TODO: optimize reset abstract class
         for (Class<?> clazz : this.instrumentation.getAllLoadedClasses()) {

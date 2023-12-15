@@ -6,43 +6,42 @@ import com.google.protobuf.util.JsonFormat;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Type;
 
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.log.LogManager;
-import io.arex.inst.runtime.serializer.StringSerializable;
-import io.arex.inst.runtime.util.TypeUtil;
 
 
-public class ProtoJsonSerializer implements StringSerializable{
+public class ProtoJsonSerializer{
+    private static JsonFormat.Printer jsonPrinter;
+    private static JsonFormat.Parser jsonParser;
+
+    static {
+        try {
+            jsonPrinter = JsonFormat.printer().omittingInsignificantWhitespace();
+            jsonParser = JsonFormat.parser().ignoringUnknownFields();
+        } catch (Exception e) {
+            LogManager.warn("proto-serializer", e);
+        }
+    }
     private static final ProtoJsonSerializer INSTANCE = new ProtoJsonSerializer();
-    private static final JsonFormat.Printer JSON_PRINTER = JsonFormat.printer().omittingInsignificantWhitespace();
-    private static final JsonFormat.Parser JSON_PARSER = JsonFormat.parser().ignoringUnknownFields();
 
     public static ProtoJsonSerializer getInstance() {
         return INSTANCE;
-    }
-
-    @Override
-    public String name() {
-        return "protoJson";
     }
 
     /**
      * for the type inside the Collection is the PB type,
      * traverse the elements inside the Collection and serialize them one by one with separators
      */
-    @Override
     public String serialize(Object object) {
         try {
-            return JSON_PRINTER.print((AbstractMessage) object);
+            return jsonPrinter.print((AbstractMessage) object);
         } catch (Throwable e) {
             LogManager.warn("proto-serialize", e);
             return StringUtil.EMPTY;
         }
     }
 
-    @Override
     public <T> T deserialize(String value, Class<T> clazz) {
         if (StringUtil.isEmpty(value) || clazz == null) {
             return null;
@@ -51,24 +50,13 @@ public class ProtoJsonSerializer implements StringSerializable{
         try {
             Builder<?> builder = getMessageBuilder(clazz);
 
-            JSON_PARSER.merge(value, builder);
+            jsonParser.merge(value, builder);
 
             return (T) builder.build();
         } catch (Throwable e) {
             LogManager.warn("proto-deserialize", e);
             return null;
         }
-    }
-
-    @Override
-    public <T> T deserialize(String value, Type type) {
-        Class<T> rawClass = (Class<T>) TypeUtil.getRawClass(type);
-        return deserialize(value, rawClass);
-    }
-
-    @Override
-    public StringSerializable reCreateSerializer() {
-        return INSTANCE;
     }
 
     /**

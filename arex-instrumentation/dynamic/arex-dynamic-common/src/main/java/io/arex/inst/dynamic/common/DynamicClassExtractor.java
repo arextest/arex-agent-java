@@ -9,6 +9,7 @@ import io.arex.agent.bootstrap.util.ArrayUtils;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.agent.thirdparty.util.time.DateFormatUtils;
 import io.arex.inst.dynamic.common.listener.ListenableFutureAdapter;
+import io.arex.inst.dynamic.common.listener.MonoConsumer;
 import io.arex.inst.dynamic.common.listener.ResponseConsumer;
 import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.ArexContext;
@@ -30,7 +31,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
-import java.util.function.Consumer;
 import reactor.core.publisher.Mono;
 
 public class DynamicClassExtractor {
@@ -93,7 +93,7 @@ public class DynamicClassExtractor {
         }
         // Compatible with not import package reactor-core
         if (MONO.equals(methodReturnType) && response instanceof Mono<?>) {
-            return this.resetMonoResponse((Mono<?>) response);
+            return new MonoConsumer(this).accept((Mono<?>) response);
         }
         this.result = response;
         if (needRecord()) {
@@ -155,12 +155,6 @@ public class DynamicClassExtractor {
         }
     }
 
-    public Mono<?> resetMonoResponse(Mono<?> result) {
-        return result
-            .doOnError(this::recordResponse)
-            .doOnSuccess((Consumer<Object>) this::recordResponse);
-    }
-
     String buildResultClazz(String resultClazz) {
         if (StringUtil.isEmpty(resultClazz) || resultClazz.contains(TypeUtil.HORIZONTAL_LINE_STR)) {
             return resultClazz;
@@ -190,7 +184,7 @@ public class DynamicClassExtractor {
         }
 
         String key = ExpressionParseUtil.generateKey(method, args, keyExpression);
-        if (key != null) {
+        if (key != null || StringUtil.isNotEmpty(keyExpression)) {
             return key;
         }
 
