@@ -314,5 +314,9 @@ class StringUtilTest {
     void startWith() {
         assertTrue(StringUtil.startWith("mock", "m"));
         assertFalse(StringUtil.startWith("mock", "o"));
+        assertFalse(StringUtil.startWith(null, "M"));
+        assertFalse(StringUtil.startWith("mock", null));
+        assertTrue(StringUtil.startWith(null, null));
+        assertFalse(StringUtil.startWith("", "M"));
     }
 }
