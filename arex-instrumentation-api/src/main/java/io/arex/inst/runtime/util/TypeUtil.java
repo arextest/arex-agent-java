@@ -27,6 +27,7 @@ public class TypeUtil {
     public static final String DEFAULT_CLASS_NAME = "java.lang.String";
     private static final ConcurrentMap<String, Field> GENERIC_FIELD_CACHE = new ConcurrentHashMap<>();
     private static final ConcurrentMap<String, Type> TYPE_NAME_CACHE = new ConcurrentHashMap<>();
+    private static final Class<?> DEFAULT_COLLECTION_CLASS = Collection.class;
     /**
      * Suppresses default constructor, ensuring non-instantiability.
      */
@@ -51,21 +52,23 @@ public class TypeUtil {
             }
 
             if (types.length > 1 && StringUtil.isNotEmpty(types[1])) {
-
-                if (raw.getTypeParameters().length == 1) {
-                    final Type[] args = new Type[]{forName(types[1])};
-                    final ParameterizedTypeImpl parameterizedType = ParameterizedTypeImpl.make(raw, args, null);
-                    TYPE_NAME_CACHE.put(typeName, parameterizedType);
-                    return parameterizedType;
+                int typeParametersLength = raw.getTypeParameters().length;
+                if (typeParametersLength == 1) {
+                    return forNameWithOneGenericType(raw, types[1], typeName);
                 }
 
-                if (raw.getTypeParameters().length == 2) {
+                if (typeParametersLength == 2) {
                     final String[] split = StringUtil.splitByFirstSeparator(types[1], COMMA);
                     Type[] args = new Type[]{forName(split[0]), forName(split[1])};
                     ParameterizedTypeImpl parameterizedType = ParameterizedTypeImpl.make(raw, args, null);
                     TYPE_NAME_CACHE.put(typeName, parameterizedType);
                     return parameterizedType;
                 }
+                // eg: class WrappedList extends WrappedCollection implements List<V>
+                if (typeParametersLength == 0 && Collection.class.isAssignableFrom(raw)) {
+                    return forNameWithOneGenericType(DEFAULT_COLLECTION_CLASS, types[1], typeName);
+                }
+
                 TYPE_NAME_CACHE.put(typeName, raw);
                 return raw;
             }
@@ -75,6 +78,13 @@ public class TypeUtil {
             LogManager.warn("forName", ex);
             return null;
         }
+    }
+
+    private static Type forNameWithOneGenericType(Class<?> rawClass, String genericType, String typeName) {
+        final Type[] args = new Type[]{forName(genericType)};
+        final ParameterizedTypeImpl parameterizedType = ParameterizedTypeImpl.make(rawClass, args, null);
+        TYPE_NAME_CACHE.put(typeName, parameterizedType);
+        return parameterizedType;
     }
 
     public static String getName(Object result) {

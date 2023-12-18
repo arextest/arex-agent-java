@@ -83,10 +83,8 @@ class TypeUtilTest {
                 return "java.util.ArrayList".equals(parameterizedType.getRawType().getTypeName())
                     && "java.lang.String".equals(parameterizedType.getActualTypeArguments()[0].getTypeName());
             }),
-            arguments("java.util.HashMap$Values-java.lang.String", (Predicate<Type>) type -> {
-                final Class<?> rawClass = TypeUtil.getRawClass(type);
-                return "java.util.HashMap$Values".equals(rawClass.getName());
-            })
+            arguments("java.util.HashMap$Values-java.lang.String", (Predicate<Type>) type ->
+                    "java.util.Collection<java.lang.String>".equals(type.getTypeName()))
         );
     }
 
