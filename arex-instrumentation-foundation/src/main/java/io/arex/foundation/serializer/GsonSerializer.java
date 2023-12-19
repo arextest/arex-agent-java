@@ -19,6 +19,7 @@ import io.arex.inst.runtime.util.TypeUtil;
 
 import java.sql.Time;
 import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map.Entry;
 import org.joda.time.DateTime;
@@ -157,6 +158,12 @@ public class GsonSerializer implements StringSerializable {
         return (Class) TypeUtil.forName(json.getAsString());
     };
 
+    private static final JsonSerializer<OffsetDateTime> OFFSET_DATE_TIME_JSON_SERIALIZER =
+        ((src, typeOfSrc, context) -> new JsonPrimitive(DateFormatUtils.format(src, JacksonSerializer.DatePatternConstants.SIMPLE_DATE_FORMAT_WITH_TIMEZONE_DATETIME)));
+
+    private static final JsonDeserializer<OffsetDateTime> OFFSET_DATE_TIME_JSON_DESERIALIZER = (json, typeOfT, context) ->
+            OffsetDateTime.parse(json.getAsString(), DateFormatParser.INSTANCE.getFormatter(JacksonSerializer.DatePatternConstants.SIMPLE_DATE_FORMAT_WITH_TIMEZONE_DATETIME));
+
     public static final GsonSerializer INSTANCE = new GsonSerializer();
     private Gson serializer;
     private GsonBuilder gsonBuilder;
@@ -206,6 +213,8 @@ public class GsonSerializer implements StringSerializable {
                 .registerTypeAdapter(Instant.class, INSTANT_JSON_DESERIALIZER)
                 .registerTypeAdapter(Class.class, CLASS_JSON_SERIALIZER)
                 .registerTypeAdapter(Class.class, CLASS_JSON_DESERIALIZER)
+                .registerTypeAdapter(OffsetDateTime.class, OFFSET_DATE_TIME_JSON_SERIALIZER)
+                .registerTypeAdapter(OffsetDateTime.class, OFFSET_DATE_TIME_JSON_DESERIALIZER)
                 .registerTypeAdapter(Range.class, new GuavaRangeSerializer.GsonRangeSerializer())
                 .registerTypeAdapterFactory(new FastUtilAdapterFactory())
                 .registerTypeAdapterFactory(new ProtobufAdapterFactory())

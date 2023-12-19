@@ -45,6 +45,7 @@ import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -199,6 +200,7 @@ public final class JacksonSerializer implements StringSerializable {
         module.addSerializer(Date.class, new DateSerialize());
         module.addSerializer(Instant.class, new InstantSerialize());
         module.addSerializer(Range.class, new GuavaRangeSerializer.JacksonRangeSerializer());
+        module.addSerializer(OffsetDateTime.class, new OffSetDateTimeSerialize());
     }
 
     private void customTimeFormatDeserializer(SimpleModule module) {
@@ -218,6 +220,7 @@ public final class JacksonSerializer implements StringSerializable {
         module.addDeserializer(Time.class, new SqlTimeDeserialize());
         module.addDeserializer(Instant.class, new InstantDeserialize());
         module.addDeserializer(Range.class, new GuavaRangeSerializer.JacksonRangeDeserializer());
+        module.addDeserializer(OffsetDateTime.class, new OffSetDateTimeDeserialize());
     }
 
     private static class JacksonSimpleModule extends SimpleModule {
@@ -566,6 +569,23 @@ public final class JacksonSerializer implements StringSerializable {
             throws IOException {
             JsonNode node = p.getCodec().readTree(p);
             return Instant.parse(node.asText());
+        }
+    }
+
+    static class OffSetDateTimeSerialize extends JsonSerializer<OffsetDateTime> {
+
+        @Override
+        public void serialize(OffsetDateTime value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+            gen.writeString(DateFormatUtils.format(value, DatePatternConstants.SIMPLE_DATE_FORMAT_WITH_TIMEZONE));
+        }
+    }
+
+    static class OffSetDateTimeDeserialize extends JsonDeserializer<OffsetDateTime> {
+
+        @Override
+        public OffsetDateTime deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+            JsonNode node = p.getCodec().readTree(p);
+            return OffsetDateTime.parse(node.asText(), DateFormatParser.INSTANCE.getFormatter(JacksonSerializer.DatePatternConstants.SIMPLE_DATE_FORMAT_WITH_TIMEZONE_DATETIME));
         }
     }
 
