@@ -21,7 +21,6 @@ import io.arex.agent.thirdparty.util.time.DateFormatUtils;
 import io.arex.agent.thirdparty.util.time.FastDateFormat;
 import io.arex.foundation.serializer.custom.FastUtilAdapterFactory;
 import io.arex.foundation.serializer.custom.GuavaRangeSerializer;
-import io.arex.foundation.serializer.exception.NoDefaultConstructorException;
 import io.arex.foundation.util.JdkUtils;
 import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.config.Config;
@@ -61,7 +60,7 @@ public final class JacksonSerializer implements StringSerializable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JacksonSerializer.class);
 
-    private final ObjectMapper MAPPER = new ObjectMapper();
+    private final ObjectMapper MAPPER = new ArexObjectMapper();
     private final Map<String, List<String>> skipInfoMap = new ConcurrentHashMap<>();
     private static final SimpleModule MODULE = new JacksonSimpleModule();
 
@@ -782,14 +781,9 @@ public final class JacksonSerializer implements StringSerializable {
          */
         @Override
         public boolean useForType(JavaType type) {
-            try {
-                type.getRawClass().getDeclaredConstructor();
-            } catch (Exception ex) {
-//                throw new RuntimeException();
-                throw new NoDefaultConstructorException();
-            }
-            return type.getRawClass().isInterface() &&
-                    StringUtil.startWith(type.getRawClass().getName(), FastUtilAdapterFactory.FASTUTIL_PACKAGE);
+            Class<?> rawClass = type.getRawClass();
+            return rawClass.isInterface() &&
+                    StringUtil.startWith(rawClass.getName(), FastUtilAdapterFactory.FASTUTIL_PACKAGE);
         }
     }
 }
