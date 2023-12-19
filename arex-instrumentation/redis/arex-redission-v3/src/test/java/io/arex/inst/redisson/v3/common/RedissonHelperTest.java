@@ -6,16 +6,29 @@ import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Set;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.redisson.Redisson;
 import org.redisson.config.MasterSlaveServersConfig;
 import org.redisson.connection.ConnectionManager;
 
 @ExtendWith(MockitoExtension.class)
 public class RedissonHelperTest {
 
+    @BeforeAll
+    static void setUp() {
+        Mockito.mockStatic(ReflectUtil.class);
+        Mockito.when(ReflectUtil.getMethod(ConnectionManager.class, "getConfig")).thenReturn(null);
+        try {
+            Mockito.when(ReflectUtil.getMethod(Redisson.class, "getCommandExecutor"))
+                .thenReturn(Redisson.class.getMethod("getCommandExecutor", null));
+        } catch (NoSuchMethodException e) {
+            Mockito.when(ReflectUtil.getMethod(Redisson.class, "getCommandExecutor")).thenReturn(null);
+        }
+    }
     @AfterAll
     static void tearDown() {
         Mockito.clearAllCaches();
@@ -36,8 +49,6 @@ public class RedissonHelperTest {
     @Test
     void testCacheRedisUri() {
         ConnectionManager connectionManager = Mockito.mock(ConnectionManager.class);
-        Mockito.mockStatic(ReflectUtil.class);
-        Mockito.when(ReflectUtil.getMethod(ConnectionManager.class, "getConfig")).thenReturn(null);
         assertNull(RedissonHelper.getRedisUri(connectionManager));
 
         mockRedissionHelperSet();
@@ -61,5 +72,13 @@ public class RedissonHelperTest {
         } catch (Exception e) {
             // doNothing
         }
+    }
+
+    @Test
+    void getCommandAsyncExecutor() throws NoSuchMethodException {
+        assertNull(RedissonHelper.getCommandAsyncExecutor(null));
+
+        Redisson redisson1 = Mockito.mock(Redisson.class);
+        assertNull(RedissonHelper.getCommandAsyncExecutor(redisson1));
     }
 }

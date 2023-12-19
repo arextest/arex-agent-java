@@ -35,141 +35,141 @@ public class RedissonSetWrapper<V> extends RedissonSet<V> {
 
     @Override
     public RFuture<Integer> sizeAsync() {
-        return RedissonWrapperCommon.delegateCall(redisUri, RedisCommands.SCARD_INT.getName(), getRawName(),
+        return RedissonWrapperCommon.delegateCall(redisUri, RedisCommands.SCARD_INT.getName(), this.name,
             () -> super.sizeAsync());
     }
 
     @Override
     public RFuture<Boolean> containsAsync(Object o) {
         return RedissonWrapperCommon.delegateCall(redisUri,
-            RedisKeyUtil.generate(RedisCommands.SMEMBERS.getName(), "contains"), getRawName(),
+            RedisKeyUtil.generate(RedisCommands.SMEMBERS.getName(), "contains"), this.name,
             () -> super.containsAsync(o));
     }
 
     @Override
     public RFuture<Set<V>> readAllAsync() {
         return RedissonWrapperCommon.delegateCall(redisUri,
-            RedisKeyUtil.generate(RedisCommands.SMEMBERS.getName(), "readAll"), getRawName(),
+            RedisKeyUtil.generate(RedisCommands.SMEMBERS.getName(), "readAll"), this.name,
             () -> super.readAllAsync());
     }
 
     @Override
     public RFuture<Boolean> addAsync(V e) {
-        return RedissonWrapperCommon.delegateCall(redisUri, RedisCommands.SADD_SINGLE.getName(), getRawName(),
+        return RedissonWrapperCommon.delegateCall(redisUri, RedisCommands.SADD_SINGLE.getName(), this.name,
             () -> super.addAsync(e));
     }
 
     @Override
     public RFuture<V> removeRandomAsync() {
-        return RedissonWrapperCommon.delegateCall(redisUri, RedisCommands.SPOP_SINGLE.getName(), getRawName(),
+        return RedissonWrapperCommon.delegateCall(redisUri, RedisCommands.SPOP_SINGLE.getName(), this.name,
             () -> super.removeRandomAsync());
     }
 
     @Override
     public RFuture<Set<V>> removeRandomAsync(int amount) {
-        return RedissonWrapperCommon.delegateCall(redisUri, RedisCommands.SPOP.getName(), getRawName(),
+        return RedissonWrapperCommon.delegateCall(redisUri, RedisCommands.SPOP.getName(), this.name,
             () -> super.removeRandomAsync(amount));
     }
 
     @Override
     public RFuture<V> randomAsync() {
-        return RedissonWrapperCommon.delegateCall(redisUri, RedisCommands.SRANDMEMBER_SINGLE.getName(), getRawName(),
+        return RedissonWrapperCommon.delegateCall(redisUri, RedisCommands.SRANDMEMBER_SINGLE.getName(), this.name,
             () -> super.randomAsync());
     }
 
     @Override
     public RFuture<Set<V>> randomAsync(int count) {
-        return RedissonWrapperCommon.delegateCall(redisUri, RedisCommands.SRANDMEMBER.getName(), getRawName(),
+        return RedissonWrapperCommon.delegateCall(redisUri, RedisCommands.SRANDMEMBER.getName(), this.name,
             () -> super.randomAsync(count));
     }
 
     @Override
     public RFuture<Boolean> removeAsync(Object o) {
-        return RedissonWrapperCommon.delegateCall(redisUri, RedisCommands.SREM_SINGLE.getName(), getRawName(),
+        return RedissonWrapperCommon.delegateCall(redisUri, RedisCommands.SREM_SINGLE.getName(), this.name,
             () -> super.removeAsync(o));
     }
 
     @Override
     public RFuture<Boolean> moveAsync(String destination, V member) {
-        return RedissonWrapperCommon.delegateCall(redisUri, RedisCommands.SMOVE.getName(), getRawName(),
+        return RedissonWrapperCommon.delegateCall(redisUri, RedisCommands.SMOVE.getName(), this.name,
             () -> super.moveAsync(destination, member));
     }
 
     @Override
     public RFuture<Boolean> containsAllAsync(Collection<?> c) {
-        return RedissonWrapperCommon.delegateCall(redisUri, "setContainsAll", getRawName(),
+        return RedissonWrapperCommon.delegateCall(redisUri, "setContainsAll", this.name,
             () -> super.containsAllAsync(c));
     }
 
     @Override
     public RFuture<Boolean> addAllAsync(Collection<? extends V> c) {
-        return RedissonWrapperCommon.delegateCall(redisUri, RedisCommands.SADD_BOOL.getName(), getRawName(),
+        return RedissonWrapperCommon.delegateCall(redisUri, RedisCommands.SADD_BOOL.getName(), this.name,
             () -> super.addAllAsync(c));
     }
 
     @Override
     public RFuture<Integer> addAllCountedAsync(Collection<? extends V> c) {
-        return RedissonWrapperCommon.delegateCall(redisUri, RedisCommands.SADD.getName(), getRawName(),
+        return RedissonWrapperCommon.delegateCall(redisUri, RedisCommands.SADD.getName(), this.name,
             () -> super.addAllCountedAsync(c));
     }
 
     @Override
     public RFuture<Boolean> retainAllAsync(Collection<?> c) {
-        return RedissonWrapperCommon.delegateCall(redisUri, "setRetainAll", getRawName(),
+        return RedissonWrapperCommon.delegateCall(redisUri, "setRetainAll", this.name,
             () -> super.retainAllAsync(c));
     }
 
     @Override
     public RFuture<Boolean> removeAllAsync(Collection<?> c) {
-        return RedissonWrapperCommon.delegateCall(redisUri, "setRemoveAll", getRawName(),
+        return RedissonWrapperCommon.delegateCall(redisUri, "setRemoveAll", this.name,
             () -> super.removeAllAsync(c));
     }
 
     @Override
     public RFuture<Integer> removeAllCountedAsync(Collection<? extends V> c) {
-        return RedissonWrapperCommon.delegateCall(redisUri, RedisCommands.SREM.getName(), getRawName(),
+        return RedissonWrapperCommon.delegateCall(redisUri, RedisCommands.SREM.getName(), this.name,
             () -> super.removeAllCountedAsync(c));
     }
 
     @Override
     public RFuture<Integer> unionAsync(String... names) {
-        return RedissonWrapperCommon.delegateCall(redisUri, RedisCommands.SUNIONSTORE_INT.getName(), getRawName(),
+        return RedissonWrapperCommon.delegateCall(redisUri, RedisCommands.SUNIONSTORE_INT.getName(), this.name,
             RedisKeyUtil.generate(names), () -> super.unionAsync(names));
     }
 
     @Override
     public RFuture<Set<V>> readUnionAsync(String... names) {
-        return RedissonWrapperCommon.delegateCall(redisUri, RedisCommands.SUNION.getName(), getRawName(),
+        return RedissonWrapperCommon.delegateCall(redisUri, RedisCommands.SUNION.getName(), this.name,
             RedisKeyUtil.generate(names), () -> super.readUnionAsync(names));
     }
 
     @Override
     public RFuture<Integer> diffAsync(String... names) {
-        return RedissonWrapperCommon.delegateCall(redisUri, RedisCommands.SDIFFSTORE_INT.getName(), getRawName(),
+        return RedissonWrapperCommon.delegateCall(redisUri, RedisCommands.SDIFFSTORE_INT.getName(), this.name,
             RedisKeyUtil.generate(names), () -> super.diffAsync(names));
     }
 
     @Override
     public RFuture<Set<V>> readDiffAsync(String... names) {
-        return RedissonWrapperCommon.delegateCall(redisUri, RedisCommands.SDIFF.getName(), getRawName(),
+        return RedissonWrapperCommon.delegateCall(redisUri, RedisCommands.SDIFF.getName(), this.name,
             RedisKeyUtil.generate(names), () -> super.readDiffAsync(names));
     }
 
     @Override
     public RFuture<Integer> intersectionAsync(String... names) {
-        return RedissonWrapperCommon.delegateCall(redisUri, RedisCommands.SINTERSTORE_INT.getName(), getRawName(),
+        return RedissonWrapperCommon.delegateCall(redisUri, RedisCommands.SINTERSTORE_INT.getName(), this.name,
             RedisKeyUtil.generate(names), () -> super.intersectionAsync(names));
     }
 
     @Override
     public RFuture<Set<V>> readIntersectionAsync(String... names) {
-        return RedissonWrapperCommon.delegateCall(redisUri, RedisCommands.SINTER.getName(), getRawName(),
+        return RedissonWrapperCommon.delegateCall(redisUri, RedisCommands.SINTER.getName(), this.name,
             RedisKeyUtil.generate(names), () -> super.readIntersectionAsync(names));
     }
 
     @Override
     public RFuture<Integer> countIntersectionAsync(int limit, String... names) {
-        return RedissonWrapperCommon.delegateCall(redisUri, RedisCommands.SINTERCARD_INT.getName(), getRawName(),
+        return RedissonWrapperCommon.delegateCall(redisUri, RedisCommands.SINTERCARD_INT.getName(), this.name,
             RedisKeyUtil.generate(names), () -> super.countIntersectionAsync(names));
     }
 
