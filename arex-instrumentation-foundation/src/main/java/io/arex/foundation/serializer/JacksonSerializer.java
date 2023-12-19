@@ -21,6 +21,7 @@ import io.arex.agent.thirdparty.util.time.DateFormatUtils;
 import io.arex.agent.thirdparty.util.time.FastDateFormat;
 import io.arex.foundation.serializer.custom.FastUtilAdapterFactory;
 import io.arex.foundation.serializer.custom.GuavaRangeSerializer;
+import io.arex.foundation.serializer.exception.NoDefaultConstructorException;
 import io.arex.foundation.util.JdkUtils;
 import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.config.Config;
@@ -781,6 +782,12 @@ public final class JacksonSerializer implements StringSerializable {
          */
         @Override
         public boolean useForType(JavaType type) {
+            try {
+                type.getRawClass().getDeclaredConstructor();
+            } catch (Exception ex) {
+//                throw new RuntimeException();
+                throw new NoDefaultConstructorException();
+            }
             return type.getRawClass().isInterface() &&
                     StringUtil.startWith(type.getRawClass().getName(), FastUtilAdapterFactory.FASTUTIL_PACKAGE);
         }
