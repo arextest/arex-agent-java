@@ -24,14 +24,10 @@ public class TimeMachineModuleInstrumentation extends ModuleInstrumentation {
         List<TypeInstrumentation> typeInstList = new ArrayList<>();
 
         if (Config.get().getBoolean("arex.time.machine", false)) {
-            typeInstList.add(new DateTimeInstrumentation("java.time.Instant"));
-            typeInstList.add(new DateTimeInstrumentation("java.time.LocalDate"));
-            typeInstList.add(new DateTimeInstrumentation("java.time.LocalTime"));
-            typeInstList.add(new DateTimeInstrumentation("java.time.LocalDateTime"));
+            typeInstList.add(new DateTimeInstrumentation("java.time.Clock"));
             typeInstList.add(new DateTimeInstrumentation("java.util.Date"));
             typeInstList.add(new DateTimeInstrumentation("java.util.Calendar"));
             typeInstList.add(new DateTimeInstrumentation("org.joda.time.DateTimeUtils"));
-            typeInstList.add(new DateTimeInstrumentation("java.time.ZonedDateTime"));
         }
         return typeInstList;
     }
