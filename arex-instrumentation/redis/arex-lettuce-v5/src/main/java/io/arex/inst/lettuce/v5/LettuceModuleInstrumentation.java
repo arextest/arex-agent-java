@@ -5,6 +5,8 @@ import io.arex.inst.extension.ModuleDescription;
 import io.arex.inst.extension.ModuleInstrumentation;
 import io.arex.inst.extension.TypeInstrumentation;
 import io.arex.agent.bootstrap.model.ComparableVersion;
+import io.arex.inst.lettuce.v5.cluster.RedisClusterClientInstrumentation;
+import io.arex.inst.lettuce.v5.cluster.StatefulRedisClusterConnectionImplInstrumentation;
 
 import java.util.Arrays;
 import java.util.List;
@@ -21,6 +23,10 @@ public class LettuceModuleInstrumentation extends ModuleInstrumentation {
 
     @Override
     public List<TypeInstrumentation> instrumentationTypes() {
-        return Arrays.asList(new StatefulRedisConnectionImplInstrumentation(), new RedisClientInstrumentation());
+        return Arrays.asList(
+                new StatefulRedisConnectionImplInstrumentation(),
+                new RedisClientInstrumentation(),
+                new StatefulRedisClusterConnectionImplInstrumentation(),
+                new RedisClusterClientInstrumentation());
     }
 }
