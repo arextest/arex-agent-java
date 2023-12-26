@@ -21,6 +21,6 @@ class LettuceModuleInstrumentationTest {
 
     @Test
     void instrumentationTypes() {
-        assert instrumentation.instrumentationTypes().size() == 2;
+        assert instrumentation.instrumentationTypes().size() == 4;
     }
 }
