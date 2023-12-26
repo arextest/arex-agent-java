@@ -60,7 +60,7 @@ public final class JacksonSerializer implements StringSerializable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JacksonSerializer.class);
 
-    private final ObjectMapper MAPPER = new ObjectMapper();
+    private final ObjectMapper MAPPER = new ArexObjectMapper();
     private final Map<String, List<String>> skipInfoMap = new ConcurrentHashMap<>();
     private static final SimpleModule MODULE = new JacksonSimpleModule();
 
@@ -781,8 +781,9 @@ public final class JacksonSerializer implements StringSerializable {
          */
         @Override
         public boolean useForType(JavaType type) {
-            return type.getRawClass().isInterface() &&
-                    StringUtil.startWith(type.getRawClass().getName(), FastUtilAdapterFactory.FASTUTIL_PACKAGE);
+            Class<?> rawClass = type.getRawClass();
+            return rawClass.isInterface() &&
+                    StringUtil.startWith(rawClass.getName(), FastUtilAdapterFactory.FASTUTIL_PACKAGE);
         }
     }
 }
