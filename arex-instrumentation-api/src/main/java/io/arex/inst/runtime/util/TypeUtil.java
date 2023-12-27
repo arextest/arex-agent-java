@@ -16,6 +16,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -27,7 +28,8 @@ public class TypeUtil {
     public static final String DEFAULT_CLASS_NAME = "java.lang.String";
     private static final ConcurrentMap<String, Field> GENERIC_FIELD_CACHE = new ConcurrentHashMap<>();
     private static final ConcurrentMap<String, Type> TYPE_NAME_CACHE = new ConcurrentHashMap<>();
-    private static final Class<?> DEFAULT_COLLECTION_CLASS = Collection.class;
+    private static final Class<?> DEFAULT_LIST_CLASS = List.class;
+    private static final Class<?> DEFAULT_SET_CLASS = Set.class;
     /**
      * Suppresses default constructor, ensuring non-instantiability.
      */
@@ -64,9 +66,12 @@ public class TypeUtil {
                     TYPE_NAME_CACHE.put(typeName, parameterizedType);
                     return parameterizedType;
                 }
-                // eg: class WrappedList extends WrappedCollection implements List<V>
-                if (typeParametersLength == 0 && Collection.class.isAssignableFrom(raw)) {
-                    return forNameWithOneGenericType(DEFAULT_COLLECTION_CLASS, types[1], typeName);
+
+                if (needUseDefaultCollection(raw, types[1], typeParametersLength)) {
+                    if (Set.class.isAssignableFrom(raw)) {
+                        return forNameWithOneGenericType(DEFAULT_SET_CLASS, types[1], typeName);
+                    }
+                    return forNameWithOneGenericType(DEFAULT_LIST_CLASS, types[1], typeName);
                 }
 
                 TYPE_NAME_CACHE.put(typeName, raw);
@@ -78,6 +83,32 @@ public class TypeUtil {
             LogManager.warn("forName", ex);
             return null;
         }
+    }
+
+    /**
+     * If the parent class explicitly specifies generics,
+     * the serialization framework will process it and not need use default collection.
+     * eg: class WrappedList extends WrappedCollection implements List<V> return true
+     * eg: class exampleCollection extends ArrayList<String> return false
+     */
+    private static boolean needUseDefaultCollection(Class<?> raw, String type, int typeParametersLength) {
+        if (typeParametersLength != 0 || !Collection.class.isAssignableFrom(raw)) {
+            return false;
+        }
+
+        Class<?> tempClass = raw;
+        while (Object.class != tempClass) {
+            Type genericSuperclass = tempClass.getGenericSuperclass();
+            if (genericSuperclass instanceof ParameterizedType) {
+                ParameterizedType parameterizedType = (ParameterizedType) genericSuperclass;
+                Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
+                if (actualTypeArguments.length > 0 && type.equals(actualTypeArguments[0].getTypeName())) {
+                    return false;
+                }
+            }
+            tempClass = tempClass.getSuperclass();
+        }
+        return true;
     }
 
     private static Type forNameWithOneGenericType(Class<?> rawClass, String genericType, String typeName) {
