@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.DeserializationConfig;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.cfg.MapperConfig;
 import com.fasterxml.jackson.databind.introspect.AnnotatedConstructor;
 import com.fasterxml.jackson.databind.introspect.BasicBeanDescription;
 import com.fasterxml.jackson.databind.introspect.BasicClassIntrospector;
@@ -13,12 +14,25 @@ import io.arex.inst.runtime.log.LogManager;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * When the class does not have a no-argument constructor,
  * create a custom-built no-argument constructor logic
  */
 public class ArexObjectMapper extends ObjectMapper {
+    private static boolean noCollectMethodWithFiveParameter;
+    private static final AtomicBoolean HAS_EXCEPTION = new AtomicBoolean(false);
+    static {
+        try {
+            BasicClassIntrospector.class.getDeclaredMethod("collectProperties",
+                    MapperConfig.class, JavaType.class, ClassIntrospector.MixInResolver.class, boolean.class, String.class);
+        } catch (Exception e) {
+            LogManager.warn("objectMapper.init", e);
+            // jackson high version delete this method, example: 2.12.x
+            noCollectMethodWithFiveParameter = true;
+        }
+    }
     @Override
     protected ClassIntrospector defaultClassIntrospector() {
         return new ArexBasicClassIntrospector();
@@ -31,9 +45,23 @@ public class ArexObjectMapper extends ObjectMapper {
         @Override
         public BasicBeanDescription forDeserialization(DeserializationConfig config, JavaType type, MixInResolver r) {
             BasicBeanDescription desc = super.forDeserialization(config, type, r);
+
+            if (HAS_EXCEPTION.get()) {
+                return desc;
+            }
+
             if (isMissingDefaultConstructor(type, desc)) {
-                return new ArexBasicBeanDescription(collectProperties(config,
-                        type, r, false, null));
+                try {
+                    if (noCollectMethodWithFiveParameter) {
+                        return new ArexBasicBeanDescription(collectProperties(config,
+                                type, r, false));
+                    }
+                    return new ArexBasicBeanDescription(collectProperties(config,
+                            type, r, false, null));
+                } catch (Throwable e) {
+                    LogManager.warn("forDeserialization", e);
+                    HAS_EXCEPTION.set(true);
+                }
             }
             return desc;
         }
@@ -89,22 +117,18 @@ public class ArexObjectMapper extends ObjectMapper {
         public AnnotatedConstructor findDefaultConstructor() {
             AnnotatedConstructor annotatedConstructor = super.findDefaultConstructor();
             if (annotatedConstructor == null) {
-                // no default constructor, create one for deserialize
-                Constructor<?> defaultConstructor = createDefaultConstructor(this.getBeanClass());
-                annotatedConstructor = new
-                        AnnotatedConstructor(null, defaultConstructor, null, null);
-
+                try {
+                    // no default constructor, create one for deserialize
+                    Constructor<?> defaultConstructor =
+                            (Constructor<?>) constructorForSerialization.invoke(reflectionFactory, this.getBeanClass(), objectConstructor);
+                    annotatedConstructor = new
+                            AnnotatedConstructor(null, defaultConstructor, null, null);
+                } catch (Throwable ex) {
+                    LogManager.warn("findDefaultConstructor", ex);
+                    HAS_EXCEPTION.set(true);
+                }
             }
             return annotatedConstructor;
-        }
-
-        static Constructor<?> createDefaultConstructor(Class<?> clazz) {
-            try {
-                return (Constructor<?>) constructorForSerialization.invoke(reflectionFactory, clazz, objectConstructor);
-            } catch (Exception e) {
-                LogManager.warn("getConstructor", e);
-                return null;
-            }
         }
     }
 
