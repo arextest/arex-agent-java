@@ -164,6 +164,11 @@ public class GsonSerializer implements StringSerializable {
     private static final JsonDeserializer<OffsetDateTime> OFFSET_DATE_TIME_JSON_DESERIALIZER = (json, typeOfT, context) ->
             OffsetDateTime.parse(json.getAsString(), DateFormatParser.INSTANCE.getFormatter(JacksonSerializer.DatePatternConstants.SIMPLE_DATE_FORMAT_WITH_TIMEZONE_DATETIME));
 
+    private static final JsonSerializer<TimeZone> TIMEZONE_JSON_SERIALIZER = (timeZone, type, context) -> new JsonPrimitive(timeZone.getID());
+
+    private static final JsonDeserializer<TimeZone> TIMEZONE_JSON_DESERIALIZER =
+            (json, typeOfT, context) -> TimeZone.getTimeZone(json.getAsString());
+
     public static final GsonSerializer INSTANCE = new GsonSerializer();
     private Gson serializer;
     private GsonBuilder gsonBuilder;
@@ -215,6 +220,8 @@ public class GsonSerializer implements StringSerializable {
                 .registerTypeAdapter(Class.class, CLASS_JSON_DESERIALIZER)
                 .registerTypeAdapter(OffsetDateTime.class, OFFSET_DATE_TIME_JSON_SERIALIZER)
                 .registerTypeAdapter(OffsetDateTime.class, OFFSET_DATE_TIME_JSON_DESERIALIZER)
+                .registerTypeHierarchyAdapter(TimeZone.class, TIMEZONE_JSON_SERIALIZER)
+                .registerTypeAdapter(TimeZone.class, TIMEZONE_JSON_DESERIALIZER)
                 .registerTypeAdapter(Range.class, new GuavaRangeSerializer.GsonRangeSerializer())
                 .registerTypeAdapterFactory(new FastUtilAdapterFactory())
                 .registerTypeAdapterFactory(new ProtobufAdapterFactory())
