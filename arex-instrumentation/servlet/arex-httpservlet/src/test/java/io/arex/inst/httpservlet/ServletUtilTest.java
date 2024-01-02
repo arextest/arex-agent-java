@@ -33,10 +33,16 @@ class ServletUtilTest {
     @Test
     public void matchRequestParams() {
         Map<String, List<String>> requestParams = new HashMap<>();
-        requestParams.put("name", new ArrayList<>(Arrays.asList("kimi")));
+        requestParams.put("name", new ArrayList<>(Arrays.asList("kimi", null)));
         requestParams.put("age", new ArrayList<>(Arrays.asList("0")));
         assertFalse(ServletUtil.matchAndRemoveRequestParams(requestParams, "name", "lock"));
+
+        //requestParams has null value,targetValue is not null
         assertTrue(ServletUtil.matchAndRemoveRequestParams(requestParams, "age", "0"));
+
+        //test: requestParams has null value, and targetValue is null
+        assertTrue(ServletUtil.matchAndRemoveRequestParams(requestParams, "name", null));
+
         assertFalse(ServletUtil.matchAndRemoveRequestParams(Collections.emptyMap(), "name", "lock"));
     }
 
