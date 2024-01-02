@@ -70,7 +70,7 @@ public class ServletUtil {
         Iterator<String> iterator = values.iterator();
         while (iterator.hasNext()) {
             String next = iterator.next();
-            if (next.equals(value)) {
+            if (next != null && next.equals(value)) {
                 iterator.remove();
                 return true;
             }
