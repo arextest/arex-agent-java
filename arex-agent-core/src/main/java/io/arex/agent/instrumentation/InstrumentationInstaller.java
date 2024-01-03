@@ -199,11 +199,14 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
 
         try {
             File bytecodeDumpPath = new File(agentFile.getParent(), BYTECODE_DUMP_DIR);
-            if (!bytecodeDumpPath.exists()) {
-                bytecodeDumpPath.mkdir();
-            } else {
+            boolean exists = bytecodeDumpPath.exists();
+            boolean mkdir = false;
+            if (exists) {
                 FileUtils.cleanDirectory(bytecodeDumpPath);
+            } else {
+                mkdir = bytecodeDumpPath.mkdir();
             }
+            LOGGER.info("[arex] bytecode dump path exists: {}, mkdir: {}, path: {}", exists, mkdir, bytecodeDumpPath.getPath());
             System.setProperty(TypeWriter.DUMP_PROPERTY, bytecodeDumpPath.getPath());
         } catch (Exception e) {
             LOGGER.info("[arex] Failed to create directory to instrumented bytecode: {}", e.getMessage());
