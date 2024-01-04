@@ -68,7 +68,8 @@ public class DatabaseExtractor {
     }
 
     public MockResult replay(String serializer) {
-        boolean ignoreMockResult = IgnoreUtils.ignoreMockResult(this.dbName, methodName);
+        // TODO: update after all dal components have obtained the real dbName
+        boolean ignoreMockResult = IgnoreUtils.ignoreMockResult("database", methodName);
         Mocker replayMocker = MockUtils.replayMocker(makeMocker(null, serializer));
         Object replayResult = null;
         if (MockUtils.checkResponseMocker(replayMocker)) {
