@@ -63,9 +63,9 @@ class WeakCache<K, V> extends ReferenceQueue<K> implements Cache<K, V> {
         public boolean equals(Object other) {
             if (other instanceof WeakCache.WeakReferenceKey<?>) {
                 return ((WeakReferenceKey<?>) other).get() == get();
-            } else {
-                return other.equals(this);
             }
+
+            return other != null && other.equals(this);
         }
     }
 }
