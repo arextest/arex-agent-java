@@ -3,9 +3,9 @@ package io.arex.agent.bootstrap;
 import java.lang.instrument.Instrumentation;
 
 public class InstrumentationHolder {
-    private static volatile Instrumentation instrumentation;
+    private static Instrumentation instrumentation;
 
-    private static volatile ClassLoader agentClassLoader;
+    private static ClassLoader agentClassLoader;
 
     public static Instrumentation getInstrumentation() {
         return instrumentation;
