@@ -98,9 +98,9 @@ class InternalExecutorTest {
             Mockito.when(mappedStatement.getBoundSql(any())).thenReturn(boundSql);
             target.record(mappedStatement, new Object(), null, result, throwable, "insert");
             if (throwable != null) {
-                Mockito.verify(atomicReference.get(), Mockito.times(1)).record(throwable);
+                Mockito.verify(atomicReference.get(), Mockito.times(1)).recordDb(throwable);
             } else {
-                Mockito.verify(atomicReference.get(), Mockito.times(1)).record(result);
+                Mockito.verify(atomicReference.get(), Mockito.times(1)).recordDb(result);
             }
         }
     }

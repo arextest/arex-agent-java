@@ -30,9 +30,9 @@ public class InternalExecutor {
     public static <U> void record(MappedStatement ms, Object o, String originalSql, U result, Throwable throwable, String methodName) {
         DatabaseExtractor extractor = createExtractor(ms, originalSql, o, methodName);
         if (throwable != null) {
-            extractor.record(throwable);
+            extractor.recordDb(throwable);
         } else {
-            extractor.record(result);
+            extractor.recordDb(result);
         }
     }
 
@@ -43,9 +43,9 @@ public class InternalExecutor {
         }
 
         if (throwable != null) {
-            extractor.record(throwable);
+            extractor.recordDb(throwable);
         } else {
-            extractor.record(result);
+            extractor.recordDb(result);
         }
     }
 

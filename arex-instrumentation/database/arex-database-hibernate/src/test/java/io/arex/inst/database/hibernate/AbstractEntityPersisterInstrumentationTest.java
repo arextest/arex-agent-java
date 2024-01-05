@@ -132,7 +132,7 @@ class AbstractEntityPersisterInstrumentationTest {
             mo.set(mock);
         })){
             recordType.run();
-            Mockito.verify(mo.get(), Mockito.times(1)).record(isA(mockResult.getClass()));
+            Mockito.verify(mo.get(), Mockito.times(1)).recordDb(isA(mockResult.getClass()));
         }
     }
 
@@ -190,7 +190,7 @@ class AbstractEntityPersisterInstrumentationTest {
             mo.set(mock);
         })){
             recordType.run();
-            Mockito.verify(mo.get(), Mockito.times(1)).record(isA(mockResult.getClass()));
+            Mockito.verify(mo.get(), Mockito.times(1)).recordDb(isA(mockResult.getClass()));
         }
     }
 
