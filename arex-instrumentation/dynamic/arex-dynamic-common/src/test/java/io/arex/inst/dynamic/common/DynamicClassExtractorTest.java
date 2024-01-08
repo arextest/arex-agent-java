@@ -5,6 +5,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import io.arex.agent.bootstrap.model.ArexMocker;
 import io.arex.agent.bootstrap.model.Mocker.Target;
 import io.arex.agent.thirdparty.util.time.DateFormatUtils;
+import io.arex.inst.common.util.FluxUtil;
 import io.arex.inst.dynamic.common.listener.MonoConsumer;
 import io.arex.inst.runtime.config.ConfigBuilder;
 import io.arex.inst.runtime.context.ArexContext;
@@ -20,6 +21,7 @@ import java.lang.reflect.Method;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -38,12 +40,12 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import org.mockito.stubbing.Answer;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -85,16 +87,27 @@ class DynamicClassExtractorTest {
                 System.out.println("mock MockService.recordMocker");
                 return null;
             });
-            Method testWithArexMock;
-            if (result instanceof Mono) {
-                testWithArexMock = Mono.class.getDeclaredMethod("just", Object.class);
-            } else {
-                testWithArexMock = DynamicClassExtractorTest.class.getDeclaredMethod("testWithArexMock", String.class);
-            }
+            Method testWithArexMock = getMethod(result);
             DynamicClassExtractor extractor = new DynamicClassExtractor(testWithArexMock, args);
-
             extractor.recordResponse(result);
+
             assertTrue(predicate.test(result));
+        }
+    }
+
+    private Method getMethod(Object result) {
+        try {
+
+            if (result instanceof Mono) {
+                return Mono.class.getDeclaredMethod("just", Object.class);
+            } else if (result instanceof Flux) {
+                return Flux.class.getDeclaredMethod("just", Object.class);
+
+            } else {
+                return DynamicClassExtractorTest.class.getDeclaredMethod("testWithArexMock", String.class);
+            }
+        } catch (NoSuchMethodException e) {
+            return null;
         }
     }
 
@@ -161,7 +174,8 @@ class DynamicClassExtractorTest {
             arguments(resultIsNull, new Object[]{"mock"}, new int[1001], nonNull),
             arguments(resultIsNull, null, null, isNull),
             arguments(resultIsNull, null, Mono.just("mono test"), nonNull),
-            arguments(resultIsNull, null, Futures.immediateFuture("mock-future"), nonNull)
+            arguments(resultIsNull, null, Futures.immediateFuture("mock-future"), nonNull),
+            arguments(resultIsNull, null, Flux.just("mock-exception"), nonNull)
         );
     }
 
@@ -274,6 +288,19 @@ class DynamicClassExtractorTest {
         monoTestExtractorActualResult = monoTestExtractor.restoreResponse(new RuntimeException("test-exception"));
         Object monoTestFinalActualResult = monoTestExtractorActualResult;
         assertThrows(RuntimeException.class, () -> ((Mono<?>) monoTestFinalActualResult).block());
+
+        // flux value
+        Method testReturnFlux = DynamicClassExtractorTest.class.getDeclaredMethod("testReturnFlux", String.class,
+            Throwable.class);
+        DynamicClassExtractor fluxTestExtractor = new DynamicClassExtractor(testReturnFlux, new Object[]{"mock"},
+            "#val", null);
+        List<FluxUtil.FluxElementResult> list = new ArrayList<>();
+        FluxUtil.FluxResult fluxResult = new FluxUtil.FluxResult(null, list);
+        Object fluxNormalTest = fluxTestExtractor.restoreResponse(fluxResult);
+        assertNull(((Flux<?>) fluxNormalTest).blockFirst());
+
+        Object fluxExceptionTest = fluxTestExtractor.restoreResponse(new RuntimeException());
+        assertThrows(RuntimeException.class,()-> ((Flux<?>) fluxExceptionTest).blockFirst());
     }
 
     @Test
@@ -484,6 +511,13 @@ class DynamicClassExtractorTest {
         return Mono.justOrEmpty(val + "testReturnMono");
     }
 
+    public Flux<String> testReturnFlux(String val,Throwable t){
+        if (t != null) {
+            return Flux.error(t);
+        }
+        return val == null ? Flux.empty() : Flux.just(val + "testReturnFlux");
+    }
+
     public static Mono<String> monoTest() {
         return Mono.justOrEmpty("Mono test")
             .doOnNext(value -> System.out.println("Mono context:" + value))
@@ -494,5 +528,24 @@ class DynamicClassExtractorTest {
         return Mono.error(new RuntimeException("e"))
             .doOnError(throwable -> System.out.println("Mono error:" + throwable))
             .doOnSuccess(object -> System.out.println("Mono success:" + object.getClass()));
+    }
+
+    public static Flux<String> fluxTest() {
+        return Flux.just("flux","test")
+            .doOnNext(value -> System.out.println("Flux context:" + value))
+            .onErrorResume(t -> Mono.empty());
+    }
+
+    public static Flux<String> fluxOnErrorTest() {
+        return Flux.just("flux", "test")
+            .doOnNext(value -> {
+                throw new RuntimeException("error");
+            });
+    }
+
+    public static Flux<Object> fluxExceptionTest() {
+        return Flux.error(new RuntimeException("e"))
+            .doOnError(throwable -> System.out.println("Flux error:" + throwable))
+            .doOnNext(object -> System.out.println("Flux success:" + object.getClass()));
     }
 }

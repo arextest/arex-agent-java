@@ -35,6 +35,7 @@
         <module>dynamic/arex-dynamic</module>
         <module>dynamic/arex-dynamic-common</module>
         <module>dynamic/arex-cache</module>
+        <module>common/arex-common</module>
         <module>time-machine/arex-time-machine</module>
         <module>httpclient/arex-httpclient-common</module>
         <module>httpclient/arex-httpclient-okhttp-v3</module>
@@ -64,6 +65,5 @@
             <groupId>com.google.auto.service</groupId>
             <artifactId>auto-service</artifactId>
         </dependency>
-
     </dependencies>
 </project>
