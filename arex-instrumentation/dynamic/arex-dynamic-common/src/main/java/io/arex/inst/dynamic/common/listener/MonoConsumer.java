@@ -14,17 +14,23 @@ public class MonoConsumer {
         this.extractor = extractor;
     }
 
+    /**
+     * support for Mono type recording
+     * @param responseMono
+     * @return
+     */
     public Mono<?> accept(Mono<?> responseMono) {
         return responseMono
-            .doOnSuccess(o -> {
+            .doOnSuccess(result -> {
                 try (TraceTransmitter tm = traceTransmitter.transmit()) {
-                    extractor.recordResponse(o);
+                    extractor.recordResponse(result);
                 }
             })
-            .doOnError(o -> {
+            .doOnError(error-> {
                 try (TraceTransmitter tm = traceTransmitter.transmit()) {
-                    extractor.recordResponse(o);
+                    extractor.recordResponse(error);
                 }
             });
     }
+
 }

@@ -8,6 +8,8 @@ import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.ArrayUtils;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.agent.thirdparty.util.time.DateFormatUtils;
+import io.arex.inst.common.util.FluxUtil;
+import io.arex.inst.dynamic.common.listener.FluxConsumer;
 import io.arex.inst.dynamic.common.listener.ListenableFutureAdapter;
 import io.arex.inst.dynamic.common.listener.MonoConsumer;
 import io.arex.inst.dynamic.common.listener.ResponseConsumer;
@@ -31,6 +33,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 public class DynamicClassExtractor {
@@ -41,6 +44,7 @@ public class DynamicClassExtractor {
     private static final String NEED_RECORD_TITLE = "dynamic.needRecord";
     private static final String NEED_REPLAY_TITLE = "dynamic.needReplay";
     public static final String MONO = "reactor.core.publisher.Mono";
+    public static final String FLUX = "reactor.core.publisher.Flux";
     private static final String JODA_LOCAL_DATE_TIME = "org.joda.time.LocalDateTime";
     private static final String JODA_LOCAL_TIME = "org.joda.time.LocalTime";
     public static final String SIMPLE_DATE_FORMAT_MILLIS = "yyyy-MM-dd HH:mm:";
@@ -95,6 +99,11 @@ public class DynamicClassExtractor {
         if (MONO.equals(methodReturnType) && response instanceof Mono<?>) {
             return new MonoConsumer(this).accept((Mono<?>) response);
         }
+
+        if (FLUX.equals(methodReturnType) && response instanceof Flux<?>) {
+            return new FluxConsumer(this).accept((Flux<?>) response);
+        }
+
         this.result = response;
         if (needRecord()) {
             this.resultClazz = buildResultClazz(TypeUtil.getName(response));
@@ -308,6 +317,12 @@ public class DynamicClassExtractor {
             return Mono.justOrEmpty(result);
         }
 
+        if (FLUX.equals(this.methodReturnType)) {
+            if (result instanceof Throwable) {
+                return Flux.error((Throwable) result);
+            }
+            return FluxUtil.restore(result);
+        }
         return result;
     }
 
