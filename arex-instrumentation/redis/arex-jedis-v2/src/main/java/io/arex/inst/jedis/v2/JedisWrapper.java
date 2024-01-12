@@ -1,6 +1,7 @@
 package io.arex.inst.jedis.v2;
 
 import io.arex.agent.bootstrap.model.MockResult;
+import io.arex.agent.bootstrap.util.ArrayUtils;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.redis.common.RedisExtractor;
@@ -527,8 +528,8 @@ public class JedisWrapper extends Jedis {
      * mset/msetnx
      */
     private <U> U call(String command, String[] keysValues, Callable<U> callable, U defaultValue) {
-        if (keysValues == null || keysValues.length == 0) {
-            return null;
+        if (ArrayUtils.isEmpty(keysValues)) {
+            return defaultValue;
         }
 
         if (keysValues.length == 2) {
