@@ -5,8 +5,8 @@ import io.arex.inst.redis.common.RedisExtractor;
 import io.arex.inst.runtime.context.ContextManager;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -18,8 +18,8 @@ import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
@@ -46,6 +46,33 @@ class JedisWrapperTest {
     static void tearDown() {
         connection = null;
         Mockito.clearAllCaches();
+    }
+
+    @Test
+    void callWithEmptyKeysValuesReturnsDefault() {
+        long result = target.msetnx( new String[]{});
+        assertEquals(0, result);
+    }
+
+    @Test
+    void callWithTwoKeysValuesReturnsCallableResult() {
+        Mockito.when(ContextManager.needRecord()).thenReturn(false);
+        Mockito.when(connection.executeCommand(any(CommandObject.class))).thenReturn(1L);
+        try (MockedConstruction<RedisExtractor> mocked = Mockito.mockConstruction(RedisExtractor.class, (mock, context) -> {
+        })) {
+            long result = target.msetnx("key", "value");
+            assertEquals(1L, result);
+
+            result = target.msetnx("key1", "value1", "key2", "value2", "key3", "value3");
+            assertEquals(1L, result);
+
+            result = target.exists("key1", "key2", "key3");
+            assertEquals(1L, result);
+        } catch (Exception e) {
+            assertThrows(NullPointerException.class, () -> {
+                throw e;
+            });
+        }
     }
 
     @ParameterizedTest

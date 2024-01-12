@@ -4,6 +4,7 @@ import com.sun.tools.attach.AgentLoadException;
 import com.sun.tools.attach.VirtualMachine;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 /**
  * agent attacher
@@ -52,7 +53,8 @@ public class AgentAttacher {
             virtualMachine.detach();
         } catch (Throwable e) {
             // expected behavior, it will be returned as error stream to the caller, if any
-            e.printStackTrace();
+            System.err.printf("agent attach failed, pid: %s, args: %s, error: %s%n",
+                pid, Arrays.toString(args), e.getMessage());
         }
     }
 }
