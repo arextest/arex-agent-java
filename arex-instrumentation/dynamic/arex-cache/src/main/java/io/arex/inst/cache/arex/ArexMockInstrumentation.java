@@ -9,7 +9,7 @@ import static net.bytebuddy.matcher.ElementMatchers.returns;
 
 import com.arextest.common.annotation.ArexMock;
 import io.arex.agent.bootstrap.model.MockResult;
-import io.arex.inst.dynamic.common.DynamiConstants;
+import io.arex.inst.dynamic.common.DynamicConstants;
 import io.arex.inst.dynamic.common.DynamicClassExtractor;
 import io.arex.inst.extension.MethodInstrumentation;
 import io.arex.inst.extension.TypeInstrumentation;
@@ -29,15 +29,15 @@ public class ArexMockInstrumentation extends TypeInstrumentation {
 
     @Override
     protected ElementMatcher<TypeDescription> typeMatcher() {
-        return inheritsAnnotation(named(DynamiConstants.AREX_MOCK));
+        return inheritsAnnotation(named(DynamicConstants.AREX_MOCK));
     }
 
     @Override
     public List<MethodInstrumentation> methodAdvices() {
         Junction<MethodDescription> matcher = isMethod()
             .and(not(returns(TypeDescription.VOID)))
-            .and(isAnnotatedWith(named(DynamiConstants.AREX_MOCK)))
-            .and(not(isAnnotatedWith(named(DynamiConstants.SPRING_CACHE))));
+            .and(isAnnotatedWith(named(DynamicConstants.AREX_MOCK)))
+            .and(not(isAnnotatedWith(named(DynamicConstants.SPRING_CACHE))));
         MethodInstrumentation method = new MethodInstrumentation(matcher,
             ArexMockAdvice.class.getName());
 
