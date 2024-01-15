@@ -4,6 +4,7 @@ import com.google.auto.service.AutoService;
 
 import com.google.common.collect.Range;
 import io.arex.agent.thirdparty.util.time.DateFormatUtils;
+import io.arex.foundation.serializer.custom.MultiTypeElement;
 import io.arex.foundation.serializer.JacksonSerializer.DateFormatParser;
 import io.arex.foundation.serializer.custom.FastUtilAdapterFactory;
 import io.arex.foundation.serializer.custom.GuavaRangeSerializer;
@@ -233,9 +234,7 @@ public class GsonSerializer implements StringSerializable {
     }
 
 
-    static class MapSerializer implements JsonSerializer<Map<String, Object>>, JsonDeserializer<Map<String, Object>> {
-
-        private static final Character SEPARATOR = '-';
+    public static class MapSerializer implements JsonSerializer<Map<String, Object>>, JsonDeserializer<Map<String, Object>> {
 
         @Override
         public JsonElement serialize(Map<String, Object> document, Type type, JsonSerializationContext context) {
@@ -243,17 +242,12 @@ public class GsonSerializer implements StringSerializable {
             for (Map.Entry<String, Object> entry : document.entrySet()) {
                 final Object value = entry.getValue();
 
-                if (value == null) {
-                    jsonObject.add(entry.getKey(), null);
-                    continue;
-                }
-
-                if (value instanceof String) {
+                if (value == null || value instanceof String) {
                     jsonObject.addProperty(entry.getKey(), (String) value);
                     continue;
                 }
-                jsonObject.add(entry.getKey() + SEPARATOR + TypeUtil.getName(value),
-                        context.serialize(value));
+
+                jsonObject.add(entry.getKey(), context.serialize(new MultiTypeElement(context.serialize(value), TypeUtil.getName(value))));
             }
             return jsonObject;
         }
@@ -267,22 +261,21 @@ public class GsonSerializer implements StringSerializable {
                 // only support no-arg constructor
                 final Map<String, Object> map = (Map<String, Object>) ((Class) typeOfT).getDeclaredConstructor(null).newInstance();
                 for (Entry<String, JsonElement> entry : jsonObject.entrySet()) {
-                    final String[] split = StringUtil.splitByFirstSeparator(entry.getKey(), SEPARATOR);
-                    if (split.length < 2) {
-                        map.put(entry.getKey(), context.deserialize(entry.getValue(), String.class));
+                    final String key = entry.getKey();
+                    final JsonElement jsonElement = entry.getValue();
+                    if (jsonElement instanceof JsonObject) {
+                        final MultiTypeElement mapValueElement = context.deserialize(jsonElement, MultiTypeElement.class);
+                        final Object value = context.deserialize(mapValueElement.getValue(),
+                                TypeUtil.forName(mapValueElement.getType()));
+                        map.put(key, value);
                         continue;
                     }
-                    String valueClazz = split[1];
-                    String key = split[0];
-                    final JsonElement valueJson = entry.getValue();
-                    final Type valueType = TypeUtil.forName(valueClazz);
-                    final Object value = context.deserialize(valueJson, valueType);
-                    map.put(key, value);
+                    map.put(key, jsonElement.getAsString());
                 }
                 return map;
             } catch (Exception e) {
                 LogManager.warn("MapSerializer.deserialize", e);
-                return null;
+                return Collections.emptyMap();
             }
 
         }

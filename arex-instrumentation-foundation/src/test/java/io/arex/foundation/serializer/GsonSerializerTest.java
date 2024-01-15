@@ -130,17 +130,17 @@ class GsonSerializerTest {
         assertEquals(map, deserialize);
 
 
-        map.put("key", "value");
+        map.put("key", "AREX-101-202");
         map.put("long", 2L);
         json = GsonSerializer.INSTANCE.serialize(map);
-        assertEquals("{\"key\":\"value\",\"long-java.lang.Long\":2}", json);
+        assertEquals("{\"key\":\"AREX-101-202\",\"long\":{\"value\":2,\"type\":\"java.lang.Long\"}}", json);
         final LinkedTreeMap deserialize1 = GsonSerializer.INSTANCE.deserialize(json, LinkedTreeMap.class);
         assertEquals(map, deserialize1);
 
         // value is null
         map.put("null", null);
         json = GsonSerializer.INSTANCE.serialize(map);
-        assertEquals("{\"key\":\"value\",\"long-java.lang.Long\":2}", json);
+        assertEquals("{\"key\":\"AREX-101-202\",\"long\":{\"value\":2,\"type\":\"java.lang.Long\"}}", json);
     }
 
     @Test
