@@ -76,43 +76,42 @@ public class ObjectGraphWalker {
         Deque<Object> toVisit = new ArrayDeque<>();
         Set<Object> visited = newSetFromMap(new IdentityHashMap<>());
 
-        if (root != null) {
-            for (Object object : root) {
-                nullSafeAdd(toVisit, object);
-            }
-        }
+        nullSafeAddArray(toVisit, root);
 
         while (!toVisit.isEmpty()) {
-
             Object ref = toVisit.pop();
-
-            if (visited.add(ref)) {
-                Class<?> refClass = ref.getClass();
-                if (shouldWalkClass(refClass)) {
-                    if (refClass.isArray() && !refClass.getComponentType().isPrimitive()) {
-                        for (int i = 0; i < Array.getLength(ref); i++) {
-                            nullSafeAdd(toVisit, Array.get(ref, i));
-                        }
-                    } else {
-                        for (Field field : getFilteredFields(refClass)) {
-                            try {
-                                nullSafeAdd(toVisit, field.get(ref));
-                            } catch (IllegalAccessException ex) {
-                                throw new RuntimeException(ex);
-                            }
-                        }
-                    }
-
-                    final long visitSize = visitor.visit(ref);
-                    if (visitorListener != null) {
-                        visitorListener.visited(ref, visitSize);
-                    }
-                    result += visitSize;
-                }
+            if (!visited.add(ref) || !shouldWalkClass(ref.getClass())) {
+                continue;
             }
+
+            walkField(ref, toVisit);
+
+            final long visitSize = visitor.visit(ref);
+            if (visitorListener != null) {
+                visitorListener.visited(ref, visitSize);
+            }
+            result += visitSize;
+
         }
 
         return result;
+    }
+
+    private void walkField(Object ref, Deque<Object> toVisit) {
+        Class<?> refClass = ref.getClass();
+        if (refClass.isArray() && !refClass.getComponentType().isPrimitive()) {
+            for (int i = 0; i < Array.getLength(ref); i++) {
+                nullSafeAdd(toVisit, Array.get(ref, i));
+            }
+            return;
+        }
+        for (Field field : getFilteredFields(refClass)) {
+            try {
+                nullSafeAdd(toVisit, field.get(ref));
+            } catch (IllegalAccessException ex) {
+                throw new RuntimeException(ex);
+            }
+        }
     }
 
     /**
@@ -143,6 +142,14 @@ public class ObjectGraphWalker {
         return cached;
     }
 
+    private static void nullSafeAddArray(final Deque<Object> toVisit, final Object... root) {
+        if (root != null) {
+            for (Object object : root) {
+                nullSafeAdd(toVisit, object);
+            }
+        }
+    }
+
     private static void nullSafeAdd(final Deque<Object> toVisit, final Object o) {
         if (o != null) {
             toVisit.push(o);
@@ -159,8 +166,7 @@ public class ObjectGraphWalker {
         Collection<Field> fields = new ArrayList<>();
         for (Class<?> klazz = refClass; klazz != null; klazz = klazz.getSuperclass()) {
             for (Field field : klazz.getDeclaredFields()) {
-                if (!Modifier.isStatic(field.getModifiers()) &&
-                        !field.getType().isPrimitive()) {
+                if (!Modifier.isStatic(field.getModifiers()) && !field.getType().isPrimitive()) {
                     try {
                         field.setAccessible(true);
                     } catch (RuntimeException e) {

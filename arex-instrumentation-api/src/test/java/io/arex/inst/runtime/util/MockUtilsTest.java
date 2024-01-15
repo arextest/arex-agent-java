@@ -169,6 +169,9 @@ class MockUtilsTest {
 
         actualResult = MockUtils.createDubboStreamProvider("query");
         assertEquals(MockCategoryType.DUBBO_STREAM_PROVIDER, actualResult.getCategoryType());
+
+        actualResult = MockUtils.createNettyProvider("query");
+        assertEquals(MockCategoryType.NETTY_PROVIDER, actualResult.getCategoryType());
     }
 
     @Test
@@ -177,5 +180,13 @@ class MockUtilsTest {
         mocker.setTargetRequest(new Mocker.Target());
         mocker.getTargetRequest().setBody("mock");
         assertTrue(MockUtils.methodSignatureHash(mocker) > 0);
+    }
+
+    @Test
+    void methodRequestTypeHash() {
+        ArexMocker mocker = new ArexMocker(MockCategoryType.DYNAMIC_CLASS);
+        mocker.setTargetRequest(new Mocker.Target());
+        mocker.getTargetRequest().setBody("mock");
+        assertTrue(MockUtils.methodRequestTypeHash(mocker) > 0);
     }
 }

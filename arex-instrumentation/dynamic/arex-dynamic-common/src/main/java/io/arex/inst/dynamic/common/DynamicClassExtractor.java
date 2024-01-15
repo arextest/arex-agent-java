@@ -33,7 +33,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import io.arex.inst.runtime.util.sizeof.AgentSizeOf;
-import reactor.core.publisher.Mono;
 
 public class DynamicClassExtractor {
     private static final String LISTENABLE_FUTURE = "com.google.common.util.concurrent.ListenableFuture";
@@ -88,8 +87,9 @@ public class DynamicClassExtractor {
 
     public Object recordResponse(Object response) {
         if (IgnoreUtils.invalidOperation(dynamicSignature)) {
-            LogManager.warn(NEED_RECORD_TITLE,
-                    StringUtil.format("do not record invalid operation: %s", dynamicSignature));
+            LogManager.warn(NEED_RECORD_TITLE, StringUtil.format(
+                    "do not record invalid operation: %s, can not serialize request or response or response too large",
+                    dynamicSignature));
             return response;
         }
         if (response instanceof Future<?>) {
