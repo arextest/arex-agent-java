@@ -128,5 +128,4 @@ public class IgnoreUtils {
     public static void clearInvalidOperation() {
         INVALID_OPERATION_HASH_CACHE.clear();
     }
-
 }

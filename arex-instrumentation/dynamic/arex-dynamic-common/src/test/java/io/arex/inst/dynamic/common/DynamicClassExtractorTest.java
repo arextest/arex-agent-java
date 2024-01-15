@@ -103,40 +103,6 @@ class DynamicClassExtractorTest {
         }
     }
 
-    static Stream<Arguments> recordCase() {
-        ArexContext context = Mockito.mock(ArexContext.class);
-        Mockito.when(ContextManager.currentContext()).thenReturn(context);
-        Runnable signatureContains = () -> {
-            Set<Integer> methodSignatureHashList = new HashSet<>();
-            methodSignatureHashList.add(StringUtil.encodeAndHash(
-                    "io.arex.inst.dynamic.common.DynamicClassExtractorTest_testWithArexMock_mock Serializer.serialize_has_result_java.lang.String"
-            ));
-            Mockito.when(context.getMethodSignatureHashList()).thenReturn(methodSignatureHashList);
-            try {
-                Mockito.when(Serializer.serializeWithException(any(), anyString())).thenReturn("mock Serializer.serialize");
-            } catch (Throwable ignored) {
-            }
-        };
-
-        Runnable resultIsNull = () -> {
-            Mockito.when(context.getMethodSignatureHashList()).thenReturn(new HashSet<>());
-        };
-
-        Predicate<Object> isNull = Objects::isNull;
-        Predicate<Object> nonNull = Objects::nonNull;
-        return Stream.of(
-                arguments(signatureContains, new Object[]{"mock"}, "mock1", nonNull),
-                arguments(resultIsNull, new Object[]{"mock"}, null, isNull),
-                arguments(resultIsNull, new Object[]{"mock"}, Collections.singletonList("mock"), nonNull),
-                arguments(resultIsNull, new Object[]{"mock"}, Collections.singletonMap("key", "val"), nonNull),
-                arguments(resultIsNull, new Object[]{"mock"}, new int[1001], nonNull),
-                arguments(resultIsNull, null, null, isNull),
-                arguments(resultIsNull, null, Mono.just("mono test"), nonNull),
-                arguments(resultIsNull, null, Futures.immediateFuture("mock-future"), nonNull),
-                arguments(resultIsNull, null, Flux.just("mock-exception"), nonNull)
-        );
-    }
-
     private Method getMethod(Object result) {
         try {
 
@@ -177,6 +143,41 @@ class DynamicClassExtractorTest {
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
+    }
+
+
+    static Stream<Arguments> recordCase() {
+        ArexContext context = Mockito.mock(ArexContext.class);
+        Mockito.when(ContextManager.currentContext()).thenReturn(context);
+        Runnable signatureContains = () -> {
+            Set<Integer> methodSignatureHashList = new HashSet<>();
+            methodSignatureHashList.add(StringUtil.encodeAndHash(
+                    "io.arex.inst.dynamic.common.DynamicClassExtractorTest_testWithArexMock_mock Serializer.serialize_has_result_java.lang.String"
+            ));
+            Mockito.when(context.getMethodSignatureHashList()).thenReturn(methodSignatureHashList);
+            try {
+                Mockito.when(Serializer.serializeWithException(any(), anyString())).thenReturn("mock Serializer.serialize");
+            } catch (Throwable ignored) {
+            }
+        };
+
+        Runnable resultIsNull = () -> {
+            Mockito.when(context.getMethodSignatureHashList()).thenReturn(new HashSet<>());
+        };
+
+        Predicate<Object> isNull = Objects::isNull;
+        Predicate<Object> nonNull = Objects::nonNull;
+        return Stream.of(
+                arguments(signatureContains, new Object[]{"mock"}, "mock1", nonNull),
+                arguments(resultIsNull, new Object[]{"mock"}, null, isNull),
+                arguments(resultIsNull, new Object[]{"mock"}, Collections.singletonList("mock"), nonNull),
+                arguments(resultIsNull, new Object[]{"mock"}, Collections.singletonMap("key", "val"), nonNull),
+                arguments(resultIsNull, new Object[]{"mock"}, new int[1001], nonNull),
+                arguments(resultIsNull, null, null, isNull),
+                arguments(resultIsNull, null, Mono.just("mono test"), nonNull),
+                arguments(resultIsNull, null, Futures.immediateFuture("mock-future"), nonNull),
+                arguments(resultIsNull, null, Flux.just("mock-exception"), nonNull)
+        );
     }
 
     @ParameterizedTest
