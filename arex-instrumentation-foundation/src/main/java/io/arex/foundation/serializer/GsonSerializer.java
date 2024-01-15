@@ -4,20 +4,23 @@ import com.google.auto.service.AutoService;
 
 import com.google.common.collect.Range;
 import io.arex.agent.thirdparty.util.time.DateFormatUtils;
+import io.arex.foundation.serializer.custom.MultiTypeElement;
 import io.arex.foundation.serializer.JacksonSerializer.DateFormatParser;
 import io.arex.foundation.serializer.custom.FastUtilAdapterFactory;
 import io.arex.foundation.serializer.custom.GuavaRangeSerializer;
-import io.arex.foundation.serializer.custom.NumberTypeAdaptor;
 import io.arex.agent.bootstrap.util.StringUtil;
 import com.google.gson.Gson;
 import com.google.gson.JsonDeserializer;
 
+import io.arex.foundation.serializer.custom.NumberStrategy;
 import io.arex.foundation.serializer.custom.ProtobufAdapterFactory;
 import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.serializer.StringSerializable;
 import io.arex.inst.runtime.util.TypeUtil;
+
 import java.sql.Time;
 import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map.Entry;
 import org.joda.time.DateTime;
@@ -156,6 +159,17 @@ public class GsonSerializer implements StringSerializable {
         return (Class) TypeUtil.forName(json.getAsString());
     };
 
+    private static final JsonSerializer<OffsetDateTime> OFFSET_DATE_TIME_JSON_SERIALIZER =
+        ((src, typeOfSrc, context) -> new JsonPrimitive(DateFormatUtils.format(src, JacksonSerializer.DatePatternConstants.SIMPLE_DATE_FORMAT_WITH_TIMEZONE_DATETIME)));
+
+    private static final JsonDeserializer<OffsetDateTime> OFFSET_DATE_TIME_JSON_DESERIALIZER = (json, typeOfT, context) ->
+            OffsetDateTime.parse(json.getAsString(), DateFormatParser.INSTANCE.getFormatter(JacksonSerializer.DatePatternConstants.SIMPLE_DATE_FORMAT_WITH_TIMEZONE_DATETIME));
+
+    private static final JsonSerializer<TimeZone> TIMEZONE_JSON_SERIALIZER = (timeZone, type, context) -> new JsonPrimitive(timeZone.getID());
+
+    private static final JsonDeserializer<TimeZone> TIMEZONE_JSON_DESERIALIZER =
+            (json, typeOfT, context) -> TimeZone.getTimeZone(json.getAsString());
+
     public static final GsonSerializer INSTANCE = new GsonSerializer();
     private Gson serializer;
     private GsonBuilder gsonBuilder;
@@ -172,7 +186,7 @@ public class GsonSerializer implements StringSerializable {
     }
 
     public GsonSerializer() {
-        gsonBuilder = new GsonBuilder().registerTypeAdapterFactory(NumberTypeAdaptor.FACTORY)
+        gsonBuilder = new GsonBuilder()
                 .registerTypeAdapter(DateTime.class, DATE_TIME_JSON_SERIALIZER)
                 .registerTypeAdapter(DateTime.class, DATE_TIME_JSON_DESERIALIZER)
                 .registerTypeAdapter(org.joda.time.LocalDateTime.class, JODA_LOCAL_DATE_TIME_JSON_SERIALIZER)
@@ -205,19 +219,22 @@ public class GsonSerializer implements StringSerializable {
                 .registerTypeAdapter(Instant.class, INSTANT_JSON_DESERIALIZER)
                 .registerTypeAdapter(Class.class, CLASS_JSON_SERIALIZER)
                 .registerTypeAdapter(Class.class, CLASS_JSON_DESERIALIZER)
+                .registerTypeAdapter(OffsetDateTime.class, OFFSET_DATE_TIME_JSON_SERIALIZER)
+                .registerTypeAdapter(OffsetDateTime.class, OFFSET_DATE_TIME_JSON_DESERIALIZER)
+                .registerTypeHierarchyAdapter(TimeZone.class, TIMEZONE_JSON_SERIALIZER)
+                .registerTypeAdapter(TimeZone.class, TIMEZONE_JSON_DESERIALIZER)
                 .registerTypeAdapter(Range.class, new GuavaRangeSerializer.GsonRangeSerializer())
                 .registerTypeAdapterFactory(new FastUtilAdapterFactory())
                 .registerTypeAdapterFactory(new ProtobufAdapterFactory())
                 .enableComplexMapKeySerialization()
                 .setExclusionStrategies(new ExcludeField())
-                .disableHtmlEscaping();
+                .disableHtmlEscaping()
+                .setObjectToNumberStrategy(new NumberStrategy());
         serializer = gsonBuilder.create();
     }
 
 
-    static class MapSerializer implements JsonSerializer<Map<String, Object>>, JsonDeserializer<Map<String, Object>> {
-
-        private static final Character SEPARATOR = '-';
+    public static class MapSerializer implements JsonSerializer<Map<String, Object>>, JsonDeserializer<Map<String, Object>> {
 
         @Override
         public JsonElement serialize(Map<String, Object> document, Type type, JsonSerializationContext context) {
@@ -225,17 +242,12 @@ public class GsonSerializer implements StringSerializable {
             for (Map.Entry<String, Object> entry : document.entrySet()) {
                 final Object value = entry.getValue();
 
-                if (value == null) {
-                    jsonObject.add(entry.getKey(), null);
-                    continue;
-                }
-
-                if (value instanceof String) {
+                if (value == null || value instanceof String) {
                     jsonObject.addProperty(entry.getKey(), (String) value);
                     continue;
                 }
-                jsonObject.add(entry.getKey() + SEPARATOR + TypeUtil.getName(value),
-                        context.serialize(value));
+
+                jsonObject.add(entry.getKey(), context.serialize(new MultiTypeElement(context.serialize(value), TypeUtil.getName(value))));
             }
             return jsonObject;
         }
@@ -249,22 +261,21 @@ public class GsonSerializer implements StringSerializable {
                 // only support no-arg constructor
                 final Map<String, Object> map = (Map<String, Object>) ((Class) typeOfT).getDeclaredConstructor(null).newInstance();
                 for (Entry<String, JsonElement> entry : jsonObject.entrySet()) {
-                    final String[] split = StringUtil.splitByFirstSeparator(entry.getKey(), SEPARATOR);
-                    if (split.length < 2) {
-                        map.put(entry.getKey(), context.deserialize(entry.getValue(), String.class));
+                    final String key = entry.getKey();
+                    final JsonElement jsonElement = entry.getValue();
+                    if (jsonElement instanceof JsonObject) {
+                        final MultiTypeElement mapValueElement = context.deserialize(jsonElement, MultiTypeElement.class);
+                        final Object value = context.deserialize(mapValueElement.getValue(),
+                                TypeUtil.forName(mapValueElement.getType()));
+                        map.put(key, value);
                         continue;
                     }
-                    String valueClazz = split[1];
-                    String key = split[0];
-                    final JsonElement valueJson = entry.getValue();
-                    final Type valueType = TypeUtil.forName(valueClazz);
-                    final Object value = context.deserialize(valueJson, valueType);
-                    map.put(key, value);
+                    map.put(key, jsonElement.getAsString());
                 }
                 return map;
             } catch (Exception e) {
                 LogManager.warn("MapSerializer.deserialize", e);
-                return null;
+                return Collections.emptyMap();
             }
 
         }

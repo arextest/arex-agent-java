@@ -47,9 +47,9 @@ class ApolloServletV3RequestHandlerTest {
     }
 
     @Test
-    void preHandle() {
+    void handleAfterCreateContext() {
         HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
-        target.preHandle(request);
+        target.handleAfterCreateContext(request);
         mockStaticHelper.verify(() -> ApolloConfigHelper.initAndRecord(any(), any()), atLeastOnce());
     }
 

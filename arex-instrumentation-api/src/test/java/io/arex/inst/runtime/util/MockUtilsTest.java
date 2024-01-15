@@ -6,11 +6,13 @@ import static org.mockito.ArgumentMatchers.anyString;
 
 import io.arex.agent.bootstrap.model.ArexMocker;
 import io.arex.agent.bootstrap.model.MockCategoryType;
+import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.inst.runtime.config.ConfigBuilder;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.listener.EventProcessorTest.TestGsonSerializer;
 import io.arex.inst.runtime.listener.EventProcessorTest.TestJacksonSerializable;
+import io.arex.inst.runtime.match.ReplayMatcher;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.serializer.StringSerializable;
 import io.arex.inst.runtime.service.DataCollector;
@@ -39,6 +41,8 @@ class MockUtilsTest {
         list.add(new TestJacksonSerializable());
         list.add(new TestGsonSerializer());
         Serializer.builder(list).build();
+        Mockito.mockStatic(MergeRecordReplayUtil.class);
+        Mockito.mockStatic(ReplayMatcher.class);
     }
 
     @AfterAll
@@ -57,6 +61,16 @@ class MockUtilsTest {
         // invalid case
         Mockito.when(CaseManager.isInvalidCase(any())).thenReturn(true);
         Assertions.assertDoesNotThrow(() -> MockUtils.recordMocker(dynamicClass));
+
+        // merge case
+        Mockito.when(CaseManager.isInvalidCase(any())).thenReturn(false);
+        ArexMocker servletMocker = MockUtils.createServlet("mock");
+        servletMocker.setMerge(true);
+        Assertions.assertDoesNotThrow(() -> MockUtils.recordMocker(servletMocker));
+
+        // remain case
+        servletMocker.setMerge(false);
+        Assertions.assertDoesNotThrow(() -> MockUtils.recordMocker(servletMocker));
     }
 
     @Test
@@ -72,10 +86,29 @@ class MockUtilsTest {
         configBuilder.build();
         String responseJson = "{\"id\":\"64ec180f7071c91a03cde866\",\"categoryType\":{\"name\":\"DynamicClass\",\"entryPoint\":false,\"skipComparison\":true},\"replayId\":null,\"recordId\":\"AREX-10-4-202-26-46993323299502\",\"appId\":\"arex-test-app\",\"recordEnvironment\":0,\"creationTime\":1693194255518,\"updateTime\":0,\"expirationTime\":1693539855663,\"targetRequest\":{\"body\":null,\"attributes\":null,\"type\":null},\"targetResponse\":{\"body\":\"1693194255518\",\"attributes\":null,\"type\":\"java.lang.Long\"},\"operationName\":\"java.lang.System.currentTimeMillis\",\"recordVersion\":\"0.3.8\"}";
         Mockito.when(dataCollector.query(anyString(), any())).thenReturn(responseJson);
-        Mockito.when(ContextManager.currentContext()).thenReturn(ArexContext.of("mock-trace-id"));
+        Mockito.when(CaseManager.isInvalidCase("mock-replay-id")).thenReturn(false);
+        Mockito.when(ContextManager.currentContext()).thenReturn(ArexContext.of("mock-trace-id", "mock-replay-id"));
         dynamicClass = MockUtils.createDynamicClass("test", "test");
         Object actualResult = MockUtils.replayBody(dynamicClass);
         assertEquals(1693194255518L, actualResult);
+
+        // invalid case
+        Mockito.when(CaseManager.isInvalidCase("mock-replay-id")).thenReturn(true);
+        assertNull(MockUtils.replayBody(dynamicClass));
+
+        // null replayId but is not config file
+        Mockito.when(CaseManager.isInvalidCase(null)).thenReturn(true);
+        Mockito.when(ContextManager.currentContext()).thenReturn(ArexContext.of("mock-trace-id", null));
+        assertNull(MockUtils.replayBody(dynamicClass));
+
+        // null replayId and is config file
+        ArexMocker configFile = MockUtils.createConfigFile("test");
+        assertNotNull(MockUtils.replayBody(configFile));
+
+        // merge case
+        configFile.setMerge(true);
+        Mockito.when(ReplayMatcher.match(any(), any())).thenReturn(configFile);
+        assertNull(MockUtils.replayBody(configFile));
     }
 
     @Test
@@ -136,5 +169,13 @@ class MockUtilsTest {
 
         actualResult = MockUtils.createDubboStreamProvider("query");
         assertEquals(MockCategoryType.DUBBO_STREAM_PROVIDER, actualResult.getCategoryType());
+    }
+
+    @Test
+    void methodSignatureHash() {
+        ArexMocker mocker = new ArexMocker();
+        mocker.setTargetRequest(new Mocker.Target());
+        mocker.getTargetRequest().setBody("mock");
+        assertTrue(MockUtils.methodSignatureHash(mocker) > 0);
     }
 }

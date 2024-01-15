@@ -5,8 +5,6 @@ import java.util.Collection;
 
 /**
  * Filter to filter types or fields of object graphs passed to a SizeOf engine
- *
- * @author Chris Dennis
  */
 public interface SizeOfFilter {
 

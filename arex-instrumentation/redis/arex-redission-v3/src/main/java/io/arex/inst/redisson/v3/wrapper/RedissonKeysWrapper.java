@@ -2,6 +2,7 @@ package io.arex.inst.redisson.v3.wrapper;
 
 import io.arex.inst.redis.common.RedisKeyUtil;
 import io.arex.inst.redisson.v3.RedissonWrapperCommon;
+import io.arex.inst.redisson.v3.common.RedissonHelper;
 import org.redisson.RedissonKeys;
 import org.redisson.api.RFuture;
 import org.redisson.api.RType;
@@ -20,7 +21,7 @@ public class RedissonKeysWrapper extends RedissonKeys {
 
     public RedissonKeysWrapper(CommandAsyncExecutor commandExecutor) {
         super(commandExecutor);
-        redisUri = commandExecutor.getConnectionManager().getConfig().getMasterAddress();
+        redisUri = RedissonHelper.getRedisUri(commandExecutor.getConnectionManager());
     }
 
     @Override

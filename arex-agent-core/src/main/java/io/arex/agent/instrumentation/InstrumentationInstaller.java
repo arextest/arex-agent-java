@@ -13,6 +13,8 @@ import io.arex.inst.runtime.model.DynamicClassEntity;
 import io.arex.inst.runtime.model.DynamicClassStatusEnum;
 import io.arex.agent.bootstrap.util.ServiceLoader;
 import java.util.stream.Collectors;
+
+import io.arex.inst.runtime.util.IgnoreUtils;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.agent.builder.ResettableClassFileTransformer;
@@ -61,7 +63,7 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
             LOGGER.info("[AREX] No Change in dynamic class config, no need to retransform.");
             return resettableClassFileTransformer;
         }
-
+        IgnoreUtils.clearInvalidOperation();
         instrumentation.removeTransformer(resettableClassFileTransformer);
         resettableClassFileTransformer = install(getAgentBuilder(), true);
         LOGGER.info("[AREX] Agent retransform successfully.");
@@ -73,7 +75,7 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
         if (CollectionUtil.isEmpty(resetClassSet)) {
             return;
         }
-
+        IgnoreUtils.clearInvalidOperation();
         instrumentation.removeTransformer(resettableClassFileTransformer);
         // TODO: optimize reset abstract class
         for (Class<?> clazz : this.instrumentation.getAllLoadedClasses()) {
@@ -197,11 +199,14 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
 
         try {
             File bytecodeDumpPath = new File(agentFile.getParent(), BYTECODE_DUMP_DIR);
-            if (!bytecodeDumpPath.exists()) {
-                bytecodeDumpPath.mkdir();
-            } else {
+            boolean exists = bytecodeDumpPath.exists();
+            boolean mkdir = false;
+            if (exists) {
                 FileUtils.cleanDirectory(bytecodeDumpPath);
+            } else {
+                mkdir = bytecodeDumpPath.mkdir();
             }
+            LOGGER.info("[arex] bytecode dump path exists: {}, mkdir: {}, path: {}", exists, mkdir, bytecodeDumpPath.getPath());
             System.setProperty(TypeWriter.DUMP_PROPERTY, bytecodeDumpPath.getPath());
         } catch (Exception e) {
             LOGGER.info("[arex] Failed to create directory to instrumented bytecode: {}", e.getMessage());

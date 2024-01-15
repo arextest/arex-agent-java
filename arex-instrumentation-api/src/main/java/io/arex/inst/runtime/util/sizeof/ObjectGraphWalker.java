@@ -1,5 +1,7 @@
 package io.arex.inst.runtime.util.sizeof;
 
+import io.arex.agent.bootstrap.internal.WeakCache;
+
 import java.lang.ref.SoftReference;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
@@ -14,13 +16,9 @@ import java.util.Set;
 import static java.util.Collections.newSetFromMap;
 
 public class ObjectGraphWalker {
-    private final WeakIdentityConcurrentMap<Class<?>, SoftReference<Collection<Field>>> fieldCache =
-            new WeakIdentityConcurrentMap<>();
-    private final WeakIdentityConcurrentMap<Class<?>, Boolean> classCache =
-            new WeakIdentityConcurrentMap<>();
-
+    private final WeakCache<Class<?>, SoftReference<Collection<Field>>> fieldCache = new WeakCache<>();
+    private final WeakCache<Class<?>, Boolean> classCache = new WeakCache<>();
     private final SizeOfFilter sizeOfFilter;
-
     private final Visitor visitor;
 
     /**

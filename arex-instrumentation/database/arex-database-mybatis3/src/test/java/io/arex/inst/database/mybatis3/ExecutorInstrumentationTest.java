@@ -1,6 +1,5 @@
 package io.arex.inst.database.mybatis3;
 
-import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.context.RepeatedCollectManager;
 import io.arex.agent.bootstrap.model.MockResult;
@@ -12,10 +11,7 @@ import org.apache.ibatis.builder.StaticSqlSource;
 import org.apache.ibatis.executor.BatchExecutor;
 import org.apache.ibatis.executor.BatchResult;
 import org.apache.ibatis.executor.SimpleExecutor;
-import org.apache.ibatis.mapping.BoundSql;
-import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.mapping.MappedStatement.Builder;
-import org.apache.ibatis.scripting.xmltags.DynamicSqlSource;
 import org.apache.ibatis.session.Configuration;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
@@ -25,7 +21,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -37,7 +32,6 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
-import static org.mockito.ArgumentMatchers.any;
 
 @ExtendWith(MockitoExtension.class)
 class ExecutorInstrumentationTest {
@@ -70,7 +64,8 @@ class ExecutorInstrumentationTest {
     @Test
     void onEnter() throws SQLException {
         Mockito.when(ContextManager.needReplay()).thenReturn(true);
-        assertFalse(ExecutorInstrumentation.QueryAdvice.onMethodEnter(null, null, null, MockResult.success("mock")));Mockito.when(ContextManager.needRecordOrReplay()).thenReturn(true);
+        assertFalse(ExecutorInstrumentation.QueryAdvice.onMethodEnter(null, null, null, MockResult.success("mock"), null));
+        Mockito.when(ContextManager.needRecordOrReplay()).thenReturn(true);
         assertFalse(ExecutorInstrumentation.UpdateAdvice.onMethodEnter(null, null, null, null, new SimpleExecutor(null, null)));
         assertFalse(ExecutorInstrumentation.UpdateAdvice.onMethodEnter(null, null, null, null, new BatchExecutor(null, null)));
     }
@@ -79,7 +74,7 @@ class ExecutorInstrumentationTest {
     @MethodSource("onExitCase")
     void onExit(Runnable mocker, MockResult mockResult, Predicate<MockResult> predicate) {
         mocker.run();
-        ExecutorInstrumentation.QueryAdvice.onExit(null, null, null, null, null, mockResult);
+        ExecutorInstrumentation.QueryAdvice.onExit(null, null, null, null, mockResult, null);
         assertTrue(predicate.test(mockResult));
     }
 

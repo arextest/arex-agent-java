@@ -7,11 +7,6 @@ import io.arex.agent.bootstrap.cache.TimeCache;
 import io.arex.inst.time.DateTimeInstrumentation.CalendarAdvice;
 import io.arex.inst.time.DateTimeInstrumentation.DateAdvice;
 import io.arex.inst.time.DateTimeInstrumentation.DateTimeUtilsAdvice;
-import io.arex.inst.time.DateTimeInstrumentation.InstantAdvice;
-import io.arex.inst.time.DateTimeInstrumentation.LocalDateAdvice;
-import io.arex.inst.time.DateTimeInstrumentation.LocalDateTimeAdvice;
-import io.arex.inst.time.DateTimeInstrumentation.LocalTimeAdvice;
-import io.arex.inst.time.DateTimeInstrumentation.ZonedDateTimeAdvice;
 import java.lang.reflect.Method;
 import java.time.Clock;
 import java.time.Instant;
@@ -46,9 +41,11 @@ class DateTimeInstrumentationTest {
 
     @Test
     void typeMatcher() {
-        DateTimeInstrumentation inst = new DateTimeInstrumentation("java.time.LocalDate");
+        DateTimeInstrumentation inst = new DateTimeInstrumentation("java.util.Calendar");
+        assertTrue(inst.typeMatcher().matches(TypeDescription.ForLoadedType.of(Calendar.class)));
 
-        assertTrue(inst.typeMatcher().matches(TypeDescription.ForLoadedType.of(LocalDate.class)));
+        DateTimeInstrumentation inst2 = new DateTimeInstrumentation("java.time.Clock");
+        assertTrue(inst2.typeMatcher().matches(TypeDescription.ForLoadedType.of(Clock.class)));
     }
 
     @ParameterizedTest(name = "[{index}] {1}")
@@ -59,64 +56,23 @@ class DateTimeInstrumentationTest {
     }
 
     static Stream<Arguments> methodAdvicesArguments() throws NoSuchMethodException {
-        DateTimeInstrumentation instantInst = new DateTimeInstrumentation("java.time.Instant");
-        Method instantMethod = Instant.class.getDeclaredMethod("now", null);
-
-        DateTimeInstrumentation localDateInst = new DateTimeInstrumentation("java.time.LocalDate");
-        Method localDateMethod = LocalDate.class.getDeclaredMethod("now", Clock.class);
-
-        DateTimeInstrumentation localTimeInst = new DateTimeInstrumentation("java.time.LocalTime");
-        Method localTimeMethod = LocalTime.class.getDeclaredMethod("now", Clock.class);
-
-        DateTimeInstrumentation localDateTimeInst = new DateTimeInstrumentation("java.time.LocalDateTime");
-        Method localDateTimeMethod = LocalDateTime.class.getDeclaredMethod("now", Clock.class);
-
         DateTimeInstrumentation calendarInst = new DateTimeInstrumentation("java.util.Calendar");
         Method calendarMethod = Calendar.class.getDeclaredMethod("createCalendar", java.util.TimeZone.class,
             java.util.Locale.class);
 
-        DateTimeInstrumentation zonedDateTimeInst = new DateTimeInstrumentation("java.time.ZonedDateTime");
-        Method zonedDateTimeMethod = ZonedDateTime.class.getDeclaredMethod("now", Clock.class);
+        DateTimeInstrumentation clockInst = new DateTimeInstrumentation("java.time.Clock");
+        Method clockMethod = Clock.class.getDeclaredMethod("instant", null);
 
         return Stream.of(
-            Arguments.arguments(instantInst, instantMethod),
-            Arguments.arguments(localDateInst, localDateMethod),
-            Arguments.arguments(localTimeInst, localTimeMethod),
-            Arguments.arguments(localDateTimeInst, localDateTimeMethod),
             Arguments.arguments(calendarInst, calendarMethod),
-            Arguments.arguments(zonedDateTimeInst, zonedDateTimeMethod)
+            Arguments.arguments(clockInst, clockMethod)
         );
     }
-
     @Test
-    void InstantAdvice() {
-        assertTrue(InstantAdvice.onEnter() > 0L);
+    void ClockAdvice() {
+        assertTrue(DateTimeInstrumentation.ClockAdvice.onEnter() > 0L);
         assertDoesNotThrow(() -> {
-            InstantAdvice.onExit(System.currentTimeMillis(), null);
-        });
-    }
-
-    @Test
-    void LocalDateAdvice() {
-        assertTrue(LocalDateAdvice.onEnter() > 0L);
-        assertDoesNotThrow(() -> {
-            LocalDateAdvice.onExit(System.currentTimeMillis(), Clock.systemDefaultZone(), null);
-        });
-    }
-
-    @Test
-    void LocalTimeAdvice() {
-        assertTrue(LocalTimeAdvice.onEnter() > 0L);
-        assertDoesNotThrow(() -> {
-            LocalTimeAdvice.onExit(System.currentTimeMillis(), Clock.systemDefaultZone(), null);
-        });
-    }
-
-    @Test
-    void LocalDateTimeAdvice() {
-        assertTrue(LocalDateTimeAdvice.onEnter() > 0L);
-        assertDoesNotThrow(() -> {
-            LocalDateTimeAdvice.onExit(System.currentTimeMillis(), Clock.systemDefaultZone(), null);
+            DateTimeInstrumentation.ClockAdvice.onExit(System.currentTimeMillis(), null);
         });
     }
 
@@ -139,14 +95,6 @@ class DateTimeInstrumentationTest {
         assertTrue(DateTimeUtilsAdvice.onEnter() > 0L);
         assertDoesNotThrow(() -> {
             DateTimeUtilsAdvice.onExit(System.currentTimeMillis(), 0L);
-        });
-    }
-
-    @Test
-    void ZonedDateTimeAdvice() {
-        assertTrue(ZonedDateTimeAdvice.onEnter() > 0L);
-        assertDoesNotThrow(() -> {
-            ZonedDateTimeAdvice.onExit(System.currentTimeMillis(), Clock.systemDefaultZone(), null);
         });
     }
 }

@@ -1,6 +1,8 @@
 package io.arex.inst.runtime.util.sizeof;
 
 import io.arex.agent.bootstrap.InstrumentationHolder;
+import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.inst.runtime.log.LogManager;
 
 import java.lang.instrument.Instrumentation;
 import java.text.DecimalFormat;
@@ -77,5 +79,20 @@ public class AgentSizeOf {
         } else {
             return bytes + " bytes";
         }
+    }
+
+    /**
+     * @return true: not exceed memory size limit
+     */
+    public boolean checkMemorySizeLimit(Object obj, long sizeLimit) {
+        long start = System.currentTimeMillis();
+        long memorySize = deepSizeOf(obj);
+        long cost = System.currentTimeMillis() - start;
+        if (cost > 50) { // longer cost mean larger memory
+            LogManager.info("check.memory.size",
+                    StringUtil.format("size: %s, cost: %s",
+                    humanReadableUnits(memorySize), String.valueOf(cost)));
+        }
+        return memorySize < sizeLimit;
     }
 }

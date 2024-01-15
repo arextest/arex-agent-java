@@ -73,10 +73,12 @@ public class ExecutorInstrumentation extends TypeInstrumentation {
         public static boolean onMethodEnter(@Advice.Argument(0) MappedStatement var1,
                                             @Advice.Argument(1) Object var2,
                                             @Advice.Argument(5) BoundSql boundSql,
-                                            @Advice.Local("mockResult") MockResult mockResult) {
+                                            @Advice.Local("mockResult") MockResult mockResult,
+                                            @Advice.Local("originalSql") String originalSql) {
+            originalSql = boundSql != null ? boundSql.getSql() : null;
             RepeatedCollectManager.enter();
             if (ContextManager.needReplay()) {
-                mockResult = InternalExecutor.replay(var1, var2, boundSql, METHOD_NAME_QUERY);
+                mockResult = InternalExecutor.replay(var1, var2, originalSql, METHOD_NAME_QUERY);
             }
             return mockResult != null && mockResult.notIgnoreMockResult();
         }
@@ -84,10 +86,10 @@ public class ExecutorInstrumentation extends TypeInstrumentation {
         @Advice.OnMethodExit(onThrowable = Throwable.class, suppress = Throwable.class)
         public static void onExit(@Advice.Argument(0) MappedStatement var1,
                                   @Advice.Argument(1) Object var2,
-                                  @Advice.Argument(5) BoundSql boundSql,
                                   @Advice.Thrown(readOnly = false) Throwable throwable,
                                   @Advice.Return(readOnly = false) List<?> result,
-                                  @Advice.Local("mockResult") MockResult mockResult) {
+                                  @Advice.Local("mockResult") MockResult mockResult,
+                                  @Advice.Local("originalSql") String originalSql) {
             if (mockResult != null && mockResult.notIgnoreMockResult()) {
                 if (mockResult.getThrowable() != null) {
                     throwable = mockResult.getThrowable();
@@ -102,7 +104,7 @@ public class ExecutorInstrumentation extends TypeInstrumentation {
             }
 
             if (ContextManager.needRecord()) {
-                InternalExecutor.record(var1, var2, boundSql, result, throwable, METHOD_NAME_QUERY);
+                InternalExecutor.record(var1, var2, originalSql, result, throwable, METHOD_NAME_QUERY);
             }
         }
     }

@@ -5,7 +5,6 @@ import io.arex.inst.extension.ModuleInstrumentation;
 import io.arex.inst.extension.TypeInstrumentation;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 @AutoService(ModuleInstrumentation.class)
@@ -16,7 +15,12 @@ public class MongoModuleInstrumentation extends ModuleInstrumentation {
 
     @Override
     public List<TypeInstrumentation> instrumentationTypes() {
-        return Arrays.asList(new ReadOperationInstrumentation(), new ListIndexesInstrumentation(),
-                new AggregateInstrumentation(), new WriteOperationInstrumentation(), new ResourceManagerInstrumentation());
+        return Arrays.asList(
+                new ReadOperationInstrumentation(),
+                new ListIndexesInstrumentation(),
+                new AggregateInstrumentation(),
+                new WriteOperationInstrumentation(),
+                new ResourceManagerInstrumentation(),
+                new QueryBatchCursorInstrumentation());
     }
 }

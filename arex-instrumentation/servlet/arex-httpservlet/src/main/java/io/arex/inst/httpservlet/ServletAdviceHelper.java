@@ -4,6 +4,7 @@ import io.arex.agent.bootstrap.TraceContextManager;
 import io.arex.agent.bootstrap.constants.ConfigConstants;
 import io.arex.agent.bootstrap.internal.Pair;
 import io.arex.agent.bootstrap.model.MockCategoryType;
+import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.httpservlet.adapter.ServletAdapter;
 import io.arex.inst.runtime.config.Config;
@@ -224,7 +225,15 @@ public class ServletAdviceHelper {
             return false;
         }
 
-        if (IgnoreUtils.excludeEntranceOperation(requestURI)) {
+        // As long as one parameter is hit in includeServiceOperations, the operation will not be skipped
+        if (CollectionUtil.isNotEmpty(Config.get().getIncludeServiceOperations()) &&
+            !(IgnoreUtils.includeOperation(adapter.getPattern(httpServletRequest)) ||
+                IgnoreUtils.includeOperation(requestURI))) {
+            return true;
+        }
+        // As long as one parameter is hit in excludeServiceOperations, the operation will be skipped
+        if (IgnoreUtils.excludeOperation(adapter.getPattern(httpServletRequest)) ||
+            IgnoreUtils.excludeOperation(requestURI)) {
             return true;
         }
 
@@ -255,7 +264,7 @@ public class ServletAdviceHelper {
             return null;
         }
 
-        ArexContext context = ContextManager.getRecordContext(redirectRecordId);
+        ArexContext context = ContextManager.getContext(redirectRecordId);
         if (context.isRedirectRequest(referer)) {
             return redirectRecordId;
         }

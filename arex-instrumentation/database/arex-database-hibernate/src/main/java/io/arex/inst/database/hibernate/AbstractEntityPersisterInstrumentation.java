@@ -105,9 +105,9 @@ public class AbstractEntityPersisterInstrumentation extends TypeInstrumentation 
 
                 if (ContextManager.needRecord()) {
                     if (throwable != null) {
-                        extractor.record(throwable);
+                        extractor.recordDb(throwable);
                     } else {
-                        extractor.record(serializable);
+                        extractor.recordDb(serializable);
                     }
                 }
             }
@@ -151,9 +151,9 @@ public class AbstractEntityPersisterInstrumentation extends TypeInstrumentation 
             if (ContextManager.needRecord()) {
                 DatabaseExtractor extractor = new DatabaseExtractor(sql, object, METHOD_NAME_UPDATE);
                 if (throwable != null) {
-                    extractor.record(throwable);
+                    extractor.recordDb(throwable);
                 } else {
-                    extractor.record(0);
+                    extractor.recordDb(0);
                 }
             }
         }
@@ -196,9 +196,9 @@ public class AbstractEntityPersisterInstrumentation extends TypeInstrumentation 
             if (ContextManager.needRecord()) {
                 DatabaseExtractor extractor = new DatabaseExtractor(sql, object, METHOD_NAME_DELETE);
                 if (throwable != null) {
-                    extractor.record(throwable);
+                    extractor.recordDb(throwable);
                 } else {
-                    extractor.record(0);
+                    extractor.recordDb(0);
                 }
             }
         }

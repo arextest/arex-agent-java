@@ -12,7 +12,7 @@ public class MockCategoryType implements Serializable {
     public static final MockCategoryType DATABASE = createDependency("Database");
     public static final MockCategoryType HTTP_CLIENT = createDependency("HttpClient");
     public static final MockCategoryType CONFIG_FILE = createSkipComparison("ConfigFile");
-    public static final MockCategoryType DYNAMIC_CLASS = createMergeSkipComparison("DynamicClass");
+    public static final MockCategoryType DYNAMIC_CLASS = createSkipComparison("DynamicClass");
     public static final MockCategoryType REDIS = createSkipComparison("Redis");
     public static final MockCategoryType MESSAGE_PRODUCER = createDependency("QMessageProducer");
     public static final MockCategoryType MESSAGE_CONSUMER = createEntryPoint("QMessageConsumer");
@@ -23,7 +23,7 @@ public class MockCategoryType implements Serializable {
     private String name;
     private boolean entryPoint;
     private boolean skipComparison;
-    private boolean mergeRecord;
+
     public static MockCategoryType createEntryPoint(String name) {
         return create(name, true, false);
     }
@@ -32,26 +32,17 @@ public class MockCategoryType implements Serializable {
         return create(name, false, true);
     }
 
-    public static MockCategoryType createMergeSkipComparison(String name) {
-        return CATEGORY_TYPE_MAP.computeIfAbsent(name,
-                key -> new MockCategoryType(name, false, true, true));
-    }
-
     public static MockCategoryType createDependency(String name) {
         return create(name, false, false);
     }
 
     public static MockCategoryType create(String name, boolean entryPoint, boolean skipComparison) {
         return CATEGORY_TYPE_MAP.computeIfAbsent(name,
-            key -> new MockCategoryType(name, entryPoint, skipComparison));
+                key -> new MockCategoryType(name, entryPoint, skipComparison));
     }
 
     public static Collection<MockCategoryType> values() {
         return CATEGORY_TYPE_MAP.values();
-    }
-
-    public static MockCategoryType of(String name) {
-        return CATEGORY_TYPE_MAP.get(name);
     }
 
     public String getName() {
@@ -78,26 +69,17 @@ public class MockCategoryType implements Serializable {
         this.skipComparison = skipComparison;
     }
 
-    public boolean isMergeRecord() {
-        return mergeRecord;
-    }
-
-    public void setMergeRecord(boolean mergeRecord) {
-        this.mergeRecord = mergeRecord;
-    }
-
     public MockCategoryType() {
     }
 
     private MockCategoryType(String name, boolean entryPoint, boolean skipComparison) {
-        this(name, entryPoint, skipComparison, false);
-    }
-
-    private MockCategoryType(String name, boolean entryPoint, boolean skipComparison, boolean mergeRecord) {
         this.name = name;
         this.entryPoint = entryPoint;
         this.skipComparison = skipComparison;
-        this.mergeRecord = mergeRecord;
+    }
+
+    public static MockCategoryType of(String name) {
+        return CATEGORY_TYPE_MAP.get(name);
     }
 
     @Override
@@ -106,7 +88,6 @@ public class MockCategoryType implements Serializable {
         builder.append("name='").append(name).append('\'');
         builder.append(", entryPoint=").append(entryPoint);
         builder.append(", skipComparison=").append(skipComparison);
-        builder.append(", mergeRecord=").append(mergeRecord);
         builder.append('}');
         return builder.toString();
     }

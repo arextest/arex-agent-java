@@ -1,5 +1,6 @@
 package io.arex.inst.httpservlet.wrapper;
 
+import io.arex.inst.httpservlet.ServletUtil;
 import jakarta.servlet.ReadListener;
 import jakarta.servlet.ServletInputStream;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,6 +22,7 @@ import java.util.Map;
  */
 public class CachedBodyRequestWrapperV5 extends HttpServletRequestWrapper {
     private static final String FORM_CONTENT_TYPE = "application/x-www-form-urlencoded";
+    private static final String FORM_DATA_CONTENT_TYPE = "multipart/form-data";
 
 
     private final ByteArrayOutputStream cachedContent;
@@ -116,19 +118,25 @@ public class CachedBodyRequestWrapperV5 extends HttpServletRequestWrapper {
 
     private boolean isFormPost() {
         String contentType = getContentType();
-        return (contentType != null && contentType.contains(FORM_CONTENT_TYPE) && "POST".equals(getMethod()));
+        return (contentType != null && (contentType.contains(FORM_CONTENT_TYPE) || contentType.contains(FORM_DATA_CONTENT_TYPE) && "POST".equals(getMethod())));
     }
 
     private void writeRequestParametersToCachedContent() {
         try {
-            if (this.cachedContent.size() == 0) {
+            // requestBody is not empty
+            if (this.cachedContent.size() == 0 && this.getContentLength() > 0) {
+                Map<String, List<String>> requestParams = ServletUtil.getRequestParams(this.getQueryString());
                 String requestEncoding = getCharacterEncoding();
                 Map<String, String[]> form = super.getParameterMap();
                 for (Iterator<String> nameIterator = form.keySet().iterator(); nameIterator.hasNext(); ) {
                     String name = nameIterator.next();
+                    boolean valueIsEmpty = true;
                     List<String> values = Arrays.asList(form.get(name));
                     for (Iterator<String> valueIterator = values.iterator(); valueIterator.hasNext(); ) {
                         String value = valueIterator.next();
+                        if (ServletUtil.matchAndRemoveRequestParams(requestParams, name, value)) {
+                            continue;
+                        }
                         this.cachedContent.write(URLEncoder.encode(name, requestEncoding).getBytes());
                         if (value != null) {
                             this.cachedContent.write('=');
@@ -137,8 +145,11 @@ public class CachedBodyRequestWrapperV5 extends HttpServletRequestWrapper {
                                 this.cachedContent.write('&');
                             }
                         }
+                        if (valueIsEmpty) {
+                            valueIsEmpty = false;
+                        }
                     }
-                    if (nameIterator.hasNext()) {
+                    if (nameIterator.hasNext() && !valueIsEmpty) {
                         this.cachedContent.write('&');
                     }
                 }

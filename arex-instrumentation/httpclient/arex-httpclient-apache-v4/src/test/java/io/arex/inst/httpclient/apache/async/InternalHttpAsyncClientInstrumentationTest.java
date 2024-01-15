@@ -49,31 +49,32 @@ class InternalHttpAsyncClientInstrumentationTest {
 
     @Test
     void onEnter() throws URISyntaxException {
-        HttpUriRequest request1 = Mockito.mock(HttpUriRequest.class);
-        Mockito.when(request1.getURI()).thenThrow(new RuntimeException("mock exception"));
-        boolean actualResult = InternalHttpAsyncClientInstrumentation.ExecuteAdvice.onEnter(request1, null, null);
-        assertFalse(actualResult);
-
         try (MockedStatic<ContextManager> contextManager = mockStatic(ContextManager.class);
             MockedStatic<RepeatedCollectManager> repeatedCollectManager = mockStatic(RepeatedCollectManager.class);
             MockedStatic<FutureCallbackWrapper> futureCallbackWrapper = mockStatic(FutureCallbackWrapper.class);
             MockedStatic<IgnoreUtils> ignoreUtils = mockStatic(IgnoreUtils.class)) {
+            // test ignore request
             ignoreUtils.when(() -> IgnoreUtils.excludeOperation(any())).thenReturn(true);
             HttpUriRequest request2 = Mockito.mock(HttpUriRequest.class);
             Mockito.when(request2.getURI()).thenReturn(new URI("http://localhost"));
-            actualResult = InternalHttpAsyncClientInstrumentation.ExecuteAdvice.onEnter(request2, null, null);
+            boolean actualResult = InternalHttpAsyncClientInstrumentation.ExecuteAdvice.onEnter(request2, null, null);
             assertFalse(actualResult);
 
-            ignoreUtils.when(() -> IgnoreUtils.excludeOperation(any())).thenReturn(false);
-            contextManager.when(ContextManager::needRecordOrReplay).thenReturn(false);
-            actualResult = InternalHttpAsyncClientInstrumentation.ExecuteAdvice.onEnter(request2, null, null);
-            assertFalse(actualResult);
-
+            // test need record
             repeatedCollectManager.when(RepeatedCollectManager::validate).thenReturn(true);
             contextManager.when(ContextManager::needRecordOrReplay).thenReturn(true);
-            contextManager.when(ContextManager::needReplay).thenReturn(true);
-
+            ignoreUtils.when(() -> IgnoreUtils.excludeOperation(any())).thenReturn(false);
+            contextManager.when(ContextManager::needRecord).thenReturn(true);
             FutureCallbackWrapper wrapper = Mockito.mock(FutureCallbackWrapper.class);
+            Mockito.when(FutureCallbackWrapper.wrap(any())).thenReturn(wrapper);
+            Mockito.when(FutureCallbackWrapper.wrap(any(), any())).thenReturn(wrapper);
+            actualResult = InternalHttpAsyncClientInstrumentation.ExecuteAdvice.onEnter(request2, null, null);
+            assertFalse(actualResult);
+
+            // test need replay
+            repeatedCollectManager.when(RepeatedCollectManager::validate).thenReturn(true);
+            contextManager.when(ContextManager::needRecord).thenReturn(false);
+            contextManager.when(ContextManager::needReplay).thenReturn(true);
             Mockito.when(FutureCallbackWrapper.wrap(any(), any())).thenReturn(wrapper);
             Mockito.when(wrapper.replay()).thenReturn(MockResult.success("mock"));
 

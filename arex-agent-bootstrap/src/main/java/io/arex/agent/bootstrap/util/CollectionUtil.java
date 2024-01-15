@@ -66,6 +66,9 @@ public class CollectionUtil {
 
     public static <V> List<V> filterNull(List<V> originalList) {
         List<V> filterList = new ArrayList<>();
+        if (isEmpty(originalList)) {
+            return filterList;
+        }
         for (V element : originalList) {
             if (element != null) {
                 filterList.add(element);

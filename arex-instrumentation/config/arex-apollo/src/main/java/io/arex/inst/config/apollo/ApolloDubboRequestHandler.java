@@ -16,7 +16,9 @@ public class ApolloDubboRequestHandler implements RequestHandler<Map<String, Str
     }
 
     @Override
-    public void preHandle(Map<String, String> request) {}
+    public void preHandle(Map<String, String> request) {
+        // no need implement
+    }
 
     @Override
     public void handleAfterCreateContext(Map<String, String> request) {

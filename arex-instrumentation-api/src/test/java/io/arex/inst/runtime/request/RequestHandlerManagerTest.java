@@ -21,6 +21,7 @@ class RequestHandlerManagerTest {
         Mockito.when(requestHandler.name()).thenReturn("test");
         Mockito.when(requestHandlerError.name()).thenReturn("testError");
         Mockito.doThrow(new RuntimeException()).when(requestHandlerError).preHandle("request");
+        Mockito.doThrow(new RuntimeException()).when(requestHandlerError).handleAfterCreateContext("request");
         Mockito.doThrow(new RuntimeException()).when(requestHandlerError).postHandle("request", "response");
         Mockito.when(ServiceLoader.load(RequestHandler.class)).thenReturn(Arrays.asList(requestHandler, requestHandlerError));
         RequestHandlerManager.init();
@@ -43,6 +44,19 @@ class RequestHandlerManagerTest {
         Mockito.verify(requestHandler, Mockito.times(1)).preHandle("request");
         // error
         assertDoesNotThrow(() -> RequestHandlerManager.preHandle("request", "testError"));
+
+    }
+
+    @Test
+    void handleAfterCreateContext() {
+        // null handler
+        RequestHandlerManager.handleAfterCreateContext(null, "test2");
+        Mockito.verify(requestHandler, Mockito.never()).handleAfterCreateContext("test2");
+        // normal
+        RequestHandlerManager.handleAfterCreateContext("request", "test");
+        Mockito.verify(requestHandler, Mockito.times(1)).handleAfterCreateContext("request");
+        // error
+        assertDoesNotThrow(() -> RequestHandlerManager.handleAfterCreateContext("request", "testError"));
 
     }
 

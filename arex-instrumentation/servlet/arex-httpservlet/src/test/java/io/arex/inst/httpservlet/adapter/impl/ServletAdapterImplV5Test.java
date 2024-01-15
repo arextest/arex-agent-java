@@ -157,6 +157,9 @@ class ServletAdapterImplV5Test {
         when(mockRequest.getAttribute(eq("org.springframework.web.servlet.HandlerMapping.bestMatchingPattern"))).thenReturn(null);
         when(mockRequest.getRequestURI()).thenReturn("/commutity/httpClientTest/okHttp");
         assertEquals("/commutity/httpClientTest/okHttp", instance.getPattern(mockRequest));
+
+        when(mockRequest.getContextPath()).thenReturn("/commutity");
+        assertEquals("/httpClientTest/okHttp", instance.getPattern(mockRequest));
     }
 
     @Test

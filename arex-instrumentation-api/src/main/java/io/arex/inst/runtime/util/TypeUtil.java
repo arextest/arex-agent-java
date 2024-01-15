@@ -16,6 +16,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -27,6 +28,8 @@ public class TypeUtil {
     public static final String DEFAULT_CLASS_NAME = "java.lang.String";
     private static final ConcurrentMap<String, Field> GENERIC_FIELD_CACHE = new ConcurrentHashMap<>();
     private static final ConcurrentMap<String, Type> TYPE_NAME_CACHE = new ConcurrentHashMap<>();
+    private static final Class<?> DEFAULT_LIST_CLASS = List.class;
+    private static final Class<?> DEFAULT_SET_CLASS = Set.class;
     /**
      * Suppresses default constructor, ensuring non-instantiability.
      */
@@ -51,21 +54,26 @@ public class TypeUtil {
             }
 
             if (types.length > 1 && StringUtil.isNotEmpty(types[1])) {
-
-                if (raw.getTypeParameters().length == 1) {
-                    final Type[] args = new Type[]{forName(types[1])};
-                    final ParameterizedTypeImpl parameterizedType = ParameterizedTypeImpl.make(raw, args, null);
-                    TYPE_NAME_CACHE.put(typeName, parameterizedType);
-                    return parameterizedType;
+                int typeParametersLength = raw.getTypeParameters().length;
+                if (typeParametersLength == 1) {
+                    return forNameWithOneGenericType(raw, types[1], typeName);
                 }
 
-                if (raw.getTypeParameters().length == 2) {
+                if (typeParametersLength == 2) {
                     final String[] split = StringUtil.splitByFirstSeparator(types[1], COMMA);
                     Type[] args = new Type[]{forName(split[0]), forName(split[1])};
                     ParameterizedTypeImpl parameterizedType = ParameterizedTypeImpl.make(raw, args, null);
                     TYPE_NAME_CACHE.put(typeName, parameterizedType);
                     return parameterizedType;
                 }
+
+                if (needUseDefaultCollection(raw, types[1], typeParametersLength)) {
+                    if (Set.class.isAssignableFrom(raw)) {
+                        return forNameWithOneGenericType(DEFAULT_SET_CLASS, types[1], typeName);
+                    }
+                    return forNameWithOneGenericType(DEFAULT_LIST_CLASS, types[1], typeName);
+                }
+
                 TYPE_NAME_CACHE.put(typeName, raw);
                 return raw;
             }
@@ -75,6 +83,39 @@ public class TypeUtil {
             LogManager.warn("forName", ex);
             return null;
         }
+    }
+
+    /**
+     * If the parent class explicitly specifies generics,
+     * the serialization framework will process it and not need use default collection.
+     * eg: class WrappedList extends WrappedCollection implements List<V> return true
+     * eg: class exampleCollection extends ArrayList<String> return false
+     */
+    private static boolean needUseDefaultCollection(Class<?> raw, String type, int typeParametersLength) {
+        if (typeParametersLength != 0 || !Collection.class.isAssignableFrom(raw)) {
+            return false;
+        }
+
+        Class<?> tempClass = raw;
+        while (Object.class != tempClass) {
+            Type genericSuperclass = tempClass.getGenericSuperclass();
+            if (genericSuperclass instanceof ParameterizedType) {
+                ParameterizedType parameterizedType = (ParameterizedType) genericSuperclass;
+                Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
+                if (actualTypeArguments.length > 0 && type.equals(actualTypeArguments[0].getTypeName())) {
+                    return false;
+                }
+            }
+            tempClass = tempClass.getSuperclass();
+        }
+        return true;
+    }
+
+    private static Type forNameWithOneGenericType(Class<?> rawClass, String genericType, String typeName) {
+        final Type[] args = new Type[]{forName(genericType)};
+        final ParameterizedTypeImpl parameterizedType = ParameterizedTypeImpl.make(rawClass, args, null);
+        TYPE_NAME_CACHE.put(typeName, parameterizedType);
+        return parameterizedType;
     }
 
     public static String getName(Object result) {
@@ -134,10 +175,8 @@ public class TypeUtil {
             if (isCollection(field.getType().getName())) {
                 genericType = filterRawGenericType(genericType);
             }
-
-            if (StringUtil.isNotEmpty(genericType)) {
-                builder.append(genericType);
-            }
+            genericType = StringUtil.isEmpty(genericType) ? DEFAULT_CLASS_NAME : genericType;
+            builder.append(genericType);
             if (i == typeParameters.length - 1) {
                return builder.toString();
             }
@@ -275,9 +314,13 @@ public class TypeUtil {
         StringBuilder builder = new StringBuilder();
         builder.append(resultClassName).append(HORIZONTAL_LINE);
 
-        // only get the first element
+        // only get the first not empty element
         for (Map.Entry<?, ?> entry : result.entrySet()) {
-            String valueClassName = entry.getValue() == null ? DEFAULT_CLASS_NAME : getName(entry.getValue());
+            final Object value = entry.getValue();
+            if (isEmpty(value)) {
+                continue;
+            }
+            String valueClassName = getName(value);
 
             if (typeParameters.length == 1) {
                 builder.append(valueClassName);
@@ -289,6 +332,19 @@ public class TypeUtil {
         }
 
         return builder.toString();
+    }
+
+    private static boolean isEmpty(Object value) {
+        if (value == null) {
+            return true;
+        }
+        if (value instanceof Collection<?>) {
+            return ((Collection<?>) value).isEmpty();
+        }
+        if (value instanceof Map<?, ?>) {
+            return ((Map<?, ?>) value).isEmpty();
+        }
+        return false;
     }
 
     private static Class<?> classForName(String type) {

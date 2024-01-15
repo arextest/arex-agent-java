@@ -10,6 +10,9 @@ import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.httpservlet.adapter.ServletAdapter;
 import io.arex.inst.runtime.util.IgnoreUtils;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import javax.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -104,7 +107,7 @@ class ServletAdviceHelperTest {
             Mockito.when(adapter.getRequestHeader(any(), eq("referer"))).thenReturn("mock-referer");
             ArexContext context = ArexContext.of("mock-record-id");
             context.setAttachment(ArexConstants.REDIRECT_REFERER, "mock-referer");
-            Mockito.when(ContextManager.getRecordContext(anyString())).thenReturn(context);
+            Mockito.when(ContextManager.getContext(anyString())).thenReturn(context);
         };
         Runnable shouldSkip2 = () -> {
             Mockito.when(adapter.getRequestHeader(any(), eq(ArexConstants.RECORD_ID))).thenReturn("");
@@ -151,6 +154,36 @@ class ServletAdviceHelperTest {
             Mockito.when(adapter.getAttribute(any(), eq(ArexConstants.SKIP_FLAG))).thenReturn(Boolean.TRUE);
         };
 
+        Runnable shouldSkip10 = () -> {
+            Mockito.when(adapter.getRequestURI(any())).thenReturn("/contextPath/uri");
+            Mockito.when(adapter.getRequestHeader(any(), eq(ArexConstants.RECORD_ID))).thenReturn(null);
+            Set<String> includeServiceOperations = new HashSet<>();
+            includeServiceOperations.add("/contextPath/uri");
+            Mockito.when(Config.get().getIncludeServiceOperations()).thenReturn(includeServiceOperations);
+        };
+
+        Runnable shouldSkip11 = () -> {
+            Mockito.when(adapter.getRequestURI(any())).thenReturn("/uri");
+            Mockito.when(adapter.getRequestHeader(any(), eq(ArexConstants.RECORD_ID))).thenReturn(null);
+            Mockito.when(IgnoreUtils.includeOperation(any())).thenReturn(true);
+        };
+
+        Runnable shouldSkip12 = () -> {
+            Mockito.when(adapter.getRequestURI(any())).thenReturn("/contextPath/uri");
+            Mockito.when(adapter.getRequestHeader(any(), eq(ArexConstants.RECORD_ID))).thenReturn(null);
+            Mockito.when(IgnoreUtils.excludeOperation(any())).thenReturn(true);
+
+            Mockito.when(Config.get().getIncludeServiceOperations()).thenReturn(Collections.emptySet());
+            Set<String> excludeServiceOperations = new HashSet<>();
+            excludeServiceOperations.add("/contextPath/uri");
+            Mockito.when(Config.get().excludeServiceOperations()).thenReturn(excludeServiceOperations);
+        };
+
+        Runnable shouldSkip13 = () -> {
+            Mockito.when(adapter.getRequestURI(any())).thenReturn("/uri");
+            Mockito.when(IgnoreUtils.excludeOperation(any())).thenReturn(true);
+        };
+
         Predicate<Pair<?, ?>> predicate1 = Objects::isNull;
         Predicate<Pair<?, ?>> predicate2 = Objects::nonNull;
         return Stream.of(
@@ -172,7 +205,11 @@ class ServletAdviceHelperTest {
             arguments("shouldSkip: adapter.getRequestURI return .jsp", shouldSkip6_3, predicate2),
             arguments("shouldSkip: adapter.getContentType return image/", shouldSkip7, predicate1),
             arguments("ContextManager.needRecordOrReplay is true", shouldSkip8, predicate2),
-            arguments("shouldSkip: adapter.getAttribute returns true", shouldSkip9, predicate1)
+            arguments("shouldSkip: adapter.getAttribute returns true", shouldSkip9, predicate1),
+            arguments("shouldSkip: hit includeOperaions while contextPath is empty", shouldSkip10, predicate1),
+            arguments("shouldSkip: hit includeOperaions while contextPath is not empty", shouldSkip11, predicate1),
+            arguments("shouldSkip: hit excludeOperaions while contextPath is empty", shouldSkip12, predicate1),
+            arguments("shouldSkip: hit excludeOperaions while contextPath is not empty", shouldSkip13, predicate1)
         );
     }
 

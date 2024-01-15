@@ -3,10 +3,12 @@ package io.arex.inst.redis.common;
 import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.agent.bootstrap.model.Mocker;
 
+import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.util.IgnoreUtils;
 import io.arex.inst.runtime.util.MockUtils;
 import io.arex.inst.runtime.util.TypeUtil;
+
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -15,10 +17,10 @@ public class RedisExtractor {
 
     private final String clusterName;
     private final String command;
-    private final String key;
-    private final String field;
+    private final Object key;
+    private final Object field;
 
-    public RedisExtractor(String url, String method, String key, String field) {
+    public RedisExtractor(String url, String method, Object key, Object field) {
         this.clusterName = RedisCluster.get(url);
         this.command = method;
         this.key = key;
@@ -26,29 +28,29 @@ public class RedisExtractor {
     }
 
     public static class RedisMultiKey {
-        private String key;
-        private String field;
+        private Object key;
+        private Object field;
 
         public RedisMultiKey() {}
 
-        public RedisMultiKey(String key, String field) {
+        public RedisMultiKey(Object key, Object field) {
             this.key = key;
             this.field = field;
         }
 
-        public String getKey() {
+        public Object getKey() {
             return key;
         }
 
-        public void setKey(String key) {
+        public void setKey(Object key) {
             this.key = key;
         }
 
-        public String getField() {
+        public Object getField() {
             return field;
         }
 
-        public void setField(String field) {
+        public void setField(Object field) {
             this.field = field;
         }
     }
@@ -73,10 +75,12 @@ public class RedisExtractor {
 
     private Mocker makeMocker(Object response) {
         Mocker mocker = MockUtils.createRedis(this.command);
+        mocker.setMerge(true);
         mocker.getTargetRequest().setBody(Serializer.serialize(new RedisMultiKey(key, field)));
         mocker.getTargetRequest().setAttribute("clusterName", this.clusterName);
         mocker.getTargetResponse().setBody(Serializer.serialize(response));
         mocker.getTargetResponse().setType(normalizeTypeName(response));
+        mocker.getTargetRequest().setType(TypeUtil.getName(CollectionUtil.newArrayList(this.key, this.field)));
         return mocker;
     }
 

@@ -2,6 +2,7 @@ package io.arex.agent.bootstrap.internal;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.lang.ref.ReferenceQueue;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterEach;
@@ -55,5 +56,12 @@ class WeakCacheTest {
         TimeUnit.MILLISECONDS.sleep(100);
         // check -> remove after gc
         assertFalse(Cache.CAPTURED_CACHE.contains(null));
+    }
+
+    @Test
+    void testWeakReferenceKeyEqualsReturnsFalse() {
+        WeakCache.WeakReferenceKey<String> key = new WeakCache.WeakReferenceKey<>("test", new ReferenceQueue<>());
+        assertFalse(key.equals(null));
+        assertFalse(key.equals("test"));
     }
 }

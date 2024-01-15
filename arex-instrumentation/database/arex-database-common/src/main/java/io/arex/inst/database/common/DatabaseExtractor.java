@@ -56,10 +56,10 @@ public class DatabaseExtractor {
         this.methodName = methodName;
     }
 
-    public void record(Object response) {
-        record(response, null);
+    public void recordDb(Object response) {
+        recordDb(response, null);
     }
-    public void record(Object response, String serializer) {
+    public void recordDb(Object response, String serializer) {
          MockUtils.recordMocker(makeMocker(response, serializer));
     }
 
@@ -68,7 +68,8 @@ public class DatabaseExtractor {
     }
 
     public MockResult replay(String serializer) {
-        boolean ignoreMockResult = IgnoreUtils.ignoreMockResult(this.dbName, methodName);
+        // update after all dal components have obtained the real dbName(temporary solution)
+        boolean ignoreMockResult = IgnoreUtils.ignoreMockResult("database", methodName);
         Mocker replayMocker = MockUtils.replayMocker(makeMocker(null, serializer));
         Object replayResult = null;
         if (MockUtils.checkResponseMocker(replayMocker)) {

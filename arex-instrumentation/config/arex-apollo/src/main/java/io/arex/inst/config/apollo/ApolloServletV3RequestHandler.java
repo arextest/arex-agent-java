@@ -16,7 +16,9 @@ public class ApolloServletV3RequestHandler implements RequestHandler<HttpServlet
     }
 
     @Override
-    public void preHandle(HttpServletRequest request) {}
+    public void preHandle(HttpServletRequest request) {
+        // no need implement
+    }
 
     @Override
     public void handleAfterCreateContext(HttpServletRequest request) {

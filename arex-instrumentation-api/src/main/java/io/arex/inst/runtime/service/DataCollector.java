@@ -8,5 +8,7 @@ public interface DataCollector {
 
     void save(Mocker requestMocker);
 
+    void invalidCase(String postData);
+
     String query(String postData, MockStrategyEnum mockStrategy);
 }

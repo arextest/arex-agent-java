@@ -1,7 +1,10 @@
 package io.arex.agent.bootstrap.model;
 
-public class ArexMocker implements Mocker {
+import java.util.HashMap;
+import java.util.Map;
 
+public class ArexMocker implements Mocker {
+    public static final Map<String, String> TAGS = new HashMap<>();
     private String id;
     private MockCategoryType categoryType;
     private String replayId;
@@ -12,6 +15,7 @@ public class ArexMocker implements Mocker {
     private long creationTime;
     private Mocker.Target targetRequest;
     private Mocker.Target targetResponse;
+    private boolean merge;
     private String operationName;
 
     public ArexMocker() {
@@ -19,6 +23,10 @@ public class ArexMocker implements Mocker {
 
     public ArexMocker(MockCategoryType categoryType) {
         this.categoryType = categoryType;
+    }
+
+    public Map<String, String> getTags() {
+        return TAGS;
     }
 
     public String getId() {
@@ -108,5 +116,13 @@ public class ArexMocker implements Mocker {
 
     public void setOperationName(String operationName) {
         this.operationName = operationName;
+    }
+
+    public boolean isMerge() {
+        return merge;
+    }
+
+    public void setMerge(boolean merge) {
+        this.merge = merge;
     }
 }

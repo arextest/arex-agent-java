@@ -5,9 +5,12 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.google.gson.internal.LinkedTreeMap;
+import io.arex.agent.bootstrap.internal.Pair;
 import io.arex.inst.runtime.util.TypeUtil;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
+
+import java.lang.reflect.Type;
 import java.sql.Time;
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -72,6 +75,7 @@ class GsonSerializerTest {
         assert expectedTimeTest.getJodaLocalTime().equals(deserializedTimeTest.getJodaLocalTime());
         assert expectedTimeTest.getJodaLocalDateTime().equals(deserializedTimeTest.getJodaLocalDateTime());
         assert expectedTimeTest.getDateTime().equals(deserializedTimeTest.getDateTime());
+        assert expectedTimeTest.getTimeZone1().equals(deserializedTimeTest.getTimeZone1());
 
         String deserializedJson = GsonSerializer.INSTANCE.serialize(deserializedTimeTest);
         System.out.println(deserializedJson);
@@ -125,17 +129,17 @@ class GsonSerializerTest {
         assertEquals(map, deserialize);
 
 
-        map.put("key", "value");
+        map.put("key", "AREX-101-202");
         map.put("long", 2L);
         json = GsonSerializer.INSTANCE.serialize(map);
-        assertEquals("{\"key\":\"value\",\"long-java.lang.Long\":2}", json);
+        assertEquals("{\"key\":\"AREX-101-202\",\"long\":{\"value\":2,\"type\":\"java.lang.Long\"}}", json);
         final LinkedTreeMap deserialize1 = GsonSerializer.INSTANCE.deserialize(json, LinkedTreeMap.class);
         assertEquals(map, deserialize1);
 
         // value is null
         map.put("null", null);
         json = GsonSerializer.INSTANCE.serialize(map);
-        assertEquals("{\"key\":\"value\",\"long-java.lang.Long\":2}", json);
+        assertEquals("{\"key\":\"AREX-101-202\",\"long\":{\"value\":2,\"type\":\"java.lang.Long\"}}", json);
     }
 
     @Test
@@ -145,5 +149,26 @@ class GsonSerializerTest {
         final IntSet deserialize = GsonSerializer.INSTANCE.deserialize(json, IntSet.class);
         assert deserialize != null;
         assertEquals(hashSet, deserialize);
+    }
+
+    @Test
+    void testNullField() {
+        final Pair<LocalDateTime, Long> pairFirstNull = Pair.of(null, System.currentTimeMillis());
+        final String genericFirstNull = TypeUtil.getName(pairFirstNull);
+        assertEquals("io.arex.agent.bootstrap.internal.Pair-java.lang.String,java.lang.Long", genericFirstNull);
+        String json = GsonSerializer.INSTANCE.serialize(pairFirstNull);
+        System.out.println(json);
+        Type type1 = TypeUtil.forName(genericFirstNull);
+        Pair firstNulldeserialize = GsonSerializer.INSTANCE.deserialize(json, type1);
+        assertNull(firstNulldeserialize.getFirst());
+
+        final Pair pairNull = Pair.of(System.currentTimeMillis(), null);
+        final String genericNull = TypeUtil.getName(pairNull);
+        assertEquals("io.arex.agent.bootstrap.internal.Pair-java.lang.Long,java.lang.String", genericNull);
+        json = GsonSerializer.INSTANCE.serialize(pairNull);
+        System.out.println(json);
+        Type type2 = TypeUtil.forName(genericNull);
+        firstNulldeserialize = GsonSerializer.INSTANCE.deserialize(json, type2);
+        assertNull(firstNulldeserialize.getSecond());
     }
 }

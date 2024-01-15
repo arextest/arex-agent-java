@@ -16,7 +16,6 @@ import org.mockito.stubbing.Answer;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class RedisExtractorTest {
@@ -65,5 +64,14 @@ class RedisExtractorTest {
 
             assertNotNull(target.replay());
         }
+    }
+
+    @Test
+    void redisMultiKey() {
+        RedisExtractor.RedisMultiKey redisMultiKey = new RedisExtractor.RedisMultiKey();
+        redisMultiKey.setKey("mock");
+        redisMultiKey.getKey();
+        redisMultiKey.setField("mock");
+        assertNotNull(redisMultiKey.getField());
     }
 }

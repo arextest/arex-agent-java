@@ -11,7 +11,6 @@ import java.lang.reflect.Type;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -83,10 +82,8 @@ class TypeUtilTest {
                 return "java.util.ArrayList".equals(parameterizedType.getRawType().getTypeName())
                     && "java.lang.String".equals(parameterizedType.getActualTypeArguments()[0].getTypeName());
             }),
-            arguments("java.util.HashMap$Values-java.lang.String", (Predicate<Type>) type -> {
-                final Class<?> rawClass = TypeUtil.getRawClass(type);
-                return "java.util.HashMap$Values".equals(rawClass.getName());
-            })
+            arguments("java.util.HashMap$Values-java.lang.String", (Predicate<Type>) type ->
+                    "java.util.List<java.lang.String>".equals(type.getTypeName()))
         );
     }
 
@@ -104,6 +101,11 @@ class TypeUtilTest {
     void testDoubleMap() {
         Map<String, Map<String, LocalDateTime>> map = new HashMap<>();
         Map<String, LocalDateTime> innerMap = new HashMap<>();
+        // value is empty map
+        map.put("emptyMap", new HashMap<>());
+        String valueEmptyMapActualResult = TypeUtil.getName(map);
+        assertEquals("java.util.HashMap-", valueEmptyMapActualResult);
+
         innerMap.put("key1", LocalDateTime.now());
         map.put("key", innerMap);
         String actualResult = TypeUtil.getName(map);
@@ -128,6 +130,11 @@ class TypeUtilTest {
     @Test
     void testMapList() {
         Map<String, List<LocalDateTime>> map = new HashMap<>();
+        // value is empty list
+        map.put("emptyList", new ArrayList<>());
+        String valueEmptyListActualResult = TypeUtil.getName(map);
+        assertEquals("java.util.HashMap-", valueEmptyListActualResult);
+
         List<LocalDateTime> innerList = new ArrayList<>();
         innerList.add(LocalDateTime.now());
         map.put("key", innerList);
@@ -166,11 +173,15 @@ class TypeUtilTest {
 
         final Pair pairNull = Pair.of(System.currentTimeMillis(), null);
         final String genericNull = TypeUtil.getName(pairNull);
-        assertEquals("io.arex.agent.bootstrap.internal.Pair-java.lang.Long,", genericNull);
+        assertEquals("io.arex.agent.bootstrap.internal.Pair-java.lang.Long,java.lang.String", genericNull);
 
         final Pair pairList = Pair.of(System.currentTimeMillis(), Arrays.asList("mock"));
         final String genericList = TypeUtil.getName(pairList);
         assertEquals("io.arex.agent.bootstrap.internal.Pair-java.lang.Long,java.util.Arrays$ArrayList-java.lang.String", genericList);
+
+        final Pair pairFirstNull = Pair.of(null, System.currentTimeMillis());
+        final String genericFirstNull = TypeUtil.getName(pairFirstNull);
+        assertEquals("io.arex.agent.bootstrap.internal.Pair-java.lang.String,java.lang.Long", genericFirstNull);
     }
 
     @Test
@@ -359,13 +370,28 @@ class TypeUtilTest {
         final ArrayList<Object> list = new ArrayList<>();
         childClass.setValue(list);
         String name = TypeUtil.getName(childClass);
-        assertEquals("io.arex.inst.runtime.util.TypeUtilTest$ChildClass-", name);
+        assertEquals("io.arex.inst.runtime.util.TypeUtilTest$ChildClass-java.lang.String", name);
         list.add("test");
         childClass.setValue(list);
         name = TypeUtil.getName(childClass);
         assertEquals("io.arex.inst.runtime.util.TypeUtilTest$ChildClass-java.lang.String", name);
     }
 
+    @Test
+    void testNeedUseDefaultCollection() {
+        Type type = TypeUtil.forName("io.arex.inst.runtime.util.TypeUtilTest$FlightCollection-java.time.LocalDateTime");
+        assert type != null;
+        assertEquals("io.arex.inst.runtime.util.TypeUtilTest$FlightCollection", type.getTypeName());
+        type = TypeUtil.forName("com.google.common.collect.AbstractMapBasedMultimap$RandomAccessWrappedList-java.time.LocalDateTime");
+        assert type != null;
+        assertEquals("java.util.List<java.time.LocalDateTime>", type.getTypeName());
+        type = TypeUtil.forName("com.google.common.collect.AbstractMultiset$ElementSet-java.time.LocalDateTime");
+        assert type != null;
+        assertEquals("java.util.Set<java.time.LocalDateTime>", type.getTypeName());
+    }
+
+    public static class FlightCollection extends ArrayList<LocalDateTime> {
+    }
 
     static class SingleTypeMap<V> extends HashMap<Integer, V> {
     }

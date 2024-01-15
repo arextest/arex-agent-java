@@ -330,31 +330,29 @@ public class ConfigManager {
 
     public void parseAgentConfig(String args) {
         Map<String, String> agentMap = StringUtil.asMap(args);
-        if (!agentMap.isEmpty()) {
-            for (Map.Entry<String, String> entry : agentMap.entrySet()) {
-                String key = entry.getKey();
-                String value = entry.getValue();
-                if (StringUtil.isEmpty(key) || StringUtil.isEmpty(value)) {
-                    continue;
-                }
-
-                switch (key) {
-                    case ENABLE_DEBUG:
-                        setEnableDebug(value);
-                        break;
-                    case STORAGE_SERVICE_MODE:
-                        setStorageServiceMode(value);
-                        break;
-                    case STORAGE_SERVICE_HOST:
-                    case DISABLE_MODULE:
-                        continue;
-                    default:
-                        System.setProperty(key, value);
-                        break;
-                }
-            }
-            updateRuntimeConfig();
+        if (agentMap.isEmpty()) {
+            return;
         }
+        for (Map.Entry<String, String> entry : agentMap.entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue();
+
+            switch (key) {
+                case ENABLE_DEBUG:
+                    setEnableDebug(value);
+                    break;
+                case STORAGE_SERVICE_MODE:
+                    setStorageServiceMode(value);
+                    break;
+                case STORAGE_SERVICE_HOST:
+                case DISABLE_MODULE:
+                    break;
+                default:
+                    System.setProperty(key, value);
+                    break;
+            }
+        }
+        updateRuntimeConfig();
     }
 
     public void updateConfigFromService(ResponseBody serviceConfig) {
@@ -385,6 +383,7 @@ public class ConfigManager {
         Map<String, String> extendFieldMap = getExtendField();
         if (MapUtils.isNotEmpty(extendFieldMap)) {
             configMap.putAll(extendFieldMap);
+            setEnableDebug(extendFieldMap.get(ENABLE_DEBUG));
         }
 
         ConfigBuilder.create(getServiceName())
@@ -557,6 +556,7 @@ public class ConfigManager {
 
     public void setExcludeServiceOperations(Set<String> excludeServiceOperationSet) {
         if (CollectionUtil.isEmpty(excludeServiceOperationSet)) {
+            this.excludeServiceOperations = Collections.emptySet();
             return;
         }
         this.excludeServiceOperations = excludeServiceOperationSet;

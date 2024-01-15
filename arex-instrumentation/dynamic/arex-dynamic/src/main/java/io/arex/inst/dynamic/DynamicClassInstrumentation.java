@@ -1,7 +1,7 @@
 package io.arex.inst.dynamic;
 
 import io.arex.agent.bootstrap.util.CollectionUtil;
-import io.arex.inst.dynamic.common.DynamiConstants;
+import io.arex.inst.dynamic.common.DynamicConstants;
 import io.arex.inst.dynamic.common.DynamicClassExtractor;
 import io.arex.inst.runtime.config.Config;
 
@@ -78,7 +78,7 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
         if (replaceMethodsProvider == null) {
             return null;
         }
-        return (builder, typeDescription, classLoader, module) -> {
+        return (builder, typeDescription, classLoader, module, domain) -> {
             for (Map.Entry<String, List<String>> entry : replaceMethodsProvider.getSearchMethodMap().entrySet()) {
                 builder = builder.visit(replaceMethod(entry.getValue(), entry.getKey()));
             }
@@ -106,8 +106,8 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
     public List<MethodInstrumentation> methodAdvices() {
         ElementMatcher.Junction<MethodDescription> matcher = null;
         if (onlyClass != null) {
-            matcher = isMethod().and(not(takesNoArguments()))
-                .and(not(isAnnotatedWith(namedOneOf(DynamiConstants.SPRING_CACHE, DynamiConstants.AREX_MOCK))));
+            matcher = isMethod().and(isPublic()).and(not(takesNoArguments()))
+                .and(not(isAnnotatedWith(namedOneOf(DynamicConstants.SPRING_CACHE, DynamicConstants.AREX_MOCK))));
             if (isNotAbstractClass(onlyClass.getClazzName())) {
                 matcher = matcher.and(not(isOverriddenFrom(namedOneOf(Config.get().getDynamicAbstractClassList()))));
             }
@@ -129,7 +129,7 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
     private ElementMatcher.Junction<MethodDescription> builderMethodMatcher(DynamicClassEntity entity) {
         ElementMatcher.Junction<MethodDescription> matcher =
             parseTypeMatcher(entity.getOperation(), this::parseMethodMatcher)
-                .and(not(isAnnotatedWith(namedOneOf(DynamiConstants.SPRING_CACHE, DynamiConstants.AREX_MOCK))));
+                .and(not(isAnnotatedWith(namedOneOf(DynamicConstants.SPRING_CACHE, DynamicConstants.AREX_MOCK))));
         if (CollectionUtil.isNotEmpty(entity.getParameters())) {
             matcher = matcher.and(takesArguments(entity.getParameters().size()));
             for (int i = 0; i < entity.getParameters().size(); i++) {
@@ -180,7 +180,7 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
                 return;
             }
             if (ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate() && extractor != null) {
-                extractor.recordResponse(throwable != null ? throwable : result);
+                result = extractor.recordResponse(throwable != null ? throwable : result);
             }
         }
     }

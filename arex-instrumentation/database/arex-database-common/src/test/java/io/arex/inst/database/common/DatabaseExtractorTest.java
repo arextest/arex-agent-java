@@ -37,7 +37,7 @@ class DatabaseExtractorTest {
                 return null;
             });
 
-            target.record(new Object());
+            target.recordDb(new Object());
         }
     }
 

@@ -116,4 +116,8 @@ public interface Mocker extends Serializable {
     default String replayLogTitle() {
         return "replay." + getCategoryType().getName();
     }
+
+    boolean isMerge();
+
+    void setMerge(boolean merge);
 }

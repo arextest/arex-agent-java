@@ -15,6 +15,7 @@
     <properties>
         <springframework.version>5.3.24</springframework.version>
         <arex-common.version>0.1.6</arex-common.version>
+        <reactor.version>3.4.16</reactor.version>
     </properties>
 
     <modules>
@@ -34,12 +35,14 @@
         <module>dynamic/arex-dynamic</module>
         <module>dynamic/arex-dynamic-common</module>
         <module>dynamic/arex-cache</module>
+        <module>common/arex-common</module>
         <module>time-machine/arex-time-machine</module>
         <module>httpclient/arex-httpclient-common</module>
         <module>httpclient/arex-httpclient-okhttp-v3</module>
         <module>httpclient/arex-httpclient-apache-v4</module>
         <module>httpclient/arex-httpclient-webclient-v5</module>
         <module>httpclient/arex-httpclient-resttemplate</module>
+        <module>httpclient/arex-httpclient-feign</module>
         <module>netty/arex-netty-v3</module>
         <module>netty/arex-netty-v4</module>
         <module>dubbo/arex-dubbo-apache-v2</module>
@@ -62,6 +65,5 @@
             <groupId>com.google.auto.service</groupId>
             <artifactId>auto-service</artifactId>
         </dependency>
-
     </dependencies>
 </project>

@@ -1,6 +1,7 @@
 package io.arex.inst.jedis.v2;
 
 import io.arex.agent.bootstrap.model.MockResult;
+import io.arex.agent.bootstrap.util.ArrayUtils;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.redis.common.RedisExtractor;
@@ -85,7 +86,7 @@ public class JedisWrapper extends Jedis {
 
     @Override
     public Long expire(byte[] key, int seconds) {
-        return call("expire", Base64.getEncoder().encodeToString(key), () -> super.expire(key, seconds), 0L);
+        return call("expire", key, () -> super.expire(key, seconds), 0L);
     }
 
     @Override
@@ -160,7 +161,7 @@ public class JedisWrapper extends Jedis {
 
     @Override
     public Long append(byte[] key, byte[] value) {
-        return call("append", Base64.getEncoder().encodeToString(key), () -> super.append(key, value), 0L);
+        return call("append", key, () -> super.append(key, value), 0L);
     }
 
     @Override
@@ -171,7 +172,7 @@ public class JedisWrapper extends Jedis {
 
     @Override
     public byte[] substr(byte[] key, int start, int end) {
-        return call("substr", Base64.getEncoder().encodeToString(key),
+        return call("substr", key,
             RedisKeyUtil.generate("start", String.valueOf(start), "end", String.valueOf(end)),
             () -> super.substr(key, start, end), null);
     }
@@ -183,20 +184,17 @@ public class JedisWrapper extends Jedis {
 
     @Override
     public Long hset(byte[] key, byte[] field, byte[] value) {
-        return call("hset",
-            Base64.getEncoder().encodeToString(key), Base64.getEncoder().encodeToString(field),
-            () -> super.hset(key, field, value), 0L);
+        return call("hset", key, field, () -> super.hset(key, field, value), 0L);
     }
 
     @Override
     public Long hset(byte[] key, Map<byte[], byte[]> hash) {
-        return call("hset", Base64.getEncoder().encodeToString(key),
-            Serializer.serialize(hash.keySet()), () -> super.hset(key, hash), 0L);
+        return call("hset", key, hash.keySet(), () -> super.hset(key, hash), 0L);
     }
 
     @Override
     public Long hset(final String key, final Map<String, String> hash) {
-        return call("hset", key, Serializer.serialize(hash.keySet()), () -> super.hset(key, hash), 0L);
+        return call("hset", key, hash.keySet(), () -> super.hset(key, hash), 0L);
     }
 
     @Override
@@ -206,9 +204,7 @@ public class JedisWrapper extends Jedis {
 
     @Override
     public byte[] hget(byte[] key, byte[] field) {
-        return call("hget",
-            Base64.getEncoder().encodeToString(key), Base64.getEncoder().encodeToString(field),
-            () -> super.hget(key, field), null);
+        return call("hget", key, field, () -> super.hget(key, field), null);
     }
 
     @Override
@@ -250,7 +246,7 @@ public class JedisWrapper extends Jedis {
 
     @Override
     public Long hdel(byte[] key, byte[]... fields) {
-        return call("hdel", Base64.getEncoder().encodeToString(key), RedisKeyUtil.generate(fields), () -> super.hdel(key, fields), 0L);
+        return call("hdel", key, RedisKeyUtil.generate(fields), () -> super.hdel(key, fields), 0L);
     }
 
     @Override
@@ -270,7 +266,7 @@ public class JedisWrapper extends Jedis {
 
     @Override
     public List<byte[]> hvals(byte[] key) {
-        return call("hvals", Base64.getEncoder().encodeToString(key), () -> super.hvals(key), Collections.EMPTY_LIST);
+        return call("hvals", key, () -> super.hvals(key), Collections.EMPTY_LIST);
     }
 
     @Override
@@ -280,7 +276,7 @@ public class JedisWrapper extends Jedis {
 
     @Override
     public Map<byte[], byte[]> hgetAll(byte[] key) {
-        return call("hgetAll", Base64.getEncoder().encodeToString(key), () -> super.hgetAll(key), Collections.EMPTY_MAP);
+        return call("hgetAll", key, () -> super.hgetAll(key), Collections.EMPTY_MAP);
     }
 
     @Override
@@ -414,22 +410,22 @@ public class JedisWrapper extends Jedis {
 
     @Override
     public String set(final byte[] key, final byte[] value) {
-        return call("set", Base64.getEncoder().encodeToString(key), () -> super.set(key, value), null);
+        return call("set", key, () -> super.set(key, value), null);
     }
 
     @Override
     public String set(byte[] key, byte[] value, byte[] nxxx, byte[] expx, long time) {
-        return call("set", Base64.getEncoder().encodeToString(key), () -> super.set(key, value, nxxx, expx, time), null);
+        return call("set", key, () -> super.set(key, value, nxxx, expx, time), null);
     }
 
     @Override
     public String set(byte[] key, byte[] value, byte[] expx, long time) {
-        return call("set", Base64.getEncoder().encodeToString(key), () -> super.set(key, value, expx, time), null);
+        return call("set", key, () -> super.set(key, value, expx, time), null);
     }
 
     @Override
     public byte[] get(final byte[] key) {
-        return call("get", Base64.getEncoder().encodeToString(key), () -> super.get(key), null);
+        return call("get", key, () -> super.get(key), null);
     }
 
     @Override
@@ -439,17 +435,17 @@ public class JedisWrapper extends Jedis {
 
     @Override
     public Boolean exists(final byte[] key) {
-        return call("exists", Base64.getEncoder().encodeToString(key), () -> super.exists(key), false);
+        return call("exists", key, () -> super.exists(key), false);
     }
 
     @Override
     public String type(final byte[] key) {
-        return call("type", Base64.getEncoder().encodeToString(key), () -> super.type(key), "none");
+        return call("type", key, () -> super.type(key), "none");
     }
 
     @Override
     public byte[] getSet(final byte[] key, final byte[] value) {
-        return call("getSet", Base64.getEncoder().encodeToString(key), () -> super.getSet(key, value), null);
+        return call("getSet", key, () -> super.getSet(key, value), null);
     }
 
     @Override
@@ -459,12 +455,12 @@ public class JedisWrapper extends Jedis {
 
     @Override
     public Long setnx(final byte[] key, final byte[] value) {
-        return call("setnx", Base64.getEncoder().encodeToString(key), () -> super.setnx(key, value), 0L);
+        return call("setnx", key, () -> super.setnx(key, value), 0L);
     }
 
     @Override
     public String setex(byte[] key, int seconds, byte[] value) {
-        return call("setex", Base64.getEncoder().encodeToString(key), () -> super.setex(key, seconds, value),
+        return call("setex", key, () -> super.setex(key, seconds, value),
                 null);
     }
 
@@ -485,7 +481,7 @@ public class JedisWrapper extends Jedis {
 
     @Override
     public Long unlink(byte[] key) {
-        return call("unlink", Base64.getEncoder().encodeToString(key), () -> super.unlink(key), 0L);
+        return call("unlink", key, () -> super.unlink(key), 0L);
     }
 
     @Override
@@ -515,7 +511,7 @@ public class JedisWrapper extends Jedis {
 
     @Override
     public byte[] ping(byte[] message) {
-        return call("ping", Base64.getEncoder().encodeToString(message), () -> super.ping(message), null);
+        return call("ping", message, () -> super.ping(message), null);
     }
 
     @Override
@@ -527,8 +523,8 @@ public class JedisWrapper extends Jedis {
      * mset/msetnx
      */
     private <U> U call(String command, String[] keysValues, Callable<U> callable, U defaultValue) {
-        if (keysValues == null || keysValues.length == 0) {
-            return null;
+        if (ArrayUtils.isEmpty(keysValues)) {
+            return defaultValue;
         }
 
         if (keysValues.length == 2) {
@@ -545,11 +541,11 @@ public class JedisWrapper extends Jedis {
         return call(command, keyBuilder.toString(), null, callable, defaultValue);
     }
 
-    private <U> U call(String command, String key, Callable<U> callable, U defaultValue) {
+    private <U> U call(String command, Object key, Callable<U> callable, U defaultValue) {
         return call(command, key, null, callable, defaultValue);
     }
 
-    private <U> U call(String command, String key, String field, Callable<U> callable, U defaultValue) {
+    private <U> U call(String command, Object key, Object field, Callable<U> callable, U defaultValue) {
         if (ContextManager.needReplay()) {
             RedisExtractor extractor = new RedisExtractor(this.url, command, key, field);
             MockResult mockResult = extractor.replay();

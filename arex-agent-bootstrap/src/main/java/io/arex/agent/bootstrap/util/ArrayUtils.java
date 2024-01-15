@@ -3,6 +3,7 @@ package io.arex.agent.bootstrap.util;
 import java.util.function.Function;
 
 public class ArrayUtils {
+    public static final String[] EMPTY_STRING_ARRAY = new String[0];
     private ArrayUtils() {}
 
     public static byte[] addAll(final byte[] array1, final byte... array2) {

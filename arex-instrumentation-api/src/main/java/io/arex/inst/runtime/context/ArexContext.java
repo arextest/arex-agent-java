@@ -3,7 +3,8 @@ package io.arex.inst.runtime.context;
 import io.arex.agent.bootstrap.util.ConcurrentHashSet;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.model.ArexConstants;
-import io.arex.inst.runtime.model.MergeResultDTO;
+import io.arex.inst.runtime.model.MergeDTO;
+import io.arex.inst.runtime.util.MergeRecordReplayUtil;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -17,16 +18,15 @@ public class ArexContext {
     private final long createTime;
     private final AtomicInteger sequence;
     private Set<Integer> methodSignatureHashList;
-    private Map<Integer, MergeResultDTO> cachedReplayResultMap;
+    private Map<Integer, List<MergeDTO>> cachedReplayResultMap;
     private Map<String, Set<String>> excludeMockTemplate;
 
     private Map<String, Object> attachments = null;
 
-    private LinkedBlockingQueue<MergeResultDTO> mergeRecordQueue;
+    private LinkedBlockingQueue<MergeDTO> mergeRecordQueue;
 
     private boolean isRedirectRequest;
     private boolean isInvalidCase;
-    private boolean isMainEntryEnd;
 
     public static ArexContext of(String caseId) {
         return of(caseId, null);
@@ -74,7 +74,7 @@ public class ArexContext {
         return methodSignatureHashList;
     }
 
-    public Map<Integer, MergeResultDTO> getCachedReplayResultMap() {
+    public Map<Integer, List<MergeDTO>> getCachedReplayResultMap() {
         if (cachedReplayResultMap == null) {
             cachedReplayResultMap = new ConcurrentHashMap<>();
         }
@@ -140,19 +140,11 @@ public class ArexContext {
         return isRedirectRequest;
     }
 
-    public LinkedBlockingQueue<MergeResultDTO> getMergeRecordQueue() {
+    public LinkedBlockingQueue<MergeDTO> getMergeRecordQueue() {
         if (mergeRecordQueue == null) {
             mergeRecordQueue = new LinkedBlockingQueue<>(2048);
         }
         return mergeRecordQueue;
-    }
-
-    public boolean isMainEntryEnd() {
-        return isMainEntryEnd;
-    }
-
-    public void setMainEntryEnd(boolean mainEntryEnd) {
-        isMainEntryEnd = mainEntryEnd;
     }
 
     public void clear() {
@@ -169,6 +161,8 @@ public class ArexContext {
             attachments.clear();
         }
         if (mergeRecordQueue != null) {
+            // async thread merge record (main entry has ended)
+            MergeRecordReplayUtil.recordRemain(this);
             mergeRecordQueue.clear();
         }
     }

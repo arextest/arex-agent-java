@@ -5,8 +5,6 @@ import java.util.Collection;
 
 /**
  * Filter combining multiple filters
- *
- * @author Chris Dennis
  */
 public class CombinationSizeOfFilter implements SizeOfFilter {
 
