@@ -7,8 +7,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 
 import io.arex.agent.bootstrap.model.MockResult;
-import io.arex.inst.common.util.FluxUtil.FluxElementResult;
-import io.arex.inst.common.util.FluxUtil.FluxResult;
+import io.arex.inst.common.util.FluxReplayUtil.FluxElementResult;
+import io.arex.inst.common.util.FluxReplayUtil.FluxResult;
 import io.arex.inst.redis.common.RedisConnectionManager;
 import io.arex.inst.redis.common.RedisExtractor;
 import io.arex.inst.redis.common.lettuce.RedisCommandBuilderImpl;

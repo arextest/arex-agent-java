@@ -1,24 +1,24 @@
 package io.arex.inst.common.util;
 
+import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.inst.runtime.serializer.Serializer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import reactor.core.publisher.Flux;
-import io.arex.agent.bootstrap.util.CollectionUtil;
 
-public class FluxUtil {
+
+public class FluxReplayUtil{
 
     static final String FLUX_FROM_ITERATOR = "reactor.core.publisher.FluxIterable-";
     static final String FLUX_FROM_ARRAY = "reactor.core.publisher.FluxArray-";
     static final String FLUX_FROM_STREAM = "reactor.core.publisher.FluxStream-";
 
-    private FluxUtil() {
-    }
+
 
     public static Flux<?> restore(Object fluxObj) {
-        if(fluxObj == null){
+        if (fluxObj == null) {
             return Flux.empty();
         }
         FluxResult fluxResult = (FluxResult) fluxObj;

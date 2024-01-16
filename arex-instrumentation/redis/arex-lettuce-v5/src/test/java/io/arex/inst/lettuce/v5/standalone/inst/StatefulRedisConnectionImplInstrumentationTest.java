@@ -1,7 +1,6 @@
 package io.arex.inst.lettuce.v5.standalone.inst;
 
 import io.arex.inst.lettuce.v5.standalone.RedisReactiveCommandsImplWrapper;
-import io.arex.inst.redis.common.RedisConnectionManager;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -9,9 +8,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedConstruction;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyInt;
 
 @ExtendWith(MockitoExtension.class)
 class StatefulRedisConnectionImplInstrumentationTest {

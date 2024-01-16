@@ -1,39 +1,38 @@
-package io.arex.inst.redis.common.lettuce;
+package io.arex.inst.common.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import io.arex.inst.redis.common.RedisExtractor;
+import java.util.function.Function;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import reactor.core.publisher.Mono;
 
-public class MonoConsumerTest {
+public class MonoRecordFuntionTest {
 
-    static RedisExtractor extractor;
+    static Function<Object, Void> executor;
 
     @BeforeAll
     static void setUp() {
-        extractor = Mockito.mock(RedisExtractor.class);
+        executor = Mockito.mock(Function.class);
     }
 
     @AfterAll
     static void tearDown() {
-        extractor = null;
+        executor = null;
         Mockito.clearAllCaches();
     }
 
     @Test
     void monoConsumer() {
-        Mockito.doNothing().when(extractor).record(any());
         Mono<String> mono = Mono.just("test");
-        Mono<String> monoResult = (Mono<String>) new MonoConsumer(extractor).accept(mono);
+        Mono<String> monoResult = (Mono<String>) new MonoRecordFunction(executor).apply(mono);
         assertEquals("test", monoResult.block());
 
         Mono<Exception> mono2 = Mono.error(new Exception("exception"));
-        Mono<String> monoResult2 = (Mono<String>) new MonoConsumer(extractor).accept(mono2);
+        Mono<String> monoResult2 = (Mono<String>) new MonoRecordFunction(executor).apply(mono2);
         assertThrows(Exception.class, () -> monoResult2.block());
     }
+
 }

@@ -1,19 +1,27 @@
 package io.arex.inst.redis.common.lettuce;
 
 import io.arex.agent.bootstrap.model.MockResult;
-import io.arex.inst.common.util.FluxUtil;
+import io.arex.inst.common.util.FluxRecordFunction;
+import io.arex.inst.common.util.FluxReplayUtil;
+import io.arex.inst.common.util.FluxReplayUtil.FluxResult;
+import io.arex.inst.common.util.MonoRecordFunction;
 import io.arex.inst.redis.common.RedisExtractor;
+import java.util.function.Function;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-public  class RedisClusterReactiveResultUtil {
+public  class ReactorStreamUtil {
 
-    private RedisClusterReactiveResultUtil() {
+    private ReactorStreamUtil() {
     }
 
     public static Mono<?> monoRecord(String redisUri,Mono<?> monoResult,String methodName,String key,String field) {
         RedisExtractor extractor = new RedisExtractor(redisUri, methodName, key, field);
-        return new MonoConsumer(extractor).accept(monoResult);
+        Function<Object,Void> executor = result -> {
+            extractor.record(result);
+            return null;
+        };
+        return new MonoRecordFunction(executor).apply(monoResult);
     }
 
     public static Mono<?> monoReplay(String redisUri,String methodName,String key,String field) {
@@ -30,7 +38,11 @@ public  class RedisClusterReactiveResultUtil {
 
     public static Flux<?> fluxRecord(String redisUri,Flux<?> fluxResult,String methodName,String key,String field) {
         RedisExtractor extractor = new RedisExtractor(redisUri, methodName, key, field);
-        return new FluxConsumer(extractor).accept(fluxResult);
+        Function<FluxResult,Void> executor = result -> {
+            extractor.record(result);
+            return null;
+        };
+        return new FluxRecordFunction(executor).apply(fluxResult);
     }
 
     public static Flux<?> fluxReplay(String redisUri,String methodName,String key,String field) {
@@ -40,7 +52,7 @@ public  class RedisClusterReactiveResultUtil {
             if (mockResult.getThrowable() != null) {
                 return Flux.error(mockResult.getThrowable());
             }
-            return FluxUtil.restore(mockResult.getResult());
+            return FluxReplayUtil.restore(mockResult.getResult());
         }
         return Flux.empty();
     }

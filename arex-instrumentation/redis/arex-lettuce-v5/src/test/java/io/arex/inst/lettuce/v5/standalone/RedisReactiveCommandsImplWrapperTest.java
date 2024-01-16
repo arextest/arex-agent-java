@@ -6,7 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 
 import io.arex.agent.bootstrap.model.MockResult;
-import io.arex.inst.common.util.FluxUtil;
+import io.arex.inst.common.util.FluxReplayUtil;
 import io.arex.inst.redis.common.RedisConnectionManager;
 import io.arex.inst.redis.common.RedisExtractor;
 import io.arex.inst.runtime.context.ContextManager;
@@ -64,7 +64,7 @@ class RedisReactiveCommandsImplWrapperTest {
         //mock static class
         Mockito.mockStatic(ContextManager.class);
         Mockito.mockStatic(RedisConnectionManager.class);
-        Mockito.mockStatic(FluxUtil.class);
+        Mockito.mockStatic(FluxReplayUtil.class);
 
         //mock object
         connection = Mockito.mock(StatefulRedisConnection.class);
@@ -126,7 +126,7 @@ class RedisReactiveCommandsImplWrapperTest {
             Mockito.when(RedisConnectionManager.getRedisUri(anyInt())).thenReturn("");
             Mockito.when(ContextManager.needReplay()).thenReturn(true);
             Mockito.when(cmd.getType()).thenReturn(Mockito.mock(ProtocolKeyword.class));
-            Mockito.when(FluxUtil.restore(any())).thenReturn(Flux.empty());
+            Mockito.when(FluxReplayUtil.restore(any())).thenReturn(Flux.empty());
         };
         Runnable mocker2 = () -> {
             Mockito.when(ContextManager.needReplay()).thenReturn(false);

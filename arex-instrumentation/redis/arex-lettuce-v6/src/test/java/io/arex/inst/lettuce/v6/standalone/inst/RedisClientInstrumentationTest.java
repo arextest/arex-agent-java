@@ -1,7 +1,6 @@
 package io.arex.inst.lettuce.v6.standalone.inst;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.arex.inst.redis.common.RedisConnectionManager;

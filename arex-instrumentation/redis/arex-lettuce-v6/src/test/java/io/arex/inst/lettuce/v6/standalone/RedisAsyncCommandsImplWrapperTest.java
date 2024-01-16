@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-
 import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.inst.redis.common.RedisConnectionManager;
 import io.arex.inst.redis.common.RedisExtractor;

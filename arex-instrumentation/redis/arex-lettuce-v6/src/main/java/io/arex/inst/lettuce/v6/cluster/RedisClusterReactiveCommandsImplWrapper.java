@@ -1,7 +1,7 @@
 package io.arex.inst.lettuce.v6.cluster;
 
 import io.arex.inst.redis.common.RedisConnectionManager;
-import io.arex.inst.redis.common.lettuce.RedisClusterReactiveResultUtil;
+import io.arex.inst.redis.common.lettuce.ReactorStreamUtil;
 import io.arex.inst.redis.common.lettuce.wrapper.RedisReactiveCommandWrapper;
 import io.arex.inst.runtime.context.ContextManager;
 import io.lettuce.core.GetExArgs;
@@ -437,11 +437,11 @@ public class RedisClusterReactiveCommandsImplWrapper<K, V> extends RedisAdvanced
     @Override
     public Mono<Long> del(Iterable<K> keys) {
         if (ContextManager.needReplay()) {
-            return (Mono<Long>) RedisClusterReactiveResultUtil.monoReplay(getRedisUri(), "DEL", keys.toString(), null);
+            return (Mono<Long>) ReactorStreamUtil.monoReplay(getRedisUri(), "DEL", keys.toString(), null);
         }
         Mono<Long> result = super.del(keys);
         if (ContextManager.needRecord()) {
-            return (Mono<Long>)  RedisClusterReactiveResultUtil.monoRecord(getRedisUri(),result, "DEL", keys.toString(), null);
+            return (Mono<Long>)  ReactorStreamUtil.monoRecord(getRedisUri(),result, "DEL", keys.toString(), null);
         }
         return result;
     }
@@ -454,12 +454,12 @@ public class RedisClusterReactiveCommandsImplWrapper<K, V> extends RedisAdvanced
     @Override
     public Mono<Long> exists(Iterable<K> keys) {
         if (ContextManager.needReplay()) {
-            return (Mono<Long>) RedisClusterReactiveResultUtil.monoReplay(getRedisUri(), "EXIST", keys.toString(),
+            return (Mono<Long>) ReactorStreamUtil.monoReplay(getRedisUri(), "EXIST", keys.toString(),
                 null);
         }
         Mono<Long> result = super.exists(keys);
         if (ContextManager.needRecord()) {
-            return (Mono<Long>)  RedisClusterReactiveResultUtil.monoRecord(getRedisUri(),result, "EXIST", keys.toString(), null);
+            return (Mono<Long>)  ReactorStreamUtil.monoRecord(getRedisUri(),result, "EXIST", keys.toString(), null);
         }
         return result;
     }
@@ -467,11 +467,11 @@ public class RedisClusterReactiveCommandsImplWrapper<K, V> extends RedisAdvanced
     @Override
     public Flux<K> keys(K pattern) {
         if (ContextManager.needReplay()) {
-            return (Flux<K>) RedisClusterReactiveResultUtil.fluxReplay(getRedisUri(), "KEYS", pattern.toString(), null);
+            return (Flux<K>) ReactorStreamUtil.fluxReplay(getRedisUri(), "KEYS", pattern.toString(), null);
         }
         Flux<K> result = super.keys(pattern);
         if (ContextManager.needRecord()) {
-            return (Flux<K>)  RedisClusterReactiveResultUtil.fluxRecord(getRedisUri(),result, "KEYS", pattern.toString(), null);
+            return (Flux<K>)  ReactorStreamUtil.fluxRecord(getRedisUri(),result, "KEYS", pattern.toString(), null);
         }
         return result;
     }
@@ -479,12 +479,12 @@ public class RedisClusterReactiveCommandsImplWrapper<K, V> extends RedisAdvanced
     @Override
     public Mono<Long> keys(KeyStreamingChannel<K> channel, K pattern) {
         if (ContextManager.needReplay()) {
-            return (Mono<Long>) RedisClusterReactiveResultUtil.monoReplay(getRedisUri(), "KEYS", pattern.toString(),
+            return (Mono<Long>) ReactorStreamUtil.monoReplay(getRedisUri(), "KEYS", pattern.toString(),
                 null);
         }
         Mono<Long> result = super.keys(channel,pattern);
         if (ContextManager.needRecord()) {
-            return (Mono<Long>)  RedisClusterReactiveResultUtil.monoRecord(getRedisUri(),result, "KEYS", pattern.toString(), null);
+            return (Mono<Long>)  ReactorStreamUtil.monoRecord(getRedisUri(),result, "KEYS", pattern.toString(), null);
         }
         return result;
     }
@@ -492,12 +492,12 @@ public class RedisClusterReactiveCommandsImplWrapper<K, V> extends RedisAdvanced
     @Override
     public Flux<KeyValue<K, V>> mget(Iterable<K> keys) {
         if (ContextManager.needReplay()) {
-            return (Flux<KeyValue<K, V>>) RedisClusterReactiveResultUtil.fluxReplay(getRedisUri(), "MGET",
+            return (Flux<KeyValue<K, V>>) ReactorStreamUtil.fluxReplay(getRedisUri(), "MGET",
                 keys.toString(), null);
         }
         Flux<KeyValue<K, V>> result = super.mget(keys);
         if (ContextManager.needRecord()) {
-            return (Flux<KeyValue<K, V>>)  RedisClusterReactiveResultUtil.fluxRecord(getRedisUri(),result, "MGET", keys.toString(), null);
+            return (Flux<KeyValue<K, V>>)  ReactorStreamUtil.fluxRecord(getRedisUri(),result, "MGET", keys.toString(), null);
         }
         return result;
     }
@@ -510,11 +510,11 @@ public class RedisClusterReactiveCommandsImplWrapper<K, V> extends RedisAdvanced
     @Override
     public Mono<Long> mget(KeyValueStreamingChannel<K, V> channel, Iterable<K> keys) {
         if (ContextManager.needReplay()) {
-            return (Mono<Long>) RedisClusterReactiveResultUtil.monoReplay(getRedisUri(), "MGET", keys.toString(), null);
+            return (Mono<Long>) ReactorStreamUtil.monoReplay(getRedisUri(), "MGET", keys.toString(), null);
         }
         Mono<Long> result = super.mget(channel, keys);
         if (ContextManager.needRecord()) {
-            return (Mono<Long>) RedisClusterReactiveResultUtil.monoRecord(getRedisUri(),result, "MGET", keys.toString(), null);
+            return (Mono<Long>) ReactorStreamUtil.monoRecord(getRedisUri(),result, "MGET", keys.toString(), null);
         }
         return result;
     }
@@ -522,12 +522,12 @@ public class RedisClusterReactiveCommandsImplWrapper<K, V> extends RedisAdvanced
     @Override
     public Mono<Boolean> msetnx(Map<K, V> map) {
         if(ContextManager.needReplay()){
-            return (Mono<Boolean>) RedisClusterReactiveResultUtil.monoReplay(getRedisUri(), "MSETNX", map.toString(),
+            return (Mono<Boolean>) ReactorStreamUtil.monoReplay(getRedisUri(), "MSETNX", map.toString(),
                 null);
         }
         Mono<Boolean> result = super.msetnx(map);
         if(ContextManager.needRecord()){
-            return (Mono<Boolean>)  RedisClusterReactiveResultUtil.monoRecord(getRedisUri(),result, "MSETNX", map.toString(), null);
+            return (Mono<Boolean>)  ReactorStreamUtil.monoRecord(getRedisUri(),result, "MSETNX", map.toString(), null);
         }
         return result;
     }

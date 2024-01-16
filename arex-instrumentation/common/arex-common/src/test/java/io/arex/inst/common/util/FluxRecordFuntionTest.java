@@ -1,36 +1,27 @@
-package io.arex.inst.dynamic.common.listener;
+package io.arex.inst.common.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import io.arex.inst.dynamic.common.DynamicClassExtractor;
+import io.arex.inst.common.util.FluxReplayUtil.FluxResult;
 import io.arex.inst.runtime.config.ConfigBuilder;
 import io.arex.inst.runtime.context.ContextManager;
-import java.lang.reflect.Method;
+import java.util.function.Function;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import reactor.core.publisher.Flux;
 
-public class FluxConsumerTest {
+public class FluxRecordFuntionTest {
 
-    static DynamicClassExtractor extractor;
-    static FluxConsumer fluxConsumer;
-
+    static  FluxRecordFunction fluxRecordFunction;
     @BeforeAll
     static void setUp() {
-        Method testWithArexMock;
-        try {
-            testWithArexMock = FluxConsumerTest.class.getDeclaredMethod("testWithArexMock", String.class);
-        } catch (NoSuchMethodException e) {
-            testWithArexMock = null;
-        }
-        final Object[] args = {"errorSerialize"};
-        extractor = new DynamicClassExtractor(testWithArexMock, args);
-        fluxConsumer = new FluxConsumer(extractor);
         Mockito.mockStatic(ContextManager.class);
         ConfigBuilder.create("test").enableDebug(true).build();
+        Function<FluxResult, Void> executor = result -> null;
+        fluxRecordFunction = new FluxRecordFunction(executor);
     }
 
     @AfterAll
@@ -67,8 +58,8 @@ public class FluxConsumerTest {
             // doFinally performs some operations that have nothing to do with the value of the element.
             // If the doFinally operator is called multiple times, doFinally will be executed once at the end of each sequence.
             .doFinally(System.out::println);
-        Flux subscribe = fluxConsumer.accept(flux);
-        Flux blockFirst = fluxConsumer.accept(flux);
+        Flux subscribe = fluxRecordFunction.apply(flux);
+        Flux blockFirst = fluxRecordFunction.apply(flux);
         // record content: 1,2,3,4,5
         subscribe.subscribe();
         // record content: 1
@@ -76,9 +67,10 @@ public class FluxConsumerTest {
     }
 
     private static void testEmptyFlux() {
+
         Flux flux = Flux.empty();
-        Flux subscribe = fluxConsumer.accept(flux);
-        Flux blockFirst = fluxConsumer.accept(flux);
+        Flux subscribe = fluxRecordFunction.apply(flux);
+        Flux blockFirst = fluxRecordFunction.apply(flux);
         // record content: 1,2,3,4,5
         subscribe.subscribe();
         // record content: 1
@@ -97,8 +89,8 @@ public class FluxConsumerTest {
             // returns an alternate Flux sequence when a Flux error occurs,
             .onErrorResume(t -> Flux.just(7, 8, 9));
 
-        Flux subscribe = fluxConsumer.accept(flux);
-        Flux blockFirst = fluxConsumer.accept(flux);
+        Flux subscribe = fluxRecordFunction.apply(flux);
+        Flux blockFirst = fluxRecordFunction.apply(flux);
 
         // record content: 1,7,8,9
         subscribe.subscribe();
@@ -115,9 +107,9 @@ public class FluxConsumerTest {
             })
             .doOnError(t -> System.out.println("error" + ":" + t));
 
-        Flux subscribe = fluxConsumer.accept(flux);
-        Flux blockFirst = fluxConsumer.accept(flux);
-        Flux blockLast = fluxConsumer.accept(flux);
+        Flux subscribe = fluxRecordFunction.apply(flux);
+        Flux blockFirst = fluxRecordFunction.apply(flux);
+        Flux blockLast = fluxRecordFunction.apply(flux);
 
         // record content: 1,2,RuntimeException
         subscribe.subscribe();
@@ -136,9 +128,9 @@ public class FluxConsumerTest {
             })
             .onErrorContinue((t, o) -> System.out.println("error" + ":" + t))
             .doOnNext(val -> System.out.println("val" + ":" + val));
-        Flux subscribe = fluxConsumer.accept(flux);
-        Flux blockFirst = fluxConsumer.accept(flux);
-        Flux blockLast = fluxConsumer.accept(flux);
+        Flux subscribe = fluxRecordFunction.apply(flux);
+        Flux blockFirst = fluxRecordFunction.apply(flux);
+        Flux blockLast = fluxRecordFunction.apply(flux);
 
         // record content: 1,2,4,5
         subscribe.subscribe();
@@ -150,8 +142,8 @@ public class FluxConsumerTest {
 
     private static void testFluxError() {
         Flux flux = Flux.error(new RuntimeException("error"));
-        Flux subscribe = fluxConsumer.accept(flux);
-        Flux blockFirst = fluxConsumer.accept(flux);
+        Flux subscribe = fluxRecordFunction.apply(flux);
+        Flux blockFirst = fluxRecordFunction.apply(flux);
         // record content: RuntimeException
         subscribe.subscribe();
         // record content: RuntimeException
@@ -160,6 +152,10 @@ public class FluxConsumerTest {
 
     public String testWithArexMock(String val) {
         return val + "testWithArexMock";
+    }
+
+    private void record(Flux<?> responseFlux) {
+        System.out.println(responseFlux.hashCode());
     }
 
 }

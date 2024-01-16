@@ -53,12 +53,10 @@ class RedisClusterReactiveCommandsImplWrapperTest {
     static KeyValueStreamingChannel keyValueStreamingChannel;
     static Command cmd;
 
-
     static String KEY = "key";
     static String VALUE = "value";
     static String FIELD = "field";
     static SetArgs SET_ARGS = SetArgs.Builder.nx();
-    static BitFieldArgs BIT_FIELD_ARGS = new BitFieldArgs();
     static Map<String, String> MAP = new HashMap<>(10);
 
     @BeforeAll

@@ -7,8 +7,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import io.arex.agent.bootstrap.model.MockResult;
-import io.arex.inst.common.util.FluxUtil.FluxElementResult;
-import io.arex.inst.common.util.FluxUtil.FluxResult;
+import io.arex.inst.common.util.FluxReplayUtil.FluxElementResult;
+import io.arex.inst.common.util.FluxReplayUtil.FluxResult;
 import io.arex.inst.redis.common.RedisConnectionManager;
 import io.arex.inst.redis.common.RedisExtractor;
 import io.arex.inst.redis.common.RedisExtractor.RedisMultiKey;
@@ -27,7 +27,7 @@ import org.mockito.Mockito;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-public class RedisClusterReactiveResultUtilTest {
+public class ReactorStreamUtilTest {
 
     static RedisExtractor extractor;
 
@@ -46,11 +46,11 @@ public class RedisClusterReactiveResultUtilTest {
     void monoRecord() {
         try (MockedConstruction<RedisExtractor> mocked = Mockito.mockConstruction(RedisExtractor.class,
             (extractor, context) -> {
-                System.out.println("mock RedisClusterReactiveResultUtil monoRecord");
+                System.out.println("mock ReactorStreamUtil monoRecord");
                 Mockito.doNothing().when(extractor).record(any());
             })) {
             Mono<String> mono = Mono.just("test");
-            RedisClusterReactiveResultUtil.monoRecord("127.1.1.0", mono, "test", "key", "field");
+            ReactorStreamUtil.monoRecord("127.1.1.0", mono, "test", "key", "field");
             String result = mono.block();
             assertNotNull(result);
         }
@@ -60,11 +60,11 @@ public class RedisClusterReactiveResultUtilTest {
     void fluxRecord() {
         try (MockedConstruction<RedisExtractor> mocked = Mockito.mockConstruction(RedisExtractor.class,
             (extractor, context) -> {
-                System.out.println("mock RedisClusterReactiveResultUtil monoRecord");
+                System.out.println("mock ReactorStreamUtil monoRecord");
                 Mockito.doNothing().when(extractor).record(any());
             })) {
             Flux<String> flux = Flux.just("test");
-            RedisClusterReactiveResultUtil.fluxRecord("127.1.1.0", flux, "test", "key", "field");
+            ReactorStreamUtil.fluxRecord("127.1.1.0", flux, "test", "key", "field");
             String result = flux.blockFirst();
             assertNotNull(result);
         }
@@ -86,7 +86,7 @@ public class RedisClusterReactiveResultUtilTest {
             (extractor, context) -> {
                 Mockito.when(extractor.replay()).thenReturn(mockResult);
             })) {
-            Mono<?> result = RedisClusterReactiveResultUtil.monoReplay(RedisConnectionManager.getRedisUri(0), "test",
+            Mono<?> result = ReactorStreamUtil.monoReplay(RedisConnectionManager.getRedisUri(0), "test",
                 "key", "field");
             assertTrue(predicate.test(result));
         }
@@ -99,7 +99,7 @@ public class RedisClusterReactiveResultUtilTest {
             (extractor, context) -> {
                 Mockito.when(extractor.replay()).thenReturn(mockResult);
             })) {
-            Flux<?> result = RedisClusterReactiveResultUtil.fluxReplay(RedisConnectionManager.getRedisUri(0), "test",
+            Flux<?> result = ReactorStreamUtil.fluxReplay(RedisConnectionManager.getRedisUri(0), "test",
                 "key", "field");
             assertTrue(predicate.test(result));
         }

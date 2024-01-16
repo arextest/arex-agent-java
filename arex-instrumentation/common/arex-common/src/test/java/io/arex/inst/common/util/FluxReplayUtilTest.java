@@ -1,29 +1,27 @@
 package io.arex.inst.common.util;
 
-import static io.arex.inst.common.util.FluxUtil.FLUX_FROM_ARRAY;
-import static io.arex.inst.common.util.FluxUtil.FLUX_FROM_ITERATOR;
-import static io.arex.inst.common.util.FluxUtil.FLUX_FROM_STREAM;
+import static io.arex.inst.common.util.FluxReplayUtil.FLUX_FROM_ARRAY;
+import static io.arex.inst.common.util.FluxReplayUtil.FLUX_FROM_ITERATOR;
+import static io.arex.inst.common.util.FluxReplayUtil.FLUX_FROM_STREAM;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-
-import io.arex.inst.common.util.FluxUtil.FluxElementResult;
-import io.arex.inst.common.util.FluxUtil.FluxResult;
+import io.arex.inst.common.util.FluxReplayUtil.FluxElementResult;
+import io.arex.inst.common.util.FluxReplayUtil.FluxResult;
 import io.arex.inst.runtime.util.TypeUtil;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
 
-public class FluxUtilTest {
+public class FluxReplayUtilTest {
 
     @Test
     void FluxRecory() {
         List<FluxElementResult> list = new ArrayList<>();
         FluxResult fluxResult = new FluxResult(null, list);
         // flux is empty
-        assertNotNull(FluxUtil.restore(null));
-        Flux<?> result = FluxUtil.restore(fluxResult);
+        assertNotNull(FluxReplayUtil.restore(null));
+        Flux<?> result = FluxReplayUtil.restore(fluxResult);
         assertNotNull(result);
 
         // flux is not empty
@@ -34,22 +32,22 @@ public class FluxUtilTest {
 
         // Flux.just()
         fluxResult = new FluxResult(null, list);
-        result = FluxUtil.restore(fluxResult);
+        result = FluxReplayUtil.restore(fluxResult);
         assertEquals(TypeUtil.getName(result),"reactor.core.publisher.FluxJust-java.util.ArrayList-");
 
         // Flux.fromIterable()
         fluxResult = new FluxResult(FLUX_FROM_ITERATOR, list);
-        result = FluxUtil.restore(fluxResult);
+        result = FluxReplayUtil.restore(fluxResult);
         assertEquals(TypeUtil.getName(result),FLUX_FROM_ITERATOR);
 
         // Flux.fromArray()
         fluxResult = new FluxResult(FLUX_FROM_ARRAY, list);
-        result = FluxUtil.restore(fluxResult);
+        result = FluxReplayUtil.restore(fluxResult);
         assertEquals(TypeUtil.getName(result),FLUX_FROM_ARRAY);
 
         // Flux.fromStream()
         fluxResult = new FluxResult(FLUX_FROM_STREAM, list);
-        result = FluxUtil.restore(fluxResult);
+        result = FluxReplayUtil.restore(fluxResult);
         assertEquals(TypeUtil.getName(result),FLUX_FROM_STREAM);
     }
 }

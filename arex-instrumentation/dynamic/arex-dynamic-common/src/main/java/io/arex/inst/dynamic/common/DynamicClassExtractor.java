@@ -8,10 +8,11 @@ import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.ArrayUtils;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.agent.thirdparty.util.time.DateFormatUtils;
-import io.arex.inst.common.util.FluxUtil;
-import io.arex.inst.dynamic.common.listener.FluxConsumer;
+import io.arex.inst.common.util.FluxRecordFunction;
+import io.arex.inst.common.util.FluxReplayUtil;
+import io.arex.inst.common.util.FluxReplayUtil.FluxResult;
+import io.arex.inst.common.util.MonoRecordFunction;
 import io.arex.inst.dynamic.common.listener.ListenableFutureAdapter;
-import io.arex.inst.dynamic.common.listener.MonoConsumer;
 import io.arex.inst.dynamic.common.listener.ResponseConsumer;
 import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.ArexContext;
@@ -33,6 +34,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
+import java.util.function.Function;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -97,11 +99,19 @@ public class DynamicClassExtractor {
         }
         // Compatible with not import package reactor-core
         if (MONO.equals(methodReturnType) && response instanceof Mono<?>) {
-            return new MonoConsumer(this).accept((Mono<?>) response);
+            Function<Object, Void> executor = mockResult -> {
+                this.recordResponse(mockResult);
+                return null;
+            };
+            return new MonoRecordFunction(executor).apply((Mono<?>) response);
         }
 
         if (FLUX.equals(methodReturnType) && response instanceof Flux<?>) {
-            return new FluxConsumer(this).accept((Flux<?>) response);
+            Function<FluxResult, Void> executor = mockResult -> {
+                this.recordResponse(mockResult);
+                return null;
+            };
+            return new FluxRecordFunction(executor).apply((Flux<?>) response);
         }
 
         this.result = response;
@@ -321,7 +331,7 @@ public class DynamicClassExtractor {
             if (result instanceof Throwable) {
                 return Flux.error((Throwable) result);
             }
-            return FluxUtil.restore(result);
+            return FluxReplayUtil.restore(result);
         }
         return result;
     }

@@ -1,9 +1,7 @@
 package io.arex.inst.lettuce.v6.cluster;
 
-import io.arex.agent.bootstrap.ctx.TraceTransmitter;
-import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.inst.redis.common.RedisConnectionManager;
-import io.arex.inst.redis.common.RedisExtractor;
+import io.arex.inst.redis.common.lettuce.LettuceClusterUtil;
 import io.arex.inst.redis.common.lettuce.RedisCommandBuilderImpl;
 import io.arex.inst.redis.common.lettuce.wrapper.RedisCommandWrapper;
 import io.arex.inst.runtime.context.ContextManager;
@@ -16,7 +14,6 @@ import io.lettuce.core.codec.RedisCodec;
 import io.lettuce.core.output.KeyStreamingChannel;
 import io.lettuce.core.output.KeyValueStreamingChannel;
 import io.lettuce.core.output.ValueStreamingChannel;
-import io.lettuce.core.protocol.AsyncCommand;
 import io.lettuce.core.protocol.Command;
 import java.util.Arrays;
 import java.util.Date;
@@ -113,7 +110,7 @@ public class RedisClusterAsyncCommandsImplWrapper<K, V> extends RedisAdvancedClu
 
     @Override
     public RedisFuture<Long> hgetall(KeyValueStreamingChannel<K, V> channel, K key) {
-        return redisCommandWrapper.hgetall(this, getRedisUri(),channel, key);
+        return redisCommandWrapper.hgetall(this, getRedisUri(), channel, key);
     }
 
     @Override
@@ -133,7 +130,7 @@ public class RedisClusterAsyncCommandsImplWrapper<K, V> extends RedisAdvancedClu
 
     @Override
     public RedisFuture<Long> hkeys(KeyStreamingChannel<K> channel, K key) {
-        return redisCommandWrapper.hkeys(this, getRedisUri(), channel,key);
+        return redisCommandWrapper.hkeys(this, getRedisUri(), channel, key);
     }
 
     @Override
@@ -148,7 +145,7 @@ public class RedisClusterAsyncCommandsImplWrapper<K, V> extends RedisAdvancedClu
 
     @Override
     public RedisFuture<Long> hmget(KeyValueStreamingChannel<K, V> channel, K key, K... fields) {
-        return redisCommandWrapper.hmget(this, getRedisUri(), channel,key, fields);
+        return redisCommandWrapper.hmget(this, getRedisUri(), channel, key, fields);
     }
 
     @Override
@@ -178,7 +175,7 @@ public class RedisClusterAsyncCommandsImplWrapper<K, V> extends RedisAdvancedClu
 
     @Override
     public RedisFuture<Long> hvals(ValueStreamingChannel<V> channel, K key) {
-        return redisCommandWrapper.hvals(this, getRedisUri(),channel, key);
+        return redisCommandWrapper.hvals(this, getRedisUri(), channel, key);
     }
 
     @Override
@@ -399,15 +396,14 @@ public class RedisClusterAsyncCommandsImplWrapper<K, V> extends RedisAdvancedClu
     }
 
     @Override
-    public RedisFuture<Long> del(
-        Iterable<K> keys) {
-        Command cmd = commandBuilder.del(keys);
+    public RedisFuture<Long> del(Iterable<K> keys) {
+        Command<K, V, Long> cmd = commandBuilder.del(keys);
         if (ContextManager.needReplay()) {
-            return redisClusterAsynReplay("DEL", keys.toString(), cmd);
+            return LettuceClusterUtil.clusterAsynReplay("DEL", keys.toString(), cmd, getRedisUri());
         }
         RedisFuture<Long> resultFuture = super.del(keys);
         if (ContextManager.needRecord()) {
-            clusterAsyncRecord(keys.toString(), resultFuture, "DEL");
+            LettuceClusterUtil.clusterAsyncRecord(keys.toString(), resultFuture, "DEL", getRedisUri());
         }
         return resultFuture;
     }
@@ -418,15 +414,14 @@ public class RedisClusterAsyncCommandsImplWrapper<K, V> extends RedisAdvancedClu
     }
 
     @Override
-    public RedisFuture<Long> exists(
-        Iterable<K> keys) {
-        Command cmd = commandBuilder.exists(keys);
+    public RedisFuture<Long> exists(Iterable<K> keys) {
+        Command<K, V, Long> cmd = commandBuilder.exists(keys);
         if (ContextManager.needReplay()) {
-            return redisClusterAsynReplay("EXISTS", keys.toString(), cmd);
+            return LettuceClusterUtil.clusterAsynReplay("EXISTS", keys.toString(), cmd, getRedisUri());
         }
         RedisFuture<Long> resultFuture = super.exists(keys);
         if (ContextManager.needRecord()) {
-            clusterAsyncRecord(keys.toString(), resultFuture, "EXISTS");
+            LettuceClusterUtil.clusterAsyncRecord(keys.toString(), resultFuture, "EXISTS", getRedisUri());
         }
         return resultFuture;
 
@@ -434,95 +429,88 @@ public class RedisClusterAsyncCommandsImplWrapper<K, V> extends RedisAdvancedClu
 
     @Override
     public RedisFuture<List<K>> keys(K pattern) {
-        Command cmd = commandBuilder.keys(pattern);
+        Command<K, V, List<K>> cmd = commandBuilder.keys(pattern);
         if (ContextManager.needReplay()) {
-            return redisClusterAsynReplay("KEYS", pattern.toString(), cmd);
+            return LettuceClusterUtil.clusterAsynReplay("KEYS", pattern.toString(), cmd, getRedisUri());
         }
         RedisFuture<List<K>> resultFuture = super.keys(pattern);
         if (ContextManager.needRecord()) {
-            clusterAsyncRecord(pattern.toString(), resultFuture, "KEYS");
+            LettuceClusterUtil.clusterAsyncRecord(pattern.toString(), resultFuture, "KEYS", getRedisUri());
         }
         return resultFuture;
     }
 
     @Override
-    public RedisFuture<Long> keys(
-        KeyStreamingChannel<K> channel, K pattern) {
-        Command cmd = commandBuilder.keys(channel, pattern);
+    public RedisFuture<Long> keys(KeyStreamingChannel<K> channel, K pattern) {
+        Command<K, V, Long> cmd = commandBuilder.keys(channel, pattern);
         if (ContextManager.needReplay()) {
-            return redisClusterAsynReplay("KEYS", pattern.toString(), cmd);
+            return LettuceClusterUtil.clusterAsynReplay("KEYS", pattern.toString(), cmd, getRedisUri());
         }
         RedisFuture<Long> resultFuture = super.keys(channel, pattern);
         if (ContextManager.needRecord()) {
-            clusterAsyncRecord(pattern.toString(), resultFuture, "KEYS");
+            LettuceClusterUtil.clusterAsyncRecord(pattern.toString(), resultFuture, "KEYS", getRedisUri());
         }
         return resultFuture;
     }
 
     @Override
-    public RedisFuture<List<KeyValue<K, V>>> mget(
-        K... keys) {
+    public RedisFuture<List<KeyValue<K, V>>> mget(K... keys) {
         return mget(Arrays.asList(keys));
     }
 
     @Override
-    public RedisFuture<List<KeyValue<K, V>>> mget(
-        Iterable<K> keys) {
-        Command cmd = commandBuilder.mgetKeyValue(keys);
+    public RedisFuture<List<KeyValue<K, V>>> mget(Iterable<K> keys) {
+        Command<K, V, List<KeyValue<K, V>>> cmd = commandBuilder.mgetKeyValue(keys);
         if (ContextManager.needReplay()) {
-            return redisClusterAsynReplay("MGET", keys.toString(), cmd);
+            return LettuceClusterUtil.clusterAsynReplay("MGET", keys.toString(), cmd, getRedisUri());
         }
         RedisFuture<List<KeyValue<K, V>>> resultFuture = super.mget(keys);
         if (ContextManager.needRecord()) {
-            clusterAsyncRecord(keys.toString(), resultFuture, "MGET");
+            LettuceClusterUtil.clusterAsyncRecord(keys.toString(), resultFuture, "MGET", getRedisUri());
         }
         return resultFuture;
     }
 
     @Override
-    public RedisFuture<Long> mget(
-        KeyValueStreamingChannel<K, V> channel, K... keys) {
+    public RedisFuture<Long> mget(KeyValueStreamingChannel<K, V> channel, K... keys) {
         return mget(channel, Arrays.asList(keys));
     }
 
     @Override
-    public RedisFuture<Long> mget(
-        KeyValueStreamingChannel<K, V> channel, Iterable<K> keys) {
-        Command cmd = commandBuilder.mget(channel, keys);
+    public RedisFuture<Long> mget(KeyValueStreamingChannel<K, V> channel, Iterable<K> keys) {
+        Command<K, V, Long> cmd = commandBuilder.mget(channel, keys);
         if (ContextManager.needReplay()) {
-            return redisClusterAsynReplay("MGET", keys.toString(), cmd);
+            return LettuceClusterUtil.clusterAsynReplay("MGET", keys.toString(), cmd, getRedisUri());
         }
         RedisFuture<Long> resultFuture = super.mget(channel, keys);
         if (ContextManager.needRecord()) {
-            clusterAsyncRecord(keys.toString(), resultFuture, "MGET");
+            LettuceClusterUtil.clusterAsyncRecord(keys.toString(), resultFuture, "MGET", getRedisUri());
         }
         return resultFuture;
     }
 
     @Override
-    public RedisFuture<String> mset(
-        Map<K, V> map) {
-        Command cmd = commandBuilder.mset(map);
+    public RedisFuture<String> mset(Map<K, V> map) {
+        Command<K, V, String> cmd = commandBuilder.mset(map);
         if (ContextManager.needReplay()) {
-            return redisClusterAsynReplay("MSET", map.toString(), cmd);
+            return LettuceClusterUtil.clusterAsynReplay("MSET", map.toString(), cmd, getRedisUri());
         }
         RedisFuture<String> resultFuture = super.mset(map);
         if (ContextManager.needRecord()) {
-            clusterAsyncRecord(map.toString(), resultFuture, "MSET");
+            LettuceClusterUtil.clusterAsyncRecord(map.toString(), resultFuture, "MSET", getRedisUri());
         }
         return resultFuture;
     }
 
     @Override
-    public RedisFuture<Boolean> msetnx(
-        Map<K, V> map) {
-        Command cmd = commandBuilder.msetnx(map);
+    public RedisFuture<Boolean> msetnx(Map<K, V> map) {
+        Command<K, V, Boolean> cmd = commandBuilder.msetnx(map);
         if (ContextManager.needReplay()) {
-            return redisClusterAsynReplay("MSETNX", map.toString(), cmd);
+            return LettuceClusterUtil.clusterAsynReplay("MSETNX", map.toString(), cmd, getRedisUri());
         }
         RedisFuture<Boolean> resultFuture = super.msetnx(map);
         if (ContextManager.needRecord()) {
-            clusterAsyncRecord(map.toString(), resultFuture, "MSETNX");
+            LettuceClusterUtil.clusterAsyncRecord(map.toString(), resultFuture, "MSETNX", getRedisUri());
         }
         return resultFuture;
     }
@@ -532,33 +520,5 @@ public class RedisClusterAsyncCommandsImplWrapper<K, V> extends RedisAdvancedClu
             redisUri = RedisConnectionManager.getRedisUri(this.getStatefulConnection().hashCode());
         }
         return redisUri;
-    }
-
-    private RedisFuture<Object> redisClusterAsynReplay(String methodName, String key, Command<K, V, Object> cmd) {
-        RedisExtractor extractor = new RedisExtractor(getRedisUri(), methodName, key, null);
-        MockResult mockResult = extractor.replay();
-        AsyncCommand<K, V, Object> asyncCommand = new AsyncCommand<>(cmd);
-        if (mockResult.notIgnoreMockResult()) {
-            if (mockResult.getThrowable() != null) {
-                asyncCommand.completeExceptionally(mockResult.getThrowable());
-            } else {
-                asyncCommand.complete(mockResult.getResult());
-            }
-        }
-        return asyncCommand;
-    }
-
-    public void clusterAsyncRecord(String key, RedisFuture<?> resultFuture, String methodName) {
-        try (TraceTransmitter traceTransmitter = TraceTransmitter.create()) {
-            resultFuture.whenComplete((v, throwable) -> {
-                RedisExtractor extractor = new RedisExtractor(getRedisUri(), methodName, key, null);
-                traceTransmitter.transmit();
-                if (throwable != null) {
-                    extractor.record(throwable);
-                } else {
-                    extractor.record(v);
-                }
-            });
-        }
     }
 }

@@ -1,11 +1,7 @@
 package io.arex.inst.redis.common.lettuce.wrapper;
 
-import io.arex.agent.bootstrap.model.MockResult;
-import io.arex.inst.common.util.FluxUtil;
-import io.arex.inst.redis.common.RedisExtractor;
 import io.arex.inst.redis.common.RedisKeyUtil;
-import io.arex.inst.redis.common.lettuce.FluxConsumer;
-import io.arex.inst.redis.common.lettuce.MonoConsumer;
+import io.arex.inst.redis.common.lettuce.ReactorStreamUtil;
 import io.arex.inst.redis.common.lettuce.RedisCommandBuilderImpl;
 import io.arex.inst.runtime.context.ContextManager;
 import io.lettuce.core.AbstractRedisReactiveCommands;
@@ -695,21 +691,11 @@ public class RedisReactiveCommandWrapper<K, V> {
         Supplier<RedisCommand<K, V, T>> commandSupplier,
         String key, String field) {
         if (ContextManager.needReplay()) {
-            RedisExtractor extractor =
-                new RedisExtractor(redisUri, commandSupplier.get().getType().name(), key, field);
-            MockResult mockResult = extractor.replay();
-            if (mockResult.notIgnoreMockResult()) {
-                if (mockResult.getThrowable() != null) {
-                    return Mono.error(mockResult.getThrowable());
-                }
-                return Mono.justOrEmpty((T) mockResult.getResult());
-            }
+            return (Mono<T>) ReactorStreamUtil.monoReplay(redisUri, commandSupplier.get().getType().name(), key, field);
         }
         Mono<T> monoResult = redisReactiveCommands.createMono(commandSupplier);
         if (ContextManager.needRecord()) {
-            RedisExtractor extractor =
-                new RedisExtractor(redisUri, commandSupplier.get().getType().name(), key, field);
-            return (Mono<T>) new MonoConsumer(extractor).accept(monoResult);
+            return (Mono<T>) ReactorStreamUtil.monoRecord(redisUri, monoResult, commandSupplier.get().getType().name(), key, field);
         }
         return monoResult;
     }
@@ -726,21 +712,11 @@ public class RedisReactiveCommandWrapper<K, V> {
         String key, String field) {
 
         if (ContextManager.needReplay()) {
-            RedisExtractor extractor =
-                new RedisExtractor(redisUri, commandSupplier.get().getType().name(), key, field);
-            MockResult mockResult = extractor.replay();
-            if (mockResult.notIgnoreMockResult()) {
-                if (mockResult.getThrowable() != null) {
-                    return Flux.error(mockResult.getThrowable());
-                }
-                return (Flux<R>)FluxUtil.restore(mockResult.getResult());
-            }
+            return (Flux<R>) ReactorStreamUtil.fluxReplay(redisUri, commandSupplier.get().getType().name(), key, field);
         }
         Flux<R> fluxResult  = redisReactiveCommands.createDissolvingFlux(commandSupplier);
         if (ContextManager.needRecord()) {
-            RedisExtractor extractor =
-                new RedisExtractor(redisUri, commandSupplier.get().getType().name(), key, field);
-            return (Flux<R>) new FluxConsumer(extractor).accept(fluxResult);
+            ReactorStreamUtil.fluxRecord(redisUri, fluxResult, commandSupplier.get().getType().name(), key, field);
         }
         return fluxResult;
     }

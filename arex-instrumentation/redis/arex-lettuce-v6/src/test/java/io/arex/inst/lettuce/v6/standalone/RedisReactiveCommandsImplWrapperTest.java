@@ -4,9 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-
 import io.arex.agent.bootstrap.model.MockResult;
-import io.arex.inst.common.util.FluxUtil;
+import io.arex.inst.common.util.FluxReplayUtil;
 import io.arex.inst.redis.common.RedisConnectionManager;
 import io.arex.inst.redis.common.RedisExtractor;
 import io.arex.inst.runtime.context.ContextManager;
@@ -68,7 +67,7 @@ class RedisReactiveCommandsImplWrapperTest {
         //mock static class
         Mockito.mockStatic(ContextManager.class);
         Mockito.mockStatic(RedisConnectionManager.class);
-        Mockito.mockStatic(FluxUtil.class);
+        Mockito.mockStatic(FluxReplayUtil.class);
 
         //mock object
         connection = Mockito.mock(StatefulRedisConnection.class);

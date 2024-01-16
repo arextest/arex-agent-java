@@ -3,7 +3,6 @@ package io.arex.inst.lettuce.v6.cluster.inst;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import io.arex.inst.lettuce.v6.cluster.RedisClusterReactiveCommandsImplWrapper;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;

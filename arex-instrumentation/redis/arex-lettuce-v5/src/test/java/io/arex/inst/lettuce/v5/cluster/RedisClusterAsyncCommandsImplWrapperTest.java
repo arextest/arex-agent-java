@@ -34,7 +34,6 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -108,18 +107,6 @@ public class RedisClusterAsyncCommandsImplWrapperTest {
                     assertTrue(predicate.test(res));
                 }
             );
-        }
-    }
-
-    @Test
-    void testRecord(){
-        AsyncCommand command = new AsyncCommand(cmd);
-        try (MockedConstruction<RedisExtractor> mocked = Mockito.mockConstruction(RedisExtractor.class,
-            (extractor, context) -> {
-                Mockito.doNothing().when(extractor).record(any());
-            })) {
-            command.complete("mock");
-            target.clusterAsyncRecord("key", command, "field");
         }
     }
 
