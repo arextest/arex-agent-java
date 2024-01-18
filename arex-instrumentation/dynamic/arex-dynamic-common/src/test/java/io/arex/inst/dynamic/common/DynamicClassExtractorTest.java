@@ -5,8 +5,8 @@ import com.google.common.util.concurrent.ListenableFuture;
 import io.arex.agent.bootstrap.model.ArexMocker;
 import io.arex.agent.bootstrap.model.Mocker.Target;
 import io.arex.agent.thirdparty.util.time.DateFormatUtils;
-import io.arex.inst.common.util.FluxUtil;
-import io.arex.inst.dynamic.common.listener.MonoConsumer;
+import io.arex.inst.common.util.FluxReplayUtil;
+import io.arex.inst.common.util.MonoRecordFunction;
 import io.arex.inst.runtime.config.ConfigBuilder;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
@@ -28,6 +28,7 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Function;
 
 import io.arex.inst.runtime.util.sizeof.AgentSizeOf;
 import org.junit.jupiter.api.AfterAll;
@@ -130,14 +131,18 @@ class DynamicClassExtractorTest {
 
             // exception
             Mono<?> result = monoExceptionTest();
-            MonoConsumer monoConsumer = new MonoConsumer(extractor);
-            result = monoConsumer.accept(result);
+            Function<Object, Void> executor = res -> {
+                extractor.recordResponse(res);
+                return null;
+            };
+            MonoRecordFunction monoRecordFunction = new MonoRecordFunction(executor);
+            result = monoRecordFunction.apply(result);
             result.subscribe();
             assertTrue(nonNull.test(result));
 
             // normal
             result = monoTest();
-            result = monoConsumer.accept(result);
+            result = monoRecordFunction.apply(result);
             result.subscribe();
             assertTrue(nonNull.test(result));
         } catch (NoSuchMethodException e) {
@@ -295,8 +300,8 @@ class DynamicClassExtractorTest {
             Throwable.class);
         DynamicClassExtractor fluxTestExtractor = new DynamicClassExtractor(testReturnFlux, new Object[]{"mock"},
             "#val", null);
-        List<FluxUtil.FluxElementResult> list = new ArrayList<>();
-        FluxUtil.FluxResult fluxResult = new FluxUtil.FluxResult(null, list);
+        List<FluxReplayUtil.FluxElementResult> list = new ArrayList<>();
+        FluxReplayUtil.FluxResult fluxResult = new FluxReplayUtil.FluxResult(null, list);
         Object fluxNormalTest = fluxTestExtractor.restoreResponse(fluxResult);
         assertNull(((Flux<?>) fluxNormalTest).blockFirst());
 
