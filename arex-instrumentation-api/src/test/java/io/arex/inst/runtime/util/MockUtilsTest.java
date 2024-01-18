@@ -13,6 +13,7 @@ import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.listener.EventProcessorTest.TestGsonSerializer;
 import io.arex.inst.runtime.listener.EventProcessorTest.TestJacksonSerializable;
 import io.arex.inst.runtime.match.ReplayMatcher;
+import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.serializer.StringSerializable;
 import io.arex.inst.runtime.service.DataCollector;
@@ -65,11 +66,11 @@ class MockUtilsTest {
         // merge case
         Mockito.when(CaseManager.isInvalidCase(any())).thenReturn(false);
         ArexMocker servletMocker = MockUtils.createServlet("mock");
-        servletMocker.setMerge(true);
+        servletMocker.setNeedMerge(true);
         Assertions.assertDoesNotThrow(() -> MockUtils.recordMocker(servletMocker));
 
         // remain case
-        servletMocker.setMerge(false);
+        servletMocker.setNeedMerge(false);
         Assertions.assertDoesNotThrow(() -> MockUtils.recordMocker(servletMocker));
     }
 
@@ -106,7 +107,7 @@ class MockUtilsTest {
         assertNotNull(MockUtils.replayBody(configFile));
 
         // merge case
-        configFile.setMerge(true);
+        configFile.setNeedMerge(true);
         Mockito.when(ReplayMatcher.match(any(), any())).thenReturn(configFile);
         assertNull(MockUtils.replayBody(configFile));
     }
@@ -132,6 +133,11 @@ class MockUtilsTest {
         // normal mocker
         dynamicClass.getTargetResponse().setType("java.lang.String");
         assertTrue(MockUtils.checkResponseMocker(dynamicClass));
+
+        // test exceed size limit
+        dynamicClass.getTargetResponse().setBody(null);
+        dynamicClass.getTargetResponse().setAttribute(ArexConstants.EXCEED_MAX_SIZE_FLAG, true);
+        assertFalse(MockUtils.checkResponseMocker(dynamicClass));
     }
 
     @Test

@@ -29,6 +29,8 @@ import java.time.LocalTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
+
+import io.arex.inst.runtime.util.sizeof.ThrowableFilter;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -61,7 +63,8 @@ public class DynamicClassExtractor {
     private final Object[] args;
     private final String dynamicSignature;
     private final String requestType;
-    private static final AgentSizeOf agentSizeOf = AgentSizeOf.newInstance();
+    private boolean isExceedMaxSize;
+    private static final AgentSizeOf agentSizeOf = AgentSizeOf.newInstance(ThrowableFilter.INSTANCE);
 
     public DynamicClassExtractor(Method method, Object[] args, String keyExpression, Class<?> actualType) {
         this.clazzName = method.getDeclaringClass().getName();
@@ -88,7 +91,7 @@ public class DynamicClassExtractor {
     public Object recordResponse(Object response) {
         if (IgnoreUtils.invalidOperation(dynamicSignature)) {
             LogManager.warn(NEED_RECORD_TITLE, StringUtil.format(
-                    "do not record invalid operation: %s, can not serialize request or response or response too large",
+                    "do not record invalid operation: %s, can not serialize request or response",
                     dynamicSignature));
             return response;
         }
@@ -110,6 +113,7 @@ public class DynamicClassExtractor {
             this.resultClazz = buildResultClazz(TypeUtil.getName(response));
             Mocker mocker = makeMocker();
             mocker.getTargetResponse().setBody(getSerializedResult());
+            mocker.getTargetResponse().setAttribute(ArexConstants.EXCEED_MAX_SIZE_FLAG, this.isExceedMaxSize);
             MockUtils.recordMocker(mocker);
             cacheMethodSignature();
         }
@@ -275,7 +279,7 @@ public class DynamicClassExtractor {
 
     private Mocker makeMocker() {
         Mocker mocker = MockUtils.createDynamicClass(this.clazzName, this.methodName);
-        mocker.setMerge(true);
+        mocker.setNeedMerge(true);
         mocker.getTargetRequest().setBody(this.methodKey);
         mocker.getTargetResponse().setType(this.resultClazz);
         mocker.getTargetRequest().setType(this.requestType);
@@ -318,17 +322,23 @@ public class DynamicClassExtractor {
     }
 
     private boolean needRecord() {
-        /*
-         * Judge whether the hash value of the method signature has been recorded to avoid repeated recording.
-         * */
+        // Judge whether the hash value of the method signature has been recorded to avoid repeated recording.
         ArexContext context = ContextManager.currentContext();
         if (context != null) {
             this.methodSignatureKey = buildDuplicateMethodKey();
             if (methodKey != null) {
                 this.methodSignatureKeyHash = StringUtil.encodeAndHash(this.methodSignatureKey);
             } else {
-                // no argument method check repeat by className + methodName + result
-                this.methodSignatureKeyHash = buildNoArgMethodSignatureHash();
+                /*
+                 * no argument method check repeat first by className + methodName
+                 * avoid serialize big result(maybe last record result exceed size limit and already was set to empty)
+                 * so first only check className + methodName
+                 */
+                this.methodSignatureKeyHash = buildNoArgMethodSignatureHash(false);
+                if (!context.getMethodSignatureHashList().contains(this.methodSignatureKeyHash)) {
+                    // if missed means no exceed size limit, check className + methodName + result
+                    this.methodSignatureKeyHash = buildNoArgMethodSignatureHash(true);
+                }
             }
             if (context.getMethodSignatureHashList().contains(this.methodSignatureKeyHash)) {
                 if (Config.get().isEnableDebug()) {
@@ -338,18 +348,6 @@ public class DynamicClassExtractor {
                 return false;
             }
         }
-
-        if (this.result == null || this.result instanceof Throwable) {
-            return true;
-        }
-
-        if (!agentSizeOf.checkMemorySizeLimit(this.result, ArexConstants.MEMORY_SIZE_1MB)) {
-            IgnoreUtils.addInvalidOperation(dynamicSignature);
-            LogManager.warn(NEED_RECORD_TITLE, StringUtil.format("dynamicClass:%s, exceed memory max limit:%s",
-                    dynamicSignature, AgentSizeOf.humanReadableUnits(ArexConstants.MEMORY_SIZE_1MB)));
-            return false;
-        }
-
         return true;
     }
 
@@ -380,18 +378,20 @@ public class DynamicClassExtractor {
     private void cacheMethodSignature() {
         ArexContext context = ContextManager.currentContext();
         if (context != null) {
-            if (this.methodKey != null && this.methodSignatureKey != null) {
-                context.getMethodSignatureHashList().add(this.methodSignatureKeyHash);
-            } else {
-                // no argument method check repeat by class+method+result
-                context.getMethodSignatureHashList().add(buildNoArgMethodSignatureHash());
-            }
+            context.getMethodSignatureHashList().add(this.methodSignatureKeyHash);
         }
     }
 
     public String getSerializedResult() {
-        if (this.serializedResult == null) {
-            serializedResult = serialize(this.result);
+        if (this.serializedResult == null && !this.isExceedMaxSize) {
+            if (!agentSizeOf.checkMemorySizeLimit(this.result, ArexConstants.MEMORY_SIZE_1MB)) {
+                this.isExceedMaxSize = true;
+                LogManager.warn(ArexConstants.EXCEED_MAX_SIZE_TITLE, StringUtil.format("method:%s, exceed memory max limit:%s, " +
+                                "record result will be null, please check method return size, suggest replace it",
+                        this.dynamicSignature, AgentSizeOf.humanReadableUnits(ArexConstants.MEMORY_SIZE_1MB)));
+                return null;
+            }
+            this.serializedResult = serialize(this.result);
         }
         return this.serializedResult;
     }
@@ -409,7 +409,10 @@ public class DynamicClassExtractor {
         }
     }
 
-    private int buildNoArgMethodSignatureHash() {
-        return StringUtil.encodeAndHash(String.format("%s_%s_%s", this.clazzName, this.methodName, getSerializedResult()));
+    private int buildNoArgMethodSignatureHash(boolean isNeedResult) {
+        if (isNeedResult) {
+            return StringUtil.encodeAndHash(String.format("%s_%s_%s", this.clazzName, this.methodName, getSerializedResult()));
+        }
+        return StringUtil.encodeAndHash(String.format("%s_%s_%s", this.clazzName, this.methodName, null));
     }
 }

@@ -43,11 +43,11 @@ public class CollectionUtil {
      * split to multiple list by split count
      */
     public static <V> List<List<V>> split(List<V> originalList, int splitCount) {
-        List<List<V>> splitList = new ArrayList<>();
         if (isEmpty(originalList)) {
-            return splitList;
+            return emptyList();
         }
         int originalSize = originalList.size();
+        List<List<V>> splitList = new ArrayList<>();
         if (originalSize < splitCount || splitCount == 0) {
             splitList.add(originalList);
             return splitList;
@@ -65,10 +65,10 @@ public class CollectionUtil {
     }
 
     public static <V> List<V> filterNull(List<V> originalList) {
-        List<V> filterList = new ArrayList<>();
         if (isEmpty(originalList)) {
-            return filterList;
+            return emptyList();
         }
+        List<V> filterList = new ArrayList<>(originalList.size());
         for (V element : originalList) {
             if (element != null) {
                 filterList.add(element);

@@ -33,8 +33,8 @@ public class AgentSizeOf {
      *
      * @return the total size in bytes for these objects
      */
-    public long deepSizeOf(Object... obj) {
-        return walker.walk(null, obj);
+    public long deepSizeOf(long sizeThreshold, Object... obj) {
+        return walker.walk(null, sizeThreshold, obj);
     }
 
     public static AgentSizeOf newInstance(final SizeOfFilter... filters) {
@@ -86,11 +86,11 @@ public class AgentSizeOf {
      */
     public boolean checkMemorySizeLimit(Object obj, long sizeLimit) {
         long start = System.currentTimeMillis();
-        long memorySize = deepSizeOf(obj);
+        long memorySize = deepSizeOf(sizeLimit, obj);
         long cost = System.currentTimeMillis() - start;
-        if (cost > 50) { // longer cost mean larger memory
+        if (cost > 50) { // used statistical performance can be removed in the future
             LogManager.info("check.memory.size",
-                    StringUtil.format("size: %s, cost: %s",
+                    StringUtil.format("size: %s, cost: %s ms",
                     humanReadableUnits(memorySize), String.valueOf(cost)));
         }
         return memorySize < sizeLimit;

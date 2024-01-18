@@ -5,14 +5,17 @@ import io.arex.agent.bootstrap.model.MockCategoryType;
 import io.arex.agent.bootstrap.model.MockStrategyEnum;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.model.Mocker.Target;
+import io.arex.agent.bootstrap.util.MapUtils;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.match.ReplayMatcher;
+import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.service.DataService;
+import io.arex.inst.runtime.util.sizeof.AgentSizeOf;
 
 public final class MockUtils {
 
@@ -92,7 +95,7 @@ public final class MockUtils {
         if (CaseManager.isInvalidCase(requestMocker.getRecordId())) {
             return;
         }
-        if (requestMocker.isMerge()) {
+        if (requestMocker.isNeedMerge()) {
             MergeRecordReplayUtil.mergeRecord(requestMocker);
             return;
         }
@@ -124,7 +127,7 @@ public final class MockUtils {
             return null;
         }
 
-        if (requestMocker.isMerge()) {
+        if (requestMocker.isNeedMerge()) {
             Mocker matchMocker = ReplayMatcher.match(requestMocker, mockStrategy);
             // compatible with old version(fixed case without merge)
             if (matchMocker != null) {
@@ -190,7 +193,13 @@ public final class MockUtils {
         }
         final String body = targetResponse.getBody();
         if (StringUtil.isEmpty(body)) {
-            LogManager.info(logTitle, "The body of targetResponse is empty");
+            String exceedSizeLog = StringUtil.EMPTY;
+            if (MapUtils.getBoolean(targetResponse.getAttributes(), ArexConstants.EXCEED_MAX_SIZE_FLAG)) {
+                exceedSizeLog = StringUtil.format(
+                        ", method:%s, because exceed memory max limit:%s, please check method return size, suggest replace it",
+                        responseMocker.getOperationName(), AgentSizeOf.humanReadableUnits(ArexConstants.MEMORY_SIZE_1MB));
+            }
+            LogManager.info(logTitle, "The body of targetResponse is empty" + exceedSizeLog);
             return false;
         }
         final String clazzType = targetResponse.getType();

@@ -33,7 +33,7 @@ class AgentSizeOfTest {
 
     @Test
     void deepSizeOf() {
-        assertEquals(caller.deepSizeOf("mock"), 0);
+        assertEquals(caller.deepSizeOf(1, "mock"), 0);
     }
 
     @Test

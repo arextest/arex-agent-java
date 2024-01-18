@@ -32,7 +32,7 @@ class ObjectGraphWalkerTest {
 
     @Test
     void walk() {
-        caller.walk(null);
+        caller.walk(null, 1);
     }
 
     @Test
@@ -42,7 +42,7 @@ class ObjectGraphWalkerTest {
         Collection<Field> result = new ArrayList<>();
         result.add(TestWalker.class.getDeclaredFields()[0]);
         Mockito.when(sizeOfFilter.filterFields(any(), any())).thenReturn(result);
-        caller.walk(visitorListener, new Object[]{new TestWalker[]{new TestWalker()}});
+        caller.walk(visitorListener, 1,  new Object[]{new TestWalker[]{new TestWalker()}});
     }
 
     static class TestWalker {

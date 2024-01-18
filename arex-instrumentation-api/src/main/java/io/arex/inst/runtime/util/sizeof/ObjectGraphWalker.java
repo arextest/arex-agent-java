@@ -57,21 +57,12 @@ public class ObjectGraphWalker {
     /**
      * Walk the graph and call into the "visitor"
      *
-     * @param root                      the roots of the objects (a shared graph will only be visited once)
-     * @return the sum of all Visitor#visit returned values
-     */
-    long walk(Object... root) {
-        return walk(null, root);
-    }
-
-    /**
-     * Walk the graph and call into the "visitor"
-     *
      * @param visitorListener          A decorator for the Visitor
-     * @param root                      the roots of the objects (a shared graph will only be visited once)
+     * @param sizeThreshold            if > 0 and exceed sizeThreshold will stop walk
+     * @param root                     the roots of the objects (a shared graph will only be visited once)
      * @return the sum of all Visitor#visit returned values
      */
-    long walk(VisitorListener visitorListener, Object... root) {
+    long walk(VisitorListener visitorListener, long sizeThreshold, Object... root) {
         long result = 0;
         Deque<Object> toVisit = new ArrayDeque<>();
         Set<Object> visited = newSetFromMap(new IdentityHashMap<>());
@@ -91,7 +82,9 @@ public class ObjectGraphWalker {
                 visitorListener.visited(ref, visitSize);
             }
             result += visitSize;
-
+            if (sizeThreshold > 0 && result >= sizeThreshold) {
+                return result;
+            }
         }
 
         return result;

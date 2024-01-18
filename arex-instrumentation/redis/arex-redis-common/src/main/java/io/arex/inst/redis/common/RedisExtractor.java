@@ -75,7 +75,7 @@ public class RedisExtractor {
 
     private Mocker makeMocker(Object response) {
         Mocker mocker = MockUtils.createRedis(this.command);
-        mocker.setMerge(true);
+        mocker.setNeedMerge(true);
         mocker.getTargetRequest().setBody(Serializer.serialize(new RedisMultiKey(key, field)));
         mocker.getTargetRequest().setAttribute("clusterName", this.clusterName);
         mocker.getTargetResponse().setBody(Serializer.serialize(response));

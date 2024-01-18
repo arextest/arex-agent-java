@@ -71,7 +71,7 @@ class DynamicClassExtractorTest {
         ConfigBuilder.create("test").enableDebug(true).build();
         agentSizeOf = Mockito.mock(AgentSizeOf.class);
         Mockito.mockStatic(AgentSizeOf.class);
-        Mockito.when(AgentSizeOf.newInstance()).thenReturn(agentSizeOf);
+        Mockito.when(AgentSizeOf.newInstance(any())).thenReturn(agentSizeOf);
     }
 
     @AfterAll
@@ -431,6 +431,11 @@ class DynamicClassExtractorTest {
         // invalid operation replay return ignore
         final MockResult replay = extractor.replay();
         assertEquals(MockResult.IGNORE_MOCK_RESULT, replay);
+
+        // test getSerializedResult serialize
+        Mockito.when(agentSizeOf.checkMemorySizeLimit(any(), any(long.class))).thenReturn(true);
+        extractor = new DynamicClassExtractor(testWithArexMock, args);
+        assertNull(extractor.getSerializedResult());
     }
 
     @Test

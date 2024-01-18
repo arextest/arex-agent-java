@@ -47,4 +47,6 @@ public class ArexConstants {
     public static final long MEMORY_SIZE_1MB = 1024L * 1024L;
     public static final long MEMORY_SIZE_5MB = 5 * 1024L * 1024L;
     public static final String CALL_REPLAY_MAX = "callReplayMax";
+    public static final String EXCEED_MAX_SIZE_TITLE = "exceed.max.size";
+    public static final String EXCEED_MAX_SIZE_FLAG = "isExceedMaxSize";
 }

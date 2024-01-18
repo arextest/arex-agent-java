@@ -144,7 +144,7 @@ public class MergeRecordReplayUtil {
     private static void logBigSize(List<MergeDTO> mergeRecordList) {
         for (MergeDTO mergeDTO : mergeRecordList) {
             LogManager.warn("merge.record.size.too.large",
-                    StringUtil.format("please check following record data, if is dynamic class, recommended to modify it, " +
+                    StringUtil.format("please check following record data, if is dynamic class, suggest replace it, " +
                                     "category: %s, operationName: %s",
                             mergeDTO.getCategory(), mergeDTO.getOperationName()));
         }

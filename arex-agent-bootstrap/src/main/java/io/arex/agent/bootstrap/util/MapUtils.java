@@ -39,4 +39,26 @@ public class MapUtils {
         // any large value
         return Integer.MAX_VALUE;
     }
+
+    public static <K> boolean getBoolean(final Map<? super K, ?> map, final K key) {
+        return getBoolean(map, key, false);
+    }
+
+    public static <K> boolean getBoolean(final Map<? super K, ?> map, final K key, boolean defaultValue) {
+        if (isEmpty(map) || map.get(key) == null) {
+            return defaultValue;
+        }
+        final Object answer = map.get(key);
+        if (answer instanceof Boolean) {
+            return (Boolean) answer;
+        }
+        if (answer instanceof String) {
+            return Boolean.parseBoolean((String) answer);
+        }
+        if (answer instanceof Number) {
+            final Number num = (Number) answer;
+            return num.intValue() != 0;
+        }
+        return defaultValue;
+    }
 }
