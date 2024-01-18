@@ -1,24 +1,28 @@
 package io.arex.inst.database.mybatis3;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.arex.agent.bootstrap.model.ArexMocker;
 import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.agent.bootstrap.model.Mocker.Target;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.database.common.DatabaseExtractor;
 import io.arex.inst.runtime.context.ContextManager;
+import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.util.MockUtils;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.sql.SQLException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
+import io.arex.inst.runtime.util.TypeUtil;
 import org.apache.ibatis.binding.MapperMethod;
 import org.apache.ibatis.mapping.BoundSql;
 import org.apache.ibatis.mapping.MappedStatement;
@@ -53,6 +57,7 @@ class InternalExecutorTest {
         Mockito.when(mappedStatement.getKeyProperties()).thenReturn(new String[]{"key"});
         boundSql = Mockito.mock(BoundSql.class);
         Mockito.mockStatic(ContextManager.class);
+        Mockito.mockStatic(Serializer.class);
     }
 
     @AfterAll
@@ -63,17 +68,15 @@ class InternalExecutorTest {
 
     @Test
     void replay() throws SQLException {
-        try (MockedStatic<MockUtils> mockService = mockStatic(MockUtils.class)){
-            MockResult mockResult = MockResult.success(true, null);
-            mockService.when(() -> MockUtils.replayBody(any())).thenReturn(mockResult);
-
-            ArexMocker mocker = new ArexMocker();
-            mocker.setTargetRequest(new Target());
-            mocker.setTargetResponse(new Target());
-            mockService.when(() -> MockUtils.createDatabase(any())).thenReturn(mocker);
-
-            assertNotNull(InternalExecutor.replay(mappedStatement, new Object(), null, "insert"));
-        }
+        DatabaseExtractor mock = Mockito.mock(DatabaseExtractor.class);
+        MockResult mockResult = MockResult.success(true, null);
+        Mockito.when(mock.replay()).thenReturn(mockResult);
+        ArexMocker mocker = new ArexMocker();
+        mocker.setTargetRequest(new Target());
+        mocker.setTargetResponse(new Target());
+        Object parameterObject = new Object();
+        assertNotNull(InternalExecutor.replay(mock, parameterObject));
+        Mockito.verify(mock, Mockito.times(1)).replay();
     }
 
     @Test
@@ -91,18 +94,22 @@ class InternalExecutorTest {
     @ParameterizedTest
     @MethodSource("recordCase")
     void record(Throwable throwable, Object result) {
-        AtomicReference<DatabaseExtractor> atomicReference = new AtomicReference<>();
-        try (MockedConstruction<DatabaseExtractor> mocked = Mockito.mockConstruction(DatabaseExtractor.class, (mock, context) -> {
-            atomicReference.set(mock);
-        })) {
-            Mockito.when(mappedStatement.getBoundSql(any())).thenReturn(boundSql);
-            target.record(mappedStatement, new Object(), null, result, throwable, "insert");
-            if (throwable != null) {
-                Mockito.verify(atomicReference.get(), Mockito.times(1)).recordDb(throwable);
-            } else {
-                Mockito.verify(atomicReference.get(), Mockito.times(1)).recordDb(result);
-            }
+        DatabaseExtractor mockExtractor = Mockito.mock(DatabaseExtractor.class);
+        Mockito.when(mappedStatement.getBoundSql(any())).thenReturn(boundSql);
+        // no page
+        target.record(mockExtractor, new Object(), result, throwable);
+        Mockito.verify(mockExtractor, Mockito.times(1)).setPage(null);
+        if (throwable != null) {
+            Mockito.verify(mockExtractor, Mockito.times(1)).recordDb(throwable);
+        } else {
+            Mockito.verify(mockExtractor, Mockito.times(1)).recordDb(result);
         }
+
+        // page
+        Page<Object> page = new Page<>();
+        Mockito.when(Serializer.serialize(page)).thenReturn("test-page");
+        target.record(mockExtractor, page, result, null);
+        Mockito.verify(mockExtractor, Mockito.times(1)).setPage("test-page");
     }
 
     static Stream<Arguments> recordCase() {
@@ -132,5 +139,50 @@ class InternalExecutorTest {
                 arguments(null, invoker1, StringUtil.EMPTY),
                 arguments(new SQLException(), invoker2, StringUtil.EMPTY)
         );
+    }
+
+    @Test
+    void testRestorePage() throws Exception {
+        Method restorePage = InternalExecutor.class.getDeclaredMethod("restorePage", DatabaseExtractor.class, Object.class);
+        restorePage.setAccessible(true);
+        DatabaseExtractor mockExtractor = Mockito.mock(DatabaseExtractor.class);
+
+        // null
+        restorePage.invoke(null, mockExtractor, null);
+        Mockito.verify(mockExtractor, Mockito.times(1)).getPage();
+
+        // empty
+        Mockito.when(mockExtractor.getPage()).thenReturn(StringUtil.EMPTY);
+        restorePage.invoke(null, mockExtractor, null);
+        Mockito.verify(mockExtractor, Mockito.times(2)).getPage();
+
+        IPage<Object> recordPage = new Page<>();
+        recordPage.setTotal(10);
+
+        Object parameterObject = null;
+
+        Mockito.when(mockExtractor.getPage()).thenReturn("test-page");
+
+        // no page
+        parameterObject = new Object();
+        restorePage.invoke(null, mockExtractor, parameterObject);
+
+        // only page
+        IPage<Object> originalPage = new Page<>();
+        assertEquals(0, originalPage.getTotal());
+        Type type = TypeUtil.forName(TypeUtil.getName(originalPage));
+        Mockito.when(Serializer.deserialize("test-page", type)).thenReturn(recordPage);
+        restorePage.invoke(null, mockExtractor, originalPage);
+        assertEquals(10, originalPage.getTotal());
+
+        // page in ParamMap
+        originalPage = new Page<>();
+        assertEquals(0, originalPage.getTotal());
+        MapperMethod.ParamMap<Object> paramMap = new MapperMethod.ParamMap<>();
+        paramMap.put("string", "string");
+        paramMap.put("page", originalPage);
+        restorePage.invoke(null, mockExtractor, paramMap);
+        assertEquals(10, originalPage.getTotal());
+        assertEquals(10, ((IPage)paramMap.get("page")).getTotal());
     }
 }
