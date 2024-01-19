@@ -1,8 +1,7 @@
 package io.arex.inst.database.common;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mockStatic;
 
 import io.arex.agent.bootstrap.model.ArexMocker;
@@ -51,12 +50,19 @@ class DatabaseExtractorTest {
             ArexMocker mocker = new ArexMocker();
             mocker.setTargetRequest(new Target());
             mocker.setTargetResponse(new Target());
+
+            ArexMocker replayMocker = new ArexMocker();
+            replayMocker.setTargetRequest(new Target());
+            Target response = new Target();
+            response.setBody("body");
+            response.setType("type");
+            replayMocker.setTargetResponse(response);
             mockService.when(() -> MockUtils.createDatabase(any())).thenReturn(mocker);
-            mockService.when(() -> MockUtils.replayMocker(any())).thenReturn(mocker);
+            mockService.when(() -> MockUtils.replayMocker(any())).thenReturn(replayMocker);
 
             mockService.when(() -> MockUtils.checkResponseMocker(any())).thenReturn(true);
 
-            serializer.when(() -> Serializer.deserialize(anyString(), anyString())).thenReturn(new Object());
+            serializer.when(() -> Serializer.deserialize(anyString(), anyString(), eq(null))).thenReturn(new Object());
 
             MockResult mockResult = MockResult.success(true, null);
             mockService.when(() -> MockUtils.replayBody(any())).thenReturn(mockResult);

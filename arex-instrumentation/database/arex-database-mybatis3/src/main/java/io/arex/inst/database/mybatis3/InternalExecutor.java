@@ -1,22 +1,37 @@
 package io.arex.inst.database.mybatis3;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.database.common.DatabaseExtractor;
 
+import io.arex.inst.runtime.util.TypeUtil;
 import org.apache.ibatis.binding.MapperMethod.ParamMap;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.reflection.Reflector;
+
+import java.util.Map;
 
 public class InternalExecutor {
 
     private static final char KEYHOLDER_SEPARATOR = ';';
     private static final char KEYHOLDER_TYPE_SEPARATOR = ',';
+    private static boolean isIPageLoaded = false;
+    static {
+        try {
+            // check if IPage is loaded, avoid ClassNotFoundException
+            Class.forName("com.baomidou.mybatisplus.core.metadata.IPage");
+            isIPageLoaded = true;
+        } catch (ClassNotFoundException ignored) {
+            // ignore
+        }
+    }
 
-    public static MockResult replay(MappedStatement ms, Object o, String originalSql, String methodName) {
-        DatabaseExtractor extractor = createExtractor(ms, originalSql, o, methodName);
-        return extractor.replay();
+    public static MockResult replay(DatabaseExtractor extractor, Object parameterObject) {
+        MockResult result = extractor.replay();
+        restorePage(extractor, parameterObject);
+        return result;
     }
 
     public static MockResult replay(DatabaseExtractor extractor, MappedStatement ms, Object o) {
@@ -27,8 +42,8 @@ public class InternalExecutor {
         return replayResult;
     }
 
-    public static <U> void record(MappedStatement ms, Object o, String originalSql, U result, Throwable throwable, String methodName) {
-        DatabaseExtractor extractor = createExtractor(ms, originalSql, o, methodName);
+    public static <U> void record(DatabaseExtractor extractor, Object parameterObject, U result, Throwable throwable) {
+        extractor.setPage(Serializer.serialize(extractPage(parameterObject)));
         if (throwable != null) {
             extractor.recordDb(throwable);
         } else {
@@ -47,6 +62,45 @@ public class InternalExecutor {
         } else {
             extractor.recordDb(result);
         }
+    }
+
+    public static <T> IPage<T> extractPage(Object parameterObject) {
+        if (!isIPageLoaded) {
+            return null;
+        }
+        if (parameterObject instanceof Map) {
+            Map<?, ?> parameterMap = (Map<?, ?>)parameterObject;
+            for (Map.Entry<?, ?> entry : parameterMap.entrySet()) {
+                Object value = entry.getValue();
+                if (value instanceof IPage) {
+                    return (IPage<T>) value;
+                }
+            }
+        }
+        if (parameterObject instanceof IPage) {
+            return (IPage<T>) parameterObject;
+        }
+        return null;
+    }
+
+    private static <T> void restorePage(DatabaseExtractor extractor, Object parameterObject) {
+        String recordPageString = extractor.getPage();
+        if (parameterObject == null || StringUtil.isEmpty(recordPageString)) {
+            return;
+        }
+        IPage<T> originalPage = extractPage(parameterObject);
+        if (originalPage == null) {
+            return;
+        }
+        IPage<T> recordPage = Serializer.deserialize(recordPageString, TypeUtil.forName(TypeUtil.getName(originalPage)));
+        if (recordPage == null) {
+            return;
+        }
+        originalPage.setPages(recordPage.getPages());
+        originalPage.setCurrent(recordPage.getCurrent());
+        originalPage.setSize(recordPage.getSize());
+        originalPage.setTotal(recordPage.getTotal());
+        originalPage.setRecords(recordPage.getRecords());
     }
 
     private static void restoreKeyHolder(MappedStatement ms, DatabaseExtractor executor, Object o) {
