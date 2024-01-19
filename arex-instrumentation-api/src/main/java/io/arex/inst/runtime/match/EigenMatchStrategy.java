@@ -8,8 +8,4 @@ public class EigenMatchStrategy extends AbstractMatchStrategy{
     void process(MatchStrategyContext context) {
         // to be implemented after database merge replay support
     }
-
-    int order() {
-        return EIGEN_MATCH_ORDER;
-    }
 }

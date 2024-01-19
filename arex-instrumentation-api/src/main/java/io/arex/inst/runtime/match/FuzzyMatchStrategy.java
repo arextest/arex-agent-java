@@ -41,11 +41,7 @@ public class FuzzyMatchStrategy extends AbstractMatchStrategy {
     }
 
     @Override
-    boolean valid(MatchStrategyContext context) {
+    boolean internalCheck(MatchStrategyContext context) {
         return CollectionUtil.isNotEmpty(context.getMergeReplayList());
-    }
-
-    int order() {
-        return FUZZY_MATCH_ORDER;
     }
 }

@@ -18,9 +18,4 @@ class EigenMatchStrategyTest {
     static void tearDown() {
         eigenMatchStrategy = null;
     }
-
-    @Test
-    void order() {
-        assertEquals(30, eigenMatchStrategy.order());
-    }
 }

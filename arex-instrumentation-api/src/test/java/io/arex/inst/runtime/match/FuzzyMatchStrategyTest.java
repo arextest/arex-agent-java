@@ -54,12 +54,7 @@ class FuzzyMatchStrategyTest {
     }
 
     @Test
-    void valid() {
-        assertFalse(fuzzyMatchStrategy.valid(new MatchStrategyContext(null, null, null)));
-    }
-
-    @Test
-    void order() {
-        assertEquals(20, fuzzyMatchStrategy.order());
+    void internalCheck() {
+        assertFalse(fuzzyMatchStrategy.internalCheck(new MatchStrategyContext(null, null, null)));
     }
 }

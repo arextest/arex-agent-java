@@ -19,7 +19,7 @@ public class AccurateMatchStrategy extends AbstractMatchStrategy{
         Mocker requestMocker = context.getRequestMocker();
         List<MergeDTO> mergeReplayList = context.getMergeReplayList();
         int methodSignatureHash = MockUtils.methodSignatureHash(requestMocker);
-        List<MergeDTO> matchedList = new ArrayList<>();
+        List<MergeDTO> matchedList = new ArrayList<>(mergeReplayList.size());
         for (MergeDTO mergeDTO : mergeReplayList) {
             if (methodSignatureHash == mergeDTO.getMethodSignatureHash()) {
                 matchedList.add(mergeDTO);
@@ -41,24 +41,22 @@ public class AccurateMatchStrategy extends AbstractMatchStrategy{
             }
             // other modes can only be matched once, so interrupt and not continue next fuzzy match
             context.setInterrupt(true);
+            return;
         }
         // matched multiple result(like as redis: incr、decr) only retain matched item for next fuzzy match
         if (matchedCount > 1) {
             context.setMergeReplayList(matchedList);
+            return;
         }
         // if strict match mode and not matched, interrupt and not continue next fuzzy match
-        if (matchedCount == 0 && MockStrategyEnum.STRICT_MATCH == context.getMockStrategy()) {
+        if (MockStrategyEnum.STRICT_MATCH == context.getMockStrategy()) {
             context.setInterrupt(true);
         }
     }
 
     @Override
-    boolean valid(MatchStrategyContext context) {
+    boolean internalCheck(MatchStrategyContext context) {
         // if no request params, do next fuzzy match directly
         return StringUtil.isNotEmpty(context.getRequestMocker().getTargetRequest().getBody());
-    }
-
-    int order() {
-        return ACCURATE_MATCH_ORDER;
     }
 }

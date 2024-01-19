@@ -88,14 +88,9 @@ class AccurateMatchStrategyTest {
     }
 
     @Test
-    void valid() {
+    void internalCheck() {
         ArexMocker mocker = new ArexMocker();
         mocker.setTargetRequest(new Mocker.Target());
-        assertFalse(accurateMatchStrategy.valid(new MatchStrategyContext(mocker, null, null)));
-    }
-
-    @Test
-    void order() {
-        assertEquals(10, accurateMatchStrategy.order());
+        assertFalse(accurateMatchStrategy.internalCheck(new MatchStrategyContext(mocker, null, null)));
     }
 }

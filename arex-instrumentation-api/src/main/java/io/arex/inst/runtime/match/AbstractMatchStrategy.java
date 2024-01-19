@@ -6,13 +6,10 @@ import io.arex.inst.runtime.model.MergeDTO;
 
 public abstract class AbstractMatchStrategy {
     static final String MATCH_TITLE = "replay.match.fail";
-    static final int ACCURATE_MATCH_ORDER = 10;
-    static final int FUZZY_MATCH_ORDER = 20;
-    static final int EIGEN_MATCH_ORDER = 30;
 
     public void match(MatchStrategyContext context) {
         try {
-            if (check(context)) {
+            if (support(context)) {
                 process(context);
             }
         } catch (Exception e) {
@@ -20,17 +17,16 @@ public abstract class AbstractMatchStrategy {
         }
     }
 
-    private boolean check(MatchStrategyContext context) {
+    private boolean support(MatchStrategyContext context) {
         if (context == null || context.getRequestMocker() == null || context.isInterrupt()) {
             return false;
         }
-        return valid(context);
+        return internalCheck(context);
     }
 
-    boolean valid(MatchStrategyContext context) {
+    boolean internalCheck(MatchStrategyContext context) {
         return true;
     }
-    abstract int order();
     abstract void process(MatchStrategyContext context) throws Exception;
 
     Mocker buildMatchedMocker(Mocker requestMocker, MergeDTO mergeReplayDTO) {
