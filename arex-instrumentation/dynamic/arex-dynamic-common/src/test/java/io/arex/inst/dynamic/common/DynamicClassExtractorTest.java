@@ -29,6 +29,8 @@ import java.util.TimeZone;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
+
+import io.arex.inst.runtime.util.sizeof.AgentSizeOf;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -61,15 +63,21 @@ import static org.mockito.Mockito.mockStatic;
 
 @ExtendWith(MockitoExtension.class)
 class DynamicClassExtractorTest {
+    static AgentSizeOf agentSizeOf;
+
     @BeforeAll
     static void setUp() {
         Mockito.mockStatic(ContextManager.class);
         Mockito.mockStatic(Serializer.class);
         ConfigBuilder.create("test").enableDebug(true).build();
+        agentSizeOf = Mockito.mock(AgentSizeOf.class);
+        Mockito.mockStatic(AgentSizeOf.class);
+        Mockito.when(AgentSizeOf.newInstance(any())).thenReturn(agentSizeOf);
     }
 
     @AfterAll
     static void tearDown() {
+        agentSizeOf = null;
         Mockito.clearAllCaches();
     }
 
@@ -149,18 +157,11 @@ class DynamicClassExtractorTest {
         Runnable signatureContains = () -> {
             Set<Integer> methodSignatureHashList = new HashSet<>();
             methodSignatureHashList.add(StringUtil.encodeAndHash(
-                "io.arex.inst.dynamic.common.DynamicClassExtractorTest_testWithArexMock_mock Serializer.serialize_no_result"
+                    "io.arex.inst.dynamic.common.DynamicClassExtractorTest_testWithArexMock_mock Serializer.serialize_has_result_java.lang.String"
             ));
             Mockito.when(context.getMethodSignatureHashList()).thenReturn(methodSignatureHashList);
             try {
                 Mockito.when(Serializer.serializeWithException(any(), anyString())).thenReturn("mock Serializer.serialize");
-            } catch (Throwable ignored) {
-            }
-        };
-
-        Runnable serializeThrowException = () -> {
-            try {
-                Mockito.when(Serializer.serializeWithException(any(), anyString())).thenThrow(new RuntimeException("mock Serializer.serializeThrowException"));
             } catch (Throwable ignored) {
             }
         };
@@ -172,15 +173,15 @@ class DynamicClassExtractorTest {
         Predicate<Object> isNull = Objects::isNull;
         Predicate<Object> nonNull = Objects::nonNull;
         return Stream.of(
-            arguments(signatureContains, new Object[]{"mock"}, "mock1", nonNull),
-            arguments(resultIsNull, new Object[]{"mock"}, null, isNull),
-            arguments(resultIsNull, new Object[]{"mock"}, Collections.singletonList("mock"), nonNull),
-            arguments(resultIsNull, new Object[]{"mock"}, Collections.singletonMap("key", "val"), nonNull),
-            arguments(resultIsNull, new Object[]{"mock"}, new int[1001], nonNull),
-            arguments(resultIsNull, null, null, isNull),
-            arguments(resultIsNull, null, Mono.just("mono test"), nonNull),
-            arguments(resultIsNull, null, Futures.immediateFuture("mock-future"), nonNull),
-            arguments(resultIsNull, null, Flux.just("mock-exception"), nonNull)
+                arguments(signatureContains, new Object[]{"mock"}, "mock1", nonNull),
+                arguments(resultIsNull, new Object[]{"mock"}, null, isNull),
+                arguments(resultIsNull, new Object[]{"mock"}, Collections.singletonList("mock"), nonNull),
+                arguments(resultIsNull, new Object[]{"mock"}, Collections.singletonMap("key", "val"), nonNull),
+                arguments(resultIsNull, new Object[]{"mock"}, new int[1001], nonNull),
+                arguments(resultIsNull, null, null, isNull),
+                arguments(resultIsNull, null, Mono.just("mono test"), nonNull),
+                arguments(resultIsNull, null, Futures.immediateFuture("mock-future"), nonNull),
+                arguments(resultIsNull, null, Flux.just("mock-exception"), nonNull)
         );
     }
 
@@ -244,12 +245,12 @@ class DynamicClassExtractorTest {
         // result instanceOf CompletableFuture
         CompletableFuture<String> completableFuture = CompletableFuture.completedFuture("CompletableFuture-result");
         extractor.setFutureResponse(completableFuture);
-        assertNull(extractor.getSerializedResult());
+        assertDoesNotThrow(() -> extractor.getSerializedResult());
 
         // result instanceOf ListenableFuture
         ListenableFuture<String> resultFuture = Futures.immediateFuture("result");
         extractor.setFutureResponse(resultFuture);
-        assertNull(extractor.getSerializedResult());
+        assertDoesNotThrow(() -> extractor.getSerializedResult());
     }
 
     @Test
@@ -325,7 +326,7 @@ class DynamicClassExtractorTest {
         actualResult = extractor.buildResultClazz("Java.util.List");
         assertEquals("Java.util.List-java.time.LocalDateTime", actualResult);
 
-        ConfigBuilder.create("mock-service").build();
+        ConfigBuilder.create("mock-service").enableDebug(true).build();
         extractor = new DynamicClassExtractor(testWithArexMock, new Object[]{"mock"}, "#val", null);
         // DynamicEntityMap is empty
         actualResult = extractor.buildResultClazz("Java.util.List");
@@ -334,14 +335,14 @@ class DynamicClassExtractorTest {
         // DynamicEntityMap is not empty, actualType is empty
         List<DynamicClassEntity> list = new ArrayList<>();
         list.add(new DynamicClassEntity("io.arex.inst.dynamic.common.DynamicClassExtractorTest", "testWithArexMock", "mock", ""));
-        ConfigBuilder.create("mock-service").dynamicClassList(list).build();
+        ConfigBuilder.create("mock-service").enableDebug(true).dynamicClassList(list).build();
         actualResult = extractor.buildResultClazz("Java.util.List");
         assertEquals("Java.util.List", actualResult);
 
         // actualType is not empty
         list.clear();
         list.add(new DynamicClassEntity("io.arex.inst.dynamic.common.DynamicClassExtractorTest", "testWithArexMock", "mock", "T:java.lang.String"));
-        ConfigBuilder.create("mock-service").dynamicClassList(list).build();
+        ConfigBuilder.create("mock-service").enableDebug(true).dynamicClassList(list).build();
         actualResult = extractor.buildResultClazz("Java.util.List");
         assertEquals("Java.util.List-java.lang.String", actualResult);
     }
@@ -356,7 +357,7 @@ class DynamicClassExtractorTest {
         assertNull(actualResult);
 
         // getDynamicClassSignatureMap is empty
-        ConfigBuilder.create("mock-service").build();
+        ConfigBuilder.create("mock-service").enableDebug(true).build();
         Mockito.when(Serializer.serializeWithException(any(), anyString())).thenReturn("mock Serializer.serialize");
         actualResult = extractor.buildMethodKey(testWithArexMock, new Object[]{"mock"});
         assertEquals("mock Serializer.serialize", actualResult);
@@ -364,14 +365,14 @@ class DynamicClassExtractorTest {
         // getDynamicClassSignatureMap is not empty, additionalSignature is empty
         List<DynamicClassEntity> list = new ArrayList<>();
         list.add(new DynamicClassEntity("io.arex.inst.dynamic.common.DynamicClassExtractorTest", "testWithArexMock", "mock", ""));
-        ConfigBuilder.create("mock-service").dynamicClassList(list).build();
+        ConfigBuilder.create("mock-service").enableDebug(true).dynamicClassList(list).build();
         actualResult = extractor.buildMethodKey(testWithArexMock, new Object[]{"mock"});
         assertEquals("mock Serializer.serialize", actualResult);
 
         // additionalSignature is not empty
         list.clear();
         list.add(new DynamicClassEntity("io.arex.inst.dynamic.common.DynamicClassExtractorTest", "testWithArexMock", "", "$1"));
-        ConfigBuilder.create("mock-service").dynamicClassList(list).build();
+        ConfigBuilder.create("mock-service").enableDebug(true).dynamicClassList(list).build();
         actualResult = extractor.buildMethodKey(testWithArexMock, new Object[]{"mock-method-key"});
         assertEquals("mock-method-key", actualResult);
 
@@ -379,7 +380,7 @@ class DynamicClassExtractorTest {
         extractor = new DynamicClassExtractor(testWithArexMock, new Object[]{"mock"}, "#val", String.class);
         list.clear();
         list.add(new DynamicClassEntity("io.arex.inst.dynamic.common.DynamicClassExtractorTest", "testWithArexMock", "mock", "$1"));
-        ConfigBuilder.create("mock-service").dynamicClassList(list).build();
+        ConfigBuilder.create("mock-service").enableDebug(true).dynamicClassList(list).build();
         actualResult = extractor.buildMethodKey(testWithArexMock, new Object[]{"mock-method-key"});
         assertEquals("mock-method-key", actualResult);
 
@@ -388,7 +389,7 @@ class DynamicClassExtractorTest {
         extractor = new DynamicClassExtractor(testWithArexMockList, new Object[]{new ArrayList<>()}, null, String.class);
         list.clear();
         list.add(new DynamicClassEntity("io.arex.inst.dynamic.common.DynamicClassExtractorTest", "testWithArexMock", "mock", "$1.get(0)"));
-        ConfigBuilder.create("mock-service").dynamicClassList(list).build();
+        ConfigBuilder.create("mock-service").enableDebug(true).dynamicClassList(list).build();
         actualResult = extractor.buildMethodKey(testWithArexMockList, new Object[]{new ArrayList<>()});
         assertNull(actualResult);
     }
@@ -421,7 +422,7 @@ class DynamicClassExtractorTest {
     void invalidOperation() throws Throwable {
         Method testWithArexMock = DynamicClassExtractorTest.class.getDeclaredMethod("testWithArexMock", String.class);
         final Object[] args = {"errorSerialize"};
-        ConfigBuilder.create("invalid-operation").build();
+        ConfigBuilder.create("invalid-operation").enableDebug(true).build();
         Mockito.when(Serializer.serializeWithException(any(), anyString())).thenThrow(new RuntimeException("errorSerialize"));
         DynamicClassExtractor extractor = new DynamicClassExtractor(testWithArexMock, args);
         extractor.recordResponse("errorSerialize");
@@ -435,6 +436,11 @@ class DynamicClassExtractorTest {
         // invalid operation replay return ignore
         final MockResult replay = extractor.replay();
         assertEquals(MockResult.IGNORE_MOCK_RESULT, replay);
+
+        // test getSerializedResult serialize
+        Mockito.when(agentSizeOf.checkMemorySizeLimit(any(), any(long.class))).thenReturn(true);
+        extractor = new DynamicClassExtractor(testWithArexMock, args);
+        assertNull(extractor.getSerializedResult());
     }
 
     @Test

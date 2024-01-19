@@ -38,7 +38,7 @@ public class MockCategoryType implements Serializable {
 
     public static MockCategoryType create(String name, boolean entryPoint, boolean skipComparison) {
         return CATEGORY_TYPE_MAP.computeIfAbsent(name,
-            key -> new MockCategoryType(name, entryPoint, skipComparison));
+                key -> new MockCategoryType(name, entryPoint, skipComparison));
     }
 
     public static Collection<MockCategoryType> values() {
@@ -78,6 +78,9 @@ public class MockCategoryType implements Serializable {
         this.skipComparison = skipComparison;
     }
 
+    public static MockCategoryType of(String name) {
+        return CATEGORY_TYPE_MAP.get(name);
+    }
 
     @Override
     public String toString() {

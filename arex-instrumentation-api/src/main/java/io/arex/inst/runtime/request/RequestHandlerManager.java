@@ -33,6 +33,21 @@ public class RequestHandlerManager {
         }
     }
 
+    public static void handleAfterCreateContext(Object request, String name) {
+        final List<RequestHandler> requestHandlers = REQUEST_HANDLER_CACHE.get(name);
+        if (CollectionUtil.isEmpty(requestHandlers)) {
+            return;
+        }
+        for (RequestHandler requestHandler : requestHandlers) {
+            try {
+                requestHandler.handleAfterCreateContext(request);
+            } catch (Throwable ex) {
+                // avoid affecting the remaining handlers when one handler fails
+                LogManager.warn("handleAfterCreateContext", ex.getMessage());
+            }
+        }
+    }
+
     public static void postHandle(Object request, Object response, String name) {
         try {
             final List<RequestHandler> requestHandlers = REQUEST_HANDLER_CACHE.get(name);

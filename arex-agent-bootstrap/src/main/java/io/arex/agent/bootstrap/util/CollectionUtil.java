@@ -1,9 +1,6 @@
 package io.arex.agent.bootstrap.util;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class CollectionUtil {
     private static final List<?> EMPTY_LIST = newArrayList();
@@ -40,5 +37,43 @@ public class CollectionUtil {
         List<E> list = new ArrayList<>(elements.length);
         Collections.addAll(list, elements);
         return list;
+    }
+
+    /**
+     * split to multiple list by split count
+     */
+    public static <V> List<List<V>> split(List<V> originalList, int splitCount) {
+        if (isEmpty(originalList)) {
+            return emptyList();
+        }
+        int originalSize = originalList.size();
+        List<List<V>> splitList = new ArrayList<>();
+        if (originalSize < splitCount || splitCount == 0) {
+            splitList.add(originalList);
+            return splitList;
+        }
+        for (int i = 0; i < splitCount; i++) {
+            List<V> list = new ArrayList<>();
+            splitList.add(list);
+        }
+        int index = 0;
+        for (V value : originalList) {
+            splitList.get(index).add(value);
+            index = (index + 1) % splitCount;
+        }
+        return splitList;
+    }
+
+    public static <V> List<V> filterNull(List<V> originalList) {
+        if (isEmpty(originalList)) {
+            return emptyList();
+        }
+        List<V> filterList = new ArrayList<>(originalList.size());
+        for (V element : originalList) {
+            if (element != null) {
+                filterList.add(element);
+            }
+        }
+        return filterList;
     }
 }

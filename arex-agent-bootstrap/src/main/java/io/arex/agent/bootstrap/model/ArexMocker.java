@@ -15,6 +15,7 @@ public class ArexMocker implements Mocker {
     private long creationTime;
     private Mocker.Target targetRequest;
     private Mocker.Target targetResponse;
+    private boolean needMerge;
     private String operationName;
 
     public ArexMocker() {
@@ -115,5 +116,13 @@ public class ArexMocker implements Mocker {
 
     public void setOperationName(String operationName) {
         this.operationName = operationName;
+    }
+
+    public boolean isNeedMerge() {
+        return needMerge;
+    }
+
+    public void setNeedMerge(boolean needMerge) {
+        this.needMerge = needMerge;
     }
 }

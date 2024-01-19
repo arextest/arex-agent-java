@@ -5,15 +5,22 @@ import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 import java.util.concurrent.*;
 
-class WeakCache<K, V> extends ReferenceQueue<K> implements Cache<K, V> {
+public class WeakCache<K, V> extends ReferenceQueue<K> implements Cache<K, V> {
     final ConcurrentMap<WeakReferenceKey<K>, V> target;
 
+    final CleanUpTask<V> cleanUpTask;
+
     public WeakCache() {
-        this(new ConcurrentHashMap<>());
+        this(new ConcurrentHashMap<>(), null);
     }
 
-    public WeakCache(ConcurrentMap<WeakReferenceKey<K>, V> target) {
+    public WeakCache(CleanUpTask<V> cleanUpTask) {
+        this(new ConcurrentHashMap<>(), cleanUpTask);
+    }
+
+    public WeakCache(ConcurrentMap<WeakReferenceKey<K>, V> target, CleanUpTask<V> cleanUpTask) {
         this.target = target;
+        this.cleanUpTask = cleanUpTask;
     }
 
     public V get(K key) {
@@ -38,20 +45,31 @@ class WeakCache<K, V> extends ReferenceQueue<K> implements Cache<K, V> {
         target.clear();
     }
 
+    public boolean containsKey(K key) {
+        check();
+        return target.containsKey(new WeakReferenceKey<>(key));
+    }
+
     void check() {
         Reference<?> reference;
         while ((reference = poll()) != null) {
-            target.remove(reference);
+            final V value = target.remove(reference);
+            if (cleanUpTask != null && value != null) {
+                cleanUpTask.cleanUp(value);
+            }
         }
     }
 
     static final class WeakReferenceKey<K> extends WeakReference<K> {
         private final int hashCode;
 
+        WeakReferenceKey(K key) {
+            this(key, null);
+        }
+
         WeakReferenceKey(K key, ReferenceQueue<? super K> queue) {
             super(key, queue);
-
-            hashCode = System.identityHashCode(key);
+            hashCode = (key == null) ? 0 : System.identityHashCode(key);
         }
 
         @Override
@@ -67,6 +85,13 @@ class WeakCache<K, V> extends ReferenceQueue<K> implements Cache<K, V> {
 
             return other != null && other.equals(this);
         }
+    }
+
+    public interface CleanUpTask<T> {
+        /**
+         * @param object object to cleanup
+         */
+        void cleanUp(T object);
     }
 }
 
