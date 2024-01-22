@@ -21,6 +21,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
+
+import org.springframework.http.HttpMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.NativeWebRequest;
@@ -202,6 +204,12 @@ public class ServletAdviceHelper {
 
     private static <TRequest> boolean shouldSkip(ServletAdapter<TRequest, ?> adapter,
                                                  TRequest httpServletRequest) {
+        // skip if pre-request http-method is HEAD or OPTIONS
+        if (HttpMethod.HEAD.matches(adapter.getMethod(httpServletRequest))
+                || HttpMethod.OPTIONS.matches(adapter.getMethod(httpServletRequest))) {
+            return true;
+        }
+
         String caseId = adapter.getRequestHeader(httpServletRequest, ArexConstants.RECORD_ID);
 
         // Replay scene

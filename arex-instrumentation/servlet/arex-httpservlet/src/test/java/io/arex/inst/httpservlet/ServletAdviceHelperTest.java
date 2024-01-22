@@ -91,8 +91,12 @@ class ServletAdviceHelperTest {
             Mockito.when(adapter.asHttpServletResponse(any())).thenReturn("mock");
             Mockito.when(adapter.getAttribute(any(), any())).thenReturn(Boolean.TRUE);
         };
-        Runnable shouldSkip1 = () -> {
+        Runnable shouldSkipPreRequest = () -> {
             Mockito.when(adapter.getAttribute(any(), any())).thenReturn(Boolean.FALSE);
+            Mockito.when(adapter.getMethod(any())).thenReturn("OPTIONS");
+        };
+        Runnable shouldSkip1 = () -> {
+            Mockito.when(adapter.getMethod(any())).thenReturn("POST");
             Mockito.when(adapter.getRequestHeader(any(), eq(ArexConstants.RECORD_ID))).thenReturn("mock");
         };
         Runnable getRedirectRecordId1 = () -> {
@@ -191,6 +195,7 @@ class ServletAdviceHelperTest {
             arguments("adapter.markProcessed returns true", main1, predicate1),
             arguments("adapter.asHttpServletResponse returns null", main2, predicate1),
             arguments("adapter.getAttribute returns true", main3, predicate1),
+            arguments("shouldSkip: pre-request http method: HEAD || OPTIONS is true", shouldSkipPreRequest, predicate1),
             arguments("shouldSkip: header: arex-record-id not null && config: arex.disable.replay is false", shouldSkip1, predicate1),
             arguments("getRedirectRecordId: parameter: arex-record-id is null", getRedirectRecordId1, predicate1),
             arguments("getRedirectRecordId: header: referer i null", getRedirectRecordId2, predicate1),
