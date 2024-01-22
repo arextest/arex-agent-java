@@ -9,7 +9,7 @@ import net.bytebuddy.matcher.ElementMatcher;
 
 import java.util.List;
 
-import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 import static net.bytebuddy.matcher.ElementMatchers.takesArguments;
 
@@ -28,7 +28,7 @@ public class ShiroPathMatchingFilterInstrumentation extends TypeInstrumentation 
         MethodInstrumentation preHandleMethod = new MethodInstrumentation(
                 named("preHandle").and(takesArguments(2)),
                 PreHandleAdvice.class.getName());
-        return asList(preHandleMethod);
+        return singletonList(preHandleMethod);
     }
 
     public static class PreHandleAdvice {
