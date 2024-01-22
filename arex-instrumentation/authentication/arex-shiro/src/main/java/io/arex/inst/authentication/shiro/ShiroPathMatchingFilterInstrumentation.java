@@ -6,6 +6,7 @@ import io.arex.inst.runtime.context.ContextManager;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
+
 import java.util.List;
 
 import static java.util.Arrays.asList;
@@ -13,9 +14,9 @@ import static net.bytebuddy.matcher.ElementMatchers.named;
 import static net.bytebuddy.matcher.ElementMatchers.takesArguments;
 
 /**
- * ShiroInstrumentation
+ * ShiroPathMatchingFilterInstrumentation
  */
-public class ShiroInstrumentation extends TypeInstrumentation {
+public class ShiroPathMatchingFilterInstrumentation extends TypeInstrumentation {
 
     @Override
     public ElementMatcher<TypeDescription> typeMatcher() {
@@ -24,10 +25,10 @@ public class ShiroInstrumentation extends TypeInstrumentation {
 
     @Override
     public List<MethodInstrumentation> methodAdvices() {
-        MethodInstrumentation attemptAuthorizationMethod = new MethodInstrumentation(
+        MethodInstrumentation preHandleMethod = new MethodInstrumentation(
                 named("preHandle").and(takesArguments(2)),
                 PreHandleAdvice.class.getName());
-        return asList(attemptAuthorizationMethod);
+        return asList(preHandleMethod);
     }
 
     public static class PreHandleAdvice {
