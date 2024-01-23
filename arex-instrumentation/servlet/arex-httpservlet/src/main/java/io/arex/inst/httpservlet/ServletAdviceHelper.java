@@ -189,7 +189,7 @@ public class ServletAdviceHelper {
         }
 
         // Set response only when return response body
-        if (!invocableHandlerMethod.getReturnType().hasMethodAnnotation(ResponseBody.class) &&
+        if (invocableHandlerMethod.getReturnType().getMethodAnnotation(ResponseBody.class) == null &&
                 !invocableHandlerMethod.getBeanType().isAnnotationPresent(RestController.class)) {
             return;
         }
