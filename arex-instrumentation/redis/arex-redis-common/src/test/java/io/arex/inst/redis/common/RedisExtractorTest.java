@@ -4,6 +4,7 @@ import io.arex.agent.bootstrap.model.ArexMocker;
 import io.arex.agent.bootstrap.model.Mocker.Target;
 import io.arex.inst.runtime.util.IgnoreUtils;
 import io.arex.inst.runtime.util.MockUtils;
+import io.arex.inst.runtime.util.sizeof.AgentSizeOf;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -21,15 +22,20 @@ import static org.mockito.Mockito.mockStatic;
 class RedisExtractorTest {
 
     static RedisExtractor target;
+    static AgentSizeOf agentSizeOf;
 
     @BeforeAll
     static void setUp() {
+        agentSizeOf = Mockito.mock(AgentSizeOf.class);
+        Mockito.mockStatic(AgentSizeOf.class);
+        Mockito.when(AgentSizeOf.newInstance(any())).thenReturn(agentSizeOf);
         target = new RedisExtractor("", "", "", "");
     }
 
     @AfterAll
     static void tearDown() {
         target = null;
+        agentSizeOf = null;
         Mockito.clearAllCaches();
     }
 
@@ -45,6 +51,11 @@ class RedisExtractorTest {
                 return null;
             });
 
+            Mockito.when(agentSizeOf.checkMemorySizeLimit(any(), any(long.class))).thenReturn(true);
+            assertDoesNotThrow(() -> target.record(new Object()));
+
+            // test exceed memory size
+            Mockito.when(agentSizeOf.checkMemorySizeLimit(any(), any(long.class))).thenReturn(false);
             assertDoesNotThrow(() -> target.record(new Object()));
         }
     }

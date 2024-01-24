@@ -4,10 +4,15 @@ import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.agent.bootstrap.model.Mocker;
 
 import io.arex.agent.bootstrap.util.CollectionUtil;
+import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.inst.runtime.log.LogManager;
+import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.util.IgnoreUtils;
 import io.arex.inst.runtime.util.MockUtils;
 import io.arex.inst.runtime.util.TypeUtil;
+import io.arex.inst.runtime.util.sizeof.AgentSizeOf;
+import io.arex.inst.runtime.util.sizeof.ThrowableFilter;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -19,6 +24,7 @@ public class RedisExtractor {
     private final String command;
     private final Object key;
     private final Object field;
+    private static final AgentSizeOf agentSizeOf = AgentSizeOf.newInstance(ThrowableFilter.INSTANCE);
 
     public RedisExtractor(String url, String method, Object key, Object field) {
         this.clusterName = RedisCluster.get(url);
@@ -78,7 +84,15 @@ public class RedisExtractor {
         mocker.setNeedMerge(true);
         mocker.getTargetRequest().setBody(Serializer.serialize(new RedisMultiKey(key, field)));
         mocker.getTargetRequest().setAttribute("clusterName", this.clusterName);
-        mocker.getTargetResponse().setBody(Serializer.serialize(response));
+        if (response != null && !agentSizeOf.checkMemorySizeLimit(response, ArexConstants.MEMORY_SIZE_1MB)) {
+            LogManager.warn(ArexConstants.EXCEED_MAX_SIZE_TITLE, StringUtil.format("redis:%s, key:%s, exceed memory max limit:%s, " +
+                            "record result will be null, please check method return size, suggest optimize it",
+                    this.command, String.valueOf(key), AgentSizeOf.humanReadableUnits(ArexConstants.MEMORY_SIZE_1MB)));
+            mocker.getTargetResponse().setBody(null);
+            mocker.getTargetResponse().setAttribute(ArexConstants.EXCEED_MAX_SIZE_FLAG, true);
+        } else {
+            mocker.getTargetResponse().setBody(Serializer.serialize(response));
+        }
         mocker.getTargetResponse().setType(normalizeTypeName(response));
         mocker.getTargetRequest().setType(TypeUtil.getName(CollectionUtil.newArrayList(this.key, this.field)));
         return mocker;
