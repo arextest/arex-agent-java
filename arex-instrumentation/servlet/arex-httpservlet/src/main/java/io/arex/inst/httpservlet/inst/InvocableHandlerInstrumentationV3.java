@@ -4,18 +4,11 @@ import io.arex.inst.extension.MethodInstrumentation;
 import io.arex.inst.extension.TypeInstrumentation;
 import io.arex.inst.httpservlet.ServletAdviceHelper;
 import io.arex.inst.httpservlet.adapter.impl.ServletAdapterImplV3;
-import io.arex.inst.runtime.context.ContextManager;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CompletableFuture;
-import javax.servlet.http.HttpServletRequest;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.NativeWebRequest;
-import org.springframework.web.context.request.async.DeferredResult;
 import org.springframework.web.method.support.InvocableHandlerMethod;
 
 import java.util.List;
@@ -53,29 +46,8 @@ public class InvocableHandlerInstrumentationV3 extends TypeInstrumentation {
         @Advice.OnMethodExit(suppress = Throwable.class)
         public static void onExit(@Advice.Argument(0) NativeWebRequest nativeWebRequest,
             @Advice.This InvocableHandlerMethod invocableHandlerMethod, @Advice.Return Object response) {
-            if (response == null || !ContextManager.needRecordOrReplay()) {
-                return;
-            }
-
-            // Do not set when async request
-            if (response instanceof CompletableFuture || response instanceof DeferredResult
-                || response instanceof Callable) {
-                return;
-            }
-
-            // Set response only when return response body
-            if (!invocableHandlerMethod.getReturnType().hasMethodAnnotation(ResponseBody.class) &&
-                !invocableHandlerMethod.getBeanType().isAnnotationPresent(RestController.class)) {
-                return;
-            }
-
-            HttpServletRequest httpServletRequest = nativeWebRequest.getNativeRequest(HttpServletRequest.class);
-
-            if (httpServletRequest == null) {
-                return;
-            }
-
-            ServletAdapterImplV3.getInstance().setAttribute(httpServletRequest, ServletAdviceHelper.SERVLET_RESPONSE, response);
+            ServletAdviceHelper.onInvokeForRequestExit(ServletAdapterImplV3.getInstance(), nativeWebRequest,
+                invocableHandlerMethod, response);
         }
     }
 }
