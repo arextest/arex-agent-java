@@ -3,6 +3,7 @@ package io.arex.agent.instrumentation;
 import io.arex.agent.bootstrap.AgentInstaller;
 import io.arex.agent.bootstrap.TraceContextManager;
 import io.arex.agent.bootstrap.util.CollectionUtil;
+import io.arex.agent.bootstrap.util.FileUtils;
 import io.arex.foundation.config.ConfigManager;
 import io.arex.foundation.healthy.HealthManager;
 import io.arex.foundation.serializer.JacksonSerializer;
@@ -10,7 +11,6 @@ import io.arex.foundation.services.ConfigService;
 import io.arex.foundation.services.DataCollectorService;
 import io.arex.foundation.services.TimerService;
 import io.arex.foundation.util.NetUtils;
-import io.arex.inst.extension.ExtensionTransformer;
 import io.arex.inst.runtime.context.RecordLimiter;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.service.DataCollector;
@@ -20,20 +20,19 @@ import io.arex.agent.bootstrap.util.ServiceLoader;
 import java.util.List;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import net.bytebuddy.agent.builder.ResettableClassFileTransformer;
 
 import java.io.File;
 import java.lang.instrument.Instrumentation;
+import net.bytebuddy.dynamic.scaffold.TypeWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public abstract class BaseAgentInstaller implements AgentInstaller {
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseAgentInstaller.class);
+    private static final String BYTECODE_DUMP_DIR = "/bytecode-dump";
     protected final Instrumentation instrumentation;
     protected final File agentFile;
     protected final String agentArgs;
-    private final AtomicBoolean initDependentComponents = new AtomicBoolean(false);
     private ScheduledFuture<?> reportStatusTask;
 
     public BaseAgentInstaller(Instrumentation inst, File agentFile, String agentArgs) {
@@ -57,27 +56,24 @@ public abstract class BaseAgentInstaller implements AgentInstaller {
                 }
                 return;
             }
+
             if (delayMinutes > 0) {
                 TimerService.schedule(this::install, delayMinutes, TimeUnit.MINUTES);
                 timedReportStatus();
             }
-            initDependentComponents();
-            transform();
 
-            for (ExtensionTransformer transformer : loadTransformers()) {
-                if (transformer.validate()) {
-                    instrumentation.addTransformer(transformer, true);
-                }
+            if (ConfigManager.FIRST_TRANSFORM.compareAndSet(false, true)) {
+                initDependentComponents();
+                createDumpDirectory();
+                transform();
+            } else {
+                retransform();
             }
 
             ConfigService.INSTANCE.reportStatus();
         } finally {
             Thread.currentThread().setContextClassLoader(savedContextClassLoader);
         }
-    }
-
-    private List<ExtensionTransformer> loadTransformers() {
-        return ServiceLoader.load(ExtensionTransformer.class, getClassLoader());
     }
 
     boolean allowStartAgent() {
@@ -113,12 +109,10 @@ public abstract class BaseAgentInstaller implements AgentInstaller {
     }
 
     private void initDependentComponents() {
-        if (initDependentComponents.compareAndSet(false, true)) {
-            TraceContextManager.init(NetUtils.getIpAddress());
-            RecordLimiter.init(HealthManager::acquire);
-            initSerializer();
-            initDataCollector();
-        }
+        TraceContextManager.init(NetUtils.getIpAddress());
+        RecordLimiter.init(HealthManager::acquire);
+        initSerializer();
+        initDataCollector();
     }
 
     /**
@@ -139,10 +133,39 @@ public abstract class BaseAgentInstaller implements AgentInstaller {
         DataService.builder().setDataCollector(collector).build();
     }
 
-    protected abstract ResettableClassFileTransformer transform();
+    /**
+     * First transform class
+     */
+    protected abstract void transform();
+
+    /**
+     * Retransform class after dynamic class changed
+     */
+    protected abstract void retransform();
 
     @Override
     public ClassLoader getClassLoader() {
         return getClass().getClassLoader();
+    }
+
+    private void createDumpDirectory() {
+        if (!ConfigManager.INSTANCE.isEnableDebug()) {
+            return;
+        }
+
+        try {
+            File bytecodeDumpPath = new File(agentFile.getParent(), BYTECODE_DUMP_DIR);
+            boolean exists = bytecodeDumpPath.exists();
+            boolean mkdir = false;
+            if (exists) {
+                FileUtils.cleanDirectory(bytecodeDumpPath);
+            } else {
+                mkdir = bytecodeDumpPath.mkdir();
+            }
+            LOGGER.info("[arex] bytecode dump path exists: {}, mkdir: {}, path: {}", exists, mkdir, bytecodeDumpPath.getPath());
+            System.setProperty(TypeWriter.DUMP_PROPERTY, bytecodeDumpPath.getPath());
+        } catch (Exception e) {
+            LOGGER.info("[arex] Failed to create directory to instrumented bytecode: {}", e.getMessage());
+        }
     }
 }

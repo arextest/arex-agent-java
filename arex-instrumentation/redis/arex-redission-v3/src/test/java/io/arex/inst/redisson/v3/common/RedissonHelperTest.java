@@ -18,8 +18,11 @@ import org.redisson.connection.ConnectionManager;
 @ExtendWith(MockitoExtension.class)
 public class RedissonHelperTest {
 
+    static ConnectionManager connectionManager;
+
     @BeforeAll
     static void setUp() {
+        connectionManager = Mockito.mock(ConnectionManager.class);
         Mockito.mockStatic(ReflectUtil.class);
         Mockito.when(ReflectUtil.getMethod(ConnectionManager.class, "getConfig")).thenReturn(null);
         try {
@@ -36,19 +39,8 @@ public class RedissonHelperTest {
 
     @Test
     void testRedisUri() {
-        ConnectionManager connectionManager = Mockito.mock(ConnectionManager.class);
         MasterSlaveServersConfig masterSlaveServersConfig = new MasterSlaveServersConfig();
-        masterSlaveServersConfig.setMasterAddress("104.34.56:0000");
-        Mockito.lenient().when(connectionManager.getConfig()).thenReturn(masterSlaveServersConfig);
-        assertNull(RedissonHelper.getRedisUri(connectionManager));
-
-        mockRedissionHelperSet();
-        assertNull(RedissonHelper.getRedisUri(connectionManager));
-    }
-
-    @Test
-    void testCacheRedisUri() {
-        ConnectionManager connectionManager = Mockito.mock(ConnectionManager.class);
+        Mockito.when(connectionManager.getConfig()).thenReturn(masterSlaveServersConfig);
         assertNull(RedissonHelper.getRedisUri(connectionManager));
 
         mockRedissionHelperSet();
@@ -57,7 +49,6 @@ public class RedissonHelperTest {
 
     @Test
     void testGetMasterSlaveServersConfig() {
-        ConnectionManager connectionManager = Mockito.mock(ConnectionManager.class);
         assertNull(RedissonHelper.getMasterSlaveServersConfig(connectionManager));
     }
 
