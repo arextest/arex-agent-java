@@ -71,7 +71,7 @@ public class EventProcessor {
 
     private static void initClock(){
         try {
-            if (ContextManager.needReplay() && Config.get().getBoolean("arex.time.machine", false)) {
+            if (ContextManager.needReplay()) {
                 Mocker mocker = MockUtils.createDynamicClass(CLOCK_CLASS, CLOCK_METHOD);
                 long millis = parseLong(MockUtils.replayBody(mocker));
                 if (millis > 0) {
