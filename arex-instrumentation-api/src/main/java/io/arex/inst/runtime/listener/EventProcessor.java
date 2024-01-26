@@ -6,7 +6,6 @@ import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.model.InitializeEnum;
 import io.arex.inst.runtime.request.RequestHandlerManager;
 import io.arex.inst.runtime.log.LogManager;
-import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.log.Logger;
@@ -83,7 +82,7 @@ public class EventProcessor {
                 mocker.getTargetResponse().setType(Long.class.getName());
                 MockUtils.recordMocker(mocker);
             }
-        } catch (Throwable e) {
+        } catch (Exception e) {
             LOGGER.warn(LogManager.buildTitle("time.machine.init"), e);
         }
     }
