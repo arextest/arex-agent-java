@@ -4,7 +4,7 @@ import static io.arex.agent.bootstrap.CreateFileCommon.*;
 import static org.mockito.ArgumentMatchers.any;
 
 import java.io.File;
-import net.bytebuddy.agent.ByteBuddyAgent;
+import java.lang.instrument.Instrumentation;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -17,25 +17,27 @@ class AgentInitializerTest {
 
     static File zipFile = null;
     static File zipExtensionFile = null;
-
+    static Instrumentation instrumentation;
 
     @BeforeAll
     static void setUp(){
         zipFile = getZipFile();
         zipExtensionFile = getZipExtensionFile();
+        instrumentation = Mockito.mock(Instrumentation.class);
     }
 
     @AfterAll
     static void tearDown() {
         zipFile.deleteOnExit();
         zipExtensionFile.deleteOnExit();
+        instrumentation = null;
         CreateFileCommon.clear();
     }
 
     @Test
     void testFirstInitialize() {
         try (MockedConstruction<AgentClassLoader> mocked = Mockito.mockConstruction(AgentClassLoader.class, (mock, context) -> Mockito.doReturn(InstrumentationInstallerTest.class).when(mock).loadClass(any()))){
-            Assertions.assertDoesNotThrow(() -> AgentInitializer.initialize(ByteBuddyAgent.install(), zipFile, null));
+            Assertions.assertDoesNotThrow(() -> AgentInitializer.initialize(instrumentation, zipFile, null));
         } catch (Throwable ex) {
             ex.printStackTrace();
         }
@@ -44,8 +46,8 @@ class AgentInitializerTest {
     @Test
     void testDoubleInitialize() {
         try (MockedConstruction<AgentClassLoader> mocked = Mockito.mockConstruction(AgentClassLoader.class, (mock, context) -> Mockito.doReturn(InstrumentationInstallerTest.class).when(mock).loadClass(any()))){
-            Assertions.assertDoesNotThrow(() -> AgentInitializer.initialize(ByteBuddyAgent.install(), zipFile, null));
-            Assertions.assertDoesNotThrow(() -> AgentInitializer.initialize(ByteBuddyAgent.install(), zipFile, null));
+            Assertions.assertDoesNotThrow(() -> AgentInitializer.initialize(instrumentation, zipFile, null));
+            Assertions.assertDoesNotThrow(() -> AgentInitializer.initialize(instrumentation, zipFile, null));
         } catch (Throwable ex) {
             ex.printStackTrace();
         }

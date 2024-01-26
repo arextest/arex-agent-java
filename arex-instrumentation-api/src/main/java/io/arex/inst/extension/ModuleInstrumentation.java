@@ -9,7 +9,7 @@ import java.util.List;
 
 public abstract class ModuleInstrumentation {
 
-    private final String moduleName;
+    private final String name;
     private final ElementMatcher<ClassLoader> moduleMatcher;
 
     protected ModuleInstrumentation(String name) {
@@ -21,12 +21,12 @@ public abstract class ModuleInstrumentation {
     }
 
     protected ModuleInstrumentation(String name, ElementMatcher<ClassLoader> moduleMatcher) {
-        this.moduleName = name;
+        this.name = name;
         this.moduleMatcher = moduleMatcher;
     }
 
-    public String name() {
-        return moduleName;
+    public String getName() {
+        return name;
     }
 
     public final ElementMatcher<ClassLoader> matcher() {
