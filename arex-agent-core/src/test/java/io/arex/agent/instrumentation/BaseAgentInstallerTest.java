@@ -1,5 +1,6 @@
 package io.arex.agent.instrumentation;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -19,9 +20,9 @@ import io.arex.foundation.model.HttpClientResponse;
 import io.arex.foundation.serializer.JacksonSerializer;
 import io.arex.foundation.util.NetUtils;
 import io.arex.foundation.util.httpclient.AsyncHttpClientUtil;
+import java.io.File;
 import java.lang.instrument.Instrumentation;
 import java.util.concurrent.CompletableFuture;
-import net.bytebuddy.agent.builder.ResettableClassFileTransformer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -36,10 +37,15 @@ class BaseAgentInstallerTest {
         mockStatic(AdviceInjectorCache.class);
 
         Instrumentation inst = Mockito.mock(Instrumentation.class);
-        installer = new BaseAgentInstaller(inst, null, null) {
+        File file = Mockito.mock(File.class);
+        installer = new BaseAgentInstaller(inst, file, null) {
             @Override
-            protected ResettableClassFileTransformer transform() {
-                return null;
+            protected void transform() {
+            }
+
+            @Override
+            protected void retransform() {
+
             }
         };
     }
@@ -65,10 +71,10 @@ class BaseAgentInstallerTest {
             ahc.when(() -> AsyncHttpClientUtil.postAsyncWithJson(anyString(), anyString(), any())).thenReturn(
                 CompletableFuture.completedFuture(HttpClientResponse.emptyResponse()));
 
+            ConfigManager.INSTANCE.setEnableDebug("true");
+            assertDoesNotThrow(installer::install);
 
-            installer.install();
-
-            // allow start agent = true
+            // first transform class, allow start agent = true
             netUtils.when(NetUtils::getIpAddress).thenReturn("127.0.0.1");
             ConfigQueryResponse configQueryResponse = new ConfigQueryResponse();
             ServiceCollectConfig serviceCollectConfig = new ServiceCollectConfig();
@@ -83,7 +89,10 @@ class BaseAgentInstallerTest {
             configQueryResponse.setBody(responseBody);
             CompletableFuture<HttpClientResponse> response = CompletableFuture.completedFuture(new HttpClientResponse(200, null, JacksonSerializer.INSTANCE.serialize(configQueryResponse)));
             ahc.when(() -> AsyncHttpClientUtil.postAsyncWithJson(anyString(), anyString(), eq(null))).thenReturn(response);
-            installer.install();
+            assertDoesNotThrow(installer::install);
+
+            // retransform
+            assertDoesNotThrow(installer::install);
         }
     }
 
