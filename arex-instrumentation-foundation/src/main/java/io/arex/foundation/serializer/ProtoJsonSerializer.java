@@ -12,18 +12,17 @@ import io.arex.inst.runtime.log.LogManager;
 
 
 public class ProtoJsonSerializer{
-    private static JsonFormat.Printer jsonPrinter;
-    private static JsonFormat.Parser jsonParser;
-
-    static {
-        try {
-            jsonPrinter = JsonFormat.printer().omittingInsignificantWhitespace();
-            jsonParser = JsonFormat.parser().ignoringUnknownFields();
-        } catch (Exception e) {
-            LogManager.warn("proto-serializer", e);
-        }
-    }
     private static final ProtoJsonSerializer INSTANCE = new ProtoJsonSerializer();
+    private final JsonFormat.Printer jsonPrinter;
+    private final JsonFormat.Parser jsonParser;
+
+    private ProtoJsonSerializer() {
+        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+        String name = classLoader == null ? null : classLoader.getClass().getName();
+        LogManager.info("proto-init", StringUtil.format("ProtoJsonSerializer init, classLoader: %s", name));
+        this.jsonPrinter = JsonFormat.printer().omittingInsignificantWhitespace();
+        this.jsonParser = JsonFormat.parser().ignoringUnknownFields();
+    }
 
     public static ProtoJsonSerializer getInstance() {
         return INSTANCE;
