@@ -102,7 +102,8 @@
             **/thirdparty/**,
             **/integrationtest/**,
             **/RedisCommandBuilderImpl.java,
-            **/HttpResponseWrapper.java
+            **/HttpResponseWrapper.java,
+            **/RFutureWrapper.java
         </sonar.coverage.exclusions>
     </properties>
 
