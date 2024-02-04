@@ -6,6 +6,7 @@ import io.arex.inst.extension.ModuleInstrumentation;
 import io.arex.inst.extension.TypeInstrumentation;
 import io.arex.agent.bootstrap.model.ComparableVersion;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static java.util.Collections.singletonList;
@@ -19,6 +20,10 @@ public class MyBatisModuleInstrumentation extends ModuleInstrumentation {
 
     @Override
     public List<TypeInstrumentation> instrumentationTypes() {
-        return singletonList(new ExecutorInstrumentation());
+        return Arrays.asList(
+                new ParameterHandlerInstrumentation(),
+                new ExecutorInstrumentation(),
+                new SelectKeyGeneratorInstrumentation()
+        );
     }
 }
