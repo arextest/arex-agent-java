@@ -8,15 +8,10 @@ import io.arex.inst.runtime.log.LogManager;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.TypeVariable;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -148,7 +143,29 @@ public class TypeUtil {
             return genericTypeToString(result);
         }
 
+        if (result instanceof Object[]) {
+            return arrayToString((Object[]) result);
+        }
+
         return result.getClass().getName();
+    }
+
+    private static String arrayToString(Object[] objectArray) {
+        StringBuilder builder = new StringBuilder();
+        builder.append(objectArray.getClass().getName());
+
+        if (objectArray.length == 0) {
+            return builder.toString();
+        }
+
+        builder.append(HORIZONTAL_LINE);
+
+        List<String> innerObjList = new ArrayList<>();
+        for (Object innerObj : objectArray) {
+            innerObjList.add(innerObj == null ? null : innerObj.getClass().getName());
+        }
+        builder.append(StringUtil.join(innerObjList, ",")).append("ArexObjArray]");
+        return builder.toString();
     }
 
     private static String genericTypeToString(Object result) {

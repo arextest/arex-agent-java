@@ -9,6 +9,7 @@ import io.arex.inst.runtime.util.IgnoreUtils;
 import io.arex.inst.runtime.util.MockUtils;
 import io.arex.inst.runtime.util.TypeUtil;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -94,10 +95,36 @@ public class DatabaseExtractor {
                 // restore keyHolder
                 setKeyHolder(replayMocker.getTargetResponse().attributeAsString(KEY_HOLDER_NAME));
                 setPage(replayMocker.getTargetResponse().attributeAsString(PAGE_NAME));
+
+                // compatible with different type deserialize, like: Object[] result = new Object[]{123, entity, "mock"};
+                // see org.hibernate.transform.AliasToBeanConstructorResultTransformer.transformTuple
+                if (replayResult instanceof Collection<?>) {
+                    Collection<?> replayCollection = (Collection<?>) replayResult;
+                    for (Object replayObject : replayCollection) {
+                        if (replayObject instanceof Object[]) {
+                            deserializeObjectArray((Object[]) replayObject, replayMocker.getTargetResponse().getType(), serializer);
+                        }
+                    }
+                } else if (replayResult instanceof Object[]) {
+                    deserializeObjectArray((Object[]) replayResult, replayMocker.getTargetResponse().getType(), serializer);
+                }
             }
         }
 
         return MockResult.success(ignoreMockResult, replayResult);
+    }
+
+    private void deserializeObjectArray(Object[] objectArray, String type, String serializer) {
+        String json;
+        // [Ljava.lang.Object;-java.lang.Integer,com.xxx.Entity,java.lang.StringArexObjArray]
+        String objType = StringUtil.substringBetween(type, "[Ljava.lang.Object;-", "ArexObjArray]");
+        String[] subTypes = StringUtil.split(objType, ',');
+        for (int i = 0; i < objectArray.length; i++) {
+            if (objectArray[i] instanceof Map) {
+                json = Serializer.serialize(objectArray[i], serializer);
+                objectArray[i] = Serializer.deserialize(json, subTypes[i], serializer);
+            }
+        }
     }
 
     private Mocker makeMocker(Object response, String serializer) {
