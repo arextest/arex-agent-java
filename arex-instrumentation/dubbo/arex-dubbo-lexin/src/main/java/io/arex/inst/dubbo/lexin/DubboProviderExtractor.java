@@ -10,6 +10,7 @@ import io.arex.inst.runtime.listener.CaseEventDispatcher;
 import io.arex.inst.runtime.listener.EventSource;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.request.RequestHandlerManager;
+import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.util.MockUtils;
 
 import java.util.HashMap;
@@ -24,8 +25,10 @@ public class DubboProviderExtractor extends DubboExtractor {
         }
         String caseId = adapter.getCaseId();
         String excludeMockTemplate = adapter.getExcludeMockTemplate();
-        CaseEventDispatcher.onEvent(CaseEvent.ofCreateEvent(EventSource.of(caseId, excludeMockTemplate)));
         RequestHandlerManager.preHandle(adapter.getUserDefineMap(), MockCategoryType.DUBBO_PROVIDER.getName());
+        CaseEventDispatcher.onEvent(CaseEvent.ofCreateEvent(EventSource.of(caseId, excludeMockTemplate)));
+        RequestHandlerManager.handleAfterCreateContext(invocation.getAttachments(), MockCategoryType.DUBBO_PROVIDER.getName());
+        invocation.getAttachments().put(ArexConstants.ORIGINAL_REQUEST, Serializer.serialize(invocation.getArguments()));
     }
     public static void onServiceExit(Invoker<?> invoker, Invocation invocation, Result result) {
         if (!ContextManager.needRecordOrReplay()) {
@@ -36,6 +39,8 @@ public class DubboProviderExtractor extends DubboExtractor {
         RequestHandlerManager.postHandle(invocation.getAttachments(), result != null ? result.getAttachments() : null,
                 MockCategoryType.DUBBO_PROVIDER.getName());
         adapter.execute(result, makeMocker(adapter));
+        CaseEventDispatcher.onEvent(CaseEvent.ofExitEvent());
+        invocation.getAttachments().remove(ArexConstants.ORIGINAL_REQUEST);
     }
     private static Mocker makeMocker(DubboAdapter adapter) {
         Mocker mocker = MockUtils.createDubboProvider(adapter.getServiceOperation());
