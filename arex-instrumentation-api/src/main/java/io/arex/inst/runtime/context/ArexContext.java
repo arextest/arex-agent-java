@@ -3,12 +3,12 @@ package io.arex.inst.runtime.context;
 import io.arex.agent.bootstrap.util.ConcurrentHashSet;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.model.ArexConstants;
+import io.arex.inst.runtime.model.MergeDTO;
+import io.arex.inst.runtime.util.MergeRecordReplayUtil;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ArexContext {
@@ -18,10 +18,12 @@ public class ArexContext {
     private final long createTime;
     private final AtomicInteger sequence;
     private Set<Integer> methodSignatureHashList;
-    private Map<String, Object> cachedReplayResultMap;
+    private Map<Integer, List<MergeDTO>> cachedReplayResultMap;
     private Map<String, Set<String>> excludeMockTemplate;
 
     private Map<String, Object> attachments = null;
+
+    private LinkedBlockingQueue<MergeDTO> mergeRecordQueue;
 
     private boolean isRedirectRequest;
     private boolean isInvalidCase;
@@ -72,7 +74,7 @@ public class ArexContext {
         return methodSignatureHashList;
     }
 
-    public Map<String, Object> getCachedReplayResultMap() {
+    public Map<Integer, List<MergeDTO>> getCachedReplayResultMap() {
         if (cachedReplayResultMap == null) {
             cachedReplayResultMap = new ConcurrentHashMap<>();
         }
@@ -138,6 +140,13 @@ public class ArexContext {
         return isRedirectRequest;
     }
 
+    public LinkedBlockingQueue<MergeDTO> getMergeRecordQueue() {
+        if (mergeRecordQueue == null) {
+            mergeRecordQueue = new LinkedBlockingQueue<>(2048);
+        }
+        return mergeRecordQueue;
+    }
+
     public void clear() {
         if (methodSignatureHashList != null) {
             methodSignatureHashList.clear();
@@ -150,6 +159,11 @@ public class ArexContext {
         }
         if (attachments != null) {
             attachments.clear();
+        }
+        if (mergeRecordQueue != null) {
+            // async thread merge record (main entry has ended)
+            MergeRecordReplayUtil.recordRemain(this);
+            mergeRecordQueue.clear();
         }
     }
 }

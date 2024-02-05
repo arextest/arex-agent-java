@@ -5,14 +5,17 @@ import io.arex.agent.bootstrap.model.MockCategoryType;
 import io.arex.agent.bootstrap.model.MockStrategyEnum;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.model.Mocker.Target;
+import io.arex.agent.bootstrap.util.MapUtils;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
+import io.arex.inst.runtime.match.ReplayMatcher;
+import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.service.DataService;
-
+import io.arex.inst.runtime.util.sizeof.AgentSizeOf;
 
 public final class MockUtils {
 
@@ -92,9 +95,23 @@ public final class MockUtils {
         if (CaseManager.isInvalidCase(requestMocker.getRecordId())) {
             return;
         }
+        if (requestMocker.isNeedMerge()) {
+            MergeRecordReplayUtil.mergeRecord(requestMocker);
+            return;
+        }
 
+        executeRecord(requestMocker);
+
+        if (requestMocker.getCategoryType().isEntryPoint()) {
+            // after main entry record finished, record remain merge mocker that have not reached the merge threshold once(such as dynamicClass)
+            MergeRecordReplayUtil.recordRemain(ContextManager.currentContext());
+        }
+    }
+
+    public static void executeRecord(Mocker requestMocker) {
         if (Config.get().isEnableDebug()) {
-            LogManager.info(requestMocker.recordLogTitle(), StringUtil.format("%s%nrequest: %s", requestMocker.logBuilder().toString(), Serializer.serialize(requestMocker)));
+            LogManager.info(requestMocker.recordLogTitle(), StringUtil.format("%s%nrequest: %s",
+                    requestMocker.logBuilder().toString(), Serializer.serialize(requestMocker)));
         }
 
         DataService.INSTANCE.save(requestMocker);
@@ -110,6 +127,18 @@ public final class MockUtils {
             return null;
         }
 
+        if (requestMocker.isNeedMerge()) {
+            Mocker matchMocker = ReplayMatcher.match(requestMocker, mockStrategy);
+            // compatible with old version(fixed case without merge)
+            if (matchMocker != null) {
+                return matchMocker;
+            }
+        }
+
+        return executeReplay(requestMocker, mockStrategy);
+    }
+
+    public static Mocker executeReplay(Mocker requestMocker, MockStrategyEnum mockStrategy) {
         String postJson = Serializer.serialize(requestMocker);
 
         String data = DataService.INSTANCE.query(postJson, mockStrategy);
@@ -117,7 +146,8 @@ public final class MockUtils {
         boolean isEnableDebug = Config.get().isEnableDebug();
 
         if (isEnableDebug) {
-            LogManager.info(requestMocker.replayLogTitle(), StringUtil.format("%s%nrequest: %s%nresponse: %s", requestMocker.logBuilder().toString(), postJson, data));
+            LogManager.info(requestMocker.replayLogTitle(), StringUtil.format("%s%nrequest: %s%nresponse: %s",
+                    requestMocker.logBuilder().toString(), postJson, data));
         }
 
         if (StringUtil.isEmpty(data) || EMPTY_JSON.equals(data)) {
@@ -163,7 +193,13 @@ public final class MockUtils {
         }
         final String body = targetResponse.getBody();
         if (StringUtil.isEmpty(body)) {
-            LogManager.info(logTitle, "The body of targetResponse is empty");
+            String exceedSizeLog = StringUtil.EMPTY;
+            if (MapUtils.getBoolean(targetResponse.getAttributes(), ArexConstants.EXCEED_MAX_SIZE_FLAG)) {
+                exceedSizeLog = StringUtil.format(
+                        ", method:%s, because exceed memory max limit:%s, please check method return size, suggest replace it",
+                        responseMocker.getOperationName(), AgentSizeOf.humanReadableUnits(ArexConstants.MEMORY_SIZE_1MB));
+            }
+            LogManager.info(logTitle, "The body of targetResponse is empty" + exceedSizeLog);
             return false;
         }
         final String clazzType = targetResponse.getType();
@@ -173,5 +209,18 @@ public final class MockUtils {
         }
 
         return true;
+    }
+
+    public static int methodSignatureHash(Mocker requestMocker) {
+        return StringUtil.encodeAndHash(String.format("%s_%s",
+                requestMocker.getOperationName(),
+                requestMocker.getTargetRequest().getBody()));
+    }
+
+    public static int methodRequestTypeHash(Mocker requestMocker) {
+        return StringUtil.encodeAndHash(String.format("%s_%s_%s",
+                requestMocker.getCategoryType().getName(),
+                requestMocker.getOperationName(),
+                requestMocker.getTargetRequest().getType()));
     }
 }

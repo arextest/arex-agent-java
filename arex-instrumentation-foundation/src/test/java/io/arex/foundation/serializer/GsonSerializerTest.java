@@ -15,6 +15,7 @@ import java.sql.Time;
 import java.time.LocalDateTime;
 import java.util.Map;
 
+import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 
@@ -75,6 +76,7 @@ class GsonSerializerTest {
         assert expectedTimeTest.getJodaLocalTime().equals(deserializedTimeTest.getJodaLocalTime());
         assert expectedTimeTest.getJodaLocalDateTime().equals(deserializedTimeTest.getJodaLocalDateTime());
         assert expectedTimeTest.getDateTime().equals(deserializedTimeTest.getDateTime());
+        assert expectedTimeTest.getTimeZone1().equals(deserializedTimeTest.getTimeZone1());
 
         String deserializedJson = GsonSerializer.INSTANCE.serialize(deserializedTimeTest);
         System.out.println(deserializedJson);
@@ -128,17 +130,17 @@ class GsonSerializerTest {
         assertEquals(map, deserialize);
 
 
-        map.put("key", "value");
+        map.put("key", "AREX-101-202");
         map.put("long", 2L);
         json = GsonSerializer.INSTANCE.serialize(map);
-        assertEquals("{\"key\":\"value\",\"long-java.lang.Long\":2}", json);
+        assertEquals("{\"key\":\"AREX-101-202\",\"long\":{\"value\":2,\"type\":\"java.lang.Long\"}}", json);
         final LinkedTreeMap deserialize1 = GsonSerializer.INSTANCE.deserialize(json, LinkedTreeMap.class);
         assertEquals(map, deserialize1);
 
         // value is null
         map.put("null", null);
         json = GsonSerializer.INSTANCE.serialize(map);
-        assertEquals("{\"key\":\"value\",\"long-java.lang.Long\":2}", json);
+        assertEquals("{\"key\":\"AREX-101-202\",\"long\":{\"value\":2,\"type\":\"java.lang.Long\"}}", json);
     }
 
     @Test
@@ -170,5 +172,4 @@ class GsonSerializerTest {
         firstNulldeserialize = GsonSerializer.INSTANCE.deserialize(json, type2);
         assertNull(firstNulldeserialize.getSecond());
     }
-
 }

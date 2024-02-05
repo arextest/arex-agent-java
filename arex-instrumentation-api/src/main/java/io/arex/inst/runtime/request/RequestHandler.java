@@ -10,5 +10,6 @@ public interface RequestHandler<Request, Response> {
      * add or get request information
      */
     void preHandle(Request request);
+    void handleAfterCreateContext(Request request);
     void postHandle(Request request, Response response);
 }

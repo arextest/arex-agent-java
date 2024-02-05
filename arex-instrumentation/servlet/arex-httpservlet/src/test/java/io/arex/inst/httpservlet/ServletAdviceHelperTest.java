@@ -91,8 +91,12 @@ class ServletAdviceHelperTest {
             Mockito.when(adapter.asHttpServletResponse(any())).thenReturn("mock");
             Mockito.when(adapter.getAttribute(any(), any())).thenReturn(Boolean.TRUE);
         };
-        Runnable shouldSkip1 = () -> {
+        Runnable shouldSkipPreRequest = () -> {
             Mockito.when(adapter.getAttribute(any(), any())).thenReturn(Boolean.FALSE);
+            Mockito.when(adapter.getMethod(any())).thenReturn("OPTIONS");
+        };
+        Runnable shouldSkip1 = () -> {
+            Mockito.when(adapter.getMethod(any())).thenReturn("POST");
             Mockito.when(adapter.getRequestHeader(any(), eq(ArexConstants.RECORD_ID))).thenReturn("mock");
         };
         Runnable getRedirectRecordId1 = () -> {
@@ -191,6 +195,7 @@ class ServletAdviceHelperTest {
             arguments("adapter.markProcessed returns true", main1, predicate1),
             arguments("adapter.asHttpServletResponse returns null", main2, predicate1),
             arguments("adapter.getAttribute returns true", main3, predicate1),
+            arguments("shouldSkip: pre-request http method: HEAD || OPTIONS is true", shouldSkipPreRequest, predicate1),
             arguments("shouldSkip: header: arex-record-id not null && config: arex.disable.replay is false", shouldSkip1, predicate1),
             arguments("getRedirectRecordId: parameter: arex-record-id is null", getRedirectRecordId1, predicate1),
             arguments("getRedirectRecordId: header: referer i null", getRedirectRecordId2, predicate1),
@@ -304,14 +309,26 @@ class ServletAdviceHelperTest {
             Mockito.when(invocableHandlerMethod.getBeanType()).thenReturn(mockBeanType);
         };
         Runnable mocker3 = () -> {
-            Mockito.when(parameter.hasMethodAnnotation(ResponseBody.class)).thenReturn(true);
+            Mockito.when(invocableHandlerMethod.getReturnType()).thenReturn(parameter);
+
+            Mockito.when(parameter.getMethodAnnotation(ResponseBody.class)).thenReturn(Mockito.mock(ResponseBody.class));
+            Class mockBeanType2 = TestRestController.class;
+            Mockito.when(invocableHandlerMethod.getBeanType()).thenReturn(mockBeanType2);
         };
         Runnable mocker4 = () -> {
+            Mockito.when(invocableHandlerMethod.getReturnType()).thenReturn(parameter);
+            Class mockBeanType2 = TestRestController.class;
+            Mockito.when(invocableHandlerMethod.getBeanType()).thenReturn(mockBeanType2);
+        };
+        Runnable mocker5 = () -> {
+            Mockito.when(parameter.hasMethodAnnotation(ResponseBody.class)).thenReturn(true);
+        };
+        Runnable mocker6 = () -> {
             Mockito.when(parameter.hasMethodAnnotation(ResponseBody.class)).thenReturn(false);
             Class mockBeanType = TestRestController.class;
             Mockito.when(invocableHandlerMethod.getBeanType()).thenReturn(mockBeanType);
         };
-        Runnable mocker5 = () -> {
+        Runnable mocker7 = () -> {
             Mockito.when(adapter.getNativeRequest(any())).thenReturn(request);
         };
 
@@ -322,9 +339,11 @@ class ServletAdviceHelperTest {
                 arguments("record or replay is false", emptyMocker, null, CompletableFuture.completedFuture("mock"), predicate2),
                 arguments("response is CompletableFuture" , mocker1, null, CompletableFuture.completedFuture("mock"), predicate2),
                 arguments("returnType or beanType not match", mocker2, invocableHandlerMethod, "mock", predicate2),
-                arguments("returnType has ResponseBody", mocker3, invocableHandlerMethod, "mock", predicate2),
-                arguments("beanType has RestController", mocker4, invocableHandlerMethod, "mock", predicate2),
-                arguments("native request not null", mocker5, invocableHandlerMethod, "mock", predicate2)
+                arguments("returnType match", mocker3, invocableHandlerMethod, "mock", predicate2),
+                arguments("beanType match", mocker4, invocableHandlerMethod, "mock", predicate2),
+                arguments("returnType has ResponseBody", mocker5, invocableHandlerMethod, "mock", predicate2),
+                arguments("beanType has RestController", mocker6, invocableHandlerMethod, "mock", predicate2),
+                arguments("native request not null", mocker7, invocableHandlerMethod, "mock", predicate2)
         );
     }
 

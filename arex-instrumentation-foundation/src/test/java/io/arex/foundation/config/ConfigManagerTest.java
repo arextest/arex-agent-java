@@ -103,7 +103,10 @@ class ConfigManagerTest {
 
     @Test
     void parseAgentConfig() {
-        configManager.parseAgentConfig("arex.storage.mode=xxx;arex.enable.debug=true");
+        // empty
+        configManager.parseAgentConfig("");
+        // normal
+        configManager.parseAgentConfig("arex.storage.mode=xxx;arex.enable.debug=true;arex.disable.instrumentation.module=dynamic;arex.buffer.size=1024;arex.serializer.config=");
         assertTrue(configManager.isEnableDebug());
     }
 

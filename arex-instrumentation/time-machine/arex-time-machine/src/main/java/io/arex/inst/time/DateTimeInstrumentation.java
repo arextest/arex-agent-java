@@ -12,12 +12,7 @@ import static net.bytebuddy.matcher.ElementMatchers.takesNoArguments;
 import io.arex.agent.bootstrap.cache.TimeCache;
 import io.arex.inst.extension.MethodInstrumentation;
 import io.arex.inst.extension.TypeInstrumentation;
-import java.time.Clock;
 import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZonedDateTime;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
@@ -28,21 +23,20 @@ import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
 
+import static net.bytebuddy.matcher.ElementMatchers.*;
+
 public class DateTimeInstrumentation extends TypeInstrumentation {
 
     private final String clazzName;
     static final Map<String, MethodInstrumentation> INSTRUMENTATION_MAP;
+    static final String CLOCK_CLASS = "java.time.Clock";
 
     static {
         INSTRUMENTATION_MAP = new HashMap<>();
-        INSTRUMENTATION_MAP.put("java.time.Instant", InstantAdvice.getMethodInstrumentation());
-        INSTRUMENTATION_MAP.put("java.time.LocalDate", LocalDateAdvice.getMethodInstrumentation());
-        INSTRUMENTATION_MAP.put("java.time.LocalTime", LocalTimeAdvice.getMethodInstrumentation());
-        INSTRUMENTATION_MAP.put("java.time.LocalDateTime", LocalDateTimeAdvice.getMethodInstrumentation());
+        INSTRUMENTATION_MAP.put(CLOCK_CLASS, ClockAdvice.getMethodInstrumentation());
         INSTRUMENTATION_MAP.put("java.util.Date", DateAdvice.getMethodInstrumentation());
         INSTRUMENTATION_MAP.put("java.util.Calendar", CalendarAdvice.getMethodInstrumentation());
         INSTRUMENTATION_MAP.put("org.joda.time.DateTimeUtils", DateTimeUtilsAdvice.getMethodInstrumentation());
-        INSTRUMENTATION_MAP.put("java.time.ZonedDateTime", ZonedDateTimeAdvice.getMethodInstrumentation());
     }
 
     public DateTimeInstrumentation(String clazzName) {
@@ -51,6 +45,9 @@ public class DateTimeInstrumentation extends TypeInstrumentation {
 
     @Override
     protected ElementMatcher<TypeDescription> typeMatcher() {
+        if (CLOCK_CLASS.equals(clazzName)) {
+            return hasSuperClass(named(CLOCK_CLASS));
+        }
         return named(clazzName);
     }
 
@@ -64,12 +61,12 @@ public class DateTimeInstrumentation extends TypeInstrumentation {
         return Collections.singletonList(methodInstrumentation);
     }
 
-    public static class InstantAdvice {
-        public static MethodInstrumentation getMethodInstrumentation() {
-            ElementMatcher.Junction<MethodDescription> matcher = isMethod().and(isPublic()).and(isStatic())
-                .and(named("now")).and(takesNoArguments());
+    public static class ClockAdvice {
 
-            String advice = InstantAdvice.class.getName();
+        public static MethodInstrumentation getMethodInstrumentation() {
+            ElementMatcher.Junction<MethodDescription> matcher = isMethod().and(isPublic()).and(named("instant"));
+
+            String advice = ClockAdvice.class.getName();
 
             return new MethodInstrumentation(matcher, advice);
         }
@@ -80,95 +77,10 @@ public class DateTimeInstrumentation extends TypeInstrumentation {
         }
 
         @Advice.OnMethodExit(suppress = Throwable.class)
-        public static void onExit(
-            @Advice.Enter long mockMills,
-            @Advice.Return(readOnly = false) Instant result) {
+        public static void onExit(@Advice.Enter long mockMills,
+                                  @Advice.Return(readOnly = false) Instant result) {
             if (mockMills > 0L) {
                 result = Instant.ofEpochMilli(mockMills);
-            }
-        }
-    }
-
-    public static class LocalDateAdvice {
-
-        public static MethodInstrumentation getMethodInstrumentation() {
-            ElementMatcher.Junction<MethodDescription> matcher = isMethod().and(isPublic()).and(isStatic())
-                .and(named("now"))
-                .and(takesArgument(0, named("java.time.Clock")));
-
-            String advice = LocalDateAdvice.class.getName();
-
-            return new MethodInstrumentation(matcher, advice);
-        }
-
-        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class, suppress = Throwable.class)
-        public static long onEnter() {
-            return TimeCache.get();
-        }
-
-        @Advice.OnMethodExit(suppress = Throwable.class)
-        public static void onExit(
-            @Advice.Enter long mockMills,
-            @Advice.Argument(0) Clock clock,
-            @Advice.Return(readOnly = false) LocalDate result) {
-            if (mockMills > 0L) {
-                result = Instant.ofEpochMilli(mockMills).atZone(clock.getZone()).toLocalDate();
-            }
-        }
-    }
-
-    public static class LocalTimeAdvice {
-
-        public static MethodInstrumentation getMethodInstrumentation() {
-            ElementMatcher.Junction<MethodDescription> matcher = isMethod().and(isPublic()).and(isStatic())
-                .and(named("now"))
-                .and(takesArgument(0, named("java.time.Clock")));
-
-            String advice = LocalTimeAdvice.class.getName();
-
-            return new MethodInstrumentation(matcher, advice);
-        }
-
-        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class, suppress = Throwable.class)
-        public static long onEnter() {
-            return TimeCache.get();
-        }
-
-        @Advice.OnMethodExit(suppress = Throwable.class)
-        public static void onExit(
-            @Advice.Enter long mockMills,
-            @Advice.Argument(0) Clock clock,
-            @Advice.Return(readOnly = false) LocalTime result) {
-            if (mockMills > 0L) {
-                result = Instant.ofEpochMilli(mockMills).atZone(clock.getZone()).toLocalTime();
-            }
-        }
-    }
-
-    public static class LocalDateTimeAdvice {
-
-        public static MethodInstrumentation getMethodInstrumentation() {
-            ElementMatcher.Junction<MethodDescription> matcher = isMethod().and(isPublic()).and(isStatic())
-                .and(named("now"))
-                .and(takesArgument(0, named("java.time.Clock")));
-
-            String advice = LocalDateTimeAdvice.class.getName();
-
-            return new MethodInstrumentation(matcher, advice);
-        }
-
-        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class, suppress = Throwable.class)
-        public static long onEnter() {
-            return TimeCache.get();
-        }
-
-        @Advice.OnMethodExit(suppress = Throwable.class)
-        public static void onExit(
-            @Advice.Enter long mockMills,
-            @Advice.Argument(0) Clock clock,
-            @Advice.Return(readOnly = false) LocalDateTime result) {
-            if (mockMills > 0L) {
-                result = Instant.ofEpochMilli(mockMills).atZone(clock.getZone()).toLocalDateTime();
             }
         }
     }
@@ -238,35 +150,6 @@ public class DateTimeInstrumentation extends TypeInstrumentation {
             @Advice.Return(readOnly = false) long result) {
             if (mockMills > 0L) {
                 result = mockMills;
-            }
-        }
-    }
-
-    public static class ZonedDateTimeAdvice {
-
-        public static MethodInstrumentation getMethodInstrumentation() {
-            ElementMatcher.Junction<MethodDescription> matcher = isMethod().and(isPublic()).and(isStatic())
-                .and(named("now"))
-                .and(takesArgument(0, named("java.time.Clock")));
-
-            String advice = ZonedDateTimeAdvice.class.getName();
-
-            return new MethodInstrumentation(matcher, advice);
-        }
-
-
-        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class, suppress = Throwable.class)
-        public static long onEnter() {
-            return TimeCache.get();
-        }
-
-        @Advice.OnMethodExit(suppress = Throwable.class)
-        public static void onExit(
-            @Advice.Enter long mockMills,
-            @Advice.Argument(0) Clock clock,
-            @Advice.Return(readOnly = false) ZonedDateTime result) {
-            if (mockMills > 0L) {
-                result = ZonedDateTime.ofInstant(Instant.ofEpochMilli(mockMills), clock.getZone());
             }
         }
     }

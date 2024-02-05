@@ -65,10 +65,10 @@ class MongoHelperTest {
     void record() {
         try(final MockedConstruction<DatabaseExtractor> construction = Mockito.mockConstruction(DatabaseExtractor.class)) {
             MongoHelper.record("test", Mockito.mock(MongoNamespace.class), null, "test", null);
-            Mockito.verify(construction.constructed().get(0), Mockito.times(1)).record("test", "gson");
+            Mockito.verify(construction.constructed().get(0), Mockito.times(1)).recordDb("test", "gson");
             final RuntimeException runtimeException = new RuntimeException();
             MongoHelper.record("test", Mockito.mock(MongoNamespace.class), null, "test", runtimeException);
-            Mockito.verify(construction.constructed().get(1), Mockito.times(1)).record(runtimeException, "gson");
+            Mockito.verify(construction.constructed().get(1), Mockito.times(1)).recordDb(runtimeException, "gson");
         }
 
     }

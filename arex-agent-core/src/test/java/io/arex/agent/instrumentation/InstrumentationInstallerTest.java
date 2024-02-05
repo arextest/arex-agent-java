@@ -1,6 +1,7 @@
 package io.arex.agent.instrumentation;
 
 import io.arex.foundation.config.ConfigManager;
+import io.arex.inst.extension.ExtensionTransformer;
 import io.arex.inst.extension.MethodInstrumentation;
 import io.arex.inst.extension.ModuleInstrumentation;
 import io.arex.inst.extension.TypeInstrumentation;
@@ -8,9 +9,7 @@ import io.arex.inst.runtime.model.DynamicClassEntity;
 import io.arex.inst.runtime.model.DynamicClassStatusEnum;
 import io.arex.agent.bootstrap.util.ServiceLoader;
 import java.lang.instrument.Instrumentation;
-import net.bytebuddy.agent.ByteBuddyAgent;
-import net.bytebuddy.agent.builder.AgentBuilder;
-import net.bytebuddy.agent.builder.ResettableClassFileTransformer;
+import java.security.ProtectionDomain;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.dynamic.DynamicType;
 import net.bytebuddy.matcher.ElementMatchers;
@@ -28,8 +27,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
-import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -39,15 +36,17 @@ import static org.mockito.ArgumentMatchers.any;
 @ExtendWith(MockitoExtension.class)
 class InstrumentationInstallerTest {
     static InstrumentationInstaller target;
-    static ConfigManager config = ConfigManager.INSTANCE;
     static ModuleInstrumentation module;
     static TypeInstrumentation inst;
     static File agentFile;
 
-    static Instrumentation instrumentation = ByteBuddyAgent.install();
+    static Instrumentation instrumentation;
 
     @BeforeAll
     static void setUp() {
+        instrumentation = Mockito.mock(Instrumentation.class);
+        Mockito.when(instrumentation.isRetransformClassesSupported()).thenReturn(true);
+        Mockito.when(instrumentation.getAllLoadedClasses()).thenReturn(new Class<?>[0]);
         agentFile = Mockito.mock(File.class);
         target = new InstrumentationInstaller(instrumentation, agentFile, null);
         module = Mockito.mock(ModuleInstrumentation.class);
@@ -60,7 +59,6 @@ class InstrumentationInstallerTest {
     @AfterAll
     static void tearDown() {
         target = null;
-        config = null;
         module = null;
         inst = null;
         agentFile = null;
@@ -69,42 +67,42 @@ class InstrumentationInstallerTest {
     }
 
     @ParameterizedTest
-    @MethodSource("transformCase")
-    void transform(Runnable mocker, Predicate<ResettableClassFileTransformer> predicate) {
+    @MethodSource("retransformCase")
+    void retransform(Runnable mocker) {
         mocker.run();
-        assertTrue(predicate.test(target.transform()));
+        assertDoesNotThrow(() -> target.retransform());
     }
 
-    static Stream<Arguments> transformCase() {
-        Runnable firstTransform = () -> {
-            config.setEnableDebug("true");
-            config.setStorageServiceMode("local");
-            config.setDisabledModules("mock");
-            Mockito.when(module.name()).thenReturn("mock");
-            Mockito.when(ServiceLoader.load(any())).thenReturn(Collections.singletonList(module));
+    @ParameterizedTest
+    @MethodSource("transformCase")
+    void transform(Runnable mocker) {
+        mocker.run();
+        assertDoesNotThrow(() -> target.transform());
+    }
+
+    static Stream<Arguments> retransformCase() {
+        Runnable emptyClass = () -> {
+
         };
-        Runnable resetAndRetransformClassEmpty = () -> {
-            config.setDisabledModules("mock1");
-        };
+
         Runnable resetAndRetransformClassNotEmpty = () -> {
             DynamicClassEntity resetEntity = new DynamicClassEntity("reset-entity", null, null, null);
             resetEntity.setStatus(DynamicClassStatusEnum.RESET);
-            config.getResetClassSet().add(resetEntity.getClazzName());
+            ConfigManager.INSTANCE.getResetClassSet().add(resetEntity.getClazzName());
 
             DynamicClassEntity retransformEntity = new DynamicClassEntity("retransform-resetEntity", null, null, null);
             retransformEntity.setStatus(DynamicClassStatusEnum.RETRANSFORM);
-            config.getDynamicClassList().add(retransformEntity);
+            ConfigManager.INSTANCE.getDynamicClassList().add(retransformEntity);
 
-            config.setRetransformModules("mock");
-
-            AgentBuilder.Transformer transformer = Mockito.mock(AgentBuilder.Transformer.class);
-            Mockito.when(inst.transformer()).thenReturn(transformer);
+            ConfigManager.INSTANCE.setRetransformModules("mock");
+            Mockito.when(module.getName()).thenReturn("mock");
+            Mockito.when(ServiceLoader.load(any())).thenReturn(Collections.singletonList(module));
         };
 
         Runnable instrumentationTypesNotEmpty = () -> {
             DynamicClassEntity retransformEntity = new DynamicClassEntity("retransform-resetEntity2", null, null, null);
             retransformEntity.setStatus(DynamicClassStatusEnum.RETRANSFORM);
-            config.getDynamicClassList().add(retransformEntity);
+            ConfigManager.INSTANCE.getDynamicClassList().add(retransformEntity);
 
             Mockito.when(module.instrumentationTypes()).thenReturn(Collections.singletonList(inst));
         };
@@ -112,7 +110,7 @@ class InstrumentationInstallerTest {
         Runnable methodAdvicesNotEmpty = () -> {
             DynamicClassEntity retransformEntity = new DynamicClassEntity("retransform-resetEntity3", null, null, null);
             retransformEntity.setStatus(DynamicClassStatusEnum.RETRANSFORM);
-            config.getDynamicClassList().add(retransformEntity);
+            ConfigManager.INSTANCE.getDynamicClassList().add(retransformEntity);
 
             Mockito.when(module.instrumentationTypes()).thenReturn(Collections.singletonList(inst));
 
@@ -124,25 +122,76 @@ class InstrumentationInstallerTest {
             Mockito.when(inst.methodAdvices()).thenReturn(methodInstList);
         };
 
-        Predicate<ResettableClassFileTransformer> predicate_nonNull = Objects::nonNull;
         return Stream.of(
-                arguments(firstTransform, predicate_nonNull),
-                arguments(resetAndRetransformClassEmpty, predicate_nonNull),
-                arguments(resetAndRetransformClassNotEmpty, predicate_nonNull),
-                arguments(instrumentationTypesNotEmpty, predicate_nonNull),
-                arguments(methodAdvicesNotEmpty, predicate_nonNull)
+            arguments(emptyClass),
+            arguments(resetAndRetransformClassNotEmpty),
+            arguments(instrumentationTypesNotEmpty),
+            arguments(methodAdvicesNotEmpty)
         );
+    }
+
+    static Stream<Arguments> transformCase() {
+        // filtered disabled module
+        Runnable disabledModule = () -> {
+            ExtensionTransformer invalidExtensionTransformer = new ExtensionTransformer("mock") {
+                @Override
+                public boolean validate() {
+                    return false;
+                }
+
+                @Override
+                public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined,
+                    ProtectionDomain protectionDomain, byte[] classfileBuffer) {
+                    return classfileBuffer;
+                }
+            };
+
+            ConfigManager.INSTANCE.setEnableDebug("true");
+            ConfigManager.INSTANCE.setStorageServiceMode("local");
+            ConfigManager.INSTANCE.setDisabledModules("mock");
+            Mockito.when(module.getName()).thenReturn("mock");
+            Mockito.when(ServiceLoader.load(any())).thenReturn(Collections.singletonList(module));
+            Mockito.when(ServiceLoader.load(any(), any())).thenReturn(Collections.singletonList(invalidExtensionTransformer));
+        };
+
+        // filtered empty instrumentation module
+        Runnable emptyInstrumentations = () -> {
+            ConfigManager.INSTANCE.setDisabledModules("mock1");
+        };
+
+        // normal instrumentation module
+        Runnable transform = () -> {
+            ExtensionTransformer extensionTransformer = new ExtensionTransformer("mock") {
+                @Override
+                public boolean validate() {
+                    return true;
+                }
+
+                @Override
+                public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined,
+                    ProtectionDomain protectionDomain, byte[] classfileBuffer) {
+                    return classfileBuffer;
+                }
+            };
+            Mockito.when(module.instrumentationTypes()).thenReturn(Collections.singletonList(inst));
+            Mockito.when(ServiceLoader.load(any(), any())).thenReturn(Collections.singletonList(extensionTransformer));
+        };
+
+        return Stream.of(
+            arguments(disabledModule),
+            arguments(emptyInstrumentations),
+            arguments(transform));
     }
 
     @Test
     void onTransformation() {
-        config.setEnableDebug("true");
+        ConfigManager.INSTANCE.setEnableDebug("true");
         TransformListener listener = new TransformListener();
         TypeDescription typeDescription = Mockito.mock(TypeDescription.class);
         DynamicType dynamicType = Mockito.mock(DynamicType.class);
         listener.onTransformation(typeDescription, null, null, false, dynamicType);
         assertDoesNotThrow(() -> listener.onError(null, null,null, false, new RuntimeException()));
-        config.setEnableDebug("false");
+        ConfigManager.INSTANCE.setEnableDebug("false");
         assertDoesNotThrow(() -> listener.onError(null, null,null, false, new RuntimeException()));
     }
 }

@@ -2,7 +2,6 @@ package io.arex.foundation.serializer;
 
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.foundation.serializer.ProtoTest.HelloProtoRequestType;
-import io.arex.inst.runtime.util.TypeUtil;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

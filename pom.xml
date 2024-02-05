@@ -54,7 +54,7 @@
 
     <properties>
         <!-- Maven CI Friendly Versions https://maven.apache.org/maven-ci-friendly.html -->
-        <revision>0.3.16</revision>
+        <revision>0.4.0</revision>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
@@ -77,7 +77,9 @@
             **/*Test.java,
             **/target/**,
             **/model/**,
+            **/constants/**,
             **/thirdparty/**,
+            **/integrationtest/**,
             **/*Instrumentation.java,
             **/JJWTGenerator.java
         </sonar.exclusions>
@@ -88,12 +90,20 @@
         <sonar.coverage.exclusions>
             **/test/**,
             **/*Test.java,
+            **/*Transformer.java,
+            **/*Constants.java,
             **/target/**,
             **/model/**,
+            **/constants/**,
             **/context/**,
+            **/foundation/internal/**,
+            **/bootstrap/internal/**,
             **/wrapper/**,
             **/thirdparty/**,
-            **/RedisCommandBuilderImpl.java
+            **/integrationtest/**,
+            **/RedisCommandBuilderImpl.java,
+            **/HttpResponseWrapper.java,
+            **/RFutureWrapper.java
         </sonar.coverage.exclusions>
     </properties>
 

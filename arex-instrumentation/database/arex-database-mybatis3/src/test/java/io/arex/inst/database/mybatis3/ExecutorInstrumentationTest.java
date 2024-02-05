@@ -64,7 +64,7 @@ class ExecutorInstrumentationTest {
     @Test
     void onEnter() throws SQLException {
         Mockito.when(ContextManager.needReplay()).thenReturn(true);
-        assertFalse(ExecutorInstrumentation.QueryAdvice.onMethodEnter(null, null, null, MockResult.success("mock"), null));
+        assertFalse(ExecutorInstrumentation.QueryAdvice.onMethodEnter(null, null, null, null, MockResult.success("mock")));
         Mockito.when(ContextManager.needRecordOrReplay()).thenReturn(true);
         assertFalse(ExecutorInstrumentation.UpdateAdvice.onMethodEnter(null, null, null, null, new SimpleExecutor(null, null)));
         assertFalse(ExecutorInstrumentation.UpdateAdvice.onMethodEnter(null, null, null, null, new BatchExecutor(null, null)));
@@ -74,7 +74,7 @@ class ExecutorInstrumentationTest {
     @MethodSource("onExitCase")
     void onExit(Runnable mocker, MockResult mockResult, Predicate<MockResult> predicate) {
         mocker.run();
-        ExecutorInstrumentation.QueryAdvice.onExit(null, null, null, null, mockResult, null);
+        ExecutorInstrumentation.QueryAdvice.onExit(null, null, null, null, null, mockResult);
         assertTrue(predicate.test(mockResult));
     }
 

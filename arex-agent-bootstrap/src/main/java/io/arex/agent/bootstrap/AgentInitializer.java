@@ -22,6 +22,7 @@ public class AgentInitializer {
         File[] extensionFiles = getExtensionJarFiles(agentFile);
         classLoader = createAgentClassLoader(agentFile, extensionFiles);
         InstrumentationHolder.setAgentClassLoader(classLoader);
+        InstrumentationHolder.setInstrumentation(inst);
         AgentInstaller installer = createAgentInstaller(inst, agentFile, agentArgs);
         addJarToLoaderSearch(agentFile, extensionFiles);
         installer.install();

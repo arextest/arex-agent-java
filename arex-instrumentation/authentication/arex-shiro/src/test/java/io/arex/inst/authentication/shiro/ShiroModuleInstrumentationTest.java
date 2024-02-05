@@ -9,6 +9,6 @@ class ShiroModuleInstrumentationTest {
 
     @Test
     void instrumentationTypes() {
-        assertNotNull(target.instrumentationTypes());
+        assertEquals(4, target.instrumentationTypes().size());
     }
 }

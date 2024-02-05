@@ -78,9 +78,9 @@ public class LoaderInstrumentation extends TypeInstrumentation {
                 }
                 if (ContextManager.needRecord()) {
                     if (throwable != null) {
-                        extractor.record(throwable);
+                        extractor.recordDb(throwable);
                     } else {
-                        extractor.record(list);
+                        extractor.recordDb(list);
                     }
                 }
             }

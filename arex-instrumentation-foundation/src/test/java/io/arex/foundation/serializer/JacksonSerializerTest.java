@@ -1,5 +1,8 @@
 package io.arex.foundation.serializer;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.arex.agent.bootstrap.model.MockCategoryType;
 import io.arex.foundation.serializer.custom.FastUtilAdapterFactoryTest;
 import io.arex.foundation.serializer.custom.FastUtilAdapterFactoryTest.TestType;
 
@@ -156,6 +159,7 @@ class JacksonSerializerTest {
         final CaseSensitive caseSensitive = new CaseSensitive();
         caseSensitive.setAmountPaid("100");
         caseSensitive.setAmountpaid("200");
+        caseSensitive.setAmount(100.0f);
         final String jackJson = JacksonSerializer.INSTANCE.serialize(caseSensitive);
         final CaseSensitive deserializeJackTestType = JacksonSerializer.INSTANCE.deserialize(jackJson, CaseSensitive.class);
         assertNotNull(deserializeJackTestType);
@@ -163,9 +167,54 @@ class JacksonSerializerTest {
         assertEquals("200", deserializeJackTestType.getAmountpaid());
     }
 
+    @Test
+    void testNoDefaultCreator() throws Throwable {
+        final NoDefaultCreator noDefaultCreator = new NoDefaultCreator("test", 100, 100.0);
+        final String jackJson = JacksonSerializer.INSTANCE.serialize(noDefaultCreator);
+        final NoDefaultCreator deserializeJackTestType = JacksonSerializer.INSTANCE.deserialize(jackJson, NoDefaultCreator.class);
+        assertNotNull(deserializeJackTestType);
+        assertEquals("test", deserializeJackTestType.getName());
+        assertEquals(100, deserializeJackTestType.getAge());
+        assertEquals(100.0, deserializeJackTestType.getAmount());
+    }
+
+    static class NoDefaultCreator {
+        private final String name;
+        private final int age;
+
+        private final double amount;
+
+        public NoDefaultCreator(String name, int age, double amount) {
+            this.name = name;
+            this.age = age;
+            this.amount = amount;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public int getAge() {
+            return age;
+        }
+
+        public double getAmount() {
+            return amount;
+        }
+    }
+
     static class CaseSensitive {
         private String amountPaid;
         private String amountpaid;
+        private Float amount;
+
+        public Float getAmount() {
+            return amount;
+        }
+
+        public void setAmount(Float amount) {
+            this.amount = amount;
+        }
 
         public String getAmountPaid() {
             return amountPaid;

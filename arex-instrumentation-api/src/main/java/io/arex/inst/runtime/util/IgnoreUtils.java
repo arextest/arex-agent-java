@@ -118,15 +118,14 @@ public class IgnoreUtils {
     }
 
     public static boolean invalidOperation(String operationSignature) {
-        return INVALID_OPERATION_HASH_CACHE.contains(operationSignature.hashCode());
+        return INVALID_OPERATION_HASH_CACHE.contains(StringUtil.encodeAndHash(operationSignature));
     }
 
     public static void addInvalidOperation(String operationSignature) {
-        INVALID_OPERATION_HASH_CACHE.add(operationSignature.hashCode());
+        INVALID_OPERATION_HASH_CACHE.add(StringUtil.encodeAndHash(operationSignature));
     }
 
     public static void clearInvalidOperation() {
         INVALID_OPERATION_HASH_CACHE.clear();
     }
-
 }

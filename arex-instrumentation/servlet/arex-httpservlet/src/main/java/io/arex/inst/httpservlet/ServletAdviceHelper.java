@@ -21,6 +21,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
+
+import org.springframework.http.HttpMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.NativeWebRequest;
@@ -117,7 +119,7 @@ public class ServletAdviceHelper {
             String caseId = adapter.getRequestHeader(httpServletRequest, ArexConstants.RECORD_ID);
             String excludeMockTemplate = adapter.getRequestHeader(httpServletRequest, ArexConstants.HEADER_EXCLUDE_MOCK);
             CaseEventDispatcher.onEvent(CaseEvent.ofCreateEvent(EventSource.of(caseId, excludeMockTemplate)));
-
+            RequestHandlerManager.handleAfterCreateContext(httpServletRequest, MockCategoryType.SERVLET.getName());
         }
 
         if (ContextManager.needRecordOrReplay()) {
@@ -187,7 +189,7 @@ public class ServletAdviceHelper {
         }
 
         // Set response only when return response body
-        if (!invocableHandlerMethod.getReturnType().hasMethodAnnotation(ResponseBody.class) &&
+        if (invocableHandlerMethod.getReturnType().getMethodAnnotation(ResponseBody.class) == null &&
                 !invocableHandlerMethod.getBeanType().isAnnotationPresent(RestController.class)) {
             return;
         }
@@ -202,6 +204,12 @@ public class ServletAdviceHelper {
 
     private static <TRequest> boolean shouldSkip(ServletAdapter<TRequest, ?> adapter,
                                                  TRequest httpServletRequest) {
+        // skip if pre-request http-method is HEAD or OPTIONS
+        if (HttpMethod.HEAD.matches(adapter.getMethod(httpServletRequest))
+                || HttpMethod.OPTIONS.matches(adapter.getMethod(httpServletRequest))) {
+            return true;
+        }
+
         String caseId = adapter.getRequestHeader(httpServletRequest, ArexConstants.RECORD_ID);
 
         // Replay scene

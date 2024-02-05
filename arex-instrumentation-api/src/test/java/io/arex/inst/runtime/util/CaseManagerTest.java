@@ -39,7 +39,7 @@ class CaseManagerTest {
         Assertions.assertDoesNotThrow(() -> CaseManager.invalid(null, null, "testOperationName", "queueOverflow"));
         Assertions.assertTrue(CaseManager.isInvalidCase(null));
 
-        final ArexContext context = ArexContext.of("testRecordId");
+        ArexContext context = ArexContext.of("testRecordId");
         Mockito.when(ContextManager.getContext("testRecordId")).thenReturn(context);
         Assertions.assertFalse(context.isInvalidCase());
         Assertions.assertFalse(CaseManager.isInvalidCase("testRecordId"));
@@ -48,6 +48,13 @@ class CaseManagerTest {
         Assertions.assertTrue(context.isInvalidCase());
         Assertions.assertTrue(CaseManager.isInvalidCase("testRecordId"));
         Mockito.verify(dataCollector, Mockito.times(1)).invalidCase(Mockito.anyString());
+
+        // replayId
+        CaseManager.invalid("testRecordId", "testReplayId", "testOperationName", "queueOverflow");
+        context = ArexContext.of("testRecordId", "testReplayId");
+        Mockito.when(ContextManager.getContext("testReplayId")).thenReturn(context);
+        Assertions.assertFalse(context.isInvalidCase());
+        Assertions.assertFalse(CaseManager.isInvalidCase("testReplayId"));
 
         // test invalid case with null context
         Mockito.when(ContextManager.getContext("testRecordId")).thenReturn(null);

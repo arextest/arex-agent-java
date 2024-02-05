@@ -1,5 +1,6 @@
 package io.arex.inst.redisson.v3;
 
+import io.arex.inst.redisson.v3.common.RedissonHelper;
 import io.arex.inst.redisson.v3.wrapper.*;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -7,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.redisson.Redisson;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -104,7 +106,7 @@ class RedissonInstrumentationTest {
     @Test
     void onExitGetListAdvice() {
         assertDoesNotThrow(() -> RedissonInstrumentation.GetListAdvice.onExit(
-                null, null, null, null));
+            null, null, null));
     }
 
     @Test
@@ -115,7 +117,7 @@ class RedissonInstrumentationTest {
     @Test
     void onExitGetListWithCodecAdvice() {
         assertDoesNotThrow(() -> RedissonInstrumentation.GetListWithCodecAdvice.onExit(
-                null, null, null, null, null));
+            null, null, null, null));
     }
 
     @Test
@@ -126,7 +128,7 @@ class RedissonInstrumentationTest {
     @Test
     void onExitGetSetAdvice() {
         assertDoesNotThrow(() -> RedissonInstrumentation.GetSetAdvice.onExit(
-                null, null, null, null));
+            null, null, null));
     }
 
     @Test
@@ -137,7 +139,7 @@ class RedissonInstrumentationTest {
     @Test
     void onExitGetSetWithCodecAdvice() {
         assertDoesNotThrow(() -> RedissonInstrumentation.GetSetWithCodecAdvice.onExit(
-                null, null, null, null, null));
+            null, null, null, null));
     }
 
     @Test
@@ -148,7 +150,7 @@ class RedissonInstrumentationTest {
     @Test
     void onExitGetMapAdvice() {
         assertDoesNotThrow(() -> RedissonInstrumentation.GetMapAdvice.onExit(
-                null, null, null, null));
+            null, null, null));
     }
 
     @Test
@@ -159,7 +161,7 @@ class RedissonInstrumentationTest {
     @Test
     void onExitGetMapWithOptionsAdvice() {
         assertDoesNotThrow(() -> RedissonInstrumentation.GetMapWithOptionsAdvice.onExit(
-                null, null, null, null, null, null));
+            null, null, null, null, null));
     }
 
     @Test
@@ -170,7 +172,7 @@ class RedissonInstrumentationTest {
     @Test
     void onExitGetMapWithCodecAdvice() {
         assertDoesNotThrow(() -> RedissonInstrumentation.GetMapWithCodecAdvice.onExit(
-                null, null, null, null, null));
+            null, null, null, null));
     }
 
     @Test
@@ -181,6 +183,7 @@ class RedissonInstrumentationTest {
     @Test
     void onExitGetMapWithCodecOptionsAdvice() {
         assertDoesNotThrow(() -> RedissonInstrumentation.GetMapWithCodecOptionsAdvice.onExit(
-                null, null, null, null, null, null, null));
+            null, null, null, null, null, null));
     }
+
 }

@@ -9,6 +9,8 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -30,6 +32,16 @@ public class TimeTestInfo {
     private GregorianCalendar gregorianCalendar = new GregorianCalendar(TimeZone.getTimeZone("GMT-01:00"));
     private Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("GMT-01:00"));
     private XMLGregorianCalendar xmlGregorianCalendar;
+    private OffsetDateTime offsetDateTime = OffsetDateTime.now(ZoneId.of("GMT-01:00"));
+    private TimeZone timeZone1 = TimeZone.getDefault();
+
+    public OffsetDateTime getOffsetDateTime() {
+        return offsetDateTime;
+    }
+
+    public void setOffsetDateTime(OffsetDateTime offsetDateTime) {
+        this.offsetDateTime = offsetDateTime;
+    }
 
     {
         try {
@@ -164,5 +176,13 @@ public class TimeTestInfo {
 
     public void setDateTime(DateTime dateTime) {
         this.dateTime = dateTime;
+    }
+
+    public TimeZone getTimeZone1() {
+        return timeZone1;
+    }
+
+    public void setTimeZone1(TimeZone timeZone1) {
+        this.timeZone1 = timeZone1;
     }
 }

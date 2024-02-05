@@ -51,10 +51,6 @@ public class ConfigManager {
     private int dynamicResultSizeLimit;
     private List<DynamicClassEntity> dynamicClassList = new ArrayList<>();
     private Set<String> resetClassSet = new HashSet<>();
-    /**
-     * use only replay
-     */
-    private boolean startTimeMachine;
     private EnumSet<DayOfWeek> allowDayOfWeeks;
     private LocalTime allowTimeOfDayFrom;
     private LocalTime allowTimeOfDayTo;
@@ -145,14 +141,6 @@ public class ConfigManager {
 
     public int getRecordRate() {
         return recordRate;
-    }
-
-    public void setTimeMachine(String timeMachine) {
-        if (StringUtil.isEmpty(timeMachine)) {
-            return;
-        }
-        this.startTimeMachine = Boolean.parseBoolean(timeMachine);
-        System.setProperty(TIME_MACHINE, timeMachine);
     }
 
     public Set<String> getResetClassSet() {
@@ -272,7 +260,6 @@ public class ConfigManager {
 
         setStorageServiceMode(System.getProperty(STORAGE_SERVICE_MODE));
         setDynamicResultSizeLimit(System.getProperty(DYNAMIC_RESULT_SIZE_LIMIT, "1000"));
-        setTimeMachine(System.getProperty(TIME_MACHINE));
         setAllowDayOfWeeks(Integer.parseInt(System.getProperty(ALLOW_DAY_WEEKS, "127")));
         setAllowTimeOfDayFrom(System.getProperty(ALLOW_TIME_FROM, "00:01"));
         setAllowTimeOfDayTo(System.getProperty(ALLOW_TIME_TO, "23:59"));
@@ -299,7 +286,6 @@ public class ConfigManager {
         setStorageServiceHost(configMap.get(STORAGE_SERVICE_HOST));
         setConfigServiceHost(configMap.get(CONFIG_SERVICE_HOST));
         setDynamicResultSizeLimit(configMap.get(DYNAMIC_RESULT_SIZE_LIMIT));
-        setTimeMachine(configMap.get(TIME_MACHINE));
         setStorageServiceMode(configMap.get(STORAGE_SERVICE_MODE));
         setDisabledModules(configMap.get(DISABLE_MODULE));
         setRetransformModules(configMap.get(RETRANSFORM_MODULE));
@@ -330,37 +316,34 @@ public class ConfigManager {
 
     public void parseAgentConfig(String args) {
         Map<String, String> agentMap = StringUtil.asMap(args);
-        if (!agentMap.isEmpty()) {
-            for (Map.Entry<String, String> entry : agentMap.entrySet()) {
-                String key = entry.getKey();
-                String value = entry.getValue();
-                if (StringUtil.isEmpty(key) || StringUtil.isEmpty(value)) {
-                    continue;
-                }
-
-                switch (key) {
-                    case ENABLE_DEBUG:
-                        setEnableDebug(value);
-                        break;
-                    case STORAGE_SERVICE_MODE:
-                        setStorageServiceMode(value);
-                        break;
-                    case STORAGE_SERVICE_HOST:
-                    case DISABLE_MODULE:
-                        continue;
-                    default:
-                        System.setProperty(key, value);
-                        break;
-                }
-            }
-            updateRuntimeConfig();
+        if (agentMap.isEmpty()) {
+            return;
         }
+        for (Map.Entry<String, String> entry : agentMap.entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue();
+
+            switch (key) {
+                case ENABLE_DEBUG:
+                    setEnableDebug(value);
+                    break;
+                case STORAGE_SERVICE_MODE:
+                    setStorageServiceMode(value);
+                    break;
+                case STORAGE_SERVICE_HOST:
+                case DISABLE_MODULE:
+                    break;
+                default:
+                    System.setProperty(key, value);
+                    break;
+            }
+        }
+        updateRuntimeConfig();
     }
 
     public void updateConfigFromService(ResponseBody serviceConfig) {
         ServiceCollectConfig config = serviceConfig.getServiceCollectConfiguration();
         setRecordRate(config.getSampleRate());
-        setTimeMachine(String.valueOf(config.isTimeMock()));
         setAllowDayOfWeeks(config.getAllowDayOfWeeks());
         setAllowTimeOfDayFrom(config.getAllowTimeOfDayFrom());
         setAllowTimeOfDayTo(config.getAllowTimeOfDayTo());
@@ -375,7 +358,6 @@ public class ConfigManager {
     private void updateRuntimeConfig() {
         Map<String, String> configMap = new HashMap<>();
         configMap.put(DYNAMIC_RESULT_SIZE_LIMIT, String.valueOf(getDynamicResultSizeLimit()));
-        configMap.put(TIME_MACHINE, String.valueOf(startTimeMachine()));
         configMap.put(DISABLE_REPLAY, System.getProperty(DISABLE_REPLAY));
         configMap.put(DISABLE_RECORD, System.getProperty(DISABLE_RECORD));
         configMap.put(DURING_WORK, Boolean.toString(inWorkingTime()));
@@ -385,6 +367,7 @@ public class ConfigManager {
         Map<String, String> extendFieldMap = getExtendField();
         if (MapUtils.isNotEmpty(extendFieldMap)) {
             configMap.putAll(extendFieldMap);
+            setEnableDebug(extendFieldMap.get(ENABLE_DEBUG));
         }
 
         ConfigBuilder.create(getServiceName())
@@ -433,10 +416,6 @@ public class ConfigManager {
         }
         this.dynamicResultSizeLimit = Integer.parseInt(dynamicResultSizeLimit);
         System.setProperty(DYNAMIC_RESULT_SIZE_LIMIT, dynamicResultSizeLimit);
-    }
-
-    public boolean startTimeMachine() {
-        return startTimeMachine;
     }
 
     public EnumSet<DayOfWeek> getAllowDayOfWeeks() {
@@ -622,7 +601,6 @@ public class ConfigManager {
             ", configPath='" + configPath + '\'' +
             ", storageServiceMode='" + storageServiceMode + '\'' +
             ", recordRate='" + recordRate + '\'' +
-            ", startTimeMachine='" + startTimeMachine + '\'' +
             ", allowDayOfWeeks='" + allowDayOfWeeks + '\'' +
             ", allowTimeOfDayFrom='" + allowTimeOfDayFrom + '\'' +
             ", allowTimeOfDayTo='" + allowTimeOfDayTo + '\'' +

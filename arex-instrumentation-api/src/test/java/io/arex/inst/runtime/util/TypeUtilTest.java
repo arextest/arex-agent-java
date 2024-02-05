@@ -11,7 +11,6 @@ import java.lang.reflect.Type;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -83,10 +82,8 @@ class TypeUtilTest {
                 return "java.util.ArrayList".equals(parameterizedType.getRawType().getTypeName())
                     && "java.lang.String".equals(parameterizedType.getActualTypeArguments()[0].getTypeName());
             }),
-            arguments("java.util.HashMap$Values-java.lang.String", (Predicate<Type>) type -> {
-                final Class<?> rawClass = TypeUtil.getRawClass(type);
-                return "java.util.HashMap$Values".equals(rawClass.getName());
-            })
+            arguments("java.util.HashMap$Values-java.lang.String", (Predicate<Type>) type ->
+                    "java.util.List<java.lang.String>".equals(type.getTypeName()))
         );
     }
 
@@ -380,6 +377,21 @@ class TypeUtilTest {
         assertEquals("io.arex.inst.runtime.util.TypeUtilTest$ChildClass-java.lang.String", name);
     }
 
+    @Test
+    void testNeedUseDefaultCollection() {
+        Type type = TypeUtil.forName("io.arex.inst.runtime.util.TypeUtilTest$FlightCollection-java.time.LocalDateTime");
+        assert type != null;
+        assertEquals("io.arex.inst.runtime.util.TypeUtilTest$FlightCollection", type.getTypeName());
+        type = TypeUtil.forName("com.google.common.collect.AbstractMapBasedMultimap$RandomAccessWrappedList-java.time.LocalDateTime");
+        assert type != null;
+        assertEquals("java.util.List<java.time.LocalDateTime>", type.getTypeName());
+        type = TypeUtil.forName("com.google.common.collect.AbstractMultiset$ElementSet-java.time.LocalDateTime");
+        assert type != null;
+        assertEquals("java.util.Set<java.time.LocalDateTime>", type.getTypeName());
+    }
+
+    public static class FlightCollection extends ArrayList<LocalDateTime> {
+    }
 
     static class SingleTypeMap<V> extends HashMap<Integer, V> {
     }

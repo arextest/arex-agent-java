@@ -14,8 +14,13 @@ class RunnableWrapperTest {
     void get() {
         assertNull(RunnableWrapper.get(null));
         TraceContextManager.set("mock");
-        assertNotNull(RunnableWrapper.get(new RunnableTest<>()));
-        assertNotNull(RunnableWrapper.get(() -> {}));
+        Runnable objectRunnable = RunnableWrapper.get(new RunnableTest<>());
+        assertNotNull(objectRunnable);
+        Runnable emptyRunnable = RunnableWrapper.get(() -> {});
+        assertDoesNotThrow(emptyRunnable::run);
+        assertNotNull(emptyRunnable.toString());
+        assertTrue(emptyRunnable.hashCode() > 0);
+        assertFalse(emptyRunnable.equals(objectRunnable));
         TraceContextManager.remove();
     }
 

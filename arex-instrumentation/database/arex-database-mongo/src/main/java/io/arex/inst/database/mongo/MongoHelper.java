@@ -37,10 +37,10 @@ public class MongoHelper {
         String parameter = Serializer.serialize(filter, GSON_SERIALIZER);
         final DatabaseExtractor extractor = new DatabaseExtractor(dbName, methodName, parameter, methodName);
         if (throwable != null) {
-            extractor.record(throwable, GSON_SERIALIZER);
+            extractor.recordDb(throwable, GSON_SERIALIZER);
             return;
         }
         Object actualResult = ResultWrapper.wrap(result);
-        extractor.record(actualResult, GSON_SERIALIZER);
+        extractor.recordDb(actualResult, GSON_SERIALIZER);
     }
 }

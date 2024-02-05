@@ -12,11 +12,16 @@ import static org.junit.jupiter.api.Assertions.*;
 class CallableWrapperTest {
 
     @Test
-    void get() {
+    void get() throws Exception {
         assertNull(CallableWrapper.get(null));
         TraceContextManager.set("mock");
-        assertNotNull(CallableWrapper.get(new CallableTest<>()));
-        assertNotNull(CallableWrapper.get(() -> "mock"));
+        Callable<Object> objectCallable = CallableWrapper.get(new CallableTest<>());
+        assertNotNull(objectCallable);
+        Callable<String> stringCallable = CallableWrapper.get(() -> "mock");
+        assertEquals("mock", stringCallable.call());
+        assertNotNull(stringCallable.toString());
+        assertTrue(stringCallable.hashCode() > 0);
+        assertFalse(stringCallable.equals(objectCallable));
         TraceContextManager.remove();
     }
 
