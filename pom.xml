@@ -64,7 +64,7 @@
         <slf4j.version>1.7.25</slf4j.version>
         <byte-buddy.version>1.14.9</byte-buddy.version>
         <maven-jar-plugin.version>3.0.2</maven-jar-plugin.version>
-        <maven-shade-plugin.version>3.2.1</maven-shade-plugin.version>
+        <maven-shade-plugin.version>3.5.1</maven-shade-plugin.version>
         <auto-service.version>1.0</auto-service.version>
         <enforcer.qBanDuplicateClasses.skip>true</enforcer.qBanDuplicateClasses.skip>
         <commons-lang3.version>3.7</commons-lang3.version>
