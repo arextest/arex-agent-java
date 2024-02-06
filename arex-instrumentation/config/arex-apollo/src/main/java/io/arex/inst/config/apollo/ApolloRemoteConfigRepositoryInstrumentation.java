@@ -41,9 +41,9 @@ public class ApolloRemoteConfigRepositoryInstrumentation extends TypeInstrumenta
          */
         @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class, suppress = Throwable.class)
         public static ApolloConfig onEnter(
-                @Advice.FieldValue("m_configCache") AtomicReference<ApolloConfig> configCache,
-                @Advice.FieldValue("m_namespace") String namespace,
-                @Advice.FieldValue("m_configUtil") ConfigUtil configUtil) {
+                @Advice.FieldValue("mConfigCache") AtomicReference<ApolloConfig> configCache,
+                @Advice.FieldValue("mNamespace") String namespace,
+                @Advice.FieldValue("mConfigUtil") ConfigUtil configUtil) {
             return ApolloConfigHelper.getReplayConfig(configCache.get(), namespace, configUtil);
         }
 

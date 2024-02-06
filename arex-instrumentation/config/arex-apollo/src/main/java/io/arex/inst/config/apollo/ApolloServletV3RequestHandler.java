@@ -26,7 +26,7 @@ public class ApolloServletV3RequestHandler implements RequestHandler<HttpServlet
         if (ApolloConfigChecker.unloadApollo()) {
             return;
         }
-        ApolloConfigHelper.initAndRecord(
+        ApolloConfigHelper.initAndReplay(
                 () -> request.getHeader(ArexConstants.RECORD_ID),
                 () -> request.getHeader(ArexConstants.CONFIG_DEPENDENCY));
     }

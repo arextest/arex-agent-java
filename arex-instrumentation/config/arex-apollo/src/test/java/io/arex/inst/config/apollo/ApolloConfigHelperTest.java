@@ -49,13 +49,13 @@ class ApolloConfigHelperTest {
     }
 
     @ParameterizedTest
-    @MethodSource("initAndRecordCase")
-    void initAndRecord(Supplier<String> recordIdSpl, Supplier<String> versionSpl, Assert asserts) {
-        ApolloConfigHelper.initAndRecord(recordIdSpl, versionSpl);
+    @MethodSource("initAndReplayCase")
+    void initAndReplay(Supplier<String> recordIdSpl, Supplier<String> versionSpl, Assert asserts) {
+        ApolloConfigHelper.initAndReplay(recordIdSpl, versionSpl);
         asserts.verity();
     }
 
-    static Stream<Arguments> initAndRecordCase() {
+    static Stream<Arguments> initAndReplayCase() {
         Supplier<String> emptySupplier = () -> "";
         Supplier<String> mockSpl = () -> "mock";
 

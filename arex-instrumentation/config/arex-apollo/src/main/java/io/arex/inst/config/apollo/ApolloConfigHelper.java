@@ -51,7 +51,7 @@ import java.util.function.Supplier;
 public class ApolloConfigHelper {
     private static Field configInstancesField;
 
-    public static void initAndRecord(Supplier<String> recordIdSpl, Supplier<String> versionSpl) {
+    public static void initAndReplay(Supplier<String> recordIdSpl, Supplier<String> versionSpl) {
         String recordId = recordIdSpl.get();
         if (StringUtil.isEmpty(recordId)) {
             return;
@@ -100,14 +100,14 @@ public class ApolloConfigHelper {
     private static Map<String, Config> getAllConfigInstance() {
         try {
             if (configInstancesField == null) {
-                configInstancesField = ConfigService.class.getDeclaredField("s_instance");
+                configInstancesField = ConfigService.class.getDeclaredField("sInstance");
                 configInstancesField.setAccessible(true);
             }
             Object configService = configInstancesField.get(null);
             Object managerInstance = ReflectUtil.getFieldOrInvokeMethod(() ->
-                    ConfigService.class.getDeclaredField("m_configManager"), configService);
+                    ConfigService.class.getDeclaredField("mConfigManager"), configService);
             Object configs = ReflectUtil.getFieldOrInvokeMethod(() ->
-                    DefaultConfigManager.class.getDeclaredField("m_configs"), managerInstance);
+                    DefaultConfigManager.class.getDeclaredField("mConfigs"), managerInstance);
             if (configs instanceof Map) {
                 return (Map<String, Config>) configs;
             }
@@ -119,7 +119,7 @@ public class ApolloConfigHelper {
 
     private static Properties getConfigProperties(Config config) throws Exception {
         Object configProperties = ReflectUtil.getFieldOrInvokeMethod(() ->
-                config.getClass().getDeclaredField("m_configProperties"), config);
+                config.getClass().getDeclaredField("mConfigProperties"), config);
         if (configProperties instanceof AtomicReference) {
             AtomicReference<Properties> properties = (AtomicReference<Properties>) configProperties;
             return properties.get();
@@ -153,11 +153,11 @@ public class ApolloConfigHelper {
 
     private static void triggerReplay(DefaultConfig config) throws Exception {
         Object repositoryObj = ReflectUtil.getFieldOrInvokeMethod(() ->
-                config.getClass().getDeclaredField("m_configRepository"), config);
+                config.getClass().getDeclaredField("mConfigRepository"), config);
         if (repositoryObj instanceof LocalFileConfigRepository) {
             LocalFileConfigRepository localRepository = (LocalFileConfigRepository) repositoryObj;
             Object remoteRepositoryObj = ReflectUtil.getFieldOrInvokeMethod(() ->
-                    localRepository.getClass().getDeclaredField("m_upstream"), localRepository);
+                    localRepository.getClass().getDeclaredField("mUpstream"), localRepository);
             if (remoteRepositoryObj instanceof RemoteConfigRepository) {
                 RemoteConfigRepository remoteRepository = (RemoteConfigRepository) remoteRepositoryObj;
                 // sync -> loadApolloConfig(by arex transformed)

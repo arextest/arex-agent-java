@@ -26,7 +26,7 @@ public class ApolloDubboRequestHandler implements RequestHandler<Map<String, Str
         if (ApolloConfigChecker.unloadApollo()) {
             return;
         }
-        ApolloConfigHelper.initAndRecord(
+        ApolloConfigHelper.initAndReplay(
                 () -> request.get(ArexConstants.RECORD_ID),
                 () -> request.get(ArexConstants.CONFIG_DEPENDENCY));
     }
