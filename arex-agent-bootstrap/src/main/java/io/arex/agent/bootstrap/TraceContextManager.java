@@ -2,7 +2,7 @@ package io.arex.agent.bootstrap;
 
 import io.arex.agent.bootstrap.ctx.ArexThreadLocal;
 
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 
 
 public class TraceContextManager {
@@ -10,7 +10,7 @@ public class TraceContextManager {
     private static IDGenerator idGenerator;
 
     public static void init(String ipAddress) {
-        idGenerator = new IDGenerator(ipAddress, idGenerator == null ? 0L : idGenerator.counter.get());
+        idGenerator = new IDGenerator(ipAddress, idGenerator == null ? 0L : idGenerator.counter);
     }
 
     public static String get() {
@@ -45,15 +45,17 @@ public class TraceContextManager {
 
     private static final class IDGenerator {
         private final String PREFIX;
-        private final AtomicLong counter;
+        private volatile long counter;
+        private static final AtomicLongFieldUpdater<IDGenerator> COUNTER_UPDATER =
+                AtomicLongFieldUpdater.newUpdater(IDGenerator.class, "counter");
 
         public IDGenerator(String prefix, long initialCount) {
             PREFIX = "AREX-" + (prefix == null ? "" : prefix.replace(".", "-")) + "-";
-            this.counter = new AtomicLong(initialCount);
+            this.counter = initialCount;
         }
 
         public String next() {
-            return PREFIX.concat(String.valueOf(getNowMillis())).concat(String.valueOf(counter.getAndIncrement()));
+            return PREFIX.concat(String.valueOf(getNowMillis())).concat(String.valueOf(COUNTER_UPDATER.getAndIncrement(this)));
         }
 
         private long getNowMillis() {
