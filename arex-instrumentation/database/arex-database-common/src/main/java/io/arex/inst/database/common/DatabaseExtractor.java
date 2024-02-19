@@ -18,7 +18,8 @@ public class DatabaseExtractor {
     private static final String[] SEARCH_LIST = new String[]{"\n", "\t"};
 
     private static final String[] REPLACE_LIST = new String[]{"", ""};
-    private static final String KEY_HOLDER_NAME = "keyHolder";
+    private static final String KEY_HOLDER = "keyHolder";
+    private static final String KEY_HOLDER_NAME = "keyHolderName";
     private static final String PAGE_NAME = "page";
 
     private final String sql;
@@ -29,11 +30,19 @@ public class DatabaseExtractor {
 
 
     public String getKeyHolder() {
-        return extendFields.get(KEY_HOLDER_NAME);
+        return extendFields.get(KEY_HOLDER);
     }
 
     public void setKeyHolder(String keyHolder) {
-        extendFields.put(KEY_HOLDER_NAME, keyHolder);
+        extendFields.put(KEY_HOLDER, keyHolder);
+    }
+
+    public void setKeyHolderName(String keyHolderName) {
+        extendFields.put(KEY_HOLDER_NAME, keyHolderName);
+    }
+
+    public String getKeyHolderName() {
+        return extendFields.get(KEY_HOLDER_NAME);
     }
 
     public String getPage() {
@@ -92,8 +101,9 @@ public class DatabaseExtractor {
 
             if (replayResult != null) {
                 // restore keyHolder
-                setKeyHolder(replayMocker.getTargetResponse().attributeAsString(KEY_HOLDER_NAME));
+                setKeyHolder(replayMocker.getTargetResponse().attributeAsString(KEY_HOLDER));
                 setPage(replayMocker.getTargetResponse().attributeAsString(PAGE_NAME));
+                setKeyHolderName(replayMocker.getTargetResponse().attributeAsString(KEY_HOLDER_NAME));
             }
         }
 
@@ -105,8 +115,9 @@ public class DatabaseExtractor {
         mocker.getTargetRequest().setBody(this.sql);
         mocker.getTargetRequest().setAttribute("dbName", this.dbName);
         mocker.getTargetRequest().setAttribute("parameters", this.parameters);
-        mocker.getTargetResponse().setAttribute(KEY_HOLDER_NAME, getKeyHolder());
-        mocker.getTargetResponse().setAttribute(PAGE_NAME, getPage());
+        for (Map.Entry<String, String> entry : extendFields.entrySet()) {
+            mocker.getTargetResponse().setAttribute(entry.getKey(), entry.getValue());
+        }
         mocker.getTargetResponse().setBody(Serializer.serialize(response, serializer));
         mocker.getTargetResponse().setType(TypeUtil.getName(response));
         return mocker;
