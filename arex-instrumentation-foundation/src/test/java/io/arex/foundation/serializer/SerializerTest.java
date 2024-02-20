@@ -3,6 +3,7 @@ package io.arex.foundation.serializer;
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.arex.agent.bootstrap.util.CollectionUtil;
+import io.arex.foundation.serializer.jackson.JacksonSerializer;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.util.TypeUtil;
 import java.time.LocalDate;

@@ -3,6 +3,7 @@ package io.arex.inst.database.common;
 import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.serializer.Serializer;
 
 import io.arex.inst.runtime.util.IgnoreUtils;
@@ -59,7 +60,7 @@ public class DatabaseExtractor {
 
     // hibernate
     public DatabaseExtractor(String sql, Object entity, String methodName) {
-        this(sql, Serializer.serialize(entity), methodName);
+        this(sql, Serializer.serialize(entity, ArexConstants.JACKSON_REQUEST_SERIALIZER), methodName);
     }
 
     public DatabaseExtractor(String sql, String parameters, String methodName) {

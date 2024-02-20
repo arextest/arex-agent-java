@@ -7,6 +7,7 @@ import java.lang.reflect.Parameter;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.serializer.Serializer;
 import org.springframework.core.DefaultParameterNameDiscoverer;
 import org.springframework.core.ParameterNameDiscoverer;
@@ -55,7 +56,7 @@ public class ExpressionParseUtil {
             if (expressionValue instanceof String) {
                 return (String) expressionValue;
             }
-            return Serializer.serialize(expressionValue);
+            return Serializer.serialize(expressionValue, ArexConstants.JACKSON_REQUEST_SERIALIZER);
         } catch (Exception e) {
             return null;
         }

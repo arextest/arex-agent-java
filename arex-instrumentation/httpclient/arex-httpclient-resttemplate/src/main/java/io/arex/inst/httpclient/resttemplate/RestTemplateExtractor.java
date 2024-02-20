@@ -1,5 +1,6 @@
 package io.arex.inst.httpclient.resttemplate;
 
+import static io.arex.inst.runtime.model.ArexConstants.GSON_REQUEST_SERIALIZER;
 import static io.arex.inst.runtime.model.ArexConstants.GSON_SERIALIZER;
 
 import io.arex.agent.bootstrap.model.ArexMocker;
@@ -26,7 +27,7 @@ public class RestTemplateExtractor {
     public RestTemplateExtractor(URI uri, HttpMethod httpMethod, RequestCallback requestCallback) {
         this.uri = uri;
         this.httpMethod = httpMethod;
-        this.request = Serializer.serialize(requestCallback, GSON_SERIALIZER);
+        this.request = Serializer.serialize(requestCallback, GSON_REQUEST_SERIALIZER);
     }
 
     public void record(Object response, Throwable throwable) {

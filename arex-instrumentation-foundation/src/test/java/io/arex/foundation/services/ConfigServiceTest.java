@@ -16,7 +16,7 @@ import io.arex.foundation.model.ConfigQueryResponse;
 import io.arex.foundation.model.ConfigQueryResponse.ResponseBody;
 import io.arex.foundation.model.ConfigQueryResponse.ServiceCollectConfig;
 import io.arex.foundation.model.HttpClientResponse;
-import io.arex.foundation.serializer.JacksonSerializer;
+import io.arex.foundation.serializer.jackson.JacksonSerializer;
 import io.arex.foundation.util.NetUtils;
 import io.arex.foundation.util.httpclient.AsyncHttpClientUtil;
 import java.time.DayOfWeek;

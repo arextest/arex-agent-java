@@ -1,5 +1,6 @@
 package io.arex.inst.database.common;
 
+import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.serializer.Serializer;
 import org.hibernate.engine.spi.QueryParameters;
 import org.hibernate.engine.spi.TypedValue;
@@ -21,6 +22,7 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 
 @ExtendWith(MockitoExtension.class)
 class DatabaseHelperTest {
@@ -50,7 +52,7 @@ class DatabaseHelperTest {
         parameters.put("key", Mockito.mock(TypedValue.class));
         Mockito.when(queryParameters2.getNamedParameters()).thenReturn(parameters);
 
-        Mockito.when(Serializer.serialize(any())).thenReturn("mock Serializer.serialize");
+        Mockito.when(Serializer.serialize(any(), eq(ArexConstants.JACKSON_REQUEST_SERIALIZER))).thenReturn("mock Serializer.serialize");
 
         Predicate<String> predicate1 = Objects::isNull;
         Predicate<String> predicate2 = Objects::nonNull;

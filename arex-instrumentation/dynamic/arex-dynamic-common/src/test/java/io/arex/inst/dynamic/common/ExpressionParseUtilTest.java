@@ -7,6 +7,7 @@ import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.serializer.Serializer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -20,6 +21,7 @@ class ExpressionParseUtilTest {
     static void setUp() {
         Mockito.mockStatic(Serializer.class);
         Mockito.when(Serializer.serialize(Mockito.any())).thenReturn("mock");
+        Mockito.when(Serializer.serialize(Mockito.any(), Mockito.eq(ArexConstants.JACKSON_REQUEST_SERIALIZER))).thenReturn("mock");
     }
 
     @AfterAll

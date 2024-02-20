@@ -52,7 +52,8 @@ public class DubboAdapter extends AbstractAdapter {
         if (StringUtil.isNotEmpty(originalRequest)) {
             return originalRequest;
         }
-        return parseRequest(invocation.getArguments(), Serializer::serialize);
+        return parseRequest(invocation.getArguments(),
+                request -> Serializer.serialize(request, ArexConstants.JACKSON_REQUEST_SERIALIZER));
     }
     /**
      * for dubbo generic invoke
