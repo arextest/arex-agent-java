@@ -183,11 +183,16 @@ public class InternalExecutor {
             return StringUtil.split(extractor.getKeyHolderName(), KEYHOLDER_SEPARATOR);
         }
 
-        if (o instanceof ParamMap) {
-            return transformerProperties(ms.getKeyProperties());
+        String[] keyProperties = ms.getKeyProperties();
+        if (ArrayUtils.isEmpty(keyProperties)) {
+            return StringUtil.EMPTY_STRING_ARRAY;
         }
 
-        return ms.getKeyProperties();
+        if (o instanceof ParamMap) {
+            return transformerProperties(keyProperties);
+        }
+
+        return keyProperties;
     }
 
     private static String[] transformerProperties(String[] keyProperties) {
