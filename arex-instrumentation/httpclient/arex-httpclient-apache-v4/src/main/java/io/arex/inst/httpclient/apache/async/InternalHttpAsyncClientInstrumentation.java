@@ -6,14 +6,16 @@ import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.context.RepeatedCollectManager;
 import io.arex.inst.extension.MethodInstrumentation;
 import io.arex.inst.extension.TypeInstrumentation;
+import java.io.IOException;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
-import org.apache.http.HttpRequest;
+import org.apache.http.HttpException;
 import org.apache.http.concurrent.FutureCallback;
 
 import java.util.List;
 import java.util.concurrent.Future;
+import org.apache.http.nio.protocol.HttpAsyncRequestProducer;
 
 import static java.util.Collections.singletonList;
 import static net.bytebuddy.matcher.ElementMatchers.isMethod;
@@ -25,7 +27,7 @@ public class InternalHttpAsyncClientInstrumentation extends TypeInstrumentation 
 
     @Override
     public ElementMatcher<TypeDescription> typeMatcher() {
-        return named("org.apache.http.impl.nio.client.CloseableHttpAsyncClient");
+        return named("org.apache.http.impl.nio.client.InternalHttpAsyncClient");
     }
 
     @Override
@@ -33,8 +35,8 @@ public class InternalHttpAsyncClientInstrumentation extends TypeInstrumentation 
         return singletonList(new MethodInstrumentation(
                 isMethod().and(named("execute"))
                         .and(takesArguments(4))
-                        .and(takesArgument(0, named("org.apache.http.HttpHost")))
-                        .and(takesArgument(1, named("org.apache.http.HttpRequest")))
+                        .and(takesArgument(0, named("org.apache.http.nio.protocol.HttpAsyncRequestProducer")))
+                        .and(takesArgument(1, named("org.apache.http.nio.protocol.HttpAsyncResponseConsumer")))
                         .and(takesArgument(2, named("org.apache.http.protocol.HttpContext")))
                         .and(takesArgument(3, named("org.apache.http.concurrent.FutureCallback"))),
                 this.getClass().getName() + "$ExecuteAdvice"));
@@ -43,17 +45,17 @@ public class InternalHttpAsyncClientInstrumentation extends TypeInstrumentation 
     @SuppressWarnings("unused")
     public static class ExecuteAdvice {
         @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class, suppress = Throwable.class)
-        public static boolean onEnter(@Advice.Argument(1) HttpRequest httpRequest,
+        public static boolean onEnter(@Advice.Argument(0) HttpAsyncRequestProducer producer,
             @Advice.Argument(value = 3, readOnly = false) FutureCallback<?> callback,
-            @Advice.Local("mockResult") MockResult mockResult) {
-            if (ApacheHttpClientHelper.ignoreRequest(httpRequest)) {
+            @Advice.Local("mockResult") MockResult mockResult) throws HttpException, IOException {
+            if (ApacheHttpClientHelper.ignoreRequest(producer.generateRequest())) {
                 // for transmit trace context
                 callback = FutureCallbackWrapper.wrap(callback);
                 return false;
             }
 
             if (ContextManager.needRecordOrReplay() && RepeatedCollectManager.validate()) {
-                FutureCallback<?> callbackWrapper = FutureCallbackWrapper.wrap(httpRequest, callback);
+                FutureCallback<?> callbackWrapper = FutureCallbackWrapper.wrap(producer.generateRequest(), callback);
                 if (callbackWrapper != null) {
                     if (ContextManager.needRecord()) {
                         // recording works in callback wrapper

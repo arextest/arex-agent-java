@@ -169,13 +169,13 @@ public class ApacheHttpClientAdapter implements HttpClientAdapter<HttpRequest, H
         return userAgent != null && userAgent.contains("arex");
     }
 
-    private void wrapHttpEntity(HttpRequest httpRequest) {
+    public static void wrapHttpEntity(HttpRequest httpRequest) {
         HttpEntityEnclosingRequest enclosingRequest = enclosingRequest(httpRequest);
         if (enclosingRequest == null) {
             return;
         }
         HttpEntity entity = enclosingRequest.getEntity();
-        if (entity == null || entity.isRepeatable()) {
+        if (entity == null || entity.isRepeatable() || entity instanceof CachedHttpEntityWrapper) {
             return;
         }
         try {
@@ -185,7 +185,7 @@ public class ApacheHttpClientAdapter implements HttpClientAdapter<HttpRequest, H
         }
     }
 
-    private HttpEntityEnclosingRequest enclosingRequest(HttpRequest httpRequest) {
+    private static HttpEntityEnclosingRequest enclosingRequest(HttpRequest httpRequest) {
         if (httpRequest instanceof HttpEntityEnclosingRequest) {
             return (HttpEntityEnclosingRequest) httpRequest;
         }
