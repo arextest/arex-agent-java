@@ -12,6 +12,7 @@ import static org.mockito.Mockito.mockStatic;
 import io.arex.foundation.config.ConfigManager;
 import io.arex.foundation.model.AgentStatusEnum;
 import io.arex.foundation.model.AgentStatusRequest;
+import io.arex.foundation.model.ConfigQueryRequest;
 import io.arex.foundation.model.ConfigQueryResponse;
 import io.arex.foundation.model.ConfigQueryResponse.ResponseBody;
 import io.arex.foundation.model.ConfigQueryResponse.ServiceCollectConfig;
@@ -26,19 +27,28 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.mockito.MockedStatic;
 
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class ConfigServiceTest {
 
     @BeforeEach
     void setUp() {
+        System.setProperty("arex.another.property", "test");
+        System.setProperty("arex.tags.env", "fat");
     }
 
     @AfterEach
     void tearDown() {
+        System.clearProperty("arex.another.property");
+        System.clearProperty("arex.tags.env");
     }
 
+    @Order(1)
     @Test
     void loadAgentConfig() throws Throwable {
         long DELAY_MINUTES = 15L;
@@ -206,5 +216,12 @@ class ConfigServiceTest {
 
             ConfigService.INSTANCE.shutdown();
         }
+    }
+
+    @Test
+    void buildConfigQueryRequest() {
+        ConfigQueryRequest request = ConfigService.INSTANCE.buildConfigQueryRequest();
+        assertEquals("fat", request.getSystemProperties().get("arex.tags.env"));
+        assertEquals(1, request.getSystemProperties().size());
     }
 }
