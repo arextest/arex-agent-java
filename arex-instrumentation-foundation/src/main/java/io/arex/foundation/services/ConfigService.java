@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 public class ConfigService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConfigService.class);
+    private static final Map<String, String> TAGS_PROPERTIES = new HashMap<>();
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     public static final ConfigService INSTANCE = new ConfigService();
@@ -110,6 +111,8 @@ public class ConfigService {
         if (AgentStatusEnum.START == agentStatus) {
             request.setSystemProperties(getSystemProperties());
             request.setSystemEnv(new HashMap<>(System.getenv()));
+        } else {
+            request.setSystemProperties(TAGS_PROPERTIES);
         }
         request.setAgentStatus(agentStatus.name());
         return request;
@@ -152,6 +155,7 @@ public class ConfigService {
      */
     private void buildTags(String key, String value) {
         if (StringUtil.startWith(key, TAGS_PREFIX)) {
+            TAGS_PROPERTIES.put(key, value);
             ArexMocker.TAGS.put(key.substring(TAGS_PREFIX.length()), value);
         }
     }
