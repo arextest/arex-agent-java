@@ -60,34 +60,32 @@ class BaseAgentInstallerTest {
     void install() throws Throwable {
         Mockito.when(AdviceInjectorCache.contains(any())).thenReturn(true);
         try (MockedStatic<AsyncHttpClientUtil> ahc = mockStatic(AsyncHttpClientUtil.class);
-            MockedStatic<NetUtils> netUtils = mockStatic(NetUtils.class);
             MockedConstruction<AdviceClassesCollector> ignored = Mockito.mockConstruction(
             AdviceClassesCollector.class, (mock, context) -> {
                 Mockito.verify(mock, Mockito.times(1)).addClassToLoaderSearch(JacksonSerializer.class);
             })) {
 
             // allow start agent = false
-            netUtils.when(NetUtils::getIpAddress).thenReturn("127.0.0.1");
-            ahc.when(() -> AsyncHttpClientUtil.postAsyncWithJson(anyString(), anyString(), any())).thenReturn(
-                CompletableFuture.completedFuture(HttpClientResponse.emptyResponse()));
-
-            ConfigManager.INSTANCE.setEnableDebug("true");
-            assertDoesNotThrow(installer::install);
-
-            // first transform class, allow start agent = true
-            netUtils.when(NetUtils::getIpAddress).thenReturn("127.0.0.1");
             ConfigQueryResponse configQueryResponse = new ConfigQueryResponse();
             ServiceCollectConfig serviceCollectConfig = new ServiceCollectConfig();
             serviceCollectConfig.setAllowDayOfWeeks(127);
             serviceCollectConfig.setAllowTimeOfDayFrom("00:00");
             serviceCollectConfig.setAllowTimeOfDayTo("23:59");
             serviceCollectConfig.setSampleRate(1);
-
             ResponseBody responseBody = new ResponseBody();
-            responseBody.setTargetAddress("127.0.0.1");
+            responseBody.setAgentEnabled(false);
             responseBody.setServiceCollectConfiguration(serviceCollectConfig);
             configQueryResponse.setBody(responseBody);
             CompletableFuture<HttpClientResponse> response = CompletableFuture.completedFuture(new HttpClientResponse(200, null, JacksonSerializer.INSTANCE.serialize(configQueryResponse)));
+            ahc.when(() -> AsyncHttpClientUtil.postAsyncWithJson(anyString(), anyString(), any())).thenReturn(response);
+
+            ConfigManager.INSTANCE.setEnableDebug("false");
+            assertDoesNotThrow(installer::install);
+
+            // first transform class, allow start agent = true
+            responseBody.setAgentEnabled(true);
+            configQueryResponse.setBody(responseBody);
+            response = CompletableFuture.completedFuture(new HttpClientResponse(200, null, JacksonSerializer.INSTANCE.serialize(configQueryResponse)));
             ahc.when(() -> AsyncHttpClientUtil.postAsyncWithJson(anyString(), anyString(), eq(null))).thenReturn(response);
             assertDoesNotThrow(installer::install);
 
@@ -100,29 +98,18 @@ class BaseAgentInstallerTest {
     void allowStartAgent() {
         ConfigManager.INSTANCE.setStorageServiceMode(ConfigConstants.STORAGE_MODE);
         assertTrue(installer.allowStartAgent());
-
-        try (MockedStatic<NetUtils> netUtils = mockStatic(NetUtils.class)) {
-            netUtils.when(NetUtils::getIpAddress).thenReturn("172.0.0.3");
-
-            ConfigManager.INSTANCE.setStorageServiceMode("not " + ConfigConstants.STORAGE_MODE);
-            ConfigManager.INSTANCE.setTargetAddress("172.0.0.1");
-
-            assertFalse(installer.allowStartAgent());
-        }
+        ConfigManager.INSTANCE.setStorageServiceMode("not " + ConfigConstants.STORAGE_MODE);
+        ConfigManager.INSTANCE.setAgentEnabled(false);
+        assertFalse(installer.allowStartAgent());
     }
 
     @Test
     void getInvalidReason() {
-        try (MockedStatic<NetUtils> netUtils = mockStatic(NetUtils.class)) {
-            netUtils.when(NetUtils::getIpAddress).thenReturn("172.0.0.3");
-
-            ConfigManager.INSTANCE.setTargetAddress("172.0.0.1");
-
-            assertEquals("response [targetAddress] is not match", installer.getInvalidReason());
-
-            // checkTargetAddress = true
-            ConfigManager.INSTANCE.setTargetAddress("172.0.0.3");
-            assertEquals("invalid config", installer.getInvalidReason());
-        }
+        ConfigManager.INSTANCE.setAgentEnabled(false);
+        ConfigManager.INSTANCE.setMessage("127.0.0.1 is not active ip");
+        assertEquals("127.0.0.1 is not active ip", installer.getInvalidReason());
+        // checkTargetAddress = true
+        ConfigManager.INSTANCE.setAgentEnabled(true);
+        assertEquals("invalid config", installer.getInvalidReason());
     }
 }
