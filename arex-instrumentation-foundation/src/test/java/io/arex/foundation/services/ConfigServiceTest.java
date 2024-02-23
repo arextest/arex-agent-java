@@ -62,8 +62,7 @@ class ConfigServiceTest {
 
         ConfigManager.INSTANCE.setServiceName("config-test");
         ConfigManager.INSTANCE.setStorageServiceMode("mock-not-local");
-        try (MockedStatic<AsyncHttpClientUtil> ahc = mockStatic(AsyncHttpClientUtil.class);
-            MockedStatic<NetUtils> netUtils = mockStatic(NetUtils.class)){
+        try (MockedStatic<AsyncHttpClientUtil> ahc = mockStatic(AsyncHttpClientUtil.class)){
             // response has error
             CompletableFuture<HttpClientResponse> errorFuture = new CompletableFuture<>();
             errorFuture.completeExceptionally(new RuntimeException("mock error"));
@@ -81,7 +80,6 @@ class ConfigServiceTest {
             assertEquals(AgentStatusEnum.UN_START, ConfigService.INSTANCE.getAgentStatus());
 
             // clientResponse body is null
-            netUtils.when(NetUtils::getIpAddress).thenReturn("127.0.0.3");
             ahc.when(() -> AsyncHttpClientUtil.postAsyncWithJson(anyString(), anyString(), eq(null))).thenReturn(
                 CompletableFuture.completedFuture(HttpClientResponse.emptyResponse()));
             assertEquals(DELAY_MINUTES, ConfigService.INSTANCE.loadAgentConfig(null));
@@ -91,7 +89,6 @@ class ConfigServiceTest {
 
             // configResponse body serviceCollectConfiguration is null
             ConfigQueryResponse configQueryResponse = new ConfigQueryResponse();
-            netUtils.when(NetUtils::getIpAddress).thenReturn("127.0.0.3");
             ahc.when(() -> AsyncHttpClientUtil.postAsyncWithJson(anyString(), anyString(), eq(null))).thenReturn(
                 CompletableFuture.completedFuture(new HttpClientResponse(200, null, JacksonSerializer.INSTANCE.serialize(configQueryResponse))));
             assertEquals(DELAY_MINUTES, ConfigService.INSTANCE.loadAgentConfig(null));
@@ -100,7 +97,6 @@ class ConfigServiceTest {
             assertEquals(AgentStatusEnum.UN_START, ConfigService.INSTANCE.getAgentStatus());
 
             // valid response, agentStatus=WORKING
-            netUtils.when(NetUtils::getIpAddress).thenReturn("127.0.0.1");
             ServiceCollectConfig serviceCollectConfig = new ServiceCollectConfig();
             serviceCollectConfig.setAllowDayOfWeeks(127);
             serviceCollectConfig.setAllowTimeOfDayFrom("00:00");
@@ -108,7 +104,7 @@ class ConfigServiceTest {
             serviceCollectConfig.setSampleRate(1);
 
             ResponseBody responseBody = new ResponseBody();
-            responseBody.setTargetAddress("127.0.0.1");
+            responseBody.setAgentEnabled(true);
             responseBody.setServiceCollectConfiguration(serviceCollectConfig);
             configQueryResponse.setBody(responseBody);
             CompletableFuture<HttpClientResponse> response = CompletableFuture.completedFuture(new HttpClientResponse(200, null, JacksonSerializer.INSTANCE.serialize(configQueryResponse)));
@@ -153,9 +149,7 @@ class ConfigServiceTest {
 
     @Test
     void reportStatus() {
-        try (MockedStatic<AsyncHttpClientUtil> ahc = mockStatic(AsyncHttpClientUtil.class);
-            MockedStatic<NetUtils> netUtils = mockStatic(NetUtils.class)){
-            netUtils.when(NetUtils::getIpAddress).thenReturn("127.0.0.1");
+        try (MockedStatic<AsyncHttpClientUtil> ahc = mockStatic(AsyncHttpClientUtil.class)){
             // response has error
             CompletableFuture<HttpClientResponse> errorFuture = new CompletableFuture<>();
             errorFuture.completeExceptionally(new RuntimeException("mock error"));
@@ -201,9 +195,7 @@ class ConfigServiceTest {
 
     @Test
     void shutdown() {
-        try (MockedStatic<AsyncHttpClientUtil> ahc = mockStatic(AsyncHttpClientUtil.class);
-            MockedStatic<NetUtils> netUtils = mockStatic(NetUtils.class)){
-            netUtils.when(NetUtils::getIpAddress).thenReturn("127.0.0.1");
+        try (MockedStatic<AsyncHttpClientUtil> ahc = mockStatic(AsyncHttpClientUtil.class)){
             Map<String, String> responseHeaders = new HashMap<>();
             responseHeaders.put("Last-Modified2", "Thu, 01 Jan 1970 00:00:00 GMT");
             ahc.when(() -> AsyncHttpClientUtil.postAsyncWithJson(anyString(), anyString(), anyMap())).thenReturn(
