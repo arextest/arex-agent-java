@@ -59,8 +59,9 @@ public class ConfigQueryResponse {
 
         private ServiceCollectConfig serviceCollectConfiguration;
         private int status;
+        private String message;
         private List<DynamicClassConfiguration> dynamicClassConfigurationList;
-        private String targetAddress;
+        private boolean agentEnabled;
         private Map<String, String> extendField;
 
         public ServiceCollectConfig getServiceCollectConfiguration() {
@@ -89,12 +90,20 @@ public class ConfigQueryResponse {
             this.dynamicClassConfigurationList = dynamicClassConfigurationList;
         }
 
-        public String getTargetAddress() {
-            return targetAddress;
+        public boolean isAgentEnabled() {
+            return agentEnabled;
         }
 
-        public void setTargetAddress(String targetAddress) {
-            this.targetAddress = targetAddress;
+        public void setAgentEnabled(boolean agentEnabled) {
+            this.agentEnabled = agentEnabled;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+
+        public void setMessage(String message) {
+            this.message = message;
         }
 
         public Map<String, String> getExtendField() {

@@ -1,6 +1,7 @@
 package io.arex.foundation.config;
 
 import io.arex.agent.bootstrap.constants.ConfigConstants;
+import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.foundation.model.ConfigQueryResponse;
 import io.arex.foundation.model.ConfigQueryResponse.DynamicClassConfiguration;
 import io.arex.inst.runtime.model.ArexConstants;
@@ -99,6 +100,15 @@ class ConfigManagerTest {
         serviceConfig.setExtendField(extendField);
         configManager.updateConfigFromService(serviceConfig);
         assertNull(serviceConfig.getDynamicClassConfigurationList());
+        assertTrue(StringUtil.isEmpty(configManager.getMessage()));
+        assertFalse(configManager.isAgentEnabled());
+
+        // set agent enabled and message
+        serviceConfig.setAgentEnabled(true);
+        serviceConfig.setMessage("test message");
+        configManager.updateConfigFromService(serviceConfig);
+        assertTrue(configManager.isAgentEnabled());
+        assertEquals("test message", configManager.getMessage());
     }
 
     @Test

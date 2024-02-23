@@ -8,7 +8,6 @@ import io.arex.foundation.model.ConfigQueryResponse.DynamicClassConfiguration;
 import io.arex.foundation.model.ConfigQueryResponse.ResponseBody;
 import io.arex.foundation.model.ConfigQueryResponse.ServiceCollectConfig;
 import io.arex.agent.bootstrap.util.CollectionUtil;
-import io.arex.foundation.util.NetUtils;
 import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.config.ConfigBuilder;
 import io.arex.inst.runtime.config.listener.ConfigListener;
@@ -57,7 +56,8 @@ public class ConfigManager {
     private List<String> disabledModules;
     private List<String> retransformModules;
     private Set<String> excludeServiceOperations;
-    private String targetAddress;
+    private boolean agentEnabled;
+    private String message;
     private int dubboStreamReplayThreshold;
     private List<ConfigListener> listeners = new ArrayList<>();
     private Map<String, String> extendField;
@@ -349,8 +349,9 @@ public class ConfigManager {
         setAllowTimeOfDayTo(config.getAllowTimeOfDayTo());
         setDynamicClassList(serviceConfig.getDynamicClassConfigurationList());
         setExcludeServiceOperations(config.getExcludeServiceOperationSet());
-        setTargetAddress(serviceConfig.getTargetAddress());
+        setAgentEnabled(serviceConfig.isAgentEnabled());
         setExtendField(serviceConfig.getExtendField());
+        setMessage(serviceConfig.getMessage());
 
         updateRuntimeConfig();
     }
@@ -362,7 +363,7 @@ public class ConfigManager {
         configMap.put(DISABLE_RECORD, System.getProperty(DISABLE_RECORD));
         configMap.put(DURING_WORK, Boolean.toString(inWorkingTime()));
         configMap.put(AGENT_VERSION, agentVersion);
-        configMap.put(IP_VALIDATE, Boolean.toString(checkTargetAddress()));
+        configMap.put(AGENT_ENABLED, Boolean.toString(agentEnabled));
         configMap.put(STORAGE_SERVICE_MODE, storageServiceMode);
         Map<String, String> extendFieldMap = getExtendField();
         if (MapUtils.isNotEmpty(extendFieldMap)) {
@@ -546,18 +547,20 @@ public class ConfigManager {
         return excludeServiceOperations;
     }
 
-    public void setTargetAddress(String targetAddress) {
-        this.targetAddress = targetAddress;
+    public boolean isAgentEnabled() {
+        return agentEnabled;
     }
 
-    public boolean checkTargetAddress() {
-        String localHost = NetUtils.getIpAddress();
-        // Compatible containers can't get IPAddress
-        if (StringUtil.isEmpty(localHost)) {
-            return true;
-        }
+    public void setAgentEnabled(boolean agentEnabled) {
+        this.agentEnabled = agentEnabled;
+    }
 
-        return localHost.equals(targetAddress);
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
     }
 
     public void setDubboStreamReplayThreshold(String dubboStreamReplayThreshold) {
