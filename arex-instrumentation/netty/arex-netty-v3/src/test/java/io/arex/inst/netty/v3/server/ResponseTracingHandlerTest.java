@@ -63,7 +63,7 @@ class ResponseTracingHandlerTest {
 
     @ParameterizedTest
     @MethodSource("writeRequestedCase")
-    void writeRequested(Runnable mocker, MessageEvent event) {
+    void writeRequested(Runnable mocker, MessageEvent event) throws Exception {
         mocker.run();
         target.writeRequested(ctx, event);
         verify(ctx, atLeastOnce()).sendDownstream(any());

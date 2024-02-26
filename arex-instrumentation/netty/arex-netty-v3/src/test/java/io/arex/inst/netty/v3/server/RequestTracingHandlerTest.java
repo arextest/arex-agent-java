@@ -64,7 +64,7 @@ class RequestTracingHandlerTest {
 
     @ParameterizedTest
     @MethodSource("channelReadCase")
-    void channelRead(Runnable mocker, MessageEvent event) {
+    void channelRead(Runnable mocker, MessageEvent event) throws Exception {
         mocker.run();
         target.messageReceived(ctx, event);
         verify(ctx, atLeastOnce()).sendUpstream(any());
@@ -122,7 +122,7 @@ class RequestTracingHandlerTest {
 
     @ParameterizedTest
     @MethodSource("writeCompleteCase")
-    void writeComplete(Runnable mocker, Assert asserts) {
+    void writeComplete(Runnable mocker, Assert asserts) throws Exception {
         mocker.run();
         target.writeComplete(ctx, null);
         asserts.verity();

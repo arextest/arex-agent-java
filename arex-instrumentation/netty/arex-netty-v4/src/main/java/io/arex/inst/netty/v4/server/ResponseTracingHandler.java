@@ -18,9 +18,9 @@ import java.util.Map;
 public class ResponseTracingHandler extends ChannelOutboundHandlerAdapter {
 
     @Override
-    public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
+    public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
         if (!ContextManager.needRecordOrReplay()) {
-            ctx.write(msg, promise);
+            super.write(ctx, msg, promise);
             return;
         }
 
@@ -47,7 +47,7 @@ public class ResponseTracingHandler extends ChannelOutboundHandlerAdapter {
         } catch (Throwable e) {
             LogManager.warn("netty write error", e);
         } finally {
-            ctx.write(msg, promise);
+            super.write(ctx, msg, promise);
         }
     }
 
