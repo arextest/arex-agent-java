@@ -8,6 +8,7 @@ import io.arex.inst.database.mongo.wrapper.ResultWrapper;
 import io.arex.inst.runtime.serializer.Serializer;
 import org.bson.Document;
 
+import static io.arex.inst.runtime.model.ArexConstants.GSON_REQUEST_SERIALIZER;
 import static io.arex.inst.runtime.model.ArexConstants.GSON_SERIALIZER;
 
 /**
@@ -22,7 +23,7 @@ public class MongoHelper {
     }
     public static MockResult replay(String methodName, MongoNamespace namespace, Object filter) {
         String dbName = namespace.getFullName();
-        String parameter = Serializer.serialize(filter, GSON_SERIALIZER);
+        String parameter = Serializer.serialize(filter, GSON_REQUEST_SERIALIZER);
         final DatabaseExtractor extractor = new DatabaseExtractor(dbName, methodName, parameter, methodName);
         final MockResult mockResult = extractor.replay(GSON_SERIALIZER);
 
@@ -34,7 +35,7 @@ public class MongoHelper {
     }
     public static void record(String methodName, MongoNamespace namespace, Object filter, Object result, Throwable throwable) {
         String dbName = namespace.getFullName();
-        String parameter = Serializer.serialize(filter, GSON_SERIALIZER);
+        String parameter = Serializer.serialize(filter, GSON_REQUEST_SERIALIZER);
         final DatabaseExtractor extractor = new DatabaseExtractor(dbName, methodName, parameter, methodName);
         if (throwable != null) {
             extractor.recordDb(throwable, GSON_SERIALIZER);

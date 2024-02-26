@@ -43,10 +43,10 @@ public class ServiceLoader {
     /**
      * @param entryName ex: entryName: META-INF/services/io.arex.inst.runtime.serializer.StringSerializable
      * @param jarEntry  ex: jarEntry content:
-     *                 io.arex.foundation.serializer.GsonSerializer
-     *                 io.arex.foundation.serializer.JacksonSerializer
+     *                 io.arex.foundation.serializer.gson.GsonSerializer
+     *                 io.arex.foundation.serializer.jackson.JacksonSerializer
      * SERVICE_CACHE: key: io.arex.inst.runtime.serializer.StringSerializable
-     *                value: [io.arex.foundation.serializer.GsonSerializer, io.arex.foundation.serializer.JacksonSerializer]
+     *                value: [io.arex.foundation.serializer.gson.GsonSerializer, io.arex.foundation.serializer.jackson.JacksonSerializer]
      */
     public static void buildCache(File file, JarEntry jarEntry, String entryName) {
         try(JarFile jarFile = new JarFile(file);

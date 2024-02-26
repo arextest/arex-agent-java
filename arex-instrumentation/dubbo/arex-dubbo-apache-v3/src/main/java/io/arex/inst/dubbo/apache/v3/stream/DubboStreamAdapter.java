@@ -6,6 +6,7 @@ import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.inst.dubbo.common.AbstractAdapter;
 import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.ContextManager;
+import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.util.MockUtils;
 import io.arex.inst.runtime.util.TypeUtil;
@@ -86,7 +87,7 @@ public class DubboStreamAdapter {
     }
 
     public String getRequest(Object request) {
-        return AbstractAdapter.parseRequest(request, Serializer::serialize);
+        return AbstractAdapter.parseRequest(request, req -> Serializer.serialize(req, ArexConstants.JACKSON_REQUEST_SERIALIZER));
     }
 
     public String getRequestParamType(Object request) {

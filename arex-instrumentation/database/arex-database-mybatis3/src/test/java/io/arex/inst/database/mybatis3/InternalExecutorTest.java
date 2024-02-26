@@ -12,6 +12,7 @@ import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.agent.bootstrap.model.Mocker.Target;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.database.common.DatabaseExtractor;
+import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.util.MockUtils;
@@ -19,6 +20,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
@@ -184,5 +186,92 @@ class InternalExecutorTest {
         restorePage.invoke(null, mockExtractor, paramMap);
         assertEquals(10, originalPage.getTotal());
         assertEquals(10, ((IPage)paramMap.get("page")).getTotal());
+    }
+
+    @Test
+    void testSaveKeyHolder() {
+        ArexContext arexContext = Mockito.mock(ArexContext.class);
+        DatabaseExtractor extractor1 = Mockito.mock(DatabaseExtractor.class);
+        MappedStatement mappedStatement1 = Mockito.mock(MappedStatement.class);
+        // null context
+        Mockito.when(ContextManager.currentContext()).thenReturn(null);
+        Entity parameterObject = new Entity();
+        target.record(extractor1, mappedStatement1, parameterObject, 1, null);
+        Mockito.verify(extractor1, Mockito.never()).setKeyHolder(any());
+
+        // context not keyHolder, ms has keyProperties but no value
+        Mockito.when(ContextManager.currentContext()).thenReturn(arexContext);
+        Mockito.when(arexContext.getAttachment(String.valueOf(mappedStatement1.hashCode()))).thenReturn(null);
+        Mockito.when(mappedStatement1.getKeyProperties()).thenReturn(new String[]{"id"});
+        target.record(extractor1, mappedStatement1, parameterObject, 1, null);
+        Mockito.verify(extractor1, Mockito.times(1)).setKeyHolder("");
+
+        parameterObject.setId("100120");
+        parameterObject.setName("name");
+        // context single keyHolder
+        Mockito.when(arexContext.getAttachment(String.valueOf(mappedStatement1.hashCode()))).thenReturn(new String[]{"id"});
+        target.record(extractor1, mappedStatement1, parameterObject, 1, null);
+        Mockito.verify(extractor1, Mockito.times(1)).setKeyHolder("100120,java.lang.String");
+        Mockito.verify(extractor1, Mockito.times(1)).setKeyHolderName("id");
+
+        // context multi keyHolder
+        Mockito.when(arexContext.getAttachment(String.valueOf(mappedStatement1.hashCode()))).thenReturn(new String[]{"id", "name"});
+        target.record(extractor1, mappedStatement1, parameterObject, 1, null);
+        Mockito.verify(extractor1, Mockito.times(1)).setKeyHolder("100120,java.lang.String;name,java.lang.String");
+        Mockito.verify(extractor1, Mockito.times(1)).setKeyHolderName("id;name");
+    }
+
+    @Test
+    void testRestoreKeyHolder() {
+        DatabaseExtractor extractor1 = Mockito.mock(DatabaseExtractor.class);
+        MappedStatement mappedStatement1 = Mockito.mock(MappedStatement.class);
+        Entity mockEntity = Mockito.mock(Entity.class);
+
+        // no keyHolder
+        Mockito.when(extractor1.getKeyHolder()).thenReturn(null);
+        target.replay(extractor1, mappedStatement1, mockEntity);
+        Mockito.verify(mockEntity, Mockito.never()).setId("100120");
+
+        // single keyHolder but not keyHolderName
+        Mockito.when(extractor1.getKeyHolder()).thenReturn("100120,java.lang.String");
+        Mockito.when(extractor1.getKeyHolderName()).thenReturn(null);
+        target.replay(extractor1, mappedStatement1, mockEntity);
+        Mockito.verify(mockEntity, Mockito.never()).setId("100120");
+
+        Mockito.when(Serializer.deserialize("100120", "java.lang.String")).thenReturn("100120");
+        Mockito.when(Serializer.deserialize("name", "java.lang.String")).thenReturn("name");
+        // single keyHolder, keyHolderName
+        Mockito.when(extractor1.getKeyHolder()).thenReturn("100120,java.lang.String");
+        Mockito.when(extractor1.getKeyHolderName()).thenReturn("id");
+        target.replay(extractor1, mappedStatement1, mockEntity);
+        Mockito.verify(mockEntity, Mockito.times(1)).setId("100120");
+
+        // multi keyHolder, keyHolderName
+        Mockito.when(extractor1.getKeyHolder()).thenReturn("100120,java.lang.String;name,java.lang.String");
+        Mockito.when(extractor1.getKeyHolderName()).thenReturn("id;name");
+        target.replay(extractor1, mappedStatement1, mockEntity);
+        Mockito.verify(mockEntity, Mockito.times(2)).setId("100120");
+        Mockito.verify(mockEntity, Mockito.times(1)).setName("name");
+    }
+
+    static class Entity {
+        private String id;
+        private String name;
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
     }
 }

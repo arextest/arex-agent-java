@@ -1,9 +1,6 @@
 package io.arex.inst.httpclient.apache.common;
 
 import io.arex.inst.httpclient.common.HttpResponseWrapper;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.zip.GZIPInputStream;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
@@ -116,10 +113,20 @@ class ApacheHttpClientAdapterTest {
     }
 
     static Stream<Arguments> wrapCase() {
+
+        Consumer<HttpResponse> emptyHeaderMocker = httpResponse -> {
+            Mockito.when(httpResponse.getAllHeaders()).thenReturn(new Header[0]);
+            Mockito.when(httpResponse.getLocale()).thenReturn(new Locale("zh", "CN"));
+            StatusLine statusLine = Mockito.mock(StatusLine.class);
+            Mockito.when(httpResponse.getStatusLine()).thenReturn(statusLine);
+        };
+
         HttpResponse invalidResponse = Mockito.mock(HttpResponse.class);
+        emptyHeaderMocker.accept(invalidResponse);
 
         HttpResponse responseWithoutContent = Mockito.mock(HttpResponse.class);
         Mockito.when(responseWithoutContent.getEntity()).thenReturn(new BasicHttpEntity());
+        emptyHeaderMocker.accept(responseWithoutContent);
 
         Consumer<HttpResponse> mocker = httpResponse -> {
             Mockito.when(httpResponse.getAllHeaders()).thenReturn(new Header[]{
@@ -131,12 +138,14 @@ class ApacheHttpClientAdapterTest {
             Mockito.when(httpResponse.getStatusLine()).thenReturn(statusLine);
         };
 
+        HttpResponse invalidResponseWithHeader = Mockito.mock(HttpResponse.class);
+        mocker.accept(invalidResponseWithHeader);
+
         BasicHttpEntity entity = new BasicHttpEntity();
         entity.setContent(new ByteArrayInputStream("mock".getBytes()));
         HttpResponse responseWithBasicEntity = Mockito.mock(HttpResponse.class);
         Mockito.when(responseWithBasicEntity.getEntity()).thenReturn(entity);
         mocker.accept(responseWithBasicEntity);
-
 
         HttpResponse responseWithEntityWrapper = Mockito.mock(HttpResponse.class);
         HttpEntityWrapper entityWrapper = new HttpEntityWrapper(entity);
@@ -149,6 +158,7 @@ class ApacheHttpClientAdapterTest {
         Predicate<HttpResponseWrapper> predicate2 = Objects::nonNull;
         return Stream.of(
                 arguments(invalidResponse, predicate1),
+                arguments(invalidResponseWithHeader, predicate2),
                 arguments(responseWithoutContent, predicate1),
                 arguments(responseWithBasicEntity, predicate2),
                 arguments(responseWithEntityWrapper, predicate2)

@@ -45,7 +45,7 @@ class ConfigTest {
             config.addProperty(ConfigConstants.DURING_WORK, "true").build();;
         };
         Runnable mocker5 = () -> {
-            config.addProperty(ConfigConstants.IP_VALIDATE, "true").build();
+            config.addProperty(ConfigConstants.AGENT_ENABLED, "true").build();
             RecordLimiter.init(mock -> true);
         };
         Runnable disableRecord = () -> {

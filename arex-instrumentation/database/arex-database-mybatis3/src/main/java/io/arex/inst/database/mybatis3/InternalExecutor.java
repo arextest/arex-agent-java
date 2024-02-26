@@ -2,7 +2,11 @@ package io.arex.inst.database.mybatis3;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.arex.agent.bootstrap.model.MockResult;
+import io.arex.agent.bootstrap.util.ArrayUtils;
 import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.inst.runtime.context.ArexContext;
+import io.arex.inst.runtime.context.ContextManager;
+import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.database.common.DatabaseExtractor;
 
@@ -12,9 +16,10 @@ import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.reflection.Reflector;
 
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class InternalExecutor {
-
+    private static final Map<String, Reflector> REFLECTOR_MAP = new ConcurrentHashMap<>();
     private static final char KEYHOLDER_SEPARATOR = ';';
     private static final char KEYHOLDER_TYPE_SEPARATOR = ',';
     private static boolean isIPageLoaded = false;
@@ -36,9 +41,7 @@ public class InternalExecutor {
 
     public static MockResult replay(DatabaseExtractor extractor, MappedStatement ms, Object o) {
         MockResult replayResult = extractor.replay();
-        if (containKeyHolder(ms, extractor, o)) {
-            restoreKeyHolder(ms, extractor, o);
-        }
+        restoreKeyHolder(ms, extractor, o);
         return replayResult;
     }
 
@@ -53,10 +56,7 @@ public class InternalExecutor {
 
     public static <U> void record(DatabaseExtractor extractor,
                                   MappedStatement ms, Object o, U result, Throwable throwable) {
-        if (containKeyHolder(ms, extractor, o)) {
-            saveKeyHolder(ms, extractor, o);
-        }
-
+        saveKeyHolder(ms, extractor, o);
         if (throwable != null) {
             extractor.recordDb(throwable);
         } else {
@@ -105,23 +105,21 @@ public class InternalExecutor {
 
     private static void restoreKeyHolder(MappedStatement ms, DatabaseExtractor executor, Object o) {
         String[] keyHolderList = StringUtil.split(executor.getKeyHolder(), KEYHOLDER_SEPARATOR);
+        if (ArrayUtils.isEmpty(keyHolderList)) {
+            return;
+        }
+
         Object insertEntity = o instanceof ParamMap ? getEntityFromMap((ParamMap<?>) o) : o;
-        String[] keyProperties = o instanceof ParamMap ? transformerProperties(ms.getKeyProperties()) : ms.getKeyProperties();
+        String[] keyProperties = getPrimaryKeyNames(ms, o, executor);
 
-        if (keyHolderList == null || keyProperties == null) {
-            return;
-        }
-
-        if (keyProperties.length != keyHolderList.length) {
-            return;
-        }
-
-        if (insertEntity == null) {
+        if (ArrayUtils.isEmpty(keyProperties) || keyProperties.length != keyHolderList.length || insertEntity == null) {
             return;
         }
 
         try {
-            Reflector reflector = new Reflector(insertEntity.getClass());
+            Class<?> entityClass = insertEntity.getClass();
+            Reflector reflector = REFLECTOR_MAP.computeIfAbsent(entityClass.getName(),
+                    className -> new Reflector(entityClass));
             for (int i = 0; i < keyHolderList.length; i++) {
                 String[] valueType = StringUtil.split(keyHolderList[i], KEYHOLDER_TYPE_SEPARATOR);
                 Object keyHolderValue = Serializer.deserialize(valueType[0], valueType[1]);
@@ -131,16 +129,21 @@ public class InternalExecutor {
     }
 
     private static void saveKeyHolder(MappedStatement ms, DatabaseExtractor executor, Object o) {
-        StringBuilder builder = new StringBuilder();
+        String[] primaryKeyNames = getPrimaryKeyNames(ms, o);
+        if (ArrayUtils.isEmpty(primaryKeyNames)) {
+            return;
+        }
 
         Object insertEntity = o instanceof ParamMap ? getEntityFromMap((ParamMap<?>) o) : o;
-        String[] primaryKeyNames = o instanceof ParamMap ? transformerProperties(ms.getKeyProperties()) : ms.getKeyProperties();
-
         if (insertEntity == null) {
             return;
         }
 
-        Reflector reflector = new Reflector(insertEntity.getClass());
+        StringBuilder builder = new StringBuilder();
+        StringBuilder keyHolderNameBuilder = new StringBuilder();
+        Class<?> entityClass = insertEntity.getClass();
+        Reflector reflector = REFLECTOR_MAP.computeIfAbsent(entityClass.getName(),
+                className -> new Reflector(entityClass));
 
         for (int i = 0; i < primaryKeyNames.length; i++) {
             try {
@@ -148,14 +151,48 @@ public class InternalExecutor {
                 if (keyHolderValue == null) {
                     continue;
                 }
+                keyHolderNameBuilder.append(primaryKeyNames[i]);
                 builder.append(keyHolderValue).append(KEYHOLDER_TYPE_SEPARATOR).append(keyHolderValue.getClass().getName());
                 if (i < primaryKeyNames.length - 1) {
+                    keyHolderNameBuilder.append(KEYHOLDER_SEPARATOR);
                     builder.append(KEYHOLDER_SEPARATOR);
                 }
             } catch (Exception ignored) {
             }
         }
+        executor.setKeyHolderName(keyHolderNameBuilder.toString());
         executor.setKeyHolder(builder.toString());
+    }
+
+    private static String[] getPrimaryKeyNames(MappedStatement ms, Object o) {
+        ArexContext arexContext = ContextManager.currentContext();
+        if (arexContext == null) {
+            return StringUtil.EMPTY_STRING_ARRAY;
+        }
+        // mybatis-plus/tk-mybatis/mybatis-selectKey record, get primary key name from context
+        String[] primaryKeyName = (String[]) arexContext.getAttachment(String.valueOf(ms.hashCode()));
+        if (ArrayUtils.isNotEmpty(primaryKeyName)) {
+            return primaryKeyName;
+        }
+
+        return getPrimaryKeyNames(ms, o, null);
+    }
+
+    private static String[] getPrimaryKeyNames(MappedStatement ms, Object o, DatabaseExtractor extractor) {
+        if (extractor != null && StringUtil.isNotEmpty(extractor.getKeyHolderName())) {
+            return StringUtil.split(extractor.getKeyHolderName(), KEYHOLDER_SEPARATOR);
+        }
+
+        String[] keyProperties = ms.getKeyProperties();
+        if (ArrayUtils.isEmpty(keyProperties)) {
+            return StringUtil.EMPTY_STRING_ARRAY;
+        }
+
+        if (o instanceof ParamMap) {
+            return transformerProperties(keyProperties);
+        }
+
+        return keyProperties;
     }
 
     private static String[] transformerProperties(String[] keyProperties) {
@@ -173,23 +210,12 @@ public class InternalExecutor {
         return paramMap.values().stream().findFirst().orElse(null);
     }
 
-    private static boolean containKeyHolder(MappedStatement ms, DatabaseExtractor executor, Object o) {
-        if (o == null || ms.getKeyProperties() == null) {
-            return false;
-        }
-
-        if (o instanceof ParamMap && ((ParamMap<?>) o).size() == 0) {
-            return false;
-        }
-
-        return StringUtil.containsIgnoreCase(executor.getSql(), "insert");
-    }
 
     public static DatabaseExtractor createExtractor(MappedStatement mappedStatement,
                                                     String originalSql, Object parameters, String methodName) {
         if (StringUtil.isEmpty(originalSql) && mappedStatement != null && mappedStatement.getBoundSql(parameters) != null) {
             originalSql = mappedStatement.getBoundSql(parameters).getSql();
         }
-        return new DatabaseExtractor(originalSql, Serializer.serialize(parameters), methodName);
+        return new DatabaseExtractor(originalSql, Serializer.serialize(parameters, ArexConstants.JACKSON_REQUEST_SERIALIZER), methodName);
     }
 }

@@ -6,7 +6,7 @@ import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.agent.bootstrap.util.FileUtils;
 import io.arex.foundation.config.ConfigManager;
 import io.arex.foundation.healthy.HealthManager;
-import io.arex.foundation.serializer.JacksonSerializer;
+import io.arex.foundation.serializer.jackson.JacksonSerializer;
 import io.arex.foundation.services.ConfigService;
 import io.arex.foundation.services.DataCollectorService;
 import io.arex.foundation.services.TimerService;
@@ -23,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 
 import java.io.File;
 import java.lang.instrument.Instrumentation;
+
 import net.bytebuddy.dynamic.scaffold.TypeWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +35,7 @@ public abstract class BaseAgentInstaller implements AgentInstaller {
     protected final File agentFile;
     protected final String agentArgs;
     private ScheduledFuture<?> reportStatusTask;
+    private ScheduledFuture<?> loadConfigTask;
 
     public BaseAgentInstaller(Instrumentation inst, File agentFile, String agentArgs) {
         this.instrumentation = inst;
@@ -57,8 +59,8 @@ public abstract class BaseAgentInstaller implements AgentInstaller {
                 return;
             }
 
-            if (delayMinutes > 0) {
-                TimerService.schedule(this::install, delayMinutes, TimeUnit.MINUTES);
+            if (delayMinutes > 0 && loadConfigTask == null) {
+                loadConfigTask = TimerService.scheduleAtFixedRate(this::install, delayMinutes, delayMinutes, TimeUnit.MINUTES);
                 timedReportStatus();
             }
 
@@ -80,12 +82,12 @@ public abstract class BaseAgentInstaller implements AgentInstaller {
         if (ConfigManager.INSTANCE.isLocalStorage()) {
             return true;
         }
-        return ConfigManager.INSTANCE.checkTargetAddress();
+        return ConfigManager.INSTANCE.isAgentEnabled();
     }
 
     String getInvalidReason() {
-        if (!ConfigManager.INSTANCE.checkTargetAddress()) {
-            return "response [targetAddress] is not match";
+        if (!ConfigManager.INSTANCE.isAgentEnabled()) {
+            return ConfigManager.INSTANCE.getMessage();
         }
 
         return "invalid config";

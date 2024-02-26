@@ -9,14 +9,14 @@ import io.arex.inst.runtime.util.MergeRecordReplayUtil;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 public class ArexContext {
 
     private final String caseId;
     private final String replayId;
     private final long createTime;
-    private final AtomicInteger sequence;
+    private volatile int sequence;
     private Set<Integer> methodSignatureHashList;
     private Map<Integer, List<MergeDTO>> cachedReplayResultMap;
     private Map<String, Set<String>> excludeMockTemplate;
@@ -27,6 +27,9 @@ public class ArexContext {
 
     private boolean isRedirectRequest;
     private boolean isInvalidCase;
+
+    private static final AtomicIntegerFieldUpdater<ArexContext> SEQUENCE_UPDATER =
+            AtomicIntegerFieldUpdater.newUpdater(ArexContext.class, "sequence");
 
     public static ArexContext of(String caseId) {
         return of(caseId, null);
@@ -39,7 +42,6 @@ public class ArexContext {
     private ArexContext(String caseId, String replayId) {
         this.createTime = System.currentTimeMillis();
         this.caseId = caseId;
-        this.sequence = new AtomicInteger(0);
         this.replayId = replayId;
     }
 
@@ -64,7 +66,7 @@ public class ArexContext {
     }
 
     public int calculateSequence() {
-        return sequence.getAndIncrement();
+        return SEQUENCE_UPDATER.getAndIncrement(this);
     }
 
     public Set<Integer> getMethodSignatureHashList() {

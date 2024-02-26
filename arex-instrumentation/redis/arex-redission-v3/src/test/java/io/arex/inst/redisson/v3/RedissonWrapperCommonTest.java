@@ -9,6 +9,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.MockedConstruction;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.redisson.api.RFuture;
@@ -27,9 +28,6 @@ class RedissonWrapperCommonTest {
 
     @BeforeAll
     static void setUp() {
-        Mockito.mockConstruction(RedisExtractor.class, (mock, context) -> {
-            Mockito.when(mock.replay()).thenReturn(MockResult.success("mock"));
-        });
         Mockito.mockStatic(ContextManager.class);
     }
 
@@ -41,9 +39,29 @@ class RedissonWrapperCommonTest {
     @ParameterizedTest
     @MethodSource("delegateCallCase")
     void delegateCall(Runnable mocker, Callable<RFuture<String>> futureCallable, Predicate<RFuture> predicate) {
-        mocker.run();
-        RFuture result = RedissonWrapperCommon.delegateCall("", "", "", futureCallable);
-        assertTrue(predicate.test(result));
+        try(MockedConstruction<RedisExtractor> extractor =   Mockito.mockConstruction(RedisExtractor.class, (mock, context) -> {
+            Mockito.when(mock.replay()).thenReturn(MockResult.success(true,"mock"));
+        })) {
+            mocker.run();
+            RFuture result = RedissonWrapperCommon.delegateCall("", "", "", futureCallable);
+            assertTrue(predicate.test(result));
+        }
+
+        try(MockedConstruction<RedisExtractor> extractor =   Mockito.mockConstruction(RedisExtractor.class, (mock, context) -> {
+            Mockito.when(mock.replay()).thenReturn(MockResult.success(false,"mock"));
+        })) {
+            mocker.run();
+            RFuture result = RedissonWrapperCommon.delegateCall("", "", "", futureCallable);
+            assertTrue(predicate.test(result));
+        }
+
+        try(MockedConstruction<RedisExtractor> extractor =   Mockito.mockConstruction(RedisExtractor.class, (mock, context) -> {
+            Mockito.when(mock.replay()).thenReturn(MockResult.success(new Throwable()));
+        })) {
+            mocker.run();
+            RFuture result = RedissonWrapperCommon.delegateCall("", "", "", futureCallable);
+            assertTrue(predicate.test(result));
+        }
     }
 
     static Stream<Arguments> delegateCallCase() {

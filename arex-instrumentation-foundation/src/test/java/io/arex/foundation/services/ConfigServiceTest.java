@@ -12,11 +12,12 @@ import static org.mockito.Mockito.mockStatic;
 import io.arex.foundation.config.ConfigManager;
 import io.arex.foundation.model.AgentStatusEnum;
 import io.arex.foundation.model.AgentStatusRequest;
+import io.arex.foundation.model.ConfigQueryRequest;
 import io.arex.foundation.model.ConfigQueryResponse;
 import io.arex.foundation.model.ConfigQueryResponse.ResponseBody;
 import io.arex.foundation.model.ConfigQueryResponse.ServiceCollectConfig;
 import io.arex.foundation.model.HttpClientResponse;
-import io.arex.foundation.serializer.JacksonSerializer;
+import io.arex.foundation.serializer.jackson.JacksonSerializer;
 import io.arex.foundation.util.NetUtils;
 import io.arex.foundation.util.httpclient.AsyncHttpClientUtil;
 import java.time.DayOfWeek;
@@ -26,19 +27,28 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.mockito.MockedStatic;
 
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class ConfigServiceTest {
 
     @BeforeEach
     void setUp() {
+        System.setProperty("arex.another.property", "test");
+        System.setProperty("arex.tags.env", "fat");
     }
 
     @AfterEach
     void tearDown() {
+        System.clearProperty("arex.another.property");
+        System.clearProperty("arex.tags.env");
     }
 
+    @Order(1)
     @Test
     void loadAgentConfig() throws Throwable {
         long DELAY_MINUTES = 15L;
@@ -52,8 +62,7 @@ class ConfigServiceTest {
 
         ConfigManager.INSTANCE.setServiceName("config-test");
         ConfigManager.INSTANCE.setStorageServiceMode("mock-not-local");
-        try (MockedStatic<AsyncHttpClientUtil> ahc = mockStatic(AsyncHttpClientUtil.class);
-            MockedStatic<NetUtils> netUtils = mockStatic(NetUtils.class)){
+        try (MockedStatic<AsyncHttpClientUtil> ahc = mockStatic(AsyncHttpClientUtil.class)){
             // response has error
             CompletableFuture<HttpClientResponse> errorFuture = new CompletableFuture<>();
             errorFuture.completeExceptionally(new RuntimeException("mock error"));
@@ -71,7 +80,6 @@ class ConfigServiceTest {
             assertEquals(AgentStatusEnum.UN_START, ConfigService.INSTANCE.getAgentStatus());
 
             // clientResponse body is null
-            netUtils.when(NetUtils::getIpAddress).thenReturn("127.0.0.3");
             ahc.when(() -> AsyncHttpClientUtil.postAsyncWithJson(anyString(), anyString(), eq(null))).thenReturn(
                 CompletableFuture.completedFuture(HttpClientResponse.emptyResponse()));
             assertEquals(DELAY_MINUTES, ConfigService.INSTANCE.loadAgentConfig(null));
@@ -81,7 +89,6 @@ class ConfigServiceTest {
 
             // configResponse body serviceCollectConfiguration is null
             ConfigQueryResponse configQueryResponse = new ConfigQueryResponse();
-            netUtils.when(NetUtils::getIpAddress).thenReturn("127.0.0.3");
             ahc.when(() -> AsyncHttpClientUtil.postAsyncWithJson(anyString(), anyString(), eq(null))).thenReturn(
                 CompletableFuture.completedFuture(new HttpClientResponse(200, null, JacksonSerializer.INSTANCE.serialize(configQueryResponse))));
             assertEquals(DELAY_MINUTES, ConfigService.INSTANCE.loadAgentConfig(null));
@@ -90,7 +97,6 @@ class ConfigServiceTest {
             assertEquals(AgentStatusEnum.UN_START, ConfigService.INSTANCE.getAgentStatus());
 
             // valid response, agentStatus=WORKING
-            netUtils.when(NetUtils::getIpAddress).thenReturn("127.0.0.1");
             ServiceCollectConfig serviceCollectConfig = new ServiceCollectConfig();
             serviceCollectConfig.setAllowDayOfWeeks(127);
             serviceCollectConfig.setAllowTimeOfDayFrom("00:00");
@@ -98,7 +104,7 @@ class ConfigServiceTest {
             serviceCollectConfig.setSampleRate(1);
 
             ResponseBody responseBody = new ResponseBody();
-            responseBody.setTargetAddress("127.0.0.1");
+            responseBody.setAgentEnabled(true);
             responseBody.setServiceCollectConfiguration(serviceCollectConfig);
             configQueryResponse.setBody(responseBody);
             CompletableFuture<HttpClientResponse> response = CompletableFuture.completedFuture(new HttpClientResponse(200, null, JacksonSerializer.INSTANCE.serialize(configQueryResponse)));
@@ -143,9 +149,7 @@ class ConfigServiceTest {
 
     @Test
     void reportStatus() {
-        try (MockedStatic<AsyncHttpClientUtil> ahc = mockStatic(AsyncHttpClientUtil.class);
-            MockedStatic<NetUtils> netUtils = mockStatic(NetUtils.class)){
-            netUtils.when(NetUtils::getIpAddress).thenReturn("127.0.0.1");
+        try (MockedStatic<AsyncHttpClientUtil> ahc = mockStatic(AsyncHttpClientUtil.class)){
             // response has error
             CompletableFuture<HttpClientResponse> errorFuture = new CompletableFuture<>();
             errorFuture.completeExceptionally(new RuntimeException("mock error"));
@@ -191,9 +195,7 @@ class ConfigServiceTest {
 
     @Test
     void shutdown() {
-        try (MockedStatic<AsyncHttpClientUtil> ahc = mockStatic(AsyncHttpClientUtil.class);
-            MockedStatic<NetUtils> netUtils = mockStatic(NetUtils.class)){
-            netUtils.when(NetUtils::getIpAddress).thenReturn("127.0.0.1");
+        try (MockedStatic<AsyncHttpClientUtil> ahc = mockStatic(AsyncHttpClientUtil.class)){
             Map<String, String> responseHeaders = new HashMap<>();
             responseHeaders.put("Last-Modified2", "Thu, 01 Jan 1970 00:00:00 GMT");
             ahc.when(() -> AsyncHttpClientUtil.postAsyncWithJson(anyString(), anyString(), anyMap())).thenReturn(
@@ -206,5 +208,12 @@ class ConfigServiceTest {
 
             ConfigService.INSTANCE.shutdown();
         }
+    }
+
+    @Test
+    void buildConfigQueryRequest() {
+        ConfigQueryRequest request = ConfigService.INSTANCE.buildConfigQueryRequest();
+        assertEquals("fat", request.getSystemProperties().get("arex.tags.env"));
+        assertEquals(1, request.getSystemProperties().size());
     }
 }

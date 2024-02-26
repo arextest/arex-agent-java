@@ -1,5 +1,6 @@
 package io.arex.inst.httpclient.apache.common;
 
+import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.agent.bootstrap.util.IOUtils;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.httpclient.common.HttpClientAdapter;
@@ -82,10 +83,20 @@ public class ApacheHttpClientAdapter implements HttpClientAdapter<HttpRequest, H
 
     @Override
     public HttpResponseWrapper wrap(HttpResponse response) {
+
+        List<HttpResponseWrapper.StringTuple> headers = new ArrayList<>(response.getAllHeaders().length);
+        for (Header header : response.getAllHeaders()) {
+            if (StringUtil.isEmpty(header.getName())) {
+                continue;
+            }
+            headers.add(new HttpResponseWrapper.StringTuple(header.getName(), header.getValue()));
+        }
+
         HttpEntity httpEntity = response.getEntity();
+        Locale locale = response.getLocale();
+
         if (!check(httpEntity)) {
-            LogManager.info("AHC.wrap", "AHC response wrap failed, uri: " + getUri());
-            return null;
+            return buildEmptyBodyResponseWrapper(response.getStatusLine().toString(), locale, headers);
         }
 
         byte[] responseBody;
@@ -95,7 +106,7 @@ public class ApacheHttpClientAdapter implements HttpClientAdapter<HttpRequest, H
             EntityUtils.consumeQuietly(httpEntity);
         } catch (Exception e) {
             LogManager.warn("AHC.wrap", "AHC copyToByteArray error, uri: " + getUri(), e);
-            return null;
+            return buildEmptyBodyResponseWrapper(response.getStatusLine().toString(), locale, headers);
         }
 
         if (httpEntity instanceof BasicHttpEntity) {
@@ -108,18 +119,8 @@ public class ApacheHttpClientAdapter implements HttpClientAdapter<HttpRequest, H
             response.setEntity(entity);
         }
 
-        Locale locale = response.getLocale();
-        List<HttpResponseWrapper.StringTuple> headers = new ArrayList<>();
-        for (Header header : response.getAllHeaders()) {
-            if (StringUtil.isEmpty(header.getName())) {
-                continue;
-            }
-            headers.add(new HttpResponseWrapper.StringTuple(header.getName(), header.getValue()));
-        }
-
         return new HttpResponseWrapper(response.getStatusLine().toString(), responseBody,
-            new HttpResponseWrapper.StringTuple(locale.getLanguage(), locale.getCountry()),
-            headers);
+            new HttpResponseWrapper.StringTuple(locale.getLanguage(), locale.getCountry()), headers);
     }
 
     @Override
@@ -129,10 +130,12 @@ public class ApacheHttpClientAdapter implements HttpClientAdapter<HttpRequest, H
         response.setLocale(new Locale(wrapped.getLocale().name(), wrapped.getLocale().value()));
         appendHeaders(response, wrapped.getHeaders());
         // Output response normally now, later need to check revert DecompressingEntity
-        BasicHttpEntity entity = ApacheHttpClientHelper.createHttpEntity(response);
-        entity.setContent(new ByteArrayInputStream(wrapped.getContent()));
-        entity.setContentLength(wrapped.getContent().length);
-        response.setEntity(entity);
+        if (wrapped.getContent() != null) {
+            BasicHttpEntity entity = ApacheHttpClientHelper.createHttpEntity(response);
+            entity.setContent(new ByteArrayInputStream(wrapped.getContent()));
+            entity.setContentLength(wrapped.getContent().length);
+            response.setEntity(entity);
+        }
 
         return response;
     }
@@ -142,6 +145,16 @@ public class ApacheHttpClientAdapter implements HttpClientAdapter<HttpRequest, H
             StringTuple header = headers.get(i);
             response.addHeader(header.name(), header.value());
         }
+    }
+
+    private HttpResponseWrapper buildEmptyBodyResponseWrapper(String statusLine, Locale locale,
+        List<StringTuple> headers) {
+        if (CollectionUtil.isEmpty(headers)) {
+            LogManager.warn("AHC.wrap", "AHC response wrap failed, uri: " + getUri());
+            return null;
+        }
+        return new HttpResponseWrapper(statusLine, null,
+            new HttpResponseWrapper.StringTuple(locale.getLanguage(), locale.getCountry()), headers);
     }
 
     private static boolean check(HttpEntity entity) {
@@ -156,13 +169,13 @@ public class ApacheHttpClientAdapter implements HttpClientAdapter<HttpRequest, H
         return userAgent != null && userAgent.contains("arex");
     }
 
-    private void wrapHttpEntity(HttpRequest httpRequest) {
+    public static void wrapHttpEntity(HttpRequest httpRequest) {
         HttpEntityEnclosingRequest enclosingRequest = enclosingRequest(httpRequest);
         if (enclosingRequest == null) {
             return;
         }
         HttpEntity entity = enclosingRequest.getEntity();
-        if (entity == null || entity.isRepeatable()) {
+        if (entity == null || entity.isRepeatable() || entity instanceof CachedHttpEntityWrapper) {
             return;
         }
         try {
@@ -172,7 +185,7 @@ public class ApacheHttpClientAdapter implements HttpClientAdapter<HttpRequest, H
         }
     }
 
-    private HttpEntityEnclosingRequest enclosingRequest(HttpRequest httpRequest) {
+    private static HttpEntityEnclosingRequest enclosingRequest(HttpRequest httpRequest) {
         if (httpRequest instanceof HttpEntityEnclosingRequest) {
             return (HttpEntityEnclosingRequest) httpRequest;
         }

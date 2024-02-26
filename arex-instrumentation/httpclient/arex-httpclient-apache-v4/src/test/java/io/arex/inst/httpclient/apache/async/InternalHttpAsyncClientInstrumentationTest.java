@@ -11,9 +11,13 @@ import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.context.RepeatedCollectManager;
 import io.arex.inst.runtime.util.IgnoreUtils;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import org.apache.http.HttpException;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.nio.client.methods.HttpAsyncMethods;
+import org.apache.http.nio.protocol.HttpAsyncRequestProducer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -48,7 +52,7 @@ class InternalHttpAsyncClientInstrumentationTest {
     }
 
     @Test
-    void onEnter() throws URISyntaxException {
+    void onEnter() throws URISyntaxException, HttpException, IOException {
         try (MockedStatic<ContextManager> contextManager = mockStatic(ContextManager.class);
             MockedStatic<RepeatedCollectManager> repeatedCollectManager = mockStatic(RepeatedCollectManager.class);
             MockedStatic<FutureCallbackWrapper> futureCallbackWrapper = mockStatic(FutureCallbackWrapper.class);
@@ -57,7 +61,8 @@ class InternalHttpAsyncClientInstrumentationTest {
             ignoreUtils.when(() -> IgnoreUtils.excludeOperation(any())).thenReturn(true);
             HttpUriRequest request2 = Mockito.mock(HttpUriRequest.class);
             Mockito.when(request2.getURI()).thenReturn(new URI("http://localhost"));
-            boolean actualResult = InternalHttpAsyncClientInstrumentation.ExecuteAdvice.onEnter(request2, null, null);
+            HttpAsyncRequestProducer producer = HttpAsyncMethods.create(request2);
+            boolean actualResult = InternalHttpAsyncClientInstrumentation.ExecuteAdvice.onEnter(producer, null, null);
             assertFalse(actualResult);
 
             // test need record
@@ -68,7 +73,7 @@ class InternalHttpAsyncClientInstrumentationTest {
             FutureCallbackWrapper wrapper = Mockito.mock(FutureCallbackWrapper.class);
             Mockito.when(FutureCallbackWrapper.wrap(any())).thenReturn(wrapper);
             Mockito.when(FutureCallbackWrapper.wrap(any(), any())).thenReturn(wrapper);
-            actualResult = InternalHttpAsyncClientInstrumentation.ExecuteAdvice.onEnter(request2, null, null);
+            actualResult = InternalHttpAsyncClientInstrumentation.ExecuteAdvice.onEnter(producer, null, null);
             assertFalse(actualResult);
 
             // test need replay
@@ -78,7 +83,7 @@ class InternalHttpAsyncClientInstrumentationTest {
             Mockito.when(FutureCallbackWrapper.wrap(any(), any())).thenReturn(wrapper);
             Mockito.when(wrapper.replay()).thenReturn(MockResult.success("mock"));
 
-            actualResult = InternalHttpAsyncClientInstrumentation.ExecuteAdvice.onEnter(request2, null, null);
+            actualResult = InternalHttpAsyncClientInstrumentation.ExecuteAdvice.onEnter(producer, null, null);
             assertTrue(actualResult);
         }
     }
