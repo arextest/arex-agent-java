@@ -78,6 +78,21 @@ class StringUtilTest {
     }
 
     @Test
+    void join_array() {
+        String actualResult = StringUtil.join(",", null);
+        assertNull(actualResult);
+
+        actualResult = StringUtil.join(",");
+        assertEquals("", actualResult);
+
+        actualResult = StringUtil.join(",", "a");
+        assertEquals("a", actualResult);
+
+        actualResult = StringUtil.join(",", "a", "b", null, "d");
+        assertEquals("a,b,,d", actualResult);
+    }
+
+    @Test
     void asMap() {
         Map<String, String> actualResult = StringUtil.asMap(null);
         assertTrue(actualResult.isEmpty());

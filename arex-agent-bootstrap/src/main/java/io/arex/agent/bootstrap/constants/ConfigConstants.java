@@ -25,7 +25,6 @@ public class ConfigConstants {
     public static final String DISABLE_RECORD = "arex.disable.record";
     public static final String DURING_WORK = "arex.during.work";
     public static final String AGENT_VERSION = "arex.agent.version";
-    public static final String IP_VALIDATE = "arex.ip.validate";
     public static final String AGENT_ENABLED = "arex.agent.enabled";
     public static final String CURRENT_RATE = "arex.current.rate";
     public static final String DECELERATE_CODE = "arex.decelerate.code";
@@ -33,4 +32,5 @@ public class ConfigConstants {
     public static final String BUFFER_SIZE = "arex.buffer.size";
     public static final String SHADED_LOGGER_SHOW_DATE_TIME = "shaded.org.slf4j.simpleLogger.showDateTime";
     public static final String SHADED_LOGGER_DATE_TIME_FORMAT = "shaded.org.slf4j.simpleLogger.dateTimeFormat";
+    public static final String COVERAGE_PACKAGES = "arex.coverage.packages";
 }

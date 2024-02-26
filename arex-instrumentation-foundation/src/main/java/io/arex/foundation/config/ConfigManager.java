@@ -369,6 +369,7 @@ public class ConfigManager {
         if (MapUtils.isNotEmpty(extendFieldMap)) {
             configMap.putAll(extendFieldMap);
             setEnableDebug(extendFieldMap.get(ENABLE_DEBUG));
+            appendCoveragePackages(extendFieldMap.get(COVERAGE_PACKAGES));
         }
 
         ConfigBuilder.create(getServiceName())
@@ -380,6 +381,21 @@ public class ConfigManager {
             .recordRate(getRecordRate())
             .build();
         publish(Config.get());
+    }
+
+    private void appendCoveragePackages(String collectCoveragePackages) {
+        if (StringUtil.isEmpty(collectCoveragePackages)) {
+            return;
+        }
+        String defaultPackages = System.getProperty(COVERAGE_PACKAGES);
+        String finalPackages;
+        if (StringUtil.isEmpty(defaultPackages)) {
+            finalPackages = collectCoveragePackages;
+        } else {
+            finalPackages = StringUtil.join(",", defaultPackages, collectCoveragePackages);
+        }
+
+        System.setProperty(COVERAGE_PACKAGES, finalPackages);
     }
 
     private void publish(Config config) {
