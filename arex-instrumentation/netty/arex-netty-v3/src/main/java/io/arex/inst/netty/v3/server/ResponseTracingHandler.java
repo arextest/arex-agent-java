@@ -15,9 +15,9 @@ import java.util.Map;
 public class ResponseTracingHandler extends SimpleChannelDownstreamHandler {
 
     @Override
-    public void writeRequested(ChannelHandlerContext ctx, MessageEvent event) {
+    public void writeRequested(ChannelHandlerContext ctx, MessageEvent event) throws Exception {
         if (!ContextManager.needRecordOrReplay()) {
-            ctx.sendDownstream(event);
+            super.writeRequested(ctx, event);
             return;
         }
 
@@ -38,7 +38,7 @@ public class ResponseTracingHandler extends SimpleChannelDownstreamHandler {
         } catch (Throwable e) {
             LogManager.warn("netty writeRequested error", e);
         } finally {
-            ctx.sendDownstream(event);
+            super.writeRequested(ctx, event);
         }
     }
 

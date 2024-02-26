@@ -64,7 +64,7 @@ class ResponseTracingHandlerTest {
 
     @ParameterizedTest
     @MethodSource("writeCase")
-    void write(Runnable mocker, Object msg) {
+    void write(Runnable mocker, Object msg) throws Exception {
         mocker.run();
         ChannelPromise promise = Mockito.mock(ChannelPromise.class);
         target.write(ctx, msg, promise);

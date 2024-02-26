@@ -21,7 +21,7 @@ import org.jboss.netty.handler.codec.http.*;
 public class RequestTracingHandler extends SimpleChannelUpstreamHandler {
 
     @Override
-    public void messageReceived(ChannelHandlerContext ctx, MessageEvent event) {
+    public void messageReceived(ChannelHandlerContext ctx, MessageEvent event) throws Exception {
         try {
             if (event.getMessage() instanceof HttpRequest) {
                 // init
@@ -29,7 +29,6 @@ public class RequestTracingHandler extends SimpleChannelUpstreamHandler {
                 HttpRequest request = (HttpRequest) event.getMessage();
                 String caseId = NettyHelper.getHeader(request, ArexConstants.RECORD_ID);
                 if (shouldSkip(request, caseId)) {
-                    ctx.sendUpstream(event);
                     return;
                 }
 
@@ -50,7 +49,7 @@ public class RequestTracingHandler extends SimpleChannelUpstreamHandler {
         } catch (Throwable e) {
             LogManager.warn("netty messageReceived error", e);
         } finally {
-            ctx.sendUpstream(event);
+            super.messageReceived(ctx, event);
         }
     }
 
@@ -68,7 +67,7 @@ public class RequestTracingHandler extends SimpleChannelUpstreamHandler {
     }
 
     @Override
-    public void writeComplete(ChannelHandlerContext ctx, WriteCompletionEvent event) {
+    public void writeComplete(ChannelHandlerContext ctx, WriteCompletionEvent event) throws Exception {
         try {
             ArexContext context = ContextManager.currentContext();
             if (context == null) {
@@ -90,7 +89,7 @@ public class RequestTracingHandler extends SimpleChannelUpstreamHandler {
         } catch (Throwable e) {
             LogManager.warn("netty writeComplete error", e);
         } finally {
-            ctx.sendUpstream(event);
+            super.writeComplete(ctx, event);
         }
     }
 

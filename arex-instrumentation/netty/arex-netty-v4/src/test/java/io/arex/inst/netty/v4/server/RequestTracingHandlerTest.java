@@ -71,7 +71,7 @@ class RequestTracingHandlerTest {
 
     @ParameterizedTest
     @MethodSource("channelReadCase")
-    void channelRead(Runnable mocker, Object msg) {
+    void channelRead(Runnable mocker, Object msg) throws Exception {
         mocker.run();
         target.channelRead(ctx, msg);
         verify(ctx, atLeastOnce()).fireChannelRead(any());
