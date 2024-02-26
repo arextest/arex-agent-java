@@ -68,6 +68,34 @@ public class StringUtil {
         return buf.toString();
     }
 
+    public static String join(final String delimiter, final Object... array) {
+        if (array == null) {
+            return null;
+        }
+        if (array.length == 0) {
+            return StringUtil.EMPTY;
+        }
+        if (array.length == 1) {
+            return (String) array[0];
+        }
+        final Object first = array[0];
+        final StringBuilder buf = new StringBuilder(256);
+        if (first != null) {
+            buf.append(first);
+        }
+        for (int i = 1; i < array.length; i++) {
+            if (delimiter != null) {
+                buf.append(delimiter);
+            }
+            Object temp = array[i];
+            if (temp != null) {
+                buf.append(temp);
+            }
+        }
+
+        return buf.toString();
+    }
+
     private static void indent(StringBuilder sb, int indent) {
         for (int i = 0; i < indent; i++) {
             sb.append("    ");

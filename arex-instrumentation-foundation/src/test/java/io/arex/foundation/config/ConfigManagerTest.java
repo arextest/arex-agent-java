@@ -8,6 +8,8 @@ import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.model.DynamicClassEntity;
 import io.arex.inst.runtime.model.DynamicClassStatusEnum;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -295,5 +297,23 @@ class ConfigManagerTest {
         assertEquals("class5", newConfigManager.getDynamicClassList().get(5).getClazzName());
         assertEquals("method5", newConfigManager.getDynamicClassList().get(5).getOperation());
         assertEquals(ArexConstants.CURRENT_TIME_MILLIS_SIGNATURE, newConfigManager.getDynamicClassList().get(5).getAdditionalSignature());
+    }
+
+    @Test
+    void appendCoveragePackages() throws Exception {
+        // collectCoveragePackages is empty
+        Method appendCoveragePackages = ConfigManager.class.getDeclaredMethod("appendCoveragePackages", String.class);
+        appendCoveragePackages.setAccessible(true);
+        appendCoveragePackages.invoke(configManager, "");
+        assertNull(System.getProperty(ConfigConstants.COVERAGE_PACKAGES));
+
+        // defaultPackages is empty
+        appendCoveragePackages.invoke(configManager, "com.a.b");
+        assertEquals("com.a.b", System.getProperty(ConfigConstants.COVERAGE_PACKAGES));
+
+        // defaultPackage is com.a.b
+        System.setProperty(ConfigConstants.COVERAGE_PACKAGES, "com.a.c");
+        appendCoveragePackages.invoke(configManager, "com.a.b");
+        assertEquals("com.a.c,com.a.b", System.getProperty(ConfigConstants.COVERAGE_PACKAGES));
     }
 }
