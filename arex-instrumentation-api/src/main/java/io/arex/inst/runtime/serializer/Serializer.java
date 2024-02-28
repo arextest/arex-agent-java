@@ -60,6 +60,14 @@ public class Serializer {
         }
     }
 
+    public static String serializeWithType(Object object) {
+       return serialize(object, ArexConstants.JACKSON_SERIALIZER_WITH_TYPE);
+    }
+
+    public static Object deserializeWithType(String value) {
+        return deserialize(value, Object.class, ArexConstants.JACKSON_SERIALIZER_WITH_TYPE);
+    }
+
     /**
      * serialize throw throwable
      */
@@ -117,7 +125,9 @@ public class Serializer {
         try {
             return serializeWithException(object, serializer);
         } catch (Throwable ex) {
-            LogManager.warn("serializer-serialize", StringUtil.format("can not serialize object: %s, cause: %s", TypeUtil.errorSerializeToString(object), ex.toString()));
+            LogManager.warn("serializer-serialize",
+                    StringUtil.format("can not serialize object: %s, serializer: %s, cause: %s",
+                            TypeUtil.errorSerializeToString(object), serializer, ex.toString()));
             return null;
         }
     }
@@ -160,7 +170,9 @@ public class Serializer {
             }
             return INSTANCE.getSerializer(serializer).deserialize(value, type);
         } catch (Throwable ex) {
-            LogManager.warn("serializer-deserialize-type", StringUtil.format("can not deserialize value %s to type %s, cause: %s", value, type.getTypeName(), ex.toString()));
+            LogManager.warn("serializer-deserialize-type",
+                    StringUtil.format("can not deserialize value %s to type %s, serializer: %s, cause: %s",
+                            value, type.getTypeName(), serializer, ex.toString()));
             return null;
         }
     }

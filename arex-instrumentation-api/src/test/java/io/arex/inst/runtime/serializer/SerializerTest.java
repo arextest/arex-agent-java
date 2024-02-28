@@ -7,8 +7,10 @@ import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.config.ConfigBuilder;
 import io.arex.inst.runtime.listener.EventProcessorTest.TestJacksonSerializable;
 import io.arex.inst.runtime.listener.EventProcessorTest.TestGsonSerializer;
+import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.util.TypeUtil;
 import java.lang.reflect.Field;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -19,33 +21,37 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
+import org.mockito.Mockito;
 
 class SerializerTest {
+    private static StringSerializable jacksonSerializerWithType;
     @BeforeAll
     static void setUp() {
         final List<StringSerializable> list = new ArrayList<>(2);
+        jacksonSerializerWithType = Mockito.mock(StringSerializable.class);
+        Mockito.when(jacksonSerializerWithType.name()).thenReturn(ArexConstants.JACKSON_SERIALIZER_WITH_TYPE);
+        Mockito.when(jacksonSerializerWithType.isDefault()).thenReturn(false);
         list.add(new TestJacksonSerializable());
         list.add(new TestGsonSerializer());
+        list.add(jacksonSerializerWithType);
         Serializer.builder(list).build();
     }
 
     @AfterAll
     static void tearDown() {
-
+        jacksonSerializerWithType = null;
+        Mockito.clearAllCaches();
     }
 
     @Test
     void builder() {
         assertNotNull(Serializer.getINSTANCE());
-        assertEquals(2, Serializer.getINSTANCE().getSerializers().size());
+        assertEquals(3, Serializer.getINSTANCE().getSerializers().size());
     }
 
     @Test
     void testThrowError() {
-        final List<StringSerializable> list = new ArrayList<>();
-        list.add(new TestJacksonSerializable());
-        list.add(new TestGsonSerializer());
-        Serializer.builder(list).build();
         // serialize throw error
         Assertions.assertDoesNotThrow(() -> Serializer.serialize("test"));
 
@@ -158,5 +164,30 @@ class SerializerTest {
         assertNotNull(json);
         final RuntimeException actualResult = Serializer.deserialize(json, TypeUtil.forName(typeName));
         assertEquals(runtimeException.getClass(), actualResult.getClass());
+    }
+
+    @Test
+    void serializeWithType() throws Throwable {
+        // null object
+        assertNull(Serializer.serializeWithType(null));
+
+        // normal object
+        final String json = Serializer.serializeWithType("test");
+        Mockito.verify(jacksonSerializerWithType, Mockito.times(1)).serialize("test");
+
+        // throw exception
+        Mockito.when(jacksonSerializerWithType.serialize("test")).thenThrow(new RuntimeException());
+        assertNull(Serializer.serializeWithType("test"));
+        assertDoesNotThrow(() -> Serializer.serializeWithType("test"));
+    }
+
+    @Test
+    void deserializeWithType() throws Throwable {
+        // null json
+        assertNull(Serializer.deserializeWithType(null));
+
+        // throw exception
+        Mockito.when(jacksonSerializerWithType.deserialize("test", Object.class)).thenThrow(new RuntimeException());
+        assertDoesNotThrow(() -> Serializer.deserializeWithType("test"));
     }
 }
