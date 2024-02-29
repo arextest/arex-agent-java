@@ -33,7 +33,9 @@ public class ArexConstants {
     public static final String GSON_SERIALIZER = "gson";
     public static final String GSON_REQUEST_SERIALIZER = "gson-request";
     public static final String JACKSON_SERIALIZER = "jackson";
+    public static final String JACKSON_SERIALIZER_WITH_TYPE = "jackson-with-type";
     public static final String JACKSON_REQUEST_SERIALIZER = "jackson-request";
+    public static final String AREX_SERIALIZER = "arex-serializer";
     public static final String CONFIG_DEPENDENCY = "arex_replay_prepare_dependency";
     public static final String PREFIX = "arex-";
     public static final String CONFIG_VERSION = "configBatchNo";
