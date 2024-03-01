@@ -60,8 +60,22 @@ public class Serializer {
         }
     }
 
+    /**
+     * The serialize method cannot be reused because there is serializeNestedCollection logic in it, which will cause deserialization errors.
+     * ex: List<List<Object>>  serializeNestedCollection -> [["java.util.ArrayList",[["java.util.HashMap",{"bigDecimal":["java.math.BigDecimal",10]}]]]]
+     * correct format: ["java.util.ArrayList",[["java.util.ArrayList",[["java.util.HashMap",{"bigDecimal":["java.math.BigDecimal",10]}]]]]]
+     */
     public static String serializeWithType(Object object) {
-       return serialize(object, ArexConstants.JACKSON_SERIALIZER_WITH_TYPE);
+        if (object == null || INSTANCE == null) {
+            return null;
+        }
+        try {
+            return INSTANCE.getSerializer(ArexConstants.JACKSON_SERIALIZER_WITH_TYPE).serialize(object);
+        } catch (Throwable ex) {
+            LogManager.warn("serializer-serialize-with-type",
+                    StringUtil.format("can not serialize object: %s, cause: %s", TypeUtil.errorSerializeToString(object), ex.toString()));
+            return null;
+        }
     }
 
     public static Object deserializeWithType(String value) {
