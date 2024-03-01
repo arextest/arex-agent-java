@@ -97,8 +97,12 @@ public class DatabaseExtractor {
         Mocker replayMocker = MockUtils.replayMocker(makeMocker(null, serializer));
         Object replayResult = null;
         if (MockUtils.checkResponseMocker(replayMocker)) {
-            replayResult = Serializer.deserialize(replayMocker.getTargetResponse().getBody(),
-                    replayMocker.getTargetResponse().getType(), serializer);
+            if (ArexConstants.JACKSON_SERIALIZER_WITH_TYPE.equals(replayMocker.getTargetResponse().getAttribute(ArexConstants.AREX_SERIALIZER))) {
+                replayResult = Serializer.deserializeWithType(replayMocker.getTargetResponse().getBody());
+            } else {
+                replayResult = Serializer.deserialize(replayMocker.getTargetResponse().getBody(),
+                        replayMocker.getTargetResponse().getType(), serializer);
+            }
 
             if (replayResult != null) {
                 // restore keyHolder
@@ -119,8 +123,15 @@ public class DatabaseExtractor {
         for (Map.Entry<String, String> entry : extendFields.entrySet()) {
             mocker.getTargetResponse().setAttribute(entry.getKey(), entry.getValue());
         }
-        mocker.getTargetResponse().setBody(Serializer.serialize(response, serializer));
-        mocker.getTargetResponse().setType(TypeUtil.getName(response));
+        String typeName = TypeUtil.getName(response);
+        if (StringUtil.containsIgnoreCase(typeName, "HashMap") && StringUtil.containsIgnoreCase(typeName, "java.util")) {
+            mocker.getTargetResponse().setBody(Serializer.serializeWithType(response));
+            mocker.getTargetResponse().setAttribute(ArexConstants.AREX_SERIALIZER, ArexConstants.JACKSON_SERIALIZER_WITH_TYPE);
+        } else {
+            mocker.getTargetResponse().setBody(Serializer.serialize(response, serializer));
+            mocker.getTargetResponse().setAttribute(ArexConstants.AREX_SERIALIZER, serializer);
+        }
+        mocker.getTargetResponse().setType(typeName);
         return mocker;
     }
 }

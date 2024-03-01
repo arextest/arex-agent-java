@@ -7,14 +7,21 @@ import static org.mockito.Mockito.mockStatic;
 import io.arex.agent.bootstrap.model.ArexMocker;
 import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.agent.bootstrap.model.Mocker.Target;
+import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.util.IgnoreUtils;
 import io.arex.inst.runtime.util.MockUtils;
+
+import java.math.BigDecimal;
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
 
@@ -26,7 +33,8 @@ class DatabaseExtractorTest {
 
     @Test
     void record() {
-        try (MockedStatic<MockUtils> mockService = mockStatic(MockUtils.class)) {
+        try (MockedStatic<MockUtils> mockService = mockStatic(MockUtils.class);
+             MockedStatic<Serializer> serializer = mockStatic(Serializer.class)) {
             ArexMocker mocker = new ArexMocker();
             mocker.setTargetRequest(new Target());
             mocker.setTargetResponse(new Target());
@@ -36,7 +44,14 @@ class DatabaseExtractorTest {
                 return null;
             });
 
-            target.recordDb(new Object());
+            Object object = new Object();
+            target.recordDb(object);
+            serializer.verify(() -> Serializer.serializeWithType(object), Mockito.never());
+            // Map<String, Object>
+            Map<String, Object> map = new HashMap<>();
+            map.put("bigDecimal", new BigDecimal(1));
+            target.recordDb(map);
+            serializer.verify(() -> Serializer.serializeWithType(map), Mockito.times(1));
         }
     }
 
@@ -68,6 +83,11 @@ class DatabaseExtractorTest {
             mockService.when(() -> MockUtils.replayBody(any())).thenReturn(mockResult);
 
             assertEquals(mockResult.isIgnoreMockResult(), target.replay().isIgnoreMockResult());
+
+            // replay deserializeWithType
+            response.setAttribute(ArexConstants.AREX_SERIALIZER, ArexConstants.JACKSON_SERIALIZER_WITH_TYPE);
+            target.replay();
+            serializer.verify(() -> Serializer.deserializeWithType(response.getBody()), Mockito.times(1));
         }
     }
 }
