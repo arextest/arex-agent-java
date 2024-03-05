@@ -187,8 +187,9 @@ public final class MockUtils {
         }
         Target targetResponse = responseMocker.getTargetResponse();
         String logTitle = "checkResponseMocker";
+        String operationName = responseMocker.getOperationName();
         if (targetResponse == null) {
-            LogManager.info(logTitle, "targetResponse is null");
+            LogManager.info(logTitle, StringUtil.format("operation: %s targetResponse is null", operationName));
             return false;
         }
         final String body = targetResponse.getBody();
@@ -196,15 +197,15 @@ public final class MockUtils {
             String exceedSizeLog = StringUtil.EMPTY;
             if (MapUtils.getBoolean(targetResponse.getAttributes(), ArexConstants.EXCEED_MAX_SIZE_FLAG)) {
                 exceedSizeLog = StringUtil.format(
-                        ", method:%s, because exceed memory max limit:%s, please check method return size, suggest replace it",
-                        responseMocker.getOperationName(), AgentSizeOf.humanReadableUnits(ArexConstants.MEMORY_SIZE_1MB));
+                        ", because exceed memory max limit:%s, please check method return size, suggest replace it",
+                        AgentSizeOf.humanReadableUnits(ArexConstants.MEMORY_SIZE_1MB));
             }
-            LogManager.info(logTitle, "The body of targetResponse is empty" + exceedSizeLog);
+            LogManager.info(logTitle, StringUtil.format("operation: %s body of targetResponse is empty%s", operationName, exceedSizeLog));
             return false;
         }
         final String clazzType = targetResponse.getType();
         if (StringUtil.isEmpty(clazzType)) {
-            LogManager.info(logTitle,"The type of targetResponse is empty");
+            LogManager.info(logTitle, StringUtil.format("operation: %s type of targetResponse is empty", operationName));
             return false;
         }
 

@@ -33,12 +33,15 @@ public class ReplayMatcher {
         }
 
         Mocker matchedMocker = context.getMatchMocker();
+        String message = StringUtil.format("%s, match strategy: %s", requestMocker.logBuilder().toString(),
+                context.getMatchStrategy() != null ? context.getMatchStrategy().name() : StringUtil.EMPTY);
         if (Config.get().isEnableDebug()) {
             String response = matchedMocker != null && matchedMocker.getTargetResponse() != null
                     ? matchedMocker.getTargetResponse().getBody() : StringUtil.EMPTY;
-            LogManager.info(MATCH_TITLE, StringUtil.format("%s%nrequest: %s%nresponse: %s",
-                    requestMocker.logBuilder().toString(), requestMocker.getTargetRequest().getBody(), response));
+            message += StringUtil.format("%nrequest: %s%nresponse: %s",
+                    requestMocker.getTargetRequest().getBody(), response);
         }
+        LogManager.info(MATCH_TITLE, message);
         return matchedMocker;
     }
 
