@@ -4,6 +4,7 @@ import io.arex.agent.bootstrap.model.MockStrategyEnum;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.log.LogManager;
+import io.arex.inst.runtime.model.MatchStrategyEnum;
 import io.arex.inst.runtime.model.MergeDTO;
 import io.arex.inst.runtime.util.MockUtils;
 
@@ -16,6 +17,7 @@ public class AccurateMatchStrategy extends AbstractMatchStrategy{
      * search by operationName + requestBody
      */
     void process(MatchStrategyContext context) {
+        context.setMatchStrategy(MatchStrategyEnum.ACCURATE);
         Mocker requestMocker = context.getRequestMocker();
         List<MergeDTO> mergeReplayList = context.getMergeReplayList();
         int methodSignatureHash = MockUtils.methodSignatureHash(requestMocker);
@@ -34,7 +36,7 @@ public class AccurateMatchStrategy extends AbstractMatchStrategy{
             if (!matchedList.get(0).isMatched() || MockStrategyEnum.FIND_LAST == context.getMockStrategy()) {
                 context.setMatchMocker(buildMatchedMocker(requestMocker, matchedList.get(0)));
             } else {
-                LogManager.info(ACCURATE_MATCH_TITLE, StringUtil.format("accurate match one result, but cannot be used, " +
+                LogManager.warn(ACCURATE_MATCH_TITLE, StringUtil.format("accurate match one result, but cannot be used, " +
                                 "reason: matched: %s, mock strategy: %s, methodSignatureHash: %s, category: %s",
                                 Boolean.toString(matchedList.get(0).isMatched()), context.getMockStrategy().name(),
                                 String.valueOf(methodSignatureHash), requestMocker.getCategoryType().getName()));
