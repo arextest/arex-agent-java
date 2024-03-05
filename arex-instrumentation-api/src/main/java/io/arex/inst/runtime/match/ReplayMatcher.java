@@ -33,8 +33,8 @@ public class ReplayMatcher {
         }
 
         Mocker matchedMocker = context.getMatchMocker();
-        String message = StringUtil.format("%s, match strategy: %s",
-                requestMocker.logBuilder().toString(), context.getMatchStrategy().name());
+        String message = StringUtil.format("%s, match strategy: %s", requestMocker.logBuilder().toString(),
+                context.getMatchStrategy() != null ? context.getMatchStrategy().name() : StringUtil.EMPTY);
         if (Config.get().isEnableDebug()) {
             String response = matchedMocker != null && matchedMocker.getTargetResponse() != null
                     ? matchedMocker.getTargetResponse().getBody() : StringUtil.EMPTY;
