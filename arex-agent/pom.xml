@@ -103,7 +103,12 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>arex-redission-v3</artifactId>
+            <artifactId>arex-redission-v315</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>arex-redission-v316</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
