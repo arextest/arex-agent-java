@@ -5,6 +5,8 @@ import com.alibaba.dubbo.remoting.Channel;
 import com.alibaba.dubbo.remoting.exchange.ResponseData;
 import com.alibaba.dubbo.rpc.RpcResult;
 import io.arex.inst.runtime.context.ContextManager;
+import io.arex.inst.runtime.listener.CaseEvent;
+import io.arex.inst.runtime.listener.CaseEventDispatcher;
 import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.model.ArexConstants;
 import org.slf4j.Logger;
@@ -50,6 +52,8 @@ public class DubboCodecExtractor {
 
             responseData.setTracecontext(result.getAttachment(ArexConstants.REPLAY_ID));
             out.writeObject(responseData);
+            // DubboCodec#encodeResponseData after main entry AbstractProxyInvoker#invoke, so trigger exit event here
+            CaseEventDispatcher.onEvent(CaseEvent.ofExitEvent());
             return true;
         } catch (Throwable e) {
             LOGGER.warn(LogManager.buildTitle("alibaba.dubbo.writeAttachments"), e);
