@@ -502,7 +502,7 @@ class DynamicClassExtractorTest {
      */
     @Test
     void cacheExtractorTest() throws Exception {
-        DynamicClassExtractor extractor = new DynamicClassExtractor("cacheClass", "cacheMethod", null);
+        DynamicClassExtractor extractor = new DynamicClassExtractor("cacheClass", "cacheMethod", null, null);
         Field clazzName = DynamicClassExtractor.class.getDeclaredField("clazzName");
         clazzName.setAccessible(true);
         assertEquals("cacheClass", clazzName.get(extractor));

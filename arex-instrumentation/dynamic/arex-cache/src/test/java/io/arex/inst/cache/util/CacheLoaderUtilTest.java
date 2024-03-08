@@ -1,6 +1,7 @@
 package io.arex.inst.cache.util;
 
 import com.google.common.cache.CacheLoader;
+import io.arex.inst.cache.common.CacheLoaderUtil;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
