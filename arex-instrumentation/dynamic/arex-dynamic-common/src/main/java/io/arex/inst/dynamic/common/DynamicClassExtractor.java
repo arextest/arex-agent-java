@@ -277,7 +277,7 @@ public class DynamicClassExtractor {
             }
             return FluxReplayUtil.restore(result);
         }
-        if (ImmutableMap.class.getName().equals(this.methodReturnType)) {
+        if (GUAVA_IMMUTABLE_MAP.equals(this.methodReturnType)) {
             return ImmutableMap.builder().putAll((Map<?, ?>) result).build();
         }
         return result;

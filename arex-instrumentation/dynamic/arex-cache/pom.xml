@@ -37,11 +37,5 @@
         <version>${reactor.version}</version>
         <scope>provided</scope>
       </dependency>
-      <dependency>
-        <groupId>com.github.ben-manes.caffeine</groupId>
-        <artifactId>caffeine</artifactId>
-        <version>3.0.0</version>
-        <scope>provided</scope>
-      </dependency>
     </dependencies>
 </project>

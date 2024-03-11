@@ -1,4 +1,4 @@
-package io.arex.inst.cache.common;
+package io.arex.inst.cache.util;
 
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.log.LogManager;
