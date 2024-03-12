@@ -65,7 +65,7 @@ public class ConfigService {
         }
         // Load agent config according to last modified time
         loadAgentConfig();
-        return DELAY_MINUTES;
+        return -1;
     }
 
     public void loadAgentConfig() {
@@ -185,7 +185,7 @@ public class ConfigService {
     }
 
     public void reportStatus() {
-        AgentStatusService.INSTANCE.report();
+//        AgentStatusService.INSTANCE.report();
     }
 
     public void shutdown() {
