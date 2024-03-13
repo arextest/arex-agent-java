@@ -10,6 +10,9 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.EmptySource;
+import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class StringUtilTest {
     @Test
@@ -117,6 +120,19 @@ class StringUtilTest {
 
         actualResult = StringUtil.substring("abc", -5);
         assertEquals("abc", actualResult);
+    }
+
+    @Test
+    void substring_start_end() {
+        assertNull(StringUtil.substring(null, 0, 0));
+        assertEquals("", StringUtil.substring("", 0 ,  0));
+        assertEquals("ab", StringUtil.substring("abc", 0, 2));
+        assertEquals("", StringUtil.substring("abc", 2, 0));
+        assertEquals("c", StringUtil.substring("abc", 2, 4));
+        assertEquals("", StringUtil.substring("abc", 4, 6));
+        assertEquals("", StringUtil.substring("abc", 2, 2));
+        assertEquals("b", StringUtil.substring("abc", -2, -1));
+        assertEquals("ab", StringUtil.substring("abc", -4, 2));
     }
 
     @Test

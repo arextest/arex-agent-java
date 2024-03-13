@@ -1,5 +1,6 @@
 package io.arex.inst.httpservlet.adapter;
 
+import io.arex.agent.bootstrap.util.StringUtil;
 import org.springframework.web.context.request.NativeWebRequest;
 
 import javax.annotation.Nullable;
@@ -68,5 +69,22 @@ public interface ServletAdapter<HttpServletRequest, HttpServletResponse> {
 
     boolean markProcessed(HttpServletRequest httpServletRequest, String mark);
 
-    String getParameter(HttpServletRequest httpServletRequest, String name);
+    String getQueryString(HttpServletRequest httpServletRequest);
+
+    default String getParameterFromQueryString(HttpServletRequest httpServletRequest, String name) {
+        String queryString = getQueryString(httpServletRequest);
+        if (StringUtil.isEmpty(queryString)) {
+            return null;
+        }
+
+        int lastIndex = queryString.lastIndexOf(name);
+        if (lastIndex < 0) {
+            return null;
+        }
+
+        int start = lastIndex + name.length() + 1;
+        int end  = queryString.indexOf("&", start);
+        end = end < 0 ? queryString.length() : end;
+        return StringUtil.substring(queryString, start, end);
+    }
 }

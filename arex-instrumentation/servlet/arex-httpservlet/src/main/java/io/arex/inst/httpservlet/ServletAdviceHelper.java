@@ -261,7 +261,7 @@ public class ServletAdviceHelper {
 
     private static <TRequest, TResponse> String getRedirectRecordId(ServletAdapter<TRequest, TResponse> adapter,
         TRequest httpServletRequest) {
-        String redirectRecordId = adapter.getParameter(httpServletRequest, ArexConstants.RECORD_ID);
+        String redirectRecordId = adapter.getParameterFromQueryString(httpServletRequest, ArexConstants.RECORD_ID);
         if (StringUtil.isEmpty(redirectRecordId)) {
             return null;
         }
@@ -273,7 +273,7 @@ public class ServletAdviceHelper {
         }
 
         ArexContext context = ContextManager.getContext(redirectRecordId);
-        if (context.isRedirectRequest(referer)) {
+        if (context != null && context.isRedirectRequest(referer)) {
             return redirectRecordId;
         }
 
