@@ -1,5 +1,6 @@
 package io.arex.inst.dynamic.common;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import io.arex.agent.bootstrap.model.ArexMocker;
@@ -23,7 +24,9 @@ import java.time.LocalTime;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.CompletableFuture;
@@ -308,6 +311,13 @@ class DynamicClassExtractorTest {
 
         Object fluxExceptionTest = fluxTestExtractor.restoreResponse(new RuntimeException());
         assertThrows(RuntimeException.class,()-> ((Flux<?>) fluxExceptionTest).blockFirst());
+
+        // ImmutableMap
+        DynamicClassExtractor immutableMapTestExtractor = new DynamicClassExtractor("testClass", "testMethod", new Object[]{"mock"}, DynamicClassExtractor.GUAVA_IMMUTABLE_MAP);
+        Map<String, String> replayResult = new HashMap<>();
+        replayResult.put("key", "value");
+        Object restoreResponse = immutableMapTestExtractor.restoreResponse(replayResult);
+        assertTrue(restoreResponse instanceof ImmutableMap);
     }
 
     @Test
@@ -502,7 +512,7 @@ class DynamicClassExtractorTest {
      */
     @Test
     void cacheExtractorTest() throws Exception {
-        DynamicClassExtractor extractor = new DynamicClassExtractor("cacheClass", "cacheMethod", null);
+        DynamicClassExtractor extractor = new DynamicClassExtractor("cacheClass", "cacheMethod", null, null);
         Field clazzName = DynamicClassExtractor.class.getDeclaredField("clazzName");
         clazzName.setAccessible(true);
         assertEquals("cacheClass", clazzName.get(extractor));

@@ -1,6 +1,5 @@
-package io.arex.inst.cache.guava;
+package io.arex.inst.cache.caffeine;
 
-import com.google.common.cache.CacheLoader;
 import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.inst.cache.util.CacheLoaderUtil;
 import io.arex.inst.dynamic.common.DynamicClassExtractor;
@@ -13,55 +12,51 @@ import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.implementation.bytecode.assign.Assigner;
 import net.bytebuddy.matcher.ElementMatcher;
 
-import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 
 import static net.bytebuddy.matcher.ElementMatchers.*;
+import static net.bytebuddy.matcher.ElementMatchers.takesArguments;
 
-public class GuavaCacheInstrumentation extends TypeInstrumentation {
-
+public class CaffeineSyncInstrumentation extends TypeInstrumentation {
     @Override
     protected ElementMatcher<TypeDescription> typeMatcher() {
-        return named("com.google.common.cache.LocalCache").and(not(isInterface().or(isAbstract())));
+        return named("com.github.benmanes.caffeine.cache.BoundedLocalCache");
     }
 
     @Override
     public List<MethodInstrumentation> methodAdvices() {
-        return Arrays.asList(
-                new MethodInstrumentation(isMethod().and(named("get")).and(takesArguments(2)),
+        return Arrays.asList(new MethodInstrumentation(
+                        isMethod().and(named("computeIfAbsent")).and(takesArguments(4)),
                         GetAdvice.class.getName()),
-                new MethodInstrumentation(isMethod().and(named("getIfPresent")).and(takesArguments(1)),
+                new MethodInstrumentation(isMethod().and(named("getIfPresent")).and(takesArguments(2)),
                         GetAdvice.class.getName()));
     }
 
     public static class GetAdvice {
-        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class ,suppress = Throwable.class)
-        public static boolean onEnter(@Advice.Origin("#m") String methodName,
-                                      @Advice.Argument(0) Object key,
+        @Advice.OnMethodEnter(suppress = Throwable.class, skipOn = Advice.OnNonDefaultValue.class)
+        public static boolean onEnter(@Advice.Argument(0) Object key,
+                                      @Advice.Origin("#m") String methodName,
                                       @Advice.Origin("#r") String methodReturnType,
-                                      @Advice.FieldValue("defaultLoader") CacheLoader loader,
-                                      @Advice.Local("mockResult") MockResult mockResult) {
+                                      @Advice.Local("mockResult") MockResult mockResult,
+                                      @Advice.FieldValue("cacheLoader") Object cacheLoader) {
             if (ContextManager.needRecord()) {
                 RepeatedCollectManager.enter();
             }
-
             if (ContextManager.needReplay()) {
-                String className = CacheLoaderUtil.getLocatedClass(loader);
+                String className = CacheLoaderUtil.getLocatedClass(cacheLoader);
                 DynamicClassExtractor extractor = new DynamicClassExtractor(className, methodName, new Object[]{key}, methodReturnType);
                 mockResult = extractor.replay();
                 return mockResult != null && mockResult.notIgnoreMockResult();
             }
-
             return false;
         }
-
         @Advice.OnMethodExit(onThrowable = Throwable.class, suppress = Throwable.class)
         public static void onExit(@Advice.Origin("#m") String methodName,
                                   @Advice.Argument(0) Object key,
-                                  @Advice.Origin("#r") String methodReturnType,
-                                  @Advice.FieldValue("defaultLoader") CacheLoader loader,
                                   @Advice.Local("mockResult") MockResult mockResult,
+                                  @Advice.FieldValue("cacheLoader") Object cacheLoader,
+                                  @Advice.Origin("#r") String methodReturnType,
                                   @Advice.Return(readOnly = false, typing = Assigner.Typing.DYNAMIC) Object result,
                                   @Advice.Thrown(readOnly = false) Throwable throwable) {
             if (mockResult != null && mockResult.notIgnoreMockResult()) {
@@ -70,10 +65,10 @@ public class GuavaCacheInstrumentation extends TypeInstrumentation {
                 } else {
                     result = mockResult.getResult();
                 }
+                return;
             }
-
             if (ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate()) {
-                String className = CacheLoaderUtil.getLocatedClass(loader);
+                String className = CacheLoaderUtil.getLocatedClass(cacheLoader);
                 DynamicClassExtractor extractor = new DynamicClassExtractor(className, methodName, new Object[]{key}, methodReturnType);
                 extractor.recordResponse(throwable != null ? throwable : result);
             }

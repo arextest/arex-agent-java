@@ -1,5 +1,6 @@
 package io.arex.inst.dynamic.common;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import io.arex.agent.bootstrap.model.MockResult;
@@ -39,7 +40,8 @@ import io.arex.inst.runtime.util.sizeof.AgentSizeOf;
 
 public class DynamicClassExtractor {
     private static final String LISTENABLE_FUTURE = "com.google.common.util.concurrent.ListenableFuture";
-    private static final String COMPLETABLE_FUTURE = "java.util.concurrent.CompletableFuture";
+    public static final String COMPLETABLE_FUTURE = "java.util.concurrent.CompletableFuture";
+    public static final String GUAVA_IMMUTABLE_MAP = "com.google.common.collect.ImmutableMap";
     private static final String NEED_RECORD_TITLE = "dynamic.needRecord";
     private static final String NEED_REPLAY_TITLE = "dynamic.needReplay";
     public static final String MONO = "reactor.core.publisher.Mono";
@@ -82,13 +84,13 @@ public class DynamicClassExtractor {
         this.requestType = buildRequestType(method);
     }
 
-    public DynamicClassExtractor(String clazzName, String methodName, Object[] args) {
+    public DynamicClassExtractor(String clazzName, String methodName, Object[] args, String methodReturnType) {
         this.clazzName = clazzName;
         this.methodName = methodName;
         this.args = args;
         this.dynamicSignature = getDynamicEntitySignature();
         this.methodKey = serialize(args, ArexConstants.GSON_REQUEST_SERIALIZER);
-        this.methodReturnType = null;
+        this.methodReturnType = methodReturnType;
         this.actualType = null;
         this.requestType = null;
     }
@@ -274,6 +276,9 @@ public class DynamicClassExtractor {
                 return Flux.error((Throwable) result);
             }
             return FluxReplayUtil.restore(result);
+        }
+        if (GUAVA_IMMUTABLE_MAP.equals(this.methodReturnType)) {
+            return ImmutableMap.builder().putAll((Map<?, ?>) result).build();
         }
         return result;
     }

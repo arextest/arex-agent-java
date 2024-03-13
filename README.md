@@ -30,6 +30,10 @@ AREX utilizes the advanced Java technique, Instrument API, and is capable of ins
 - Java Executors
 - System time
 - Dynamic Type
+#### Cache Library
+- Caffeine Cache
+- Guava Cache
+- Spring Cache
 #### Spring
 - Spring Boot [1.4+, 2.x+]
 - Servlet API 3+、5+
