@@ -226,7 +226,7 @@ public class ServletAdapterImplV5 implements ServletAdapter<HttpServletRequest, 
     }
 
     @Override
-    public String getParameter(HttpServletRequest httpServletRequest, String name) {
-        return httpServletRequest.getParameter(name);
+    public String getQueryString(HttpServletRequest httpServletRequest) {
+        return httpServletRequest.getQueryString();
     }
 }

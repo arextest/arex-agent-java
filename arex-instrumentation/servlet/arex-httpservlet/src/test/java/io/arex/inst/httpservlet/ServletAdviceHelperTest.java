@@ -1,6 +1,7 @@
 package io.arex.inst.httpservlet;
 
 import io.arex.agent.bootstrap.internal.Pair;
+import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
@@ -20,6 +21,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.MockedConstruction;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -100,14 +102,14 @@ class ServletAdviceHelperTest {
             Mockito.when(adapter.getRequestHeader(any(), eq(ArexConstants.RECORD_ID))).thenReturn("mock");
         };
         Runnable getRedirectRecordId1 = () -> {
-            Mockito.when(adapter.getParameter(any(), eq(ArexConstants.RECORD_ID))).thenReturn(null);
+            Mockito.when(adapter.getParameterFromQueryString(any(), eq(ArexConstants.RECORD_ID))).thenReturn(null);
         };
         Runnable getRedirectRecordId2 = () -> {
-            Mockito.when(adapter.getParameter(any(), eq(ArexConstants.RECORD_ID))).thenReturn("mock-redirectRecordId");
+            Mockito.when(adapter.getParameterFromQueryString(any(), eq(ArexConstants.RECORD_ID))).thenReturn("mock-redirectRecordId");
             Mockito.when(adapter.getRequestHeader(any(), eq("referer"))).thenReturn(null);
         };
         Runnable getRedirectRecordId3 = () -> {
-            Mockito.when(adapter.getParameter(any(), eq(ArexConstants.RECORD_ID))).thenReturn("mock-redirectRecordId");
+            Mockito.when(adapter.getParameterFromQueryString(any(), eq(ArexConstants.RECORD_ID))).thenReturn("mock-redirectRecordId");
             Mockito.when(adapter.getRequestHeader(any(), eq("referer"))).thenReturn("mock-referer");
             ArexContext context = ArexContext.of("mock-record-id");
             context.setAttachment(ArexConstants.REDIRECT_REFERER, "mock-referer");

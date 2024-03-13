@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
+import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.httpservlet.wrapper.CachedBodyRequestWrapperV3;
 import io.arex.inst.httpservlet.wrapper.CachedBodyResponseWrapperV3;
 import java.io.ByteArrayInputStream;
@@ -20,6 +21,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mockito;
 import org.springframework.web.context.request.NativeWebRequest;
 
@@ -266,8 +269,21 @@ class ServletAdapterImplV3Test {
     }
 
     @Test
-    void getParameter() {
-        when(mockRequest.getParameter(any())).thenReturn("mock-parameter");
-        assertEquals("mock-parameter", instance.getParameter(mockRequest, "arex-parameter"));
+    void getQueryString() {
+        when(mockRequest.getQueryString()).thenReturn("k1=v1&k2=v2");
+        assertEquals("k1=v1&k2=v2", instance.getQueryString(mockRequest));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+        "k1=v1&arex-record-id=mock-redirectRecordId&k2=v2",
+        "k1=v1&arex-record-id=mock-redirectRecordId",
+        "arex-record-id=mock-redirectRecordId&k2=v2",
+        "arex-record-id=mock-redirectRecordId"
+    })
+    void getParameterFromQueryString(String queryString) {
+        when(mockRequest.getQueryString()).thenReturn(queryString);
+        String redirectRecordId = instance.getParameterFromQueryString(mockRequest, "arex-record-id");
+        assertEquals("mock-redirectRecordId", redirectRecordId);
     }
 }

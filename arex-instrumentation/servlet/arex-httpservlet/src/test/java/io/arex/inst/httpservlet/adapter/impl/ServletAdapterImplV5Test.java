@@ -268,8 +268,8 @@ class ServletAdapterImplV5Test {
     }
 
     @Test
-    void getParameter() {
-        when(mockRequest.getParameter(any())).thenReturn("mock-parameter");
-        assertEquals("mock-parameter", instance.getParameter(mockRequest, "arex-parameter"));
+    void getQueryString() {
+        when(mockRequest.getQueryString()).thenReturn("k1=v1&k2=v2");
+        assertEquals("k1=v1&k2=v2", instance.getQueryString(mockRequest));
     }
 }
