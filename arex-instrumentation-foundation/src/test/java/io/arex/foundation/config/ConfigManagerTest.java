@@ -314,6 +314,6 @@ class ConfigManagerTest {
         // defaultPackage is com.a.b
         System.setProperty(ConfigConstants.COVERAGE_PACKAGES, "com.a.c");
         appendCoveragePackages.invoke(configManager, "com.a.b");
-        assertEquals("com.a.c,com.a.b", System.getProperty(ConfigConstants.COVERAGE_PACKAGES));
+        assertEquals("com.a.b", System.getProperty(ConfigConstants.COVERAGE_PACKAGES));
     }
 }

@@ -387,15 +387,7 @@ public class ConfigManager {
         if (StringUtil.isEmpty(collectCoveragePackages)) {
             return;
         }
-        String defaultPackages = System.getProperty(COVERAGE_PACKAGES);
-        String finalPackages;
-        if (StringUtil.isEmpty(defaultPackages)) {
-            finalPackages = collectCoveragePackages;
-        } else {
-            finalPackages = StringUtil.join(",", defaultPackages, collectCoveragePackages);
-        }
-
-        System.setProperty(COVERAGE_PACKAGES, finalPackages);
+        System.setProperty(COVERAGE_PACKAGES, collectCoveragePackages);
     }
 
     private void publish(Config config) {

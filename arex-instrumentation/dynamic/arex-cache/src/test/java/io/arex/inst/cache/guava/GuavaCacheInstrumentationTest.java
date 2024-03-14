@@ -56,6 +56,7 @@ class GuavaCacheInstrumentationTest {
                 return "test";
             }
         };
+        Mockito.when(CacheLoaderUtil.needRecordOrReplay(loader)).thenReturn(true);
         assertFalse(GuavaCacheInstrumentation.GetAdvice.onEnter("get", key, StringUtil.EMPTY, loader, null));
 
         // record
@@ -84,6 +85,7 @@ class GuavaCacheInstrumentationTest {
                 return "test";
             }
         };
+        Mockito.when(CacheLoaderUtil.needRecordOrReplay(loader)).thenReturn(true);
 
         MockedStatic<MockUtils> mockedStatic = Mockito.mockStatic(MockUtils.class);
         Object result = "test";

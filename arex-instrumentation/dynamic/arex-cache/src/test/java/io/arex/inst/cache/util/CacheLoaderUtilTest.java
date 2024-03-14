@@ -1,7 +1,11 @@
 package io.arex.inst.cache.util;
 
 import com.google.common.cache.CacheLoader;
+import io.arex.inst.runtime.config.Config;
+import io.arex.inst.runtime.model.ArexConstants;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 
 import java.lang.reflect.Field;
 import java.util.Map;
@@ -56,7 +60,29 @@ class CacheLoaderUtilTest {
         assertEquals("io.arex.inst.cache.util.CacheLoaderUtilTest$AbstractCache2$1", locatedClass);
         assertEquals(2, NO_REFERENCE_MAP.size());
         assertEquals(1, REFERENCE_FIELD_MAP.size());
+    }
 
+    @Test
+    void needRecordOrReplay() {
+        try (MockedStatic<Config> configMockedStatic = Mockito.mockStatic(Config.class)) {
+            Config config = Mockito.mock(Config.class);
+            Mockito.when(Config.get()).thenReturn(config);
+            Mockito.when(config.getCoveragePackages()).thenReturn(new String[]{"io.arex.inst"});
+            // loader is null
+            assertFalse(CacheLoaderUtil.needRecordOrReplay(null));
+            // loader is in coverage packages
+            assertTrue(CacheLoaderUtil.needRecordOrReplay(cacheLoader));
+
+            // loader is not in coverage packages
+            Mockito.when(config.getCoveragePackages()).thenReturn(new String[]{});
+            assertFalse(CacheLoaderUtil.needRecordOrReplay(cacheLoader));
+
+            Mockito.when(config.getCoveragePackages()).thenReturn(new String[]{"io.arexs"});
+            assertFalse(CacheLoaderUtil.needRecordOrReplay(cacheLoader));
+
+            Mockito.when(config.getCoveragePackages()).thenReturn(new String[]{"io.arexs","io.arex.inst.cache.util"});
+            assertTrue(CacheLoaderUtil.needRecordOrReplay(cacheLoader));
+        }
     }
 
 

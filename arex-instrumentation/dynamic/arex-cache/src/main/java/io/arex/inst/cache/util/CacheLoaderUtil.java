@@ -1,6 +1,9 @@
 package io.arex.inst.cache.util;
 
+import io.arex.agent.bootstrap.util.ArrayUtils;
+import io.arex.agent.bootstrap.util.MapUtils;
 import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.log.LogManager;
 
 import java.lang.reflect.Field;
@@ -73,5 +76,22 @@ public class CacheLoaderUtil {
             return cacheLoader.getClass().getName();
         }
         return referenceObject.getClass().getName();
+    }
+
+    public static boolean needRecordOrReplay(Object cacheLoader) {
+        if (cacheLoader == null) {
+            return false;
+        }
+        String[] coveragePackages = Config.get().getCoveragePackages();
+        if (ArrayUtils.isEmpty(coveragePackages)){
+            return false;
+        }
+        String loaderClassName = MapUtils.getString(NO_REFERENCE_MAP, System.identityHashCode(cacheLoader), cacheLoader.getClass().getName());
+        for (String packageName : coveragePackages) {
+            if (StringUtil.startWith(loaderClassName, packageName)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

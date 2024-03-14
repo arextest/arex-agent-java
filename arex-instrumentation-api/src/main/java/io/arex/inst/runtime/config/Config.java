@@ -44,6 +44,7 @@ public class Config {
     private final int recordRate;
     private final String recordVersion;
     private final Set<String> includeServiceOperations;
+    private final String[] coveragePackages;
 
     Config(boolean enableDebug, String serviceName, List<DynamicClassEntity> dynamicClassList,
         Map<String, String> properties,
@@ -57,6 +58,7 @@ public class Config {
         this.recordRate = recordRate;
         this.recordVersion = properties.get("arex.agent.version");
         this.includeServiceOperations = StringUtil.splitToSet(properties.get("includeServiceOperations"), ',');
+        this.coveragePackages = StringUtil.split(properties.get(ConfigConstants.COVERAGE_PACKAGES), ',');
         buildDynamicClassInfo();
     }
 
@@ -88,6 +90,9 @@ public class Config {
         this.dynamicAbstractClassList = list.toArray(StringUtil.EMPTY_STRING_ARRAY);
     }
 
+    public String[] getCoveragePackages() {
+        return coveragePackages;
+    }
     public String getRecordVersion() {
         return recordVersion;
     }

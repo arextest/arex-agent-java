@@ -105,4 +105,11 @@ class ConfigTest {
         assertEquals(2, Config.get().excludeServiceOperations().size());
         assertTrue(Config.get().excludeServiceOperations() instanceof ConcurrentHashSet);
     }
+
+    @Test
+    void buildCoveragePackages() {
+        ConfigBuilder.create("mock").addProperty(ConfigConstants.COVERAGE_PACKAGES, "io.arex.inst").build();
+        assertEquals(1, Config.get().getCoveragePackages().length);
+        assertEquals("io.arex.inst", Config.get().getCoveragePackages()[0]);
+    }
 }

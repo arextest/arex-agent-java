@@ -13,7 +13,6 @@ import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.implementation.bytecode.assign.Assigner;
 import net.bytebuddy.matcher.ElementMatcher;
 
-import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 
@@ -46,7 +45,7 @@ public class GuavaCacheInstrumentation extends TypeInstrumentation {
                 RepeatedCollectManager.enter();
             }
 
-            if (ContextManager.needReplay()) {
+            if (ContextManager.needReplay() && CacheLoaderUtil.needRecordOrReplay(loader)) {
                 String className = CacheLoaderUtil.getLocatedClass(loader);
                 DynamicClassExtractor extractor = new DynamicClassExtractor(className, methodName, new Object[]{key}, methodReturnType);
                 mockResult = extractor.replay();
@@ -72,7 +71,7 @@ public class GuavaCacheInstrumentation extends TypeInstrumentation {
                 }
             }
 
-            if (ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate()) {
+            if (ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate() && CacheLoaderUtil.needRecordOrReplay(loader)) {
                 String className = CacheLoaderUtil.getLocatedClass(loader);
                 DynamicClassExtractor extractor = new DynamicClassExtractor(className, methodName, new Object[]{key}, methodReturnType);
                 extractor.recordResponse(throwable != null ? throwable : result);
