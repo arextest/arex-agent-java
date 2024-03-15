@@ -71,4 +71,19 @@ class MapUtilsTest {
                 arguments(map, "key", asserts1)
         );
     }
+
+    @Test
+    void getString() {
+        // null map
+        assertNull(MapUtils.getString(null, "key"));
+        Map<String, String> map = new HashMap<>();
+        // empty map
+        assertNull(MapUtils.getString(map, "key"));
+        // key exist return value
+        map.put("key", "value");
+        assertEquals("value", MapUtils.getString(map, "key", "default"));
+        // key not exist return default value
+        assertEquals("default", MapUtils.getString(map, "key1", "default"));
+
+    }
 }
