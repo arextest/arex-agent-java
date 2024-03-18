@@ -27,7 +27,7 @@ public class DubboProviderExtractor extends DubboExtractor {
         String excludeMockTemplate = adapter.getExcludeMockTemplate();
         RequestHandlerManager.preHandle(adapter.getUserDefineMap(), MockCategoryType.DUBBO_PROVIDER.getName());
         CaseEventDispatcher.onEvent(CaseEvent.ofCreateEvent(EventSource.of(caseId, excludeMockTemplate)));
-        RequestHandlerManager.handleAfterCreateContext(invocation.getAttachments(), MockCategoryType.DUBBO_PROVIDER.getName());
+        RequestHandlerManager.handleAfterCreateContext(adapter.getUserDefineMap(), MockCategoryType.DUBBO_PROVIDER.getName());
         invocation.getAttachments().put(ArexConstants.ORIGINAL_REQUEST, Serializer.serialize(invocation.getArguments()));
     }
     public static void onServiceExit(Invoker<?> invoker, Invocation invocation, Result result) {
