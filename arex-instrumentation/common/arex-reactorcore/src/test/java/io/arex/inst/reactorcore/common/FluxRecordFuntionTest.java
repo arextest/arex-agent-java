@@ -1,9 +1,10 @@
-package io.arex.inst.common.util;
+package io.arex.inst.reactorcore.common;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import io.arex.inst.common.util.FluxReplayUtil.FluxResult;
+
+import io.arex.inst.reactorcore.common.FluxReplayUtil.FluxResult;
 import io.arex.inst.runtime.config.ConfigBuilder;
 import io.arex.inst.runtime.context.ContextManager;
 import java.util.function.Function;
@@ -15,7 +16,7 @@ import reactor.core.publisher.Flux;
 
 public class FluxRecordFuntionTest {
 
-    static  FluxRecordFunction fluxRecordFunction;
+    static FluxRecordFunction fluxRecordFunction;
     @BeforeAll
     static void setUp() {
         Mockito.mockStatic(ContextManager.class);

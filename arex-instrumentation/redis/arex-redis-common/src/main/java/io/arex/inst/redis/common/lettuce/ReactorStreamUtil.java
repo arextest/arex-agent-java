@@ -1,10 +1,10 @@
 package io.arex.inst.redis.common.lettuce;
 
 import io.arex.agent.bootstrap.model.MockResult;
-import io.arex.inst.common.util.FluxRecordFunction;
-import io.arex.inst.common.util.FluxReplayUtil;
-import io.arex.inst.common.util.FluxReplayUtil.FluxResult;
-import io.arex.inst.common.util.MonoRecordFunction;
+import io.arex.inst.reactorcore.common.FluxRecordFunction;
+import io.arex.inst.reactorcore.common.FluxReplayUtil;
+import io.arex.inst.reactorcore.common.FluxReplayUtil.FluxResult;
+import io.arex.inst.reactorcore.common.MonoRecordFunction;
 import io.arex.inst.redis.common.RedisExtractor;
 import java.util.function.Function;
 import reactor.core.publisher.Flux;
