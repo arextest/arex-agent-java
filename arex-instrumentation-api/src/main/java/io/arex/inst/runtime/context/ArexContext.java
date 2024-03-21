@@ -91,6 +91,10 @@ public class ArexContext {
     }
 
     public void setAttachment(String key, Object value) {
+        if (value == null) {
+            return;
+        }
+
         if (attachments == null) {
             attachments = new HashMap<>();
         }

@@ -119,6 +119,8 @@ public class ServletAdviceHelper {
             String caseId = adapter.getRequestHeader(httpServletRequest, ArexConstants.RECORD_ID);
             String excludeMockTemplate = adapter.getRequestHeader(httpServletRequest, ArexConstants.HEADER_EXCLUDE_MOCK);
             CaseEventDispatcher.onEvent(CaseEvent.ofCreateEvent(EventSource.of(caseId, excludeMockTemplate)));
+            ContextManager.currentContext().setAttachment(ArexConstants.FORCE_RECORD,
+                adapter.getRequestHeader(httpServletRequest, ArexConstants.FORCE_RECORD));
             RequestHandlerManager.handleAfterCreateContext(httpServletRequest, MockCategoryType.SERVLET.getName());
         }
 
