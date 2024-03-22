@@ -4,6 +4,7 @@ import io.arex.agent.bootstrap.model.ArexMocker;
 import io.arex.agent.bootstrap.model.Mocker.Target;
 import io.arex.agent.bootstrap.util.Assert;
 import io.arex.inst.runtime.config.Config;
+import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.context.RecordLimiter;
 import io.arex.inst.runtime.listener.CaseEventDispatcher;
@@ -57,6 +58,7 @@ class RequestTracingHandlerTest {
         Mockito.when(Config.get()).thenReturn(Mockito.mock(Config.class));
         mockCaseEvent = Mockito.mockStatic(CaseEventDispatcher.class);
         Mockito.mockStatic(MockUtils.class);
+        Mockito.when(ContextManager.currentContext()).thenReturn(ArexContext.of("mock"));
     }
 
     @AfterAll

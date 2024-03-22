@@ -52,6 +52,7 @@ class RequestTracingHandlerTest {
         Mockito.mockStatic(Config.class);
         Mockito.when(Config.get()).thenReturn(Mockito.mock(Config.class));
         Mockito.mockStatic(MockUtils.class);
+        Mockito.when(ContextManager.currentContext()).thenReturn(ArexContext.of("mock"));
     }
 
     @AfterAll
