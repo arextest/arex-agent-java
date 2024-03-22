@@ -4,6 +4,7 @@ import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.agent.bootstrap.model.Mocker;
 
 import io.arex.agent.bootstrap.util.CollectionUtil;
+import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.util.IgnoreUtils;
 import io.arex.inst.runtime.util.MockUtils;
@@ -14,6 +15,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class RedisExtractor {
     private static final String SPECIAL_CLASS_NAME = "redis.clients.jedis.BinaryJedis$SetFromList";
+    private static final String DEFAULT_CLUSTER_NAME = "Cluster";
 
     private final String clusterName;
     private final String command;
@@ -89,7 +91,10 @@ public class RedisExtractor {
         private static final AtomicInteger sequence = new AtomicInteger();
 
         static String get(String key) {
-            return REDIS_CLUSTER_CACHE.computeIfAbsent(key, k -> "Cluster" + sequence.addAndGet(1));
+            if(StringUtil.isEmpty(key)){
+                return DEFAULT_CLUSTER_NAME;
+            }
+            return REDIS_CLUSTER_CACHE.computeIfAbsent(key, k -> DEFAULT_CLUSTER_NAME + sequence.addAndGet(1));
         }
     }
 }
