@@ -42,6 +42,7 @@ class DubboProviderExtractorTest {
         Mockito.mockStatic(IgnoreUtils.class);
         Mockito.mockStatic(Config.class);
         Mockito.when(Config.get()).thenReturn(Mockito.mock(Config.class));
+        Mockito.when(ContextManager.currentContext()).thenReturn(ArexContext.of("mock"));
     }
 
     @AfterAll
