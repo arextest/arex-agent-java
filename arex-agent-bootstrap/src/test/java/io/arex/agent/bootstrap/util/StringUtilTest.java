@@ -360,4 +360,15 @@ class StringUtilTest {
         assertEquals(0, StringUtil.countMatches("mock", "M"));
         assertEquals(1, StringUtil.countMatches("mock", "m"));
     }
+
+    @Test
+    void substringBefore() {
+        assertEquals(null, StringUtil.substringBefore(null, null));
+        assertEquals("", StringUtil.substringBefore("", null));
+        assertEquals("", StringUtil.substringBefore("", ""));
+        assertEquals("", StringUtil.substringBefore("mock", ""));
+        assertEquals("mock", StringUtil.substringBefore("mock", null));
+        assertEquals("mock", StringUtil.substringBefore("mock", "cd"));
+        assertEquals("mo", StringUtil.substringBefore("mock", "c"));
+    }
 }

@@ -14,6 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class CacheLoaderUtil {
     private static final Map<Integer, Field> REFERENCE_FIELD_MAP = new ConcurrentHashMap<>();
     private static final Map<Integer, String> NO_REFERENCE_MAP = new ConcurrentHashMap<>();
+    private static final String LAMBDA_SUFFIX = "$$";
 
     /**
      * return the reference to the outer class in an inner class, if exists.
@@ -31,16 +32,12 @@ public class CacheLoaderUtil {
 
         Class<?> loaderClass = loader.getClass();
         if (isNotAbstractOrInterface(loaderClass.getEnclosingClass())) {
-            String loaderClassName = loaderClass.getName();
-            NO_REFERENCE_MAP.put(loaderHashCode, loaderClassName);
-            return loaderClassName;
+            return generateNameWithNoReference(loaderHashCode, loaderClass);
         }
 
         Field field = REFERENCE_FIELD_MAP.computeIfAbsent(loaderHashCode, k -> getReferenceField(loaderClass));
         if (field == null) {
-            String loaderClassName = loaderClass.getName();
-            NO_REFERENCE_MAP.put(loaderHashCode, loaderClassName);
-            return loaderClassName;
+            return generateNameWithNoReference(loaderHashCode, loaderClass);
         }
 
         try {
@@ -50,6 +47,16 @@ public class CacheLoaderUtil {
             LogManager.warn("CacheLoaderUtil.getLocatedClass", e);
             return loaderClass.getName();
         }
+    }
+
+    /**
+     * cache loader without external references directly obtain class name, and remove lambda suffix.
+     * @return
+     */
+    private static String generateNameWithNoReference(int loaderHashCode, Class<?> loaderClass) {
+        String loaderClassName = StringUtil.substringBefore(loaderClass.getName(), LAMBDA_SUFFIX);
+        NO_REFERENCE_MAP.put(loaderHashCode, loaderClassName);
+        return loaderClassName;
     }
 
     private static boolean isNotAbstractOrInterface(Class<?> clazz) {
