@@ -2,7 +2,6 @@ package io.arex.inst.cache.util;
 
 import com.google.common.cache.CacheLoader;
 import io.arex.inst.runtime.config.Config;
-import io.arex.inst.runtime.model.ArexConstants;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
