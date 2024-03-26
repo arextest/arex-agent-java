@@ -361,6 +361,7 @@ public class ConfigManager {
         configMap.put(DYNAMIC_RESULT_SIZE_LIMIT, String.valueOf(getDynamicResultSizeLimit()));
         configMap.put(DISABLE_REPLAY, System.getProperty(DISABLE_REPLAY));
         configMap.put(DISABLE_RECORD, System.getProperty(DISABLE_RECORD));
+        configMap.put(COVERAGE_PACKAGES, System.getProperty(COVERAGE_PACKAGES));
         configMap.put(DURING_WORK, Boolean.toString(inWorkingTime()));
         configMap.put(AGENT_VERSION, agentVersion);
         configMap.put(AGENT_ENABLED, Boolean.toString(agentEnabled));
