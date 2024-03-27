@@ -1,12 +1,12 @@
-package io.arex.inst.common.util;
+package io.arex.inst.reactorcore.common;
 
-import static io.arex.inst.common.util.FluxReplayUtil.FLUX_FROM_ARRAY;
-import static io.arex.inst.common.util.FluxReplayUtil.FLUX_FROM_ITERATOR;
-import static io.arex.inst.common.util.FluxReplayUtil.FLUX_FROM_STREAM;
+import static io.arex.inst.reactorcore.common.FluxReplayUtil.FLUX_FROM_ARRAY;
+import static io.arex.inst.reactorcore.common.FluxReplayUtil.FLUX_FROM_ITERATOR;
+import static io.arex.inst.reactorcore.common.FluxReplayUtil.FLUX_FROM_STREAM;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import io.arex.inst.common.util.FluxReplayUtil.FluxElementResult;
-import io.arex.inst.common.util.FluxReplayUtil.FluxResult;
+import io.arex.inst.reactorcore.common.FluxReplayUtil.FluxElementResult;
+import io.arex.inst.reactorcore.common.FluxReplayUtil.FluxResult;
 import io.arex.inst.runtime.util.TypeUtil;
 import java.util.ArrayList;
 import java.util.List;

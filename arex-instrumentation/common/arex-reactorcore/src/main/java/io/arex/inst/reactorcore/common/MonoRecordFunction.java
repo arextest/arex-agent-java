@@ -1,4 +1,4 @@
-package io.arex.inst.common.util;
+package io.arex.inst.reactorcore.common;
 
 import io.arex.agent.bootstrap.ctx.TraceTransmitter;
 import java.util.function.Function;

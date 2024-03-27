@@ -1,7 +1,7 @@
-package io.arex.inst.common.util;
+package io.arex.inst.reactorcore.common;
 
 import io.arex.agent.bootstrap.ctx.TraceTransmitter;
-import io.arex.inst.common.util.FluxReplayUtil.FluxResult;
+import io.arex.inst.reactorcore.common.FluxReplayUtil.FluxResult;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.util.TypeUtil;
