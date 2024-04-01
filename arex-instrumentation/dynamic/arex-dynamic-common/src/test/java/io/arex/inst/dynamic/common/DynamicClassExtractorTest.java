@@ -5,7 +5,6 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import io.arex.agent.bootstrap.model.ArexMocker;
 import io.arex.agent.bootstrap.model.Mocker.Target;
-import io.arex.agent.thirdparty.util.time.DateFormatUtils;
 import io.arex.inst.common.util.FluxReplayUtil;
 import io.arex.inst.common.util.MonoRecordFunction;
 import io.arex.inst.runtime.config.ConfigBuilder;
@@ -20,22 +19,17 @@ import io.arex.inst.runtime.util.MockUtils;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.Calendar;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.TimeZone;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 
 import io.arex.inst.runtime.util.sizeof.AgentSizeOf;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -516,5 +510,41 @@ class DynamicClassExtractorTest {
         Field clazzName = DynamicClassExtractor.class.getDeclaredField("clazzName");
         clazzName.setAccessible(true);
         assertEquals("cacheClass", clazzName.get(extractor));
+    }
+
+    @Test
+    void replayWithRealCall() {
+        try (MockedStatic<MockUtils> mockService = mockStatic(MockUtils.class);
+             MockedStatic<IgnoreUtils> ignoreService = mockStatic(IgnoreUtils.class)) {
+            ignoreService.when(() -> IgnoreUtils.ignoreMockResult(any(), any())).thenReturn(false);
+
+            ArexMocker arexMocker = new ArexMocker();
+            arexMocker.setTargetRequest(new Target());
+            arexMocker.setTargetResponse(new Target());
+            mockService.when(() -> MockUtils.createDynamicClass(any(), any())).thenReturn(arexMocker);
+            mockService.when(() -> MockUtils.checkResponseMocker(any())).thenReturn(true);
+
+            ArexMocker arexMocker2 = new ArexMocker();
+            arexMocker2.setTargetRequest(new Target());
+            arexMocker2.setTargetResponse(new Target());
+            arexMocker2.getTargetResponse().setBody("mock Body");
+            arexMocker2.getTargetResponse().setType("mock Type");
+            mockService.when(() -> MockUtils.replayMocker(any(), any())).thenReturn(arexMocker2);
+
+            Mockito.when(Serializer.serializeWithException(any(), anyString())).thenReturn("mock Serializer.serialize");
+            Mockito.when(Serializer.serializeWithException(anyString(), anyString())).thenReturn("");
+            Mockito.when(Serializer.deserialize(anyString(), anyString(), anyString())).thenReturn("mock result");
+            Method testWithArexMock = DynamicClassExtractorTest.class.getDeclaredMethod("testWithArexMock", String.class);
+
+            DynamicClassExtractor extractor = new DynamicClassExtractor("className", "methoName", null, null);
+            MockResult mockResult = extractor.replayOrRealCall();
+            assertTrue(mockResult.notIgnoreMockResult());
+            // response is null
+            arexMocker2.getTargetResponse().setBody(null);
+            mockResult = extractor.replayOrRealCall();
+            assertTrue(mockResult.isIgnoreMockResult());
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
     }
 }

@@ -48,7 +48,7 @@ public class GuavaCacheInstrumentation extends TypeInstrumentation {
             if (ContextManager.needReplay() && CacheLoaderUtil.needRecordOrReplay(loader)) {
                 String className = CacheLoaderUtil.getLocatedClass(loader);
                 DynamicClassExtractor extractor = new DynamicClassExtractor(className, methodName, new Object[]{key}, methodReturnType);
-                mockResult = extractor.replay();
+                mockResult = extractor.replayOrRealCall();
                 return mockResult != null && mockResult.notIgnoreMockResult();
             }
 

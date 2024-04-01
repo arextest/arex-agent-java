@@ -47,7 +47,7 @@ public class CaffeineAsyncInstrumentation extends TypeInstrumentation {
             if (ContextManager.needReplay() && CacheLoaderUtil.needRecordOrReplay(cacheLoader)) {
                 String className = CacheLoaderUtil.getLocatedClass(cacheLoader);
                 DynamicClassExtractor extractor = new DynamicClassExtractor(className, methodName, new Object[]{key}, methodReturnType);
-                mockResult = extractor.replay();
+                mockResult = extractor.replayOrRealCall();
                 return mockResult != null && mockResult.notIgnoreMockResult();
             }
             return false;

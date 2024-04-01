@@ -17,7 +17,6 @@ import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
-import java.lang.reflect.Method;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -67,7 +66,7 @@ class GuavaCacheInstrumentationTest {
 
         // replay
         try(MockedConstruction ignored = Mockito.mockConstruction(DynamicClassExtractor.class, ((extractor, context) -> {
-            Mockito.when(extractor.replay()).thenReturn(MockResult.success("test"));
+            Mockito.when(extractor.replayOrRealCall()).thenReturn(MockResult.success("test"));
         }))) {
             Mockito.when(ContextManager.needRecordOrReplay()).thenReturn(true);
             Mockito.when(ContextManager.needReplay()).thenReturn(true);

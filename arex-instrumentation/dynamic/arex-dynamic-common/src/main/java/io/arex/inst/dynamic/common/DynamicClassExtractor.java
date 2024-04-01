@@ -153,6 +153,14 @@ public class DynamicClassExtractor {
         return MockResult.success(ignoreMockResult, replayResult);
     }
 
+    public MockResult replayOrRealCall() {
+        MockResult mockResult = replay();
+        if (mockResult != null && mockResult.getResult() == null) {
+            return MockResult.IGNORE_MOCK_RESULT;
+        }
+        return mockResult;
+    }
+
     private Object deserializeResult(String replayResult, String typeName) {
         return Serializer.deserialize(replayResult, typeName, ArexConstants.GSON_SERIALIZER);
     }
