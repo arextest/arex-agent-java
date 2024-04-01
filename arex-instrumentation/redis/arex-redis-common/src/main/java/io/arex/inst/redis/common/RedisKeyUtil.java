@@ -1,27 +1,11 @@
 package io.arex.inst.redis.common;
 
-
 import io.arex.agent.bootstrap.util.StringUtil;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 
 public class RedisKeyUtil {
-
-    public static <K> String generate(Iterable<K> keys) {
-        StringBuilder builder = new StringBuilder();
-        Iterator<K> iterator = keys.iterator();
-        if (iterator.hasNext()) {
-            builder.append(toString(iterator.next()));
-        }
-        while (iterator.hasNext()) {
-            builder.append(";").append(toString(iterator.next()));
-        }
-        return builder.toString();
-    }
-
-    public static <K, V> String generate(Map<K, V> map) {
-        return generate(map.keySet());
-    }
 
     @SafeVarargs
     public static <K> String generate(K... keys) {
@@ -51,6 +35,10 @@ public class RedisKeyUtil {
     }
 
     private static <K> String toString(K value) {
+        if (value == null) {
+            return null;
+        }
+
         if (value instanceof byte[]) {
             return new String((byte[]) value);
         }
@@ -59,6 +47,34 @@ public class RedisKeyUtil {
             return String.valueOf((char[]) value);
         }
 
+        if (value instanceof String) {
+            return (String) value;
+        }
+
+        if (value instanceof Collection) {
+            return generate((Collection<?>) value);
+        }
+
+        if (value instanceof Map) {
+            return generate((Map<?, ?>) value);
+        }
+
         return String.valueOf(value);
+    }
+
+    private static <K> String generate(Iterable<K> keys) {
+        StringBuilder builder = new StringBuilder();
+        Iterator<K> iterator = keys.iterator();
+        if (iterator.hasNext()) {
+            builder.append(toString(iterator.next()));
+        }
+        while (iterator.hasNext()) {
+            builder.append(";").append(toString(iterator.next()));
+        }
+        return builder.toString();
+    }
+
+    private static <K, V> String generate(Map<K, V> map) {
+        return generate(map.keySet());
     }
 }
