@@ -1,6 +1,8 @@
 package io.arex.inst.cache.util;
 
+import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import io.arex.inst.runtime.config.Config;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -59,6 +61,10 @@ class CacheLoaderUtilTest {
         assertEquals("io.arex.inst.cache.util.CacheLoaderUtilTest$AbstractCache2$1", locatedClass);
         assertEquals(2, NO_REFERENCE_MAP.size());
         assertEquals(1, REFERENCE_FIELD_MAP.size());
+
+        // external variable reference
+        locatedClass = CacheLoaderUtil.getLocatedClass(ExternalVariableCache.cacheLoader);
+        assertEquals(SubCache1.class.getName(), locatedClass);
     }
 
     @Test
@@ -104,6 +110,22 @@ class CacheLoaderUtilTest {
                 return "test";
             }
         };
+    }
+
+    static class ExternalVariableCache {
+        public static CacheLoader cacheLoader = null;
+        static {
+            createCache(new SubCache1());
+        }
+        public static LoadingCache createCache(AbstractCache cache) {
+            cacheLoader = new CacheLoader<Object, Object>() {
+                @Override
+                public Object load(Object key) throws Exception {
+                    return cache.abstractClasscacheLoader.load(key);
+                }
+            };
+            return CacheBuilder.newBuilder().build(cacheLoader);
+        }
     }
 
 }
