@@ -82,8 +82,7 @@ class RedisClusterReactiveCommandsImplWrapperTest {
         Mockito.when(connection.getResources()).thenReturn(resources);
         ClientOptions options = Mockito.mock(ClientOptions.class);
         Mockito.when(connection.getOptions()).thenReturn(options);
-        Partitions partitions = Mockito.mock(Partitions.class);
-        Mockito.when(connection.getPartitions()).thenReturn(partitions);
+        Mockito.when(connection.getPartitions()).thenReturn(new Partitions());
         cmd = Mockito.mock(Command.class);
         keyStreamingChannel = Mockito.mock(KeyStreamingChannel.class);
         valueStreamingChannel = Mockito.mock(ValueStreamingChannel.class);
@@ -279,6 +278,7 @@ class RedisClusterReactiveCommandsImplWrapperTest {
             target.hset(KEY, MAP),
             target.del(KEY),
             target.exists(KEY, FIELD),
+            target.keys(keyStreamingChannel, KEY),
             target.mget(keyValueStreamingChannel, KEY),
             target.msetnx(MAP),
             target.del(KEY),
@@ -296,6 +296,7 @@ class RedisClusterReactiveCommandsImplWrapperTest {
 
     private Stream<Flux<?>> getFluxDispatchList() {
         return Stream.of(
+            target.keys(KEY),
             target.hgetall(KEY),
             target.hkeys(KEY),
             target.hmget(KEY, FIELD),

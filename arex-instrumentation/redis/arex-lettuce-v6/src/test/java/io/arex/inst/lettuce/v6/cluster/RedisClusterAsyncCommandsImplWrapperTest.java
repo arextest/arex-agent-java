@@ -75,13 +75,14 @@ public class RedisClusterAsyncCommandsImplWrapperTest {
         Mockito.when(connection.getResources()).thenReturn(resources);
         ClientOptions options = Mockito.mock(ClientOptions.class);
         Mockito.when(connection.getOptions()).thenReturn(options);
-        Partitions partitions = Mockito.mock(Partitions.class);
-        Mockito.when(connection.getPartitions()).thenReturn(partitions);
+        Mockito.when(connection.getPartitions()).thenReturn(new Partitions());
+
         cmd = Mockito.mock(Command.class);
         keyStreamingChannel = Mockito.mock(KeyStreamingChannel.class);
         valueStreamingChannel = Mockito.mock(ValueStreamingChannel.class);
         keyValueStreamingChannel = Mockito.mock(KeyValueStreamingChannel.class);
         target = new RedisClusterAsyncCommandsImplWrapper(connection, Mockito.mock(RedisCodec.class));
+
 
         //init mock data
         MAP.put("key1", "value1");
@@ -227,6 +228,8 @@ public class RedisClusterAsyncCommandsImplWrapperTest {
             target.set(KEY, VALUE, SET_ARGS),
             target.del(KEY),
             target.exists(KEY),
+            target.keys(KEY),
+            target.keys(keyStreamingChannel, KEY),
             target.mget(KEY),
             target.mset(MAP),
             target.msetnx(MAP),

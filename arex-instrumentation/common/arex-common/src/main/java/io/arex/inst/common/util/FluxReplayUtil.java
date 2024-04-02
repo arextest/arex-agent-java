@@ -17,7 +17,7 @@ public class FluxReplayUtil{
 
 
 
-    public static Flux<?> restore(Object fluxObj) {
+    public static <T> Flux<T> restore(Object fluxObj) {
         if (fluxObj == null) {
             return Flux.empty();
         }
@@ -32,14 +32,14 @@ public class FluxReplayUtil{
         String responseType = fluxResult.getResponseType();
         if (responseType != null) {
             if (FLUX_FROM_ITERATOR.equals(responseType)) {
-                return Flux.fromIterable(resultList);
+                return (Flux<T>) Flux.fromIterable(resultList);
             } else if (FLUX_FROM_ARRAY.equals(responseType)) {
-                return Flux.fromArray(resultList.toArray());
+                return (Flux<T>) Flux.fromArray(resultList.toArray());
             } else if (FLUX_FROM_STREAM.equals(responseType)) {
-                return Flux.fromStream(resultList.stream());
+                return (Flux<T>) Flux.fromStream(resultList.stream());
             }
         }
-        return Flux.just(resultList);
+        return (Flux<T>) Flux.fromIterable(resultList);
     }
 
 
