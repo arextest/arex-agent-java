@@ -2,6 +2,7 @@ package io.arex.inst.dubbo.apache.v2;
 
 import io.arex.agent.bootstrap.model.MockCategoryType;
 import io.arex.agent.bootstrap.model.Mocker;
+import io.arex.inst.dubbo.common.DubboConstants;
 import io.arex.inst.dubbo.common.DubboExtractor;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.listener.CaseEvent;
@@ -18,6 +19,8 @@ import org.apache.dubbo.rpc.RpcContext;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import static io.arex.inst.dubbo.common.DubboConstants.*;
 
 public class DubboProviderExtractor extends DubboExtractor {
     public static void onServiceEnter(Invoker<?> invoker, Invocation invocation) {
@@ -48,13 +51,11 @@ public class DubboProviderExtractor extends DubboExtractor {
     }
     private static Mocker makeMocker(DubboAdapter adapter) {
         Mocker mocker = MockUtils.createDubboProvider(adapter.getServiceOperation());
-        Map<String, String> headerMap = RpcContext.getContext().getAttachments();
-        headerMap.put("protocol", adapter.getProtocol());
         Map<String, Object> requestAttributes = new HashMap<>();
-        requestAttributes.put("Headers", headerMap);
+        requestAttributes.put(KEY_HEADERS, adapter.getRequestHeaders());
         requestAttributes.put(ArexConstants.CONFIG_VERSION, adapter.getConfigVersion());
         Map<String, Object> responseAttributes = new HashMap<>();
-        responseAttributes.put("Headers", RpcContext.getServerContext().getAttachments());
+        responseAttributes.put(KEY_HEADERS, RpcContext.getServerContext().getAttachments());
         return buildMocker(mocker, adapter, requestAttributes, responseAttributes);
     }
 }

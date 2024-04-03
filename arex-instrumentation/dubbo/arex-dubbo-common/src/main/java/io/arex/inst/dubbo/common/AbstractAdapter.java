@@ -75,4 +75,5 @@ public abstract class AbstractAdapter {
     protected abstract String getCaseId();
     protected abstract boolean forceRecord();
     protected abstract boolean replayWarmUp();
+    protected abstract Map<String, String> getRequestHeaders();
 }

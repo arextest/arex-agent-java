@@ -16,6 +16,8 @@ import io.arex.inst.runtime.util.MockUtils;
 import java.util.HashMap;
 import java.util.Map;
 
+import static io.arex.inst.dubbo.common.DubboConstants.KEY_HEADERS;
+
 public class DubboProviderExtractor extends DubboExtractor {
     public static void onServiceEnter(Invoker<?> invoker, Invocation invocation) {
         CaseEventDispatcher.onEvent(CaseEvent.ofEnterEvent());
@@ -44,10 +46,8 @@ public class DubboProviderExtractor extends DubboExtractor {
     }
     private static Mocker makeMocker(DubboAdapter adapter) {
         Mocker mocker = MockUtils.createDubboProvider(adapter.getServiceOperation());
-        Map<String, String> headerMap = RpcContext.getContext().getAttachments();
-        headerMap.put("protocol", adapter.getProtocol());
         Map<String, Object> attributes = new HashMap<>();
-        attributes.put("Headers", headerMap);
+        attributes.put(KEY_HEADERS, adapter.getRequestHeaders());
         attributes.put(ArexConstants.CONFIG_VERSION, adapter.getConfigVersion());
         // alibaba dubbo < 2.6.3 not support responseAttributes
         return buildMocker(mocker, adapter, attributes, null);
