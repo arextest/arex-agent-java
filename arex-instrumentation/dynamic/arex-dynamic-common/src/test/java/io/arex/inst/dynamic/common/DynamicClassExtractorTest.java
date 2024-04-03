@@ -26,7 +26,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.function.Function;
 
 import io.arex.inst.runtime.util.sizeof.AgentSizeOf;
 import org.junit.jupiter.api.AfterAll;
@@ -129,11 +128,7 @@ class DynamicClassExtractorTest {
 
             // exception
             Mono<?> result = monoExceptionTest();
-            Function<Object, Void> executor = res -> {
-                extractor.recordResponse(res);
-                return null;
-            };
-            MonoRecordFunction monoRecordFunction = new MonoRecordFunction(executor);
+            MonoRecordFunction monoRecordFunction = new MonoRecordFunction(extractor::recordResponse);
             result = monoRecordFunction.apply(result);
             result.subscribe();
             assertTrue(nonNull.test(result));
