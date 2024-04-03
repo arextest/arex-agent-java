@@ -3,10 +3,10 @@ package io.arex.inst.common.util;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import io.arex.inst.common.util.FluxReplayUtil.FluxResult;
+
 import io.arex.inst.runtime.config.ConfigBuilder;
 import io.arex.inst.runtime.context.ContextManager;
-import java.util.function.Function;
+import java.util.function.Consumer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -15,13 +15,18 @@ import reactor.core.publisher.Flux;
 
 public class FluxRecordFuntionTest {
 
-    static  FluxRecordFunction fluxRecordFunction;
+    static FluxRecordFunction fluxRecordFunction;
     @BeforeAll
     static void setUp() {
         Mockito.mockStatic(ContextManager.class);
         ConfigBuilder.create("test").enableDebug(true).build();
-        Function<FluxResult, Void> executor = result -> null;
-        fluxRecordFunction = new FluxRecordFunction(executor);
+        fluxRecordFunction = new FluxRecordFunction(new Consumer<Object>() {
+            @Override
+            public void accept(Object object) {
+                System.out.println("record content: " + object);
+                throw new RuntimeException("exception");
+            }
+        });
     }
 
     @AfterAll
@@ -53,13 +58,13 @@ public class FluxRecordFuntionTest {
     }
 
     private static void testNormalFlux() {
-        Flux flux = Flux.just(1, 2, 3, 4, 5)
+        Object flux = Flux.just(1, 2, 3, 4, 5)
             .doOnNext(val -> System.out.println("val" + ":" + val))
             // doFinally performs some operations that have nothing to do with the value of the element.
             // If the doFinally operator is called multiple times, doFinally will be executed once at the end of each sequence.
             .doFinally(System.out::println);
-        Flux subscribe = fluxRecordFunction.apply(flux);
-        Flux blockFirst = fluxRecordFunction.apply(flux);
+        Flux subscribe = fluxRecordFunction.apply((Flux<Object>) flux);
+        Flux blockFirst = fluxRecordFunction.apply((Flux<Object>) flux);
         // record content: 1,2,3,4,5
         subscribe.subscribe();
         // record content: 1

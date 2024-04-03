@@ -8,52 +8,46 @@ import io.arex.inst.runtime.util.TypeUtil;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 import reactor.core.publisher.Flux;
-import java.util.function.Function;
 
 
-public class FluxRecordFunction implements UnaryOperator<Flux<?>> {
+public class FluxRecordFunction<T> implements UnaryOperator<Flux<T>> {
 
-    private final Function<FluxResult, Void> executor;
+    private final Consumer<Object> consumer;
     private final TraceTransmitter traceTransmitter;
 
-    public FluxRecordFunction(Function<FluxResult, Void> executor) {
+    public FluxRecordFunction(Consumer<Object> consumer) {
         this.traceTransmitter = TraceTransmitter.create();
-        this.executor = executor;
+        this.consumer = consumer;
     }
 
     @Override
-    public Flux<?> apply(Flux<?> responseFlux) {
+    public Flux<T> apply(Flux<T> flux) {
         // use a list to record all elements
-        List<FluxReplayUtil.FluxElementResult> fluxElementMockerResults = new ArrayList<>();
+        List<FluxReplayUtil.FluxElementResult> results = new ArrayList<>();
         AtomicInteger index = new AtomicInteger(1);
-        String responseType = TypeUtil.getName(responseFlux);
-        return responseFlux
-            // add element to list
-            .doOnNext(element -> {
-                try (TraceTransmitter tm = traceTransmitter.transmit()) {
-                    fluxElementMockerResults.add(
-                        getFluxElementMockerResult(index.getAndIncrement(), element));
-                }
-            })
-            // add error to list
-            .doOnError(error -> {
-                try (TraceTransmitter tm = traceTransmitter.transmit()) {
-                    fluxElementMockerResults.add(
-                        getFluxElementMockerResult(index.getAndIncrement(), error));
-                }
-            })
-            .doFinally(result -> {
-                try (TraceTransmitter tm = traceTransmitter.transmit()) {
-                    FluxResult fluxResult = new FluxResult(responseType, fluxElementMockerResults);
-                    executor.apply(fluxResult);
-                }
-            });
+        String responseType = TypeUtil.getName(flux);
+        return flux.doOnNext(element -> {
+            try (TraceTransmitter tm = traceTransmitter.transmit()) {
+                results.add(buildElementResult(index.getAndIncrement(), element));
+            }
+        }).doOnError(error -> {
+            try (TraceTransmitter tm = traceTransmitter.transmit()) {
+                results.add(buildElementResult(index.getAndIncrement(), error));
+            }
+        }).doFinally(result -> {
+            try (TraceTransmitter tm = traceTransmitter.transmit()) {
+                consumer.accept(new FluxResult(responseType, results));
+            } catch (Exception ignore) {
+                // ignore
+            }
+        });
     }
 
 
-    private FluxReplayUtil.FluxElementResult getFluxElementMockerResult(int index, Object element) {
+    private FluxReplayUtil.FluxElementResult buildElementResult(int index, Object element) {
         String content = Serializer.serialize(element, ArexConstants.GSON_SERIALIZER);
         return new FluxReplayUtil.FluxElementResult(index, content, TypeUtil.getName(element));
     }

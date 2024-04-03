@@ -1,32 +1,34 @@
 package io.arex.inst.common.util;
 
 import io.arex.agent.bootstrap.ctx.TraceTransmitter;
-import java.util.function.Function;
+import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 import reactor.core.publisher.Mono;
 
-public class MonoRecordFunction implements UnaryOperator<Mono<?>> {
+public class MonoRecordFunction<T> implements UnaryOperator<Mono<T>> {
 
-    private final Function<Object, Void> executor;
+    private final Consumer<Object> consumer;
     private final TraceTransmitter traceTransmitter;
 
-    public MonoRecordFunction(Function<Object, Void> executor) {
+    public MonoRecordFunction(Consumer<Object> consumer) {
         this.traceTransmitter = TraceTransmitter.create();
-        this.executor = executor;
+        this.consumer = consumer;
     }
 
     @Override
-    public Mono<?> apply(Mono<?> responseMono) {
-        return responseMono
-            .doOnSuccess(result -> {
-                try (TraceTransmitter tm = traceTransmitter.transmit()) {
-                    executor.apply(result);
-                }
-            })
-            .doOnError(error -> {
-                try (TraceTransmitter tm = traceTransmitter.transmit()) {
-                    executor.apply(error);
-                }
-            });
+    public Mono<T> apply(Mono<T> responseMono) {
+        return responseMono.doOnSuccess(result -> {
+            try (TraceTransmitter tm = traceTransmitter.transmit()) {
+                consumer.accept(result);
+            } catch (Exception ignore) {
+                // ignore
+            }
+        }).doOnError(error -> {
+            try (TraceTransmitter tm = traceTransmitter.transmit()) {
+                consumer.accept(error);
+            } catch (Exception ignore) {
+                // ignore
+            }
+        });
     }
 }

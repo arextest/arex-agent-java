@@ -8,10 +8,9 @@ import io.arex.agent.bootstrap.model.MockStrategyEnum;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.ArrayUtils;
 import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.inst.common.util.MonoRecordFunction;
 import io.arex.inst.common.util.FluxRecordFunction;
 import io.arex.inst.common.util.FluxReplayUtil;
-import io.arex.inst.common.util.FluxReplayUtil.FluxResult;
-import io.arex.inst.common.util.MonoRecordFunction;
 import io.arex.inst.dynamic.common.listener.ListenableFutureAdapter;
 import io.arex.inst.dynamic.common.listener.ResponseConsumer;
 import io.arex.inst.runtime.config.Config;
@@ -30,7 +29,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
-import java.util.function.Function;
 
 import io.arex.inst.runtime.util.sizeof.ThrowableFilter;
 import reactor.core.publisher.Flux;
@@ -108,19 +106,11 @@ public class DynamicClassExtractor {
         }
         // Compatible with not import package reactor-core
         if (MONO.equals(methodReturnType) && response instanceof Mono<?>) {
-            Function<Object, Void> executor = mockResult -> {
-                this.recordResponse(mockResult);
-                return null;
-            };
-            return new MonoRecordFunction(executor).apply((Mono<?>) response);
+            return new MonoRecordFunction<>(this::recordResponse).apply((Mono<Object>) response);
         }
 
         if (FLUX.equals(methodReturnType) && response instanceof Flux<?>) {
-            Function<FluxResult, Void> executor = mockResult -> {
-                this.recordResponse(mockResult);
-                return null;
-            };
-            return new FluxRecordFunction(executor).apply((Flux<?>) response);
+            return new FluxRecordFunction<>(this::recordResponse).apply((Flux<Object>) response);
         }
 
         this.result = response;

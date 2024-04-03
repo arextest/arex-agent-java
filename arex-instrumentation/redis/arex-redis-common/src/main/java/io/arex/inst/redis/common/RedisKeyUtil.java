@@ -1,6 +1,7 @@
 package io.arex.inst.redis.common;
 
 
+import io.arex.agent.bootstrap.util.StringUtil;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -26,7 +27,7 @@ public class RedisKeyUtil {
     public static <K> String generate(K... keys) {
         switch (keys.length) {
             case 0:
-                return "";
+                return StringUtil.EMPTY;
             case 1:
                 return toString(keys[0]);
             default:
