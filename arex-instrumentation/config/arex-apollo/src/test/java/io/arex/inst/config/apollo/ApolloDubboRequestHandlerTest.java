@@ -1,6 +1,7 @@
 package io.arex.inst.config.apollo;
 
 import io.arex.agent.bootstrap.util.Assert;
+import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.model.ArexConstants;
 import org.junit.jupiter.api.AfterAll;
@@ -32,6 +33,9 @@ class ApolloDubboRequestHandlerTest {
         target = new ApolloDubboRequestHandler();
         mockStaticHelper = Mockito.mockStatic(ApolloConfigHelper.class);
         Mockito.mockStatic(ContextManager.class);
+        Mockito.mockStatic(Config.class);
+        Mockito.when(Config.get()).thenReturn(Mockito.mock(Config.class));
+        Mockito.when(Config.get().getString(any(), any())).thenReturn("mock");
     }
 
     @AfterAll
