@@ -53,4 +53,5 @@ public class ArexConstants {
     public static final String CALL_REPLAY_MAX = "callReplayMax";
     public static final String EXCEED_MAX_SIZE_TITLE = "exceed.max.size";
     public static final String EXCEED_MAX_SIZE_FLAG = "isExceedMaxSize";
+    public static final String RECORD_SIZE_LIMIT = "arex.record.size.limit";
 }

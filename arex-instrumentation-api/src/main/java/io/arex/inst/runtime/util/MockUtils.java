@@ -198,7 +198,7 @@ public final class MockUtils {
             if (MapUtils.getBoolean(targetResponse.getAttributes(), ArexConstants.EXCEED_MAX_SIZE_FLAG)) {
                 exceedSizeLog = StringUtil.format(
                         ", because exceed memory max limit:%s, please check method return size, suggest replace it",
-                        AgentSizeOf.humanReadableUnits(ArexConstants.MEMORY_SIZE_1MB));
+                        AgentSizeOf.humanReadableUnits(getSizeLimit()));
             }
             LogManager.info(logTitle, StringUtil.format("operation: %s body of targetResponse is empty%s", operationName, exceedSizeLog));
             return false;
@@ -223,5 +223,9 @@ public final class MockUtils {
                 requestMocker.getCategoryType().getName(),
                 requestMocker.getOperationName(),
                 requestMocker.getTargetRequest().getType()));
+    }
+
+    public static long getSizeLimit() {
+        return Config.get().getLong(ArexConstants.RECORD_SIZE_LIMIT, ArexConstants.MEMORY_SIZE_1MB);
     }
 }

@@ -366,6 +366,7 @@ public class ConfigManager {
         configMap.put(AGENT_VERSION, agentVersion);
         configMap.put(AGENT_ENABLED, Boolean.toString(agentEnabled));
         configMap.put(STORAGE_SERVICE_MODE, storageServiceMode);
+        configMap.put(DISABLE_MODULE, System.getProperty(DISABLE_MODULE));
         Map<String, String> extendFieldMap = getExtendField();
         if (MapUtils.isNotEmpty(extendFieldMap)) {
             configMap.putAll(extendFieldMap);

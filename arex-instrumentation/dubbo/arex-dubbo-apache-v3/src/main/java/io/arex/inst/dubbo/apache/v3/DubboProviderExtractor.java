@@ -16,6 +16,8 @@ import org.apache.dubbo.rpc.*;
 import java.util.HashMap;
 import java.util.Map;
 
+import static io.arex.inst.dubbo.common.DubboConstants.KEY_HEADERS;
+
 public class DubboProviderExtractor extends DubboExtractor {
     public static void onServiceEnter(Invoker<?> invoker, Invocation invocation) {
         CaseEventDispatcher.onEvent(CaseEvent.ofEnterEvent());
@@ -45,13 +47,11 @@ public class DubboProviderExtractor extends DubboExtractor {
     }
     private static Mocker makeMocker(DubboAdapter adapter) {
         Mocker mocker = MockUtils.createDubboProvider(adapter.getServiceOperation());
-        Map<String, Object> headerMap = RpcContext.getClientAttachment().getObjectAttachments();
-        headerMap.put("protocol", adapter.getProtocol());
         Map<String, Object> requestAttributes = new HashMap<>();
-        requestAttributes.put("Headers", headerMap);
+        requestAttributes.put(KEY_HEADERS, adapter.getRequestHeaders());
         requestAttributes.put(ArexConstants.CONFIG_VERSION, adapter.getConfigVersion());
         Map<String, Object> responseAttributes = new HashMap<>();
-        responseAttributes.put("Headers", RpcContext.getServerAttachment().getObjectAttachments());
+        responseAttributes.put(KEY_HEADERS, RpcContext.getServerAttachment().getObjectAttachments());
         return buildMocker(mocker, adapter, requestAttributes, responseAttributes);
     }
 

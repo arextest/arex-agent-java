@@ -9,6 +9,7 @@ import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.ArrayUtils;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.dubbo.common.AbstractAdapter;
+import io.arex.inst.dubbo.common.DubboConstants;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.log.LogManager;
@@ -18,8 +19,11 @@ import com.alibaba.dubbo.rpc.support.ProtocolUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Map;
 import java.util.concurrent.Future;
 import java.util.function.Function;
+
+import static io.arex.inst.dubbo.common.DubboConstants.*;
 
 public class DubboAdapter extends AbstractAdapter {
     private static final Logger LOGGER = LoggerFactory.getLogger(DubboAdapter.class);
@@ -145,5 +149,25 @@ public class DubboAdapter extends AbstractAdapter {
 
     public String getConfigVersion() {
         return invocation.getAttachment(ArexConstants.CONFIG_VERSION);
+    }
+
+    @Override
+    protected Map<String, String> getRequestHeaders() {
+        Map<String, String> headerMap = RpcContext.getContext().getAttachments();
+        headerMap.put(KEY_PROTOCOL, getProtocol());
+        headerMap.put(KEY_GROUP, getValByKey(DubboConstants.KEY_GROUP));
+        headerMap.put(KEY_VERSION, getValByKey(DubboConstants.KEY_VERSION));
+        return headerMap;
+    }
+
+    private String getValByKey(String key) {
+        String value = invocation.getAttachment(key);
+        if (StringUtil.isNotEmpty(value)) {
+            return value;
+        }
+        if (invocation.getInvoker() != null && invocation.getInvoker().getUrl() != null) {
+            return invocation.getInvoker().getUrl().getParameter(key);
+        }
+        return StringUtil.EMPTY;
     }
 }

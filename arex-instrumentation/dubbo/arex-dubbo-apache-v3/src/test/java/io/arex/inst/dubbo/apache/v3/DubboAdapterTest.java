@@ -2,6 +2,7 @@ package io.arex.inst.dubbo.apache.v3;
 
 import io.arex.agent.bootstrap.model.ArexMocker;
 import io.arex.agent.bootstrap.model.Mocker;
+import io.arex.inst.dubbo.common.DubboConstants;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.util.MockUtils;
 import org.apache.dubbo.common.URL;
@@ -17,6 +18,8 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -195,4 +198,35 @@ class DubboAdapterTest {
     void getConfigVersion() {
         assertNull(adapter.getConfigVersion());
     }
+
+    @ParameterizedTest
+    @MethodSource("getRequestHeadersCase")
+    void getRequestHeaders(Runnable mocker) {
+        mocker.run();
+        assertNotNull(adapter.getRequestHeaders());
+    }
+
+    static Stream<Arguments> getRequestHeadersCase() {
+        Runnable emptyMocker = () -> {};
+        Runnable invocationMocker = () -> {
+            Mockito.when(invocation.getAttachment(DubboConstants.KEY_GROUP)).thenReturn("mock");
+            Mockito.when(invocation.getAttachment(DubboConstants.KEY_VERSION)).thenReturn("mock");
+        };
+        Runnable invokerMocker = () -> {
+            Mockito.when(invocation.getAttachment(DubboConstants.KEY_GROUP)).thenReturn("");
+            Mockito.when(invocation.getAttachment(DubboConstants.KEY_VERSION)).thenReturn("");
+            Invoker invoker = Mockito.mock(Invoker.class);
+            Mockito.when(invocation.getInvoker()).thenReturn(invoker);
+            URL url = Mockito.mock(URL.class);
+            Mockito.when(invoker.getUrl()).thenReturn(url);
+            Mockito.when(url.getParameter(any())).thenReturn("mock");
+        };
+
+        return Stream.of(
+                arguments(emptyMocker),
+                arguments(invocationMocker),
+                arguments(invokerMocker)
+        );
+    }
+
 }

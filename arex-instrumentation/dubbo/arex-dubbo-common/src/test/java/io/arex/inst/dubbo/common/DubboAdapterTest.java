@@ -1,5 +1,7 @@
 package io.arex.inst.dubbo.common;
 
+import java.util.Map;
+
 public class DubboAdapterTest extends AbstractAdapter {
     private String operationName;
     private String serviceOperation;
@@ -10,6 +12,7 @@ public class DubboAdapterTest extends AbstractAdapter {
     private String protocol;
     private boolean forceRecord;
     private boolean replayWarmUp;
+    private Map<String, String> requestHeaderMap;
 
     public void setOperationName(String operationName) {
         this.operationName = operationName;
@@ -43,6 +46,10 @@ public class DubboAdapterTest extends AbstractAdapter {
         this.replayWarmUp = replayWarmUp;
     }
 
+    public void setRequestHeaderMap(Map<String, String> requestHeaderMap) {
+        this.requestHeaderMap = requestHeaderMap;
+    }
+
     public String getOperationName() {
         return operationName;
     }
@@ -69,5 +76,8 @@ public class DubboAdapterTest extends AbstractAdapter {
     }
     public String getProtocol() {
         return protocol;
+    }
+    public Map<String, String> getRequestHeaders() {
+        return requestHeaderMap;
     }
 }

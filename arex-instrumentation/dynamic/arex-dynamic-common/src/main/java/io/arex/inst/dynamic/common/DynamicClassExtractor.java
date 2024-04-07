@@ -344,11 +344,11 @@ public class DynamicClassExtractor {
 
     public String getSerializedResult() {
         if (this.serializedResult == null && !this.isExceedMaxSize) {
-            if (!agentSizeOf.checkMemorySizeLimit(this.result, ArexConstants.MEMORY_SIZE_1MB)) {
+            if (!agentSizeOf.checkMemorySizeLimit(this.result, MockUtils.getSizeLimit())) {
                 this.isExceedMaxSize = true;
                 LogManager.warn(ArexConstants.EXCEED_MAX_SIZE_TITLE, StringUtil.format("method:%s, exceed memory max limit:%s, " +
                                 "record result will be null, please check method return size, suggest replace it",
-                        this.dynamicSignature, AgentSizeOf.humanReadableUnits(ArexConstants.MEMORY_SIZE_1MB)));
+                        this.dynamicSignature, AgentSizeOf.humanReadableUnits(MockUtils.getSizeLimit())));
                 IgnoreUtils.addInvalidOperation(dynamicSignature);
                 return null;
             }
