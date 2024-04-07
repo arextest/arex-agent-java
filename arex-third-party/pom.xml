@@ -7,6 +7,18 @@
         <groupId>io.arex</groupId>
         <version>${revision}</version>
     </parent>
+    <dependencies>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.jsqlparser</groupId>
+            <artifactId>jsqlparser</artifactId>
+            <version>${jsqlparser.version}</version>
+        </dependency>
+    </dependencies>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>arex-third-party</artifactId>
