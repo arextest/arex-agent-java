@@ -15,13 +15,16 @@ import java.util.List;
  */
 public class ParseUtil {
 
+    public static final String EMPTY = "";
 
-    public static Object parseTable(JsonNode result) {
+
+    public static String parseTable(JsonNode result) {
         switch (result.get(DbParseConstants.ACTION).asText()) {
             case DbParseConstants.SELECT:
                 return parseSelectTableName(result);
             case DbParseConstants.DELETE:
-                return parseDeleteTable(result);
+                List<String> tableNames = parseDeleteTable(result);
+                return tableNames.isEmpty() ? EMPTY : String.join(",", tableNames);
             case DbParseConstants.INSERT:
                 return parseInsertTable(result);
             case DbParseConstants.REPLACE:
@@ -42,7 +45,7 @@ public class ParseUtil {
             }
             return jsonNode.asText();
         }
-        return null;
+        return EMPTY;
     }
 
     public static List<String> parseDeleteTable(JsonNode result) {
@@ -76,7 +79,7 @@ public class ParseUtil {
             }
             return jsonNode.asText();
         }
-        return null;
+        return EMPTY;
     }
 
 }

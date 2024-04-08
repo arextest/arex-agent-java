@@ -178,6 +178,9 @@ class MockUtilsTest {
 
         actualResult = MockUtils.createNettyProvider("query");
         assertEquals(MockCategoryType.NETTY_PROVIDER, actualResult.getCategoryType());
+
+        actualResult = MockUtils.createDatabase("query", "select * from test", "testDB");
+        assertEquals(MockCategoryType.DATABASE, actualResult.getCategoryType());
     }
 
     @Test
