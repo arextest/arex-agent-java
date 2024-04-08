@@ -1,7 +1,7 @@
 package io.arex.parse.sqlparse;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import io.arex.agent.thirdparty.util.parse.sqlparse.SqlParse;
+import io.arex.agent.thirdparty.util.parse.sqlparse.SqlParseManager;
 import io.arex.agent.thirdparty.util.parse.sqlparse.constants.DbParseConstants;
 import net.sf.jsqlparser.JSQLParserException;
 import org.junit.jupiter.api.Test;
@@ -15,8 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  */
 public class ExecuteParseTest {
     private static JsonNode parse(String sql) throws JSQLParserException {
-        SqlParse sqlParse = new SqlParse();
-        return sqlParse.parse(sql);
+        return SqlParseManager.getInstance().parse(sql);
     }
 
     @Test

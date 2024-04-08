@@ -13,7 +13,20 @@ import net.sf.jsqlparser.statement.Statement;
  * @date 2024/4/3
  * @since 1.0.0
  */
-public class SqlParse {
+public class SqlParseManager {
+
+    private static SqlParseManager INSTANCE;
+
+    private SqlParseManager() {
+    }
+
+    public static SqlParseManager getInstance() {
+        if (INSTANCE == null) {
+            INSTANCE = new SqlParseManager();
+        }
+        return INSTANCE;
+    }
+
     public JsonNode parse(String sql) throws JSQLParserException {
         if (sql == null || sql.isEmpty()) {
             return null;

@@ -8,7 +8,7 @@ import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.model.Mocker.Target;
 import io.arex.agent.bootstrap.util.MapUtils;
 import io.arex.agent.bootstrap.util.StringUtil;
-import io.arex.agent.thirdparty.util.parse.sqlparse.SqlParse;
+import io.arex.agent.thirdparty.util.parse.sqlparse.SqlParseManager;
 import io.arex.agent.thirdparty.util.parse.sqlparse.constants.DbParseConstants;
 import io.arex.agent.thirdparty.util.parse.sqlparse.util.ParseUtil;
 import io.arex.inst.runtime.log.LogManager;
@@ -25,7 +25,6 @@ import net.sf.jsqlparser.JSQLParserException;
 public final class MockUtils {
 
     private static final String EMPTY_JSON = "{}";
-    private static final SqlParse sqlParse = new SqlParse();
 
     private MockUtils() {
     }
@@ -59,14 +58,14 @@ public final class MockUtils {
         try {
             String[] splitSql = sql.split(";");
             for (String s : splitSql) {
-                JsonNode parse = sqlParse.parse(s);
+                JsonNode parse = SqlParseManager.getInstance().parse(s);
                 if (parse != null) {
                     String action = parse.get(DbParseConstants.ACTION).asText();
                     String tableName = ParseUtil.parseTable(parse);
                     operationName.append(dbName).append("-").append(tableName).append("-").append(action).append(";");
                 }
             }
-        } catch (JSQLParserException e) {
+        } catch (Exception e) {
             LogManager.warn("createDatabase", "parse sql error", e);
             operationName = new StringBuilder(method);
         }
