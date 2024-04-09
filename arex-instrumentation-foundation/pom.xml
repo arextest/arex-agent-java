@@ -65,6 +65,7 @@
             <groupId>joda-time</groupId>
             <artifactId>joda-time</artifactId>
             <version>2.9</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>it.unimi.dsi</groupId>
@@ -83,6 +84,18 @@
             <artifactId>commons-lang</artifactId>
             <version>2.6</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-aop</artifactId>
+            <version>5.3.4</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjweaver</artifactId>
+            <version>1.9.7</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 
@@ -132,7 +145,6 @@
                             <include>com.google.guava:guava</include>
                             <include>com.google.code.gson:gson</include>
                             <include>com.github.luben:zstd-jni</include>
-                            <include>joda-time:joda-time</include>
                         </includes>
                     </artifactSet>
                 </configuration>

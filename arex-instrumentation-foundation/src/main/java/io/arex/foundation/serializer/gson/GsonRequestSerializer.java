@@ -3,17 +3,13 @@ package io.arex.foundation.serializer.gson;
 import com.google.auto.service.AutoService;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import io.arex.foundation.serializer.gson.adapter.CustomTypeAdapterFactory;
 import io.arex.foundation.serializer.gson.adapter.DateAdapter;
 import io.arex.foundation.serializer.gson.adapter.GsonExclusion;
 import io.arex.foundation.serializer.gson.adapter.StringAdapter;
-import io.arex.foundation.serializer.gson.adapter.ProtobufAdapterFactory;
 import io.arex.foundation.serializer.gson.adapter.CalendarAdapter;
 import io.arex.foundation.serializer.gson.adapter.ClassAdapter;
-import io.arex.foundation.serializer.gson.adapter.DateTimeAdapter;
 import io.arex.foundation.serializer.gson.adapter.InstantAdapter;
-import io.arex.foundation.serializer.gson.adapter.JodaLocalDateAdapter;
-import io.arex.foundation.serializer.gson.adapter.JodaLocalDateTimeAdapter;
-import io.arex.foundation.serializer.gson.adapter.JodaLocalTimeAdapter;
 import io.arex.foundation.serializer.gson.adapter.LocalDateAdapter;
 import io.arex.foundation.serializer.gson.adapter.LocalDateTimeAdapter;
 import io.arex.foundation.serializer.gson.adapter.LocalTimeAdapter;
@@ -21,7 +17,6 @@ import io.arex.foundation.serializer.gson.adapter.OffsetDateTimeAdapter;
 import io.arex.foundation.serializer.gson.adapter.TimeZoneAdapter;
 import io.arex.foundation.serializer.gson.adapter.XMLGregorianCalendarAdapter;
 import io.arex.inst.runtime.serializer.StringSerializable;
-import org.joda.time.DateTime;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.lang.reflect.Type;
@@ -39,16 +34,13 @@ import java.util.TimeZone;
 
 @AutoService(StringSerializable.class)
 public class GsonRequestSerializer implements StringSerializable {
+    public static final GsonRequestSerializer INSTANCE = new GsonRequestSerializer();
     private final Gson serializer;
 
     public GsonRequestSerializer() {
         DateAdapter.RequestSerializer dateRequestSerializer = new DateAdapter.RequestSerializer();
         CalendarAdapter.RequestSerializer calendarRequestSerializer = new CalendarAdapter.RequestSerializer();
         this.serializer = new GsonBuilder()
-                .registerTypeAdapter(DateTime.class, new DateTimeAdapter.RequestSerializer())
-                .registerTypeAdapter(org.joda.time.LocalDateTime.class, new JodaLocalDateTimeAdapter.RequestSerializer())
-                .registerTypeAdapter(org.joda.time.LocalDate.class, new JodaLocalDateAdapter.Serializer())
-                .registerTypeAdapter(org.joda.time.LocalTime.class, new JodaLocalTimeAdapter.RequestSerializer())
                 .registerTypeAdapter(XMLGregorianCalendar.class, new XMLGregorianCalendarAdapter.RequestSerializer())
                 .registerTypeAdapter(Time.class, dateRequestSerializer)
                 .registerTypeAdapter(Timestamp.class, dateRequestSerializer)
@@ -64,7 +56,7 @@ public class GsonRequestSerializer implements StringSerializable {
                 .registerTypeAdapter(OffsetDateTime.class, new OffsetDateTimeAdapter.RequestSerializer())
                 .registerTypeHierarchyAdapter(TimeZone.class, new TimeZoneAdapter.Serializer())
                 .registerTypeAdapter(String.class, new StringAdapter.Serializer())
-                .registerTypeAdapterFactory(new ProtobufAdapterFactory())
+                .registerTypeAdapterFactory(new CustomTypeAdapterFactory.RequestSerializerFactory())
                 .enableComplexMapKeySerialization()
                 .setExclusionStrategies(new GsonExclusion())
                 .disableHtmlEscaping()

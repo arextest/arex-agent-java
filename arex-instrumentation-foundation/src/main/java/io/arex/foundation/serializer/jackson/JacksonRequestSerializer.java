@@ -6,21 +6,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.google.auto.service.AutoService;
+import io.arex.foundation.serializer.jackson.adapter.CustomBeanModifier;
 import io.arex.foundation.serializer.jackson.adapter.StringAdapter;
 import io.arex.foundation.serializer.jackson.adapter.CalendarAdapter;
 import io.arex.foundation.serializer.jackson.adapter.DateAdapter;
-import io.arex.foundation.serializer.jackson.adapter.DateTimeAdapter;
 import io.arex.foundation.serializer.jackson.adapter.InstantAdapter;
-import io.arex.foundation.serializer.jackson.adapter.JodaLocalDateAdapter;
-import io.arex.foundation.serializer.jackson.adapter.JodaLocalDateTimeAdapter;
-import io.arex.foundation.serializer.jackson.adapter.JodaLocalTimeAdapter;
 import io.arex.foundation.serializer.jackson.adapter.LocalDateAdapter;
 import io.arex.foundation.serializer.jackson.adapter.LocalDateTimeAdapter;
 import io.arex.foundation.serializer.jackson.adapter.LocalTimeAdapter;
 import io.arex.foundation.serializer.jackson.adapter.OffsetDateTimeAdapter;
 import io.arex.foundation.serializer.jackson.adapter.XMLGregorianCalendarAdapter;
 import io.arex.inst.runtime.serializer.StringSerializable;
-import org.joda.time.DateTime;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.lang.reflect.Type;
@@ -37,10 +33,12 @@ import java.util.GregorianCalendar;
 @AutoService(StringSerializable.class)
 public class JacksonRequestSerializer implements StringSerializable {
     private final ObjectMapper mapper = new ObjectMapper();
+    public static final JacksonRequestSerializer INSTANCE = new JacksonRequestSerializer();
 
     public JacksonRequestSerializer() {
         configMapper();
         SimpleModule module = new JacksonSerializer.JacksonSimpleModule();
+        module.setSerializers(new CustomBeanModifier.RequestSerializers());
         customTimeFormatSerializer(module);
         mapper.registerModule(module);
     }
@@ -48,13 +46,9 @@ public class JacksonRequestSerializer implements StringSerializable {
     private void customTimeFormatSerializer(SimpleModule module) {
         CalendarAdapter.RequestSerializer calendarRequestSerializer = new CalendarAdapter.RequestSerializer();
         DateAdapter.RequestSerializer dateRequestSerializer = new DateAdapter.RequestSerializer();
-        module.addSerializer(DateTime.class, new DateTimeAdapter.RequestSerializer());
         module.addSerializer(LocalDateTime.class, new LocalDateTimeAdapter.RequestSerializer());
         module.addSerializer(LocalDate.class, new LocalDateAdapter.Serializer());
         module.addSerializer(LocalTime.class, new LocalTimeAdapter.RequestSerializer());
-        module.addSerializer(org.joda.time.LocalDateTime.class, new JodaLocalDateTimeAdapter.RequestSerializer());
-        module.addSerializer(org.joda.time.LocalDate.class, new JodaLocalDateAdapter.Serializer());
-        module.addSerializer(org.joda.time.LocalTime.class, new JodaLocalTimeAdapter.RequestSerializer());
         module.addSerializer(Calendar.class, calendarRequestSerializer);
         module.addSerializer(GregorianCalendar.class, calendarRequestSerializer);
         module.addSerializer(Timestamp.class, dateRequestSerializer);
@@ -82,6 +76,9 @@ public class JacksonRequestSerializer implements StringSerializable {
 
     @Override
     public String serialize(Object object) throws Throwable {
+        if (object == null) {
+            return null;
+        }
         return mapper.writeValueAsString(object);
     }
 

@@ -30,6 +30,12 @@ public class TypeUtil {
     private static final ConcurrentMap<String, Type> TYPE_NAME_CACHE = new ConcurrentHashMap<>();
     private static final Class<?> DEFAULT_LIST_CLASS = List.class;
     private static final Class<?> DEFAULT_SET_CLASS = Set.class;
+    private static final String PROTOCOL_BUFFER_PACKAGE = "com.google.protobuf";
+    private static final String JODA_LOCAL_DATE_TIME = "org.joda.time.LocalDateTime";
+    private static final String JODA_LOCAL_DATE = "org.joda.time.LocalDate";
+    private static final String JODA_LOCAL_TIME = "org.joda.time.LocalTime";
+    private static final String JODA_DATE_TIME = "org.joda.time.DateTime";
+    private static final String METHOD_INVOCATION_PROCEEDING_JOIN_POINT = "org.springframework.aop.aspectj.MethodInvocationProceedingJoinPoint";
     /**
      * Suppresses default constructor, ensuring non-instantiability.
      */
@@ -465,6 +471,37 @@ public class TypeUtil {
         }
 
         return collection;
+    }
+
+    public static boolean isProtobufClass(Class<?> clazz) {
+        if (clazz == null || clazz.isInterface()) {
+            return false;
+        }
+        final Class<?> superclass = clazz.getSuperclass();
+        if (superclass == null) {
+            return false;
+        }
+        return StringUtil.startWith(superclass.getName(), PROTOCOL_BUFFER_PACKAGE);
+    }
+
+    public static boolean isJodaLocalDateTime(String typeName) {
+        return JODA_LOCAL_DATE_TIME.equals(typeName);
+    }
+
+    public static boolean isJodaLocalDate(String typeName) {
+        return JODA_LOCAL_DATE.equals(typeName);
+    }
+
+    public static boolean isJodaLocalTime(String typeName) {
+        return JODA_LOCAL_TIME.equals(typeName);
+    }
+
+    public static boolean isJodaDateTime(String typeName) {
+        return JODA_DATE_TIME.equals(typeName);
+    }
+
+    public static boolean isJoinPoint(String typeName) {
+        return METHOD_INVOCATION_PROCEEDING_JOIN_POINT.equals(typeName);
     }
 
 }
