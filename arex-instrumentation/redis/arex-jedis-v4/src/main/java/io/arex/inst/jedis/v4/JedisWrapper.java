@@ -2,6 +2,7 @@ package io.arex.inst.jedis.v4;
 
 import io.arex.agent.bootstrap.util.ArrayUtils;
 import io.arex.inst.runtime.context.ContextManager;
+import io.arex.inst.runtime.context.RepeatedCollectManager;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.inst.redis.common.RedisExtractor;
@@ -598,6 +599,10 @@ public class JedisWrapper extends Jedis {
     }
 
     private <U> U call(String command, String key, String field, Callable<U> callable, U defaultValue) {
+        if (ContextManager.needRecord()) {
+            RepeatedCollectManager.enter();
+        }
+
         if (ContextManager.needReplay()) {
             RedisExtractor extractor = new RedisExtractor(this.url, command, key, field);
             MockResult mockResult = extractor.replay();
@@ -613,7 +618,7 @@ public class JedisWrapper extends Jedis {
         try {
             result = callable.call();
         } catch (Exception e) {
-            if (ContextManager.needRecord()) {
+            if (ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate()) {
                 RedisExtractor extractor = new RedisExtractor(this.url, command, key, field);
                 extractor.record(e);
             }
@@ -625,7 +630,7 @@ public class JedisWrapper extends Jedis {
             return defaultValue;
         }
 
-        if (ContextManager.needRecord()) {
+        if (ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate()) {
             RedisExtractor extractor = new RedisExtractor(this.url, command, key, field);
             extractor.record(result);
         }

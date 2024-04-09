@@ -6,6 +6,7 @@ import io.arex.inst.redis.common.RedisExtractor;
 import io.arex.inst.redis.common.RedisKeyUtil;
 import io.arex.inst.redis.common.lettuce.RedisCommandBuilderImpl;
 import io.arex.inst.runtime.context.ContextManager;
+import io.arex.inst.runtime.context.RepeatedCollectManager;
 import io.lettuce.core.AbstractRedisAsyncCommands;
 import io.lettuce.core.GetExArgs;
 import io.lettuce.core.KeyValue;
@@ -704,6 +705,10 @@ public class RedisCommandWrapper<K, V> {
     }
 
     public <T> RedisFuture<T> dispatch(Supplier<RedisFuture<T>> supplier, RedisCommand<K, V, T> cmd, String key, String redisUri, String field) {
+        if (ContextManager.needRecord()) {
+            RepeatedCollectManager.enter();
+        }
+
         if (ContextManager.needReplay()) {
             AsyncCommand<K, V, T> asyncCommand = new AsyncCommand<>(cmd);
             RedisExtractor extractor = new RedisExtractor(redisUri, cmd.getType().name(), key, field);
@@ -720,7 +725,7 @@ public class RedisCommandWrapper<K, V> {
 
         RedisFuture<T> resultFuture = supplier.get();
 
-        if (ContextManager.needRecord()) {
+        if (ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate()) {
             try (TraceTransmitter traceTransmitter = TraceTransmitter.create()) {
                 resultFuture.whenComplete((v, throwable) -> {
                     RedisExtractor extractor = new RedisExtractor(redisUri, cmd.getType().name(), key, field);

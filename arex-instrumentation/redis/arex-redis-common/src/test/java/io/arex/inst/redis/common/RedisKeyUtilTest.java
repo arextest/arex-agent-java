@@ -2,8 +2,10 @@ package io.arex.inst.redis.common;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.google.common.collect.Lists;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
@@ -56,5 +58,15 @@ class RedisKeyUtilTest {
     void generateWithCharValue() {
         String result = RedisKeyUtil.generate(new char[]{'k', 'e', 'y'});
         assertEquals("key", result);
+    }
+
+    @Test
+    void generateWithCombinationKeys() {
+        Map<String, String> map = new HashMap<>();
+        map.put("key1", "value1");
+        map.put("key2", "value2");
+        List<String> list = Lists.newArrayList("key4", "key5");
+        String result = RedisKeyUtil.generate(map, "key3", list, map);
+        assertEquals("key1;key2;key3;key4;key5;key1;key2", result);
     }
 }

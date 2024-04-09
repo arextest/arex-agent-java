@@ -3,6 +3,7 @@ package io.arex.inst.redisson.v3;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.inst.redis.common.RedisExtractor;
+import java.util.function.Supplier;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,7 +17,6 @@ import org.redisson.api.RFuture;
 import org.redisson.misc.CompletableFutureWrapper;
 
 import java.util.Objects;
-import java.util.concurrent.Callable;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -38,12 +38,12 @@ class RedissonWrapperCommonTest {
 
     @ParameterizedTest
     @MethodSource("delegateCallCase")
-    void delegateCall(Runnable mocker, Callable<RFuture<String>> futureCallable, Predicate<RFuture> predicate) {
+    void delegateCall(Runnable mocker, Supplier<RFuture<String>> futureSupplier, Predicate<RFuture> predicate) {
         try(MockedConstruction<RedisExtractor> extractor =   Mockito.mockConstruction(RedisExtractor.class, (mock, context) -> {
             Mockito.when(mock.replay()).thenReturn(MockResult.success(true,"mock"));
         })) {
             mocker.run();
-            RFuture result = RedissonWrapperCommon.delegateCall("", "", "", futureCallable);
+            RFuture result = RedissonWrapperCommon.delegateCall("", "", "", futureSupplier);
             assertTrue(predicate.test(result));
         }
 
@@ -51,7 +51,7 @@ class RedissonWrapperCommonTest {
             Mockito.when(mock.replay()).thenReturn(MockResult.success(false,"mock"));
         })) {
             mocker.run();
-            RFuture result = RedissonWrapperCommon.delegateCall("", "", "", futureCallable);
+            RFuture result = RedissonWrapperCommon.delegateCall("", "", "", futureSupplier);
             assertTrue(predicate.test(result));
         }
 
@@ -59,7 +59,7 @@ class RedissonWrapperCommonTest {
             Mockito.when(mock.replay()).thenReturn(MockResult.success(new Throwable()));
         })) {
             mocker.run();
-            RFuture result = RedissonWrapperCommon.delegateCall("", "", "", futureCallable);
+            RFuture result = RedissonWrapperCommon.delegateCall("", "", "", futureSupplier);
             assertTrue(predicate.test(result));
         }
     }
@@ -72,16 +72,13 @@ class RedissonWrapperCommonTest {
             Mockito.when(ContextManager.needReplay()).thenReturn(false);
             Mockito.when(ContextManager.needRecord()).thenReturn(true);
         };
-        Callable<RFuture<String>> futureCallable = () -> new CompletableFutureWrapper<>("mock");
-        Callable<RFuture<String>> futureCallable1 = () -> new CompletableFutureWrapper<>(new NullPointerException());
-        Callable futureCallable2 = NullPointerException::new;
-        Predicate<RFuture> predicate1 = Objects::isNull;
+        Supplier<RFuture<String>> futureSupplier = () -> new CompletableFutureWrapper<>("mock");
+        Supplier<RFuture<String>> futureSupplier1 = () -> new CompletableFutureWrapper<>(new NullPointerException());
         Predicate<RFuture> predicate2 = Objects::nonNull;
         return Stream.of(
-                arguments(mocker1, futureCallable, predicate2),
-                arguments(mocker2, futureCallable, predicate2),
-                arguments(mocker2, futureCallable1, predicate2),
-                arguments(mocker2, futureCallable2, predicate1)
+                arguments(mocker1, futureSupplier, predicate2),
+                arguments(mocker2, futureSupplier, predicate2),
+                arguments(mocker2, futureSupplier1, predicate2)
         );
     }
 }
