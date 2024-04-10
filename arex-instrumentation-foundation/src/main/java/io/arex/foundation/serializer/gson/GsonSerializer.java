@@ -8,14 +8,12 @@ import io.arex.agent.bootstrap.util.StringUtil;
 import com.google.gson.Gson;
 
 import io.arex.foundation.serializer.gson.adapter.NumberStrategy;
-import io.arex.foundation.serializer.gson.adapter.ProtobufAdapterFactory;
 import io.arex.foundation.serializer.gson.adapter.*;
 import io.arex.inst.runtime.serializer.StringSerializable;
 
 import java.sql.Time;
 import java.time.Instant;
 import java.time.OffsetDateTime;
-import org.joda.time.DateTime;
 import com.google.gson.*;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -49,14 +47,6 @@ public class GsonSerializer implements StringSerializable {
         DateAdapter.Serializer dateSerializer = new DateAdapter.Serializer();
         CalendarAdapter.Serializer calendarSerializer = new CalendarAdapter.Serializer();
         gsonBuilder = new GsonBuilder()
-                .registerTypeAdapter(DateTime.class, new DateTimeAdapter.Serializer())
-                .registerTypeAdapter(DateTime.class, new DateTimeAdapter.Deserializer())
-                .registerTypeAdapter(org.joda.time.LocalDateTime.class, new JodaLocalDateTimeAdapter.Serializer())
-                .registerTypeAdapter(org.joda.time.LocalDateTime.class, new JodaLocalDateTimeAdapter.Deserializer())
-                .registerTypeAdapter(org.joda.time.LocalDate.class, new JodaLocalDateAdapter.Serializer())
-                .registerTypeAdapter(org.joda.time.LocalDate.class, new JodaLocalDateAdapter.Deserializer())
-                .registerTypeAdapter(org.joda.time.LocalTime.class, new JodaLocalTimeAdapter.Serializer())
-                .registerTypeAdapter(org.joda.time.LocalTime.class, new JodaLocalTimeAdapter.Deserializer())
                 .registerTypeAdapter(XMLGregorianCalendar.class, new XMLGregorianCalendarAdapter.Serializer())
                 .registerTypeAdapter(XMLGregorianCalendar.class, new XMLGregorianCalendarAdapter.Deserializer())
                 .registerTypeAdapter(Time.class, dateSerializer)
@@ -88,7 +78,7 @@ public class GsonSerializer implements StringSerializable {
                 .registerTypeHierarchyAdapter(TimeZone.class, new TimeZoneAdapter.Serializer())
                 .registerTypeAdapter(TimeZone.class, new TimeZoneAdapter.Deserializer())
                 .registerTypeAdapterFactory(new FastUtilAdapterFactory())
-                .registerTypeAdapterFactory(new ProtobufAdapterFactory())
+                .registerTypeAdapterFactory(new CustomTypeAdapterFactory.SerializerFactory())
                 .enableComplexMapKeySerialization()
                 .setExclusionStrategies(new GsonExclusion())
                 .disableHtmlEscaping()

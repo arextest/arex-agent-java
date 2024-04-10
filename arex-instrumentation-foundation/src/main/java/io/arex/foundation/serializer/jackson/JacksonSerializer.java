@@ -17,15 +17,12 @@ import com.google.common.collect.Range;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.foundation.serializer.gson.adapter.FastUtilAdapterFactory;
 import io.arex.foundation.serializer.jackson.adapter.CalendarAdapter;
+import io.arex.foundation.serializer.jackson.adapter.CustomBeanModifier;
 import io.arex.foundation.serializer.jackson.adapter.DateAdapter;
-import io.arex.foundation.serializer.jackson.adapter.DateTimeAdapter;
 import io.arex.foundation.serializer.jackson.adapter.GregorianCalendarAdapter;
 import io.arex.foundation.serializer.jackson.adapter.GuavaRangeAdapter;
 import io.arex.foundation.serializer.jackson.adapter.InstantAdapter;
 import io.arex.foundation.serializer.jackson.adapter.JacksonExclusion;
-import io.arex.foundation.serializer.jackson.adapter.JodaLocalDateAdapter;
-import io.arex.foundation.serializer.jackson.adapter.JodaLocalDateTimeAdapter;
-import io.arex.foundation.serializer.jackson.adapter.JodaLocalTimeAdapter;
 import io.arex.foundation.serializer.jackson.adapter.LocalDateAdapter;
 import io.arex.foundation.serializer.jackson.adapter.LocalDateTimeAdapter;
 import io.arex.foundation.serializer.jackson.adapter.LocalTimeAdapter;
@@ -40,7 +37,6 @@ import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.model.SerializeSkipInfo;
 import io.arex.inst.runtime.serializer.StringSerializable;
 import io.arex.inst.runtime.util.TypeUtil;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -80,6 +76,8 @@ public final class JacksonSerializer implements StringSerializable {
     public JacksonSerializer() {
         buildSkipInfoMap();
         configMapper();
+        MODULE.setSerializers(new CustomBeanModifier.Serializers());
+        MODULE.setDeserializers(new CustomBeanModifier.Deserializers());
         customTimeFormatSerializer(MODULE);
         customTimeFormatDeserializer(MODULE);
         customTypeResolver();
@@ -193,13 +191,9 @@ public final class JacksonSerializer implements StringSerializable {
     private void customTimeFormatSerializer(SimpleModule module) {
         DateAdapter.Serializer dateSerializer = new DateAdapter.Serializer();
         CalendarAdapter.Serializer calendarSerializer = new CalendarAdapter.Serializer();
-        module.addSerializer(DateTime.class, new DateTimeAdapter.Serializer());
         module.addSerializer(LocalDateTime.class, new LocalDateTimeAdapter.Serializer());
         module.addSerializer(LocalDate.class, new LocalDateAdapter.Serializer());
         module.addSerializer(LocalTime.class, new LocalTimeAdapter.Serializer());
-        module.addSerializer(org.joda.time.LocalDateTime.class, new JodaLocalDateTimeAdapter.Serializer());
-        module.addSerializer(org.joda.time.LocalDate.class, new JodaLocalDateAdapter.Serializer());
-        module.addSerializer(org.joda.time.LocalTime.class, new JodaLocalTimeAdapter.Serializer());
         module.addSerializer(Calendar.class, calendarSerializer);
         module.addSerializer(GregorianCalendar.class, calendarSerializer);
         module.addSerializer(Timestamp.class, dateSerializer);
@@ -212,13 +206,9 @@ public final class JacksonSerializer implements StringSerializable {
     }
 
     private void customTimeFormatDeserializer(SimpleModule module) {
-        module.addDeserializer(DateTime.class, new DateTimeAdapter.Deserializer());
         module.addDeserializer(LocalDateTime.class, new LocalDateTimeAdapter.Deserializer());
         module.addDeserializer(LocalDate.class, new LocalDateAdapter.Deserializer());
         module.addDeserializer(LocalTime.class, new LocalTimeAdapter.Deserializer());
-        module.addDeserializer(org.joda.time.LocalDateTime.class, new JodaLocalDateTimeAdapter.Deserializer());
-        module.addDeserializer(org.joda.time.LocalDate.class, new JodaLocalDateAdapter.Deserializer());
-        module.addDeserializer(org.joda.time.LocalTime.class, new JodaLocalTimeAdapter.Deserializer());
         module.addDeserializer(Calendar.class, new CalendarAdapter.Deserializer());
         module.addDeserializer(GregorianCalendar.class, new GregorianCalendarAdapter.Deserializer());
         module.addDeserializer(Timestamp.class, new TimestampAdapter.Deserializer());

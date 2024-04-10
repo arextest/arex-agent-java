@@ -3,7 +3,12 @@ package io.arex.foundation.serializer;
 import io.arex.foundation.serializer.jackson.JacksonRequestSerializer;
 import io.arex.foundation.serializer.jackson.JacksonSerializer;
 import org.junit.jupiter.api.Test;
+import org.springframework.aop.aspectj.MethodInvocationProceedingJoinPoint;
+import org.springframework.aop.framework.ReflectiveMethodInvocation;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
+import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -88,6 +93,27 @@ class JacksonRequestSerializerTest {
         requestTestString = JACKSON_REQUEST_SERIALIZER.serialize(testClass);
         System.out.println(requestTestString);
         assertEquals("{\"stringField\":\"退改.取消.授权.预订\"}", requestTestString);
+    }
+
+    @Test
+    void testMethodInvocationProceedingJoinPoint() throws Throwable {
+        JacksonRequestSerializer jacksonRequestSerializer = new JacksonRequestSerializer();
+        // null object
+        assertNull(jacksonRequestSerializer.serialize(null));
+
+        // error serialize object
+        JacksonSerializerTest.CaseSensitive caseSensitive = new JacksonSerializerTest.CaseSensitive();
+        Method method = caseSensitive.getClass().getMethod("setAmount", Float.class);
+        Constructor<ReflectiveMethodInvocation> declaredConstructor =
+                ReflectiveMethodInvocation.class.getDeclaredConstructor(Object.class, Object.class, Method.class, Object[].class,
+                        Class.class, List.class);
+        declaredConstructor.setAccessible(true);
+        ReflectiveMethodInvocation reflectiveMethodInvocation = declaredConstructor.newInstance(caseSensitive, null, method, new Object[]{0.1f}, null, null);
+        MethodInvocationProceedingJoinPoint joinPoint = new MethodInvocationProceedingJoinPoint(reflectiveMethodInvocation);
+        String json = jacksonRequestSerializer.serialize(joinPoint);
+        String expectedJson = "\"" + joinPoint.toString() + jacksonRequestSerializer.serialize(joinPoint.getArgs()) + "\"";
+        assertEquals(expectedJson, json);
+        System.out.println(json);
     }
 
 

@@ -1,41 +1,41 @@
 package io.arex.foundation.serializer.gson.adapter;
 
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonDeserializer;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParseException;
-import com.google.gson.JsonPrimitive;
-import com.google.gson.JsonSerializationContext;
-import com.google.gson.JsonSerializer;
+import com.google.gson.TypeAdapter;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonWriter;
 import  io.arex.foundation.serializer.util.DenoisingUtil;
 import  io.arex.foundation.serializer.util.TimePatternConstants;
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormat;
 
-import java.lang.reflect.Type;
+import java.io.IOException;
 
-public class JodaLocalDateTimeAdapter {
+public class JodaLocalDateTimeAdapter  {
     private JodaLocalDateTimeAdapter() {
     }
 
-    public static class RequestSerializer implements JsonSerializer<LocalDateTime> {
+    public static class RequestSerializer extends TypeAdapter<LocalDateTime> {
+
         @Override
-        public JsonElement serialize(LocalDateTime src, Type typeOfSrc, JsonSerializationContext context) {
-            return new JsonPrimitive(DenoisingUtil.zeroSecondTime(src));
+        public void write(JsonWriter out, LocalDateTime value) throws IOException {
+            out.value(DenoisingUtil.zeroSecondTime(value));
+        }
+
+        @Override
+        public LocalDateTime read(JsonReader in) throws IOException {
+            return LocalDateTime.parse(in.nextString(), DateTimeFormat.forPattern(TimePatternConstants.SIMPLE_DATE_FORMAT_MILLIS));
         }
     }
 
-    public static class Serializer implements JsonSerializer<LocalDateTime> {
+    public static class Serializer extends TypeAdapter<LocalDateTime> {
         @Override
-        public JsonElement serialize(LocalDateTime src, Type typeOfSrc, JsonSerializationContext context) {
-            return new JsonPrimitive(src.toString(TimePatternConstants.SIMPLE_DATE_FORMAT_MILLIS));
+        public void write(JsonWriter out, LocalDateTime value) throws IOException {
+            out.value(value.toString(TimePatternConstants.SIMPLE_DATE_FORMAT_MILLIS));
         }
-    }
 
-    public static class Deserializer implements JsonDeserializer<LocalDateTime> {
         @Override
-        public LocalDateTime deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-            return LocalDateTime.parse(json.getAsString(), DateTimeFormat.forPattern(TimePatternConstants.SIMPLE_DATE_FORMAT_MILLIS));
+        public LocalDateTime read(JsonReader in) throws IOException {
+            return LocalDateTime.parse(in.nextString(), DateTimeFormat.forPattern(TimePatternConstants.SIMPLE_DATE_FORMAT_MILLIS));
         }
     }
 }
