@@ -47,10 +47,14 @@ class DatabaseHelperTest {
     static Stream<Arguments> parseParameterCase() {
         QueryParameters queryParameters1 = Mockito.mock(QueryParameters.class);
         QueryParameters queryParameters2 = Mockito.mock(QueryParameters.class);
+        QueryParameters queryParameters3 = Mockito.mock(QueryParameters.class);
 
         Map<String, TypedValue> parameters = new HashMap<>();
         parameters.put("key", Mockito.mock(TypedValue.class));
         Mockito.when(queryParameters2.getNamedParameters()).thenReturn(parameters);
+
+        Object[] positionalParameters = new Object[]{"mock1", 2, "mock3"};
+        Mockito.when(queryParameters3.getPositionalParameterValues()).thenReturn(positionalParameters);
 
         Mockito.when(Serializer.serialize(any(), eq(ArexConstants.JACKSON_REQUEST_SERIALIZER))).thenReturn("mock Serializer.serialize");
 
@@ -60,7 +64,8 @@ class DatabaseHelperTest {
         return Stream.of(
                 arguments(null, predicate1),
                 arguments(queryParameters1, predicate1),
-                arguments(queryParameters2, predicate2)
+                arguments(queryParameters2, predicate2),
+                arguments(queryParameters3, predicate2)
         );
     }
 }

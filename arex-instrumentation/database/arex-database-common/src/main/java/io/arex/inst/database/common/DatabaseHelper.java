@@ -1,5 +1,6 @@
 package io.arex.inst.database.common;
 
+import io.arex.agent.bootstrap.util.ArrayUtils;
 import io.arex.agent.bootstrap.util.MapUtils;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.serializer.Serializer;
@@ -8,7 +9,6 @@ import org.hibernate.engine.spi.TypedValue;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.IntStream;
 
 public class DatabaseHelper {
@@ -25,7 +25,7 @@ public class DatabaseHelper {
             for (Map.Entry<String, TypedValue> entry : parameters.entrySet()) {
                 parameterMap.put(entry.getKey(), entry.getValue().getValue());
             }
-        } else if (Objects.nonNull(positionalParameterValues) && positionalParameterValues.length > 0) {
+        } else if (ArrayUtils.isNotEmpty(positionalParameterValues)) {
             IntStream.range(0, positionalParameterValues.length)
                     .forEach(i -> parameterMap.put(String.valueOf(i), positionalParameterValues[i]));
         } else {
