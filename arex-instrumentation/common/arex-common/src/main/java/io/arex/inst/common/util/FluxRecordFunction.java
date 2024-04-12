@@ -30,13 +30,9 @@ public class FluxRecordFunction<T> implements UnaryOperator<Flux<T>> {
         AtomicInteger index = new AtomicInteger(1);
         String responseType = TypeUtil.getName(flux);
         return flux.doOnNext(element -> {
-            try (TraceTransmitter tm = traceTransmitter.transmit()) {
-                results.add(buildElementResult(index.getAndIncrement(), element));
-            }
+            results.add(buildElementResult(index.getAndIncrement(), element));
         }).doOnError(error -> {
-            try (TraceTransmitter tm = traceTransmitter.transmit()) {
-                results.add(buildElementResult(index.getAndIncrement(), error));
-            }
+            results.add(buildElementResult(index.getAndIncrement(), error));
         }).doFinally(result -> {
             try (TraceTransmitter tm = traceTransmitter.transmit()) {
                 consumer.accept(new FluxResult(responseType, results));
