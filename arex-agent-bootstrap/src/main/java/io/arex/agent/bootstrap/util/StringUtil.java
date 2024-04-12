@@ -640,4 +640,21 @@ public class StringUtil {
         }
         return str.substring(0, pos);
     }
+
+    /**
+     * if not contains separator, return str
+     */
+    public static String substringAfter(final String str, final String separator) {
+        if (isEmpty(str)) {
+            return str;
+        }
+        if (separator == null) {
+            return EMPTY;
+        }
+        final int pos = str.indexOf(separator);
+        if (pos == INDEX_NOT_FOUND) {
+            return str;
+        }
+        return str.substring(pos + separator.length());
+    }
 }

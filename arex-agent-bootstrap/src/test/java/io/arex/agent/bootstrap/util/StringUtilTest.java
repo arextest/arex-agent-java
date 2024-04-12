@@ -371,4 +371,16 @@ class StringUtilTest {
         assertEquals("mock", StringUtil.substringBefore("mock", "cd"));
         assertEquals("mo", StringUtil.substringBefore("mock", "c"));
     }
+
+    @Test
+    void subStringAfter() {
+        assertEquals(null, StringUtil.substringAfter(null, null));
+        assertEquals("", StringUtil.substringAfter("", null));
+        assertEquals("", StringUtil.substringAfter("", ""));
+        assertEquals("mock", StringUtil.substringAfter("mock", ""));
+        assertEquals("", StringUtil.substringAfter("mock", null));
+        assertEquals("ck", StringUtil.substringAfter("mock", "o"));
+        assertEquals("k", StringUtil.substringAfter("mock", "c"));
+        assertEquals("mock", StringUtil.substringAfter("mock", "cd"));
+    }
 }

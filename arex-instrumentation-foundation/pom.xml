@@ -121,9 +121,6 @@
                                     <pattern>com.google</pattern>
                                     <shadedPattern>shaded.com.google</shadedPattern>
                                     <excludes>
-                                        <exclude>com.google.common.collect.Range</exclude>
-                                        <exclude>com.google.common.collect.RangeGwtSerializationDependencies</exclude>
-                                        <exclude>com.google.common.collect.BoundType</exclude>
                                         <exclude>com.google.protobuf.**</exclude>
                                     </excludes>
                                 </relocation>
