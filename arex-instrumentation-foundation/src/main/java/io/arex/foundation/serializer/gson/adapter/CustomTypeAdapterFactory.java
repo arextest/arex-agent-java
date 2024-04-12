@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.TypeAdapter;
 import com.google.gson.TypeAdapterFactory;
 import com.google.gson.reflect.TypeToken;
+import io.arex.foundation.serializer.util.GuavaRangeManager;
 import io.arex.inst.runtime.util.TypeUtil;
 
 public class CustomTypeAdapterFactory {
@@ -31,6 +32,9 @@ public class CustomTypeAdapterFactory {
             }
             if (TypeUtil.isJodaDateTime(typeName)) {
                 return (TypeAdapter<T>) new DateTimeAdapter.Serializer();
+            }
+            if (GuavaRangeManager.isGuavaRange(typeName)) {
+                return (TypeAdapter<T>) new GuavaRangeAdapter();
             }
             return null;
         }

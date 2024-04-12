@@ -2,7 +2,6 @@ package io.arex.foundation.serializer.gson;
 
 import com.google.auto.service.AutoService;
 
-import com.google.common.collect.Range;
 import io.arex.foundation.serializer.gson.adapter.FastUtilAdapterFactory;
 import io.arex.agent.bootstrap.util.StringUtil;
 import com.google.gson.Gson;
@@ -73,8 +72,6 @@ public class GsonSerializer implements StringSerializable {
                 .registerTypeAdapter(Class.class, new ClassAdapter.Deserializer())
                 .registerTypeAdapter(OffsetDateTime.class, new OffsetDateTimeAdapter.Serializer())
                 .registerTypeAdapter(OffsetDateTime.class, new OffsetDateTimeAdapter.Deserializer())
-                .registerTypeAdapter(Range.class, new GuavaRangeAdapter.Serializer())
-                .registerTypeAdapter(Range.class, new GuavaRangeAdapter.Deserializer())
                 .registerTypeHierarchyAdapter(TimeZone.class, new TimeZoneAdapter.Serializer())
                 .registerTypeAdapter(TimeZone.class, new TimeZoneAdapter.Deserializer())
                 .registerTypeAdapterFactory(new FastUtilAdapterFactory())

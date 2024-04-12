@@ -36,9 +36,11 @@ class GuavaRangeSerializerTest {
 
         final String range2Json = GsonSerializer.INSTANCE.serialize(range2);
         final Range deserializeRange2 = GsonSerializer.INSTANCE.deserialize(range2Json, Range.class);
+        assertTrue(range2.contains(1));
+        assertTrue(deserializeRange2.contains(1));
+        assertEquals(range2.upperEndpoint(), deserializeRange2.upperEndpoint());
         assertFalse(range2.hasLowerBound());
         assertFalse(deserializeRange2.hasLowerBound());
-        assertEquals(range2.upperEndpoint(), deserializeRange2.upperEndpoint());
 
         final String range3Json = GsonSerializer.INSTANCE.serialize(range3);
         final Range deserializeRange3 = GsonSerializer.INSTANCE.deserialize(range3Json, Range.class);
@@ -63,6 +65,8 @@ class GuavaRangeSerializerTest {
 
         final String range2Json = JacksonSerializer.INSTANCE.serialize(range2);
         final Range deserializeRange2 = JacksonSerializer.INSTANCE.deserialize(range2Json, Range.class);
+        assertTrue(range2.contains(1));
+        assertTrue(deserializeRange2.contains(1));
         assertFalse(range2.hasLowerBound());
         assertFalse(deserializeRange2.hasLowerBound());
         assertEquals(range2.upperEndpoint(), deserializeRange2.upperEndpoint());

@@ -1,5 +1,6 @@
 package io.arex.foundation.serializer.jackson;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.json.JsonReadFeature;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -8,17 +9,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.google.auto.service.AutoService;
-import com.google.common.collect.Range;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.foundation.serializer.jackson.adapter.CalendarAdapter;
+import io.arex.foundation.serializer.jackson.adapter.CustomBeanModifier;
 import io.arex.foundation.serializer.jackson.adapter.DateAdapter;
-import io.arex.foundation.serializer.jackson.adapter.DateTimeAdapter;
 import io.arex.foundation.serializer.jackson.adapter.GregorianCalendarAdapter;
-import io.arex.foundation.serializer.jackson.adapter.GuavaRangeAdapter;
 import io.arex.foundation.serializer.jackson.adapter.InstantAdapter;
-import io.arex.foundation.serializer.jackson.adapter.JodaLocalDateAdapter;
-import io.arex.foundation.serializer.jackson.adapter.JodaLocalDateTimeAdapter;
-import io.arex.foundation.serializer.jackson.adapter.JodaLocalTimeAdapter;
 import io.arex.foundation.serializer.jackson.adapter.LocalDateAdapter;
 import io.arex.foundation.serializer.jackson.adapter.LocalDateTimeAdapter;
 import io.arex.foundation.serializer.jackson.adapter.LocalTimeAdapter;
@@ -29,7 +25,6 @@ import io.arex.foundation.serializer.jackson.adapter.TimestampAdapter;
 import io.arex.foundation.serializer.jackson.adapter.XMLGregorianCalendarAdapter;
 import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.serializer.StringSerializable;
-import org.joda.time.DateTime;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.lang.reflect.Type;
@@ -57,6 +52,8 @@ public class JacksonSerializerWithType implements StringSerializable {
 
     public JacksonSerializerWithType() {
         configMapper();
+        MODULE.setSerializers(new CustomBeanModifier.BasicSerializers());
+        MODULE.setDeserializers(new CustomBeanModifier.BasicDeserializers());
         customTimeFormatSerializer(MODULE);
         customTimeFormatDeserializer(MODULE);
         mapper.registerModule(MODULE);
@@ -72,18 +69,18 @@ public class JacksonSerializerWithType implements StringSerializable {
         mapper.configure(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL, true);
         // serializer with type info
         mapper.activateDefaultTyping(mapper.getPolymorphicTypeValidator(), ObjectMapper.DefaultTyping.NON_FINAL);
+        mapper.setVisibility(mapper.getSerializationConfig().getDefaultVisibilityChecker()
+                .withFieldVisibility(JsonAutoDetect.Visibility.ANY)
+                .withGetterVisibility(JsonAutoDetect.Visibility.NONE)
+                .withSetterVisibility(JsonAutoDetect.Visibility.NONE));
     }
 
     private void customTimeFormatSerializer(SimpleModule module) {
         DateAdapter.Serializer dateSerializer = new DateAdapter.Serializer();
         CalendarAdapter.Serializer calendarSerializer = new CalendarAdapter.Serializer();
-        module.addSerializer(DateTime.class, new DateTimeAdapter.Serializer());
         module.addSerializer(LocalDateTime.class, new LocalDateTimeAdapter.Serializer());
         module.addSerializer(LocalDate.class, new LocalDateAdapter.Serializer());
         module.addSerializer(LocalTime.class, new LocalTimeAdapter.Serializer());
-        module.addSerializer(org.joda.time.LocalDateTime.class, new JodaLocalDateTimeAdapter.Serializer());
-        module.addSerializer(org.joda.time.LocalDate.class, new JodaLocalDateAdapter.Serializer());
-        module.addSerializer(org.joda.time.LocalTime.class, new JodaLocalTimeAdapter.Serializer());
         module.addSerializer(Calendar.class, calendarSerializer);
         module.addSerializer(GregorianCalendar.class, calendarSerializer);
         module.addSerializer(Timestamp.class, dateSerializer);
@@ -92,17 +89,12 @@ public class JacksonSerializerWithType implements StringSerializable {
         module.addSerializer(Date.class, dateSerializer);
         module.addSerializer(Instant.class, new InstantAdapter.Serializer());
         module.addSerializer(OffsetDateTime.class, new OffsetDateTimeAdapter.Serializer());
-        module.addSerializer(Range.class, new GuavaRangeAdapter.Serializer());
     }
 
     private void customTimeFormatDeserializer(SimpleModule module) {
-        module.addDeserializer(DateTime.class, new DateTimeAdapter.Deserializer());
         module.addDeserializer(LocalDateTime.class, new LocalDateTimeAdapter.Deserializer());
         module.addDeserializer(LocalDate.class, new LocalDateAdapter.Deserializer());
         module.addDeserializer(LocalTime.class, new LocalTimeAdapter.Deserializer());
-        module.addDeserializer(org.joda.time.LocalDateTime.class, new JodaLocalDateTimeAdapter.Deserializer());
-        module.addDeserializer(org.joda.time.LocalDate.class, new JodaLocalDateAdapter.Deserializer());
-        module.addDeserializer(org.joda.time.LocalTime.class, new JodaLocalTimeAdapter.Deserializer());
         module.addDeserializer(Calendar.class, new CalendarAdapter.Deserializer());
         module.addDeserializer(GregorianCalendar.class, new GregorianCalendarAdapter.Deserializer());
         module.addDeserializer(Timestamp.class, new TimestampAdapter.Deserializer());
@@ -110,7 +102,6 @@ public class JacksonSerializerWithType implements StringSerializable {
         module.addDeserializer(Date.class, new DateAdapter.Deserializer());
         module.addDeserializer(Instant.class, new InstantAdapter.Deserializer());
         module.addDeserializer(OffsetDateTime.class, new OffsetDateTimeAdapter.Deserializer());
-        module.addDeserializer(Range.class, new GuavaRangeAdapter.Deserializer());
         module.addDeserializer(java.sql.Date.class, new SqlDateAdapter.Deserializer());
         module.addDeserializer(Time.class, new SqlTimeAdapter.Deserializer());
     }
