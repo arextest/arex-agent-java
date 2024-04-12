@@ -58,7 +58,7 @@ public class RequestHandlerManager {
                 requestHandler.postHandle(request, response);
             }
         } catch (Throwable ex) {
-            LogManager.warn("postHandle", ex.getMessage());
+            LogManager.warn("postHandle", ex);
         }
     }
 }

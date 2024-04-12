@@ -2,7 +2,6 @@ package io.arex.inst.dubbo.apache.v2;
 
 import io.arex.agent.bootstrap.model.MockCategoryType;
 import io.arex.agent.bootstrap.model.Mocker;
-import io.arex.inst.dubbo.common.DubboConstants;
 import io.arex.inst.dubbo.common.DubboExtractor;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.listener.CaseEvent;

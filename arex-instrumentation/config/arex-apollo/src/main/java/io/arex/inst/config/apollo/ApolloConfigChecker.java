@@ -20,6 +20,6 @@ public class ApolloConfigChecker {
     }
 
     public static boolean unloadApollo() {
-        return !isLoadedApollo || Config.get().getString(ConfigConstants.DISABLE_MODULE, StringUtil.EMPTY).contains(APOLLO_MODULE);
+        return !isLoadedApollo || StringUtil.defaultString(Config.get().getString(ConfigConstants.DISABLE_MODULE)).contains(APOLLO_MODULE);
     }
 }

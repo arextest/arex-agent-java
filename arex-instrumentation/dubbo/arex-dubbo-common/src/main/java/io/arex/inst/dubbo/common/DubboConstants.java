@@ -5,4 +5,5 @@ public class DubboConstants {
     public static final String KEY_HEADERS = "Headers";
     public static final String KEY_GROUP = "group";
     public static final String KEY_VERSION = "version";
+    public static final String KEY_GENERIC = "generic";
 }

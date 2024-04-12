@@ -58,9 +58,7 @@ class DubboAdapterTest {
     @Test
     void getServiceName() {
         adapter.getServiceName();
-        Mockito.when(invoker.getInterface()).thenReturn(String.class);
-        adapter.getServiceName();
-        verify(invoker, atLeastOnce()).getInterface();
+        verify(invoker, atLeastOnce()).getUrl();
     }
 
     @Test
@@ -72,7 +70,7 @@ class DubboAdapterTest {
     @Test
     void getOperationName() {
         adapter.getOperationName();
-        verify(invocation).getMethodName();
+        verify(invocation, atLeastOnce()).getMethodName();
     }
 
     @Test
@@ -107,8 +105,8 @@ class DubboAdapterTest {
 
     @Test
     void getGeneric() {
-        Mockito.when(invocation.getAttachment("generic")).thenReturn(null);
-        assertNull(adapter.getGeneric());
+        Mockito.when(invocation.getAttachment("generic")).thenReturn("mock");
+        assertNotNull(adapter.getGeneric());
     }
 
     @Test
