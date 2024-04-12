@@ -37,8 +37,8 @@ public class DubboProviderExtractor extends DubboExtractor {
         if (!ContextManager.needRecordOrReplay()) {
             return;
         }
-        setResponseHeader((k, v) -> setAttachment(invocation, k, v));
         DubboAdapter adapter = DubboAdapter.of(invoker, invocation);
+        setResponseHeader((k, v) -> setAttachment(invocation, k, v, adapter));
         RequestHandlerManager.postHandle(invocation.getAttachments(), result != null ? result.getAttachments() : null,
                 MockCategoryType.DUBBO_PROVIDER.getName());
         adapter.execute(result, makeMocker(adapter));
@@ -46,14 +46,16 @@ public class DubboProviderExtractor extends DubboExtractor {
     }
     private static Mocker makeMocker(DubboAdapter adapter) {
         Mocker mocker = MockUtils.createDubboProvider(adapter.getServiceOperation());
-        Map<String, Object> attributes = new HashMap<>();
-        attributes.put(KEY_HEADERS, adapter.getRequestHeaders());
-        attributes.put(ArexConstants.CONFIG_VERSION, adapter.getConfigVersion());
-        // alibaba dubbo < 2.6.3 not support responseAttributes
-        return buildMocker(mocker, adapter, attributes, null);
+        Map<String, Object> requestAttributes = new HashMap<>();
+        requestAttributes.put(KEY_HEADERS, adapter.getRequestHeaders());
+        requestAttributes.put(ArexConstants.CONFIG_VERSION, adapter.getConfigVersion());
+        Map<String, Object> responseAttributes = new HashMap<>();
+        responseAttributes.put(KEY_HEADERS, adapter.getServerAttachment());
+        return buildMocker(mocker, adapter, requestAttributes, responseAttributes);
     }
-    private static void setAttachment(Invocation invocation, String key, String value) {
-        RpcContext.getContext().setAttachment(key, value);
+    private static void setAttachment(Invocation invocation, String key, String value, DubboAdapter adapter) {
+        // dubbo < 2.6.3 set server attachment(such as:arex-replay-id) at DubboCodecExtractor#writeAttachments
+        adapter.setServerAttachment(key, value);
         if (invocation instanceof RpcInvocation) {
             RpcInvocation rpcInvocation = (RpcInvocation) invocation;
             rpcInvocation.setAttachment(key, value);

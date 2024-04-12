@@ -28,11 +28,11 @@ public class DubboConsumerExtractor extends DubboExtractor {
         return buildMocker(mocker, adapter, null, null);
     }
     public MockResult replay() {
-        MockResult mockResult = null;
         Object result = MockUtils.replayBody(makeMocker());
         boolean ignoreMockResult = IgnoreUtils.ignoreMockResult(adapter.getPath(), adapter.getOperationName());
+        RpcResult rpcResult = null;
         if (result != null && !ignoreMockResult) {
-            RpcResult rpcResult = new RpcResult();
+            rpcResult = new RpcResult();
             boolean isAsync = RpcUtils.isAsync(adapter.getUrl(), adapter.getInvocation());
             if (isAsync) {
                 ResponseFuture future = new SimpleFuture(result);
@@ -44,8 +44,7 @@ public class DubboConsumerExtractor extends DubboExtractor {
                     rpcResult.setValue(result);
                 }
             }
-            mockResult = MockResult.success(ignoreMockResult, rpcResult);
         }
-        return mockResult;
+        return MockResult.success(ignoreMockResult, rpcResult);
     }
 }

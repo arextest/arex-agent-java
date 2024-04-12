@@ -39,7 +39,7 @@ public class DubboProviderExtractor extends DubboExtractor {
         }
         setResponseHeader((k, v) -> setAttachment(invocation, k, v));
         DubboAdapter adapter = DubboAdapter.of(invoker, invocation);
-        RequestHandlerManager.postHandle(invocation.getAttachments(), RpcContext.getServerAttachment().getAttachments(),
+        RequestHandlerManager.postHandle(invocation.getAttachments(), RpcContext.getServerContext().getAttachments(),
                 MockCategoryType.DUBBO_PROVIDER.getName());
         adapter.execute(result, makeMocker(adapter));
         CaseEventDispatcher.onEvent(CaseEvent.ofExitEvent());
@@ -51,7 +51,7 @@ public class DubboProviderExtractor extends DubboExtractor {
         requestAttributes.put(KEY_HEADERS, adapter.getRequestHeaders());
         requestAttributes.put(ArexConstants.CONFIG_VERSION, adapter.getConfigVersion());
         Map<String, Object> responseAttributes = new HashMap<>();
-        responseAttributes.put(KEY_HEADERS, RpcContext.getServerAttachment().getObjectAttachments());
+        responseAttributes.put(KEY_HEADERS, RpcContext.getServerContext().getObjectAttachments());
         return buildMocker(mocker, adapter, requestAttributes, responseAttributes);
     }
 

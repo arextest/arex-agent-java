@@ -18,8 +18,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -45,6 +43,8 @@ class DubboAdapterTest {
         Mockito.mockStatic(ContextManager.class);
         Mockito.mockStatic(MockUtils.class);
         Mockito.mockStatic(ProtocolUtils.class);
+        URL url = Mockito.mock(URL.class);
+        Mockito.when(invoker.getUrl()).thenReturn(url);
     }
 
     @AfterAll
@@ -70,7 +70,7 @@ class DubboAdapterTest {
     @Test
     void getOperationName() {
         adapter.getOperationName();
-        verify(invocation).getMethodName();
+        verify(invocation, atLeastOnce()).getMethodName();
     }
 
     @Test
@@ -100,15 +100,13 @@ class DubboAdapterTest {
     @Test
     void getUrl() {
         adapter.getUrl();
-        verify(invoker).getUrl();
+        verify(invoker, atLeastOnce()).getUrl();
     }
 
     @Test
     void getGeneric() {
-        Mockito.when(invocation.getAttachment("generic")).thenReturn(null);
-        URL url = Mockito.mock(URL.class);
-        Mockito.when(invoker.getUrl()).thenReturn(url);
-        assertNull(adapter.getGeneric());
+        Mockito.when(invocation.getAttachment("generic")).thenReturn("mock");
+        assertNotNull(adapter.getGeneric());
     }
 
     @Test

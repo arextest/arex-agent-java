@@ -22,18 +22,16 @@ public class DubboConsumerExtractor extends DubboExtractor {
         return buildMocker(mocker, adapter, null, null);
     }
     public MockResult replay() {
-        MockResult mockResult = null;
         Object result = MockUtils.replayBody(makeMocker());
         boolean ignoreMockResult = IgnoreUtils.ignoreMockResult(adapter.getPath(), adapter.getOperationName());
+        AsyncRpcResult asyncRpcResult = null;
         if (result != null && !ignoreMockResult) {
-            AsyncRpcResult asyncRpcResult;
             Invocation invocation = adapter.getInvocation();
             if (result instanceof Throwable) {
                 asyncRpcResult = AsyncRpcResult.newDefaultAsyncResult((Throwable) result, invocation);
             } else {
                 asyncRpcResult = AsyncRpcResult.newDefaultAsyncResult(result, invocation);
             }
-            mockResult = MockResult.success(ignoreMockResult, asyncRpcResult);
             // need to set invoke mode to FUTURE if return type is CompletableFuture
             if (invocation instanceof RpcInvocation) {
                 RpcInvocation rpcInv = (RpcInvocation) invocation;
@@ -41,6 +39,6 @@ public class DubboConsumerExtractor extends DubboExtractor {
             }
             RpcContext.getContext().setFuture(new FutureAdapter<>(asyncRpcResult.getResponseFuture()));
         }
-        return mockResult;
+        return MockResult.success(ignoreMockResult, asyncRpcResult);
     }
 }

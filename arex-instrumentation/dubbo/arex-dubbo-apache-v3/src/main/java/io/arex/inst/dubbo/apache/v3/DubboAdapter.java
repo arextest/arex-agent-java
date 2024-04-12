@@ -14,11 +14,12 @@ import org.apache.dubbo.common.URL;
 import org.apache.dubbo.rpc.Invocation;
 import org.apache.dubbo.rpc.Invoker;
 import org.apache.dubbo.rpc.Result;
-import org.apache.dubbo.rpc.RpcContext;
 import org.apache.dubbo.rpc.support.ProtocolUtils;
+import org.apache.dubbo.rpc.support.RpcUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -45,8 +46,13 @@ public class DubboAdapter extends AbstractAdapter {
         String path = invocation.getAttachment("path");
         return path != null ? path : getServiceName();
     }
+
+    /**
+     * if generic invoke, return invocation.getArguments()[0] as operationName
+     * if not, return invocation.getMethodName()
+     */
     public String getOperationName() {
-        return invocation.getMethodName();
+        return RpcUtils.getMethodName(invocation);
     }
     public String getServiceOperation() {
         return getPath() + "." + getOperationName();
@@ -73,14 +79,10 @@ public class DubboAdapter extends AbstractAdapter {
         return ArrayUtils.toString(invocation.getArguments(), TypeUtil::getName);
     }
     public URL getUrl() {
-        return invoker.getUrl();
+        return invocation.getInvoker() != null && invocation.getInvoker().getUrl() != null ? invocation.getInvoker().getUrl() : invoker.getUrl();
     }
     public String getGeneric() {
-        String generic = invocation.getAttachment("generic");
-        if (generic == null) {
-            generic = getUrl().getParameter("generic");
-        }
-        return generic;
+        return getValByKey(DubboConstants.KEY_GENERIC);
     }
     public String getCaseId() {
         return invocation.getAttachment(ArexConstants.RECORD_ID);
@@ -134,7 +136,7 @@ public class DubboAdapter extends AbstractAdapter {
 
     @Override
     protected Map<String, String> getRequestHeaders() {
-        Map<String, String> headerMap = RpcContext.getClientAttachment().getAttachments();
+        Map<String, String> headerMap = getAllAttachments();
         headerMap.put(KEY_PROTOCOL, getProtocol());
         headerMap.put(KEY_GROUP, getValByKey(DubboConstants.KEY_GROUP));
         headerMap.put(KEY_VERSION, getValByKey(DubboConstants.KEY_VERSION));
@@ -146,9 +148,16 @@ public class DubboAdapter extends AbstractAdapter {
         if (StringUtil.isNotEmpty(value)) {
             return value;
         }
-        if (invocation.getInvoker() != null && invocation.getInvoker().getUrl() != null) {
-            return invocation.getInvoker().getUrl().getParameter(key);
-        }
-        return StringUtil.EMPTY;
+        return getUrl().getParameter(key);
+    }
+
+    /**
+     * RpcContext.getContext().getAttachments() from invocation.getAttachments(), but it may not include everything
+     * exclude original request
+     */
+    private Map<String, String> getAllAttachments() {
+        Map<String, String> headerMap = new HashMap<>(invocation.getAttachments());
+        headerMap.remove(ArexConstants.ORIGINAL_REQUEST);
+        return headerMap;
     }
 }
