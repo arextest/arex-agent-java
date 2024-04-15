@@ -7,6 +7,7 @@ import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.log.LogManager;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -116,12 +117,21 @@ public class CacheLoaderUtil {
         if (ArrayUtils.isEmpty(coveragePackages)){
             return false;
         }
-        String loaderClassName = MapUtils.getString(NO_REFERENCE_MAP, System.identityHashCode(cacheLoader), cacheLoader.getClass().getName());
+        String loaderClassName = getClassName(cacheLoader);
         for (String packageName : coveragePackages) {
             if (StringUtil.startWith(loaderClassName, packageName)) {
                 return true;
             }
         }
         return false;
+    }
+
+    private static String getClassName(Object cacheLoader) {
+        // spring cache
+        if (cacheLoader instanceof Method) {
+            return ((Method) cacheLoader).getDeclaringClass().getName();
+        }
+        // caffeine/guava cache
+        return MapUtils.getString(NO_REFERENCE_MAP, System.identityHashCode(cacheLoader), cacheLoader.getClass().getName());
     }
 }

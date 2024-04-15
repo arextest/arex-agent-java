@@ -5,6 +5,7 @@ import static net.bytebuddy.matcher.ElementMatchers.named;
 import static net.bytebuddy.matcher.ElementMatchers.takesArguments;
 
 import io.arex.agent.bootstrap.model.MockResult;
+import io.arex.inst.cache.util.CacheLoaderUtil;
 import io.arex.inst.dynamic.common.DynamicClassExtractor;
 import io.arex.inst.extension.MethodInstrumentation;
 import io.arex.inst.extension.TypeInstrumentation;
@@ -46,7 +47,7 @@ public class SpringCacheInstrumentation extends TypeInstrumentation {
                 return false;
             }
 
-            if (SpringCacheAdviceHelper.needRecordOrReplay(method)) {
+            if (CacheLoaderUtil.needRecordOrReplay(method)) {
                 Cacheable cacheable = method.getDeclaredAnnotation(Cacheable.class);
                 String keyExpression = cacheable != null ? cacheable.key() : null;
                 extractor = new DynamicClassExtractor(method, args, keyExpression, null);
