@@ -68,11 +68,14 @@ class CacheLoaderUtilTest {
     }
 
     @Test
-    void needRecordOrReplay() {
+    void needRecordOrReplay() throws NoSuchMethodException {
         try (MockedStatic<Config> configMockedStatic = Mockito.mockStatic(Config.class)) {
             Config config = Mockito.mock(Config.class);
             Mockito.when(Config.get()).thenReturn(config);
             Mockito.when(config.getCoveragePackages()).thenReturn(new String[]{"io.arex.inst"});
+            // method in coverage packages
+            assertTrue(CacheLoaderUtil.needRecordOrReplay(CacheLoaderUtilTest.class.getDeclaredMethod("getLocatedClass")));
+
             // loader is null
             assertFalse(CacheLoaderUtil.needRecordOrReplay(null));
             // loader is in coverage packages
