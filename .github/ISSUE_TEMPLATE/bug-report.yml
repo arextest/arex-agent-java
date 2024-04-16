@@ -40,37 +40,31 @@ body:
 
   - type: textarea
     attributes:
-      label: What happened
+      label: Current Behavior
       description: Describe what happened.
       placeholder: >
-        Please provide the context in which the problem occurred and explain what happened
+        Please provide the context in which the problem occurred and explain what happened.
     validations:
       required: true
 
   - type: textarea
     attributes:
-      label: What you expected to happen
-      description: What do you think went wrong?
+      label: Expected Behavior
+      description: Describe what you expected to happen.
       placeholder: >
-        Please explain why you think the behaviour is erroneous. It is extremely helpful if you copy and paste
-        the fragment of logs showing the exact error messages or wrong behaviour and screenshots for
-        UI problems. You can include files by dragging and dropping them here.
-
         **NOTE**: please copy and paste texts instead of taking screenshots of them for easy future search.
     validations:
       required: true
 
   - type: textarea
     attributes:
-      label: How to reproduce
-      description: >
-        What should we do to reproduce the problem? If you are not able to provide a reproducible case,
-        please open a [Discussion](https://github.com/apache/skywalking/discussions) instead.
+      label: Steps To Reproduce
+      description: Steps to reproduce the behavior.
       placeholder: >
-        Please make sure you provide a reproducible step-by-step case of how to reproduce the problem
-        as minimally and precisely as possible. Keep in mind we do not have access to your deployment.
-        Remember that non-reproducible issues will be closed! Opening a discussion is recommended as a
-        first step.
+        1. In this environment...
+        2. With this config...
+        3. Run '...'
+        4. See error...
     validations:
       required: true
 
