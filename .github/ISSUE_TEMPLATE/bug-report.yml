@@ -1,30 +1,24 @@
-name: SkyWalking Bug report
+name: 🐞 Bug
 title: "[Bug] "
-description: Problems and issues with code of Apache SkyWalking
+description: File a bug/issue of AREX
 labels: [ "bug" ]
 body:
   - type: markdown
     attributes:
       value: |
-        <img src="https://skywalking.apache.org/assets/logo.svg" alt="SkyWalking logo" height="90px" align="right" />
-
-        Thank you for finding the time to report the problem! We really appreciate the community efforts to improve SkyWalking.
+        Thank you for finding the time to report the problem! We really appreciate the community efforts to improve AREX.
 
         Please make sure what you are reporting is indeed a bug with reproducible steps, if you want to ask questions
-        or share ideas, please [subscribe to our mailing list](mailto:dev-subscribe@skywalking.apache.org) and sent
-        emails to [our mailing list](mailto:dev@skywalking.apache.org), you can also head to our
-        [Discussion](https://github.com/apache/skywalking/discussions) tab.
+        or share ideas, please join the QQ group or the Wechat group.
 
   - type: checkboxes
     attributes:
       label: Search before asking
       description: >
-        Please make sure to search in the [issues](https://github.com/apache/skywalking/issues?q=is%3Aissue) first to see
-        whether the same issue was reported already.
+        Please search to see if an issue already exists for the bug you encountered.
       options:
         - label: >
-            I had searched in the [issues](https://github.com/apache/skywalking/issues?q=is%3Aissue) and found no similar
-            issues.
+            I have searched the existing [issues](https://github.com/arextest/arex-agent-java/issues) befor asking.
           required: true
 
   - type: dropdown
@@ -129,4 +123,3 @@ body:
   - type: markdown
     attributes:
       value: "Thanks for completing our form!"
-      
