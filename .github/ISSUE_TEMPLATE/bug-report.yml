@@ -1,99 +1,132 @@
-name: 🐞 Bug
-description: File a bug/issue of AREX
-title: "[BUG] <title>"
+name: SkyWalking Bug report
+title: "[Bug] "
+description: Problems and issues with code of Apache SkyWalking
 labels: [ "bug" ]
 body:
   - type: markdown
     attributes:
       value: |
+        <img src="https://skywalking.apache.org/assets/logo.svg" alt="SkyWalking logo" height="90px" align="right" />
 
-        Thank you for finding the time to report the problem! We really appreciate the community efforts to improve AREX.
+        Thank you for finding the time to report the problem! We really appreciate the community efforts to improve SkyWalking.
 
         Please make sure what you are reporting is indeed a bug with reproducible steps, if you want to ask questions
-        or share ideas, please [join the QQ group](http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=vTXYPzuu4zL4Oie28eo7YNT96MPHfU42&authKey=2PIypXqgLE66yP3W3umu9X21zLxDj1sFIatAKkuXCd6AmXRpmtKPtHqX9x6n38Fh&noverify=0&group_code=656108079) or the [Wechat group](https://github.com/arextest/.github/assets/118187476/32a444d1-a559-47c2-a724-b64d5bc97716).
+        or share ideas, please [subscribe to our mailing list](mailto:dev-subscribe@skywalking.apache.org) and sent
+        emails to [our mailing list](mailto:dev@skywalking.apache.org), you can also head to our
+        [Discussion](https://github.com/apache/skywalking/discussions) tab.
+
   - type: checkboxes
     attributes:
-      label: Is there an existing issue for this?
-      description: Please search to see if an issue already exists for the bug you encountered.
+      label: Search before asking
+      description: >
+        Please make sure to search in the [issues](https://github.com/apache/skywalking/issues?q=is%3Aissue) first to see
+        whether the same issue was reported already.
       options:
-      - label: I have searched the existing [issues](https://github.com/arextest/arex-agent-java/issues) befor asking.
-        required: true
+        - label: >
+            I had searched in the [issues](https://github.com/apache/skywalking/issues?q=is%3Aissue) and found no similar
+            issues.
+          required: true
 
   - type: dropdown
-      attributes:
-        label: AREX Test Service
-        description: |
-          Which AREX Test service did you find the bug in? AREX Test consists of many services, including [Schedule Service](https://github.com/arextest/arex-replay-schedule), 
-          [API Service](https://github.com/arextest/arex-report), [Storage Service](https://github.com/arextest/arex-storage) and [UI](https://github.com/arextest/arex). 
-          Please make sure to choose the service that you found the bug. 
-        multiple: false
-        options:
-          - "Schedule Service (arextest/arex-replay-schedule)"
-          - "API Service (arextest/arex-api)"
-          - "AREX Java Agent (arextest/arex-agent-java)"
-          - "Storage Service (arextest/arex-storage)"
-          - "UI (arextest/arex)"
-      validations:
-        required: true
+    attributes:
+      label: Apache SkyWalking Component
+      description: |
+        What Apache SkyWalking component are you using? Apache SkyWalking has many subprojects, please make sure
+        to choose the component that you found the bug. For non-Apache community projects, please refer to their
+        corresponding repos.
+      multiple: false
+      options:
+        - "OAP server (apache/skywalking)"
+        - "UI (apache/skywalking-booster-ui)"
+        - "Java Agent (apache/skywalking-java)"
+        - "Python Agent (apache/skywalking-python)"
+        - "NodeJS Server Side Agent (apache/skywalking-nodejs)"
+        - "NodeJS Client Side Agent (apache/skywalking-client-js)"
+        - "Nginx Lua Agent (apache/skywalking-nginx-lua)"
+        - "Kong Agent (apache/skywalking-kong)"
+        - "Go Agent (apache/skywalking-go)"
+        - "PHP (apache/skywalking-php)"
+        - "Rust (apache/skywalking-rust)"
+        - "Satellite (apache/skywalking-satellite)"
+        - "CLI (apache/skywalking-cli)"
+        - "Helm Chart (apache/skywalking-helm)"
+        - "SWCK (apache/skywalking-swck)"
+        - "License Tools (apache/skywalking-eyes)"
+        - "Infra E2E (apache/skywalking-infra-e2e)"
+        - "BanyanDB (apache/skywalking-banyandb)"
+        - "Agent Test Tool (apache/skywalking-agent-test-tool)"
+        - "Showcase (apache/skywalking-showcase)"
+    validations:
+      required: true
 
   - type: textarea
     attributes:
-      label: Current Behavior
+      label: What happened
       description: Describe what happened.
       placeholder: >
-        Please provide the context in which the problem occurred and explain what happened. 
+        Please provide the context in which the problem occurred and explain what happened
     validations:
-      required: false
+      required: true
 
   - type: textarea
     attributes:
-      label: Expected Behavior
-      description: Describe what you expected to happen.
+      label: What you expected to happen
+      description: What do you think went wrong?
       placeholder: >
+        Please explain why you think the behaviour is erroneous. It is extremely helpful if you copy and paste
+        the fragment of logs showing the exact error messages or wrong behaviour and screenshots for
+        UI problems. You can include files by dragging and dropping them here.
+
         **NOTE**: please copy and paste texts instead of taking screenshots of them for easy future search.
     validations:
-      required: false
+      required: true
 
   - type: textarea
     attributes:
-      label: Steps To Reproduce
-      description: Steps to reproduce the behavior.
-      placeholder: |
-        1. In this environment...
-        2. With this config...
-        3. Run '...'
-        4. See error...
+      label: How to reproduce
+      description: >
+        What should we do to reproduce the problem? If you are not able to provide a reproducible case,
+        please open a [Discussion](https://github.com/apache/skywalking/discussions) instead.
+      placeholder: >
+        Please make sure you provide a reproducible step-by-step case of how to reproduce the problem
+        as minimally and precisely as possible. Keep in mind we do not have access to your deployment.
+        Remember that non-reproducible issues will be closed! Opening a discussion is recommended as a
+        first step.
     validations:
-      required: false
+      required: true
 
   - type: textarea
     attributes:
-      label: Environment
-      description: |
-        examples:
-          - **AdoptOpenJDK**: 1.8.0
-          - **arex-agent-java**: 0.2.0
-      value: |
-        - AdoptOpenJDK:
-        - arex-agent-java:
-      render: markdown
-    validations:
-      required: false
+      label: Anything else
+      description: Anything else we need to know?
+      placeholder: >
+        How often does this problem occur? (Once? Every time? Only when certain conditions are met?)
+        Any relevant logs to include? Put them here inside fenced
+        ``` ``` blocks or inside a collapsable details tag if it's too long:
+        <details><summary>x.log</summary> lots of stuff </details>
 
   - type: checkboxes
-      attributes:
-        label: Are you willing to submit a pull request to fix on your own?
-        description: >
-          We will be happy to guide you in the contribution process especially if you already have a good understanding of how to implement the fix.
-        options:
-          - label: Yes I am willing to submit a pull request on my own!
-  
-  - type: textarea
     attributes:
-      label: Anything else?
-      description: |
-        Links? References? Anything that will give us more context about the issue you are encountering!
+      label: Are you willing to submit a pull request to fix on your own?
+      description: >
+        This is absolutely not required, but we are happy to guide you in the contribution process
+        especially if you already have a good understanding of how to implement the fix.
+        SkyWalking is a totally community-driven project and we love to bring new contributors in.
+        Find us in #skywalking on Slack!
+      options:
+        - label: Yes I am willing to submit a pull request on my own!
 
-        Tip: You can attach images or log files by clicking this area to highlight it and then dragging files in.
-    validations:
-      required: false
+  - type: checkboxes
+    attributes:
+      label: Code of Conduct
+      description: The Code of Conduct helps create a safe space for everyone. We require that everyone agrees to it.
+      options:
+        - label: >
+            I agree to follow this project's
+            [Code of Conduct](https://www.apache.org/foundation/policies/conduct)
+          required: true
+
+  - type: markdown
+    attributes:
+      value: "Thanks for completing our form!"
+      
