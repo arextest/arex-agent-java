@@ -1,0 +1,34 @@
+name: Feature request
+description: Suggest an idea for this project
+title: "[Feature] <title>"
+labels: ["Feature"]
+body:
+- type: checkboxes
+  attributes:
+    label: Is there an existing issue for this?
+    description: Please search to see if an issue already exists for the feature you wanted.
+    options:
+    - label: I have searched the existing [issues](https://github.com/arextest/arex-agent-java/issues) befor asking.
+      required: true
+- type: textarea
+  attributes:
+    label: Description
+    description: A short description of your feature.
+- type: textarea
+  attributes:
+    label: Solution
+    description: Describe the solution you'd like.
+    placeholder: >
+        If you don't know how to implement this feature, then describe what you want to achieve.
+- type: textarea
+  attributes:
+    label: Related issues
+    description: Is your feature request related to a problem or an issue? Please describe.
+- type: checkboxes
+    attributes:
+      label: Are you willing to submit a pull request to fix on your own?
+      description: >
+        We will be happy to guide you in the contribution process especially if you already have a good understanding of how to implement the fix.
+      options:
+        - label: Yes I am willing to submit a pull request on my own!
+

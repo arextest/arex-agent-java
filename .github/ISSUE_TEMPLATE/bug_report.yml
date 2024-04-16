@@ -1,0 +1,91 @@
+name: 🐞 Bug
+description: File a bug/issue of AREX
+title: "[BUG] <title>"
+labels: ["Bug"]
+body:
+- type: markdown
+    attributes:
+      value: |
+        Thank you for finding the time to report the problem! We really appreciate the community efforts to improve AREX.
+
+        Please make sure what you are reporting is indeed a bug with reproducible steps, if you want to ask questions
+        or share ideas, please [join the QQ group](http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=vTXYPzuu4zL4Oie28eo7YNT96MPHfU42&authKey=2PIypXqgLE66yP3W3umu9X21zLxDj1sFIatAKkuXCd6AmXRpmtKPtHqX9x6n38Fh&noverify=0&group_code=656108079) or the [Wechat group](https://github.com/arextest/.github/assets/118187476/32a444d1-a559-47c2-a724-b64d5bc97716).
+- type: checkboxes
+  attributes:
+    label: Is there an existing issue for this?
+    description: Please search to see if an issue already exists for the bug you encountered.
+    options:
+    - label: I have searched the existing [issues](https://github.com/arextest/arex-agent-java/issues) befor asking.
+      required: true
+- type: dropdown
+    attributes:
+      label: AREX Test Service
+      description: |
+        Which AREX Test service did you find the bug in? AREX Test consists of many services, including [Schedule Service](https://github.com/arextest/arex-replay-schedule), 
+        [API Service](https://github.com/arextest/arex-report), [Storage Service](https://github.com/arextest/arex-storage) and [UI](https://github.com/arextest/arex). 
+        Please make sure to choose the service that you found the bug. 
+      multiple: false
+      options:
+        - "Schedule Service (arextest/arex-replay-schedule)"
+        - "API Service (arextest/arex-api)"
+        - "AREX Java Agent (arextest/arex-agent-java)"
+        - "Storage Service (arextest/arex-storage)"
+        - "UI (arextest/arex)"
+    validations:
+      required: true
+- type: textarea
+  attributes:
+    label: Current Behavior
+    description: Describe what happened.
+    placeholder: >
+        Please provide the context in which the problem occurred and explain what happened.
+  validations:
+    required: false
+- type: textarea
+  attributes:
+    label: Expected Behavior
+    description: Describe what you expected to happen.
+    placeholder: >
+      **NOTE**: please copy and paste texts instead of taking screenshots of them for easy future search.
+  validations:
+    required: false
+- type: textarea
+  attributes:
+    label: Steps To Reproduce
+    description: Steps to reproduce the behavior.
+    placeholder: |
+      1. In this environment...
+      2. With this config...
+      3. Run '...'
+      4. See error...
+  validations:
+    required: false
+- type: textarea
+  attributes:
+    label: Environment
+    description: |
+      examples:
+        - **AdoptOpenJDK**: 1.8.0
+        - **arex-agent-java**: 0.2.0
+    value: |
+        - AdoptOpenJDK:
+        - arex-agent-java:
+    render: markdown
+  validations:
+    required: false
+- type: checkboxes
+    attributes:
+      label: Are you willing to submit a pull request to fix on your own?
+      description: >
+        We will be happy to guide you in the contribution process especially if you already have a good understanding of how to implement the fix.
+      options:
+        - label: Yes I am willing to submit a pull request on my own!
+- type: textarea
+  attributes:
+    label: Anything else?
+    description: |
+      Links? References? Anything that will give us more context about the issue you are encountering!
+
+      Tip: You can attach images or log files by clicking this area to highlight it and then dragging files in.
+  validations:
+    required: false
