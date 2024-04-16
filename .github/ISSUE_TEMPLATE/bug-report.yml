@@ -22,7 +22,7 @@ body:
   - type: dropdown
       attributes:
         label: AREX Test Service
-        description: >
+        description: |
           Which AREX Test service did you find the bug in? AREX Test consists of many services, including [Schedule Service](https://github.com/arextest/arex-replay-schedule), 
           [API Service](https://github.com/arextest/arex-report), [Storage Service](https://github.com/arextest/arex-storage) and [UI](https://github.com/arextest/arex). 
           Please make sure to choose the service that you found the bug. 
