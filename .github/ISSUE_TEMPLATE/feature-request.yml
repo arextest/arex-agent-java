@@ -26,8 +26,9 @@ body:
         Please search to see if an issue already exists for the feature you wanted.
       options:
         - label: >
-          I have searched the existing [issues](https://github.com/arextest/arex-agent-java/issues) befor asking.
-        required: true
+            I had searched in the [issues](https://github.com/arextest/arex-agent-java/issues) and found no similar
+            issues.
+          required: true
 
   - type: textarea
     attributes:
