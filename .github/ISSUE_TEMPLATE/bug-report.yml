@@ -1,11 +1,13 @@
-name: 🐞 Bug
+name: Bug report
 title: "[Bug] "
 description: File a bug/issue of AREX
-labels: [ "bug" ]
+labels: [ "bug 🐞" ]
 body:
   - type: markdown
     attributes:
       value: |
+        <img src="https://doc.arextest.com/img/logo.jpg" alt="AREX logo" height="90px" align="right" />
+
         Thank you for finding the time to report the problem! We really appreciate the community efforts to improve AREX.
 
         Please make sure what you are reporting is indeed a bug with reproducible steps, if you want to ask questions
@@ -30,11 +32,12 @@ body:
         Please make sure to choose the service that you found the bug.
       multiple: false
       options:
-        - "Schedule Service (arextest/arex-replay-schedule)"
-        - "API Service (arextest/arex-api)"
         - "AREX Java Agent (arextest/arex-agent-java)"
-        - "Storage Service (arextest/arex-storage)"
         - "UI (arextest/arex)"
+        - "API Service (arextest/arex-api)"
+        - "Storage Service (arextest/arex-storage)"
+        - "Schedule Service (arextest/arex-replay-schedule)"
+        
     validations:
       required: true
 
