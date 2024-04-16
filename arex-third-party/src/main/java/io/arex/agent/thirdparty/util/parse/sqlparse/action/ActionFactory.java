@@ -1,6 +1,5 @@
 package io.arex.agent.thirdparty.util.parse.sqlparse.action;
 
-import io.arex.agent.thirdparty.util.parse.sqlparse.Parse;
 import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.execute.Execute;
 import net.sf.jsqlparser.statement.insert.Insert;
@@ -17,7 +16,7 @@ import net.sf.jsqlparser.statement.Statement;
  * @since 1.0.0
  */
 public class ActionFactory {
-    public static Parse selectParse(Statement statement) {
+    public static AbstractParse<? extends Statement> selectParse(Statement statement) {
         if (statement instanceof Select) {
             return new SelectParse();
         } else if (statement instanceof Execute) {

@@ -1,8 +1,6 @@
 package io.arex.agent.thirdparty.util.parse.sqlparse.action;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import io.arex.agent.thirdparty.util.JacksonHelperUtil;
-import io.arex.agent.thirdparty.util.parse.sqlparse.Parse;
 import io.arex.agent.thirdparty.util.parse.sqlparse.parse.CommonParse;
 import io.arex.agent.thirdparty.util.parse.sqlparse.parse.ExpressionParse;
 import io.arex.agent.thirdparty.util.parse.sqlparse.parse.ItemParse;
@@ -18,42 +16,39 @@ import net.sf.jsqlparser.statement.update.Update;
  * @date 2024/4/3
  * @since 1.0.0
  */
-public class UpdateParse implements Parse<Update> {
-
-    private final ObjectNode updateObject;
+public class UpdateParse extends AbstractParse<Update> {
 
     public UpdateParse() {
-        updateObject = JacksonHelperUtil.getObjectNode();
-        updateObject.put(DbParseConstants.ACTION, DbParseConstants.UPDATE);
+        super(DbParseConstants.UPDATE);
     }
 
 
     @Override
     public ObjectNode parse(Update parseObj) {
         // table parse
-        TableParse.parse(parseObj.getTable(), updateObject);
+        TableParse.parse(parseObj.getTable(), sqlObjectNode);
 
         // startJoins parse
-        JoinParse.startJoinsParse(parseObj.getStartJoins(), updateObject);
+        JoinParse.startJoinsParse(parseObj.getStartJoins(), sqlObjectNode);
 
         // from parse
-        ItemParse.parseFromItem(parseObj.getFromItem(), updateObject);
+        ItemParse.parseFromItem(parseObj.getFromItem(), sqlObjectNode);
 
         // joins parse
-        JoinParse.parse(parseObj.getJoins(), updateObject);
+        JoinParse.parse(parseObj.getJoins(), sqlObjectNode);
 
         // updateSet parse
-        UpdateSetParse.parse(parseObj.getUpdateSets(), updateObject);
+        UpdateSetParse.parse(parseObj.getUpdateSets(), sqlObjectNode);
 
         // where parse
-        ExpressionParse.parseWhere(parseObj.getWhere(), updateObject);
+        ExpressionParse.parseWhere(parseObj.getWhere(), sqlObjectNode);
 
         // order parse
-        OrderByParse.parse(parseObj.getOrderByElements(), updateObject);
+        OrderByParse.parse(parseObj.getOrderByElements(), sqlObjectNode);
 
         // limit parse
-        CommonParse.parseLimit(parseObj.getLimit(), updateObject);
+        CommonParse.parseLimit(parseObj.getLimit(), sqlObjectNode);
 
-        return updateObject;
+        return sqlObjectNode;
     }
 }

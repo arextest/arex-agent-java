@@ -7,6 +7,8 @@ import io.arex.agent.thirdparty.util.parse.sqlparse.util.ParseUtil;
 import net.sf.jsqlparser.JSQLParserException;
 import org.junit.jupiter.api.Test;
 
+import java.util.Map;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
@@ -28,6 +30,10 @@ public class ReplaceParseTest {
         JsonNode parse = parse(sql);
         assertEquals(DbParseConstants.REPLACE, parse.get(DbParseConstants.ACTION).asText());
         assertEquals("orderTable", ParseUtil.parseReplayTable(parse));
+
+        Map<String, String> tableAndAction = SqlParseManager.getInstance().parseTableAndAction(sql);
+        assertEquals("orderTable", tableAndAction.get(DbParseConstants.TABLE));
+        assertEquals(DbParseConstants.REPLACE, tableAndAction.get(DbParseConstants.ACTION));
     }
 
     @Test
@@ -36,6 +42,10 @@ public class ReplaceParseTest {
         JsonNode parse = parse(sql);
         assertEquals(DbParseConstants.REPLACE, parse.get(DbParseConstants.ACTION).asText());
         assertEquals("tb1", ParseUtil.parseReplayTable(parse));
+
+        Map<String, String> tableAndAction = SqlParseManager.getInstance().parseTableAndAction(sql);
+        assertEquals("tb1", tableAndAction.get(DbParseConstants.TABLE));
+        assertEquals(DbParseConstants.REPLACE, tableAndAction.get(DbParseConstants.ACTION));
     }
 
     @Test
@@ -44,6 +54,10 @@ public class ReplaceParseTest {
         JsonNode parse = parse(sql);
         assertEquals(DbParseConstants.REPLACE, parse.get(DbParseConstants.ACTION).asText());
         assertEquals("tb1", ParseUtil.parseReplayTable(parse));
+
+        Map<String, String> tableAndAction = SqlParseManager.getInstance().parseTableAndAction(sql);
+        assertEquals("tb1", tableAndAction.get(DbParseConstants.TABLE));
+        assertEquals(DbParseConstants.REPLACE, tableAndAction.get(DbParseConstants.ACTION));
     }
 
     @Test
@@ -55,5 +69,9 @@ public class ReplaceParseTest {
         JsonNode parse = parse(sql);
         assertEquals(DbParseConstants.REPLACE, parse.get(DbParseConstants.ACTION).asText());
         assertEquals("orderTable", ParseUtil.parseReplayTable(parse));
+
+        Map<String, String> tableAndAction = SqlParseManager.getInstance().parseTableAndAction(sql);
+        assertEquals("orderTable", tableAndAction.get(DbParseConstants.TABLE));
+        assertEquals(DbParseConstants.REPLACE, tableAndAction.get(DbParseConstants.ACTION));
     }
 }

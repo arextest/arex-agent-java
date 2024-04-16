@@ -1,8 +1,6 @@
 package io.arex.agent.thirdparty.util.parse.sqlparse.action;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import io.arex.agent.thirdparty.util.JacksonHelperUtil;
-import io.arex.agent.thirdparty.util.parse.sqlparse.Parse;
 import io.arex.agent.thirdparty.util.parse.sqlparse.parse.ColumnParse;
 import io.arex.agent.thirdparty.util.parse.sqlparse.parse.ExpressionParse;
 import io.arex.agent.thirdparty.util.parse.sqlparse.parse.TableParse;
@@ -14,25 +12,22 @@ import net.sf.jsqlparser.statement.replace.Replace;
  * @date 2024/4/3
  * @since 1.0.0
  */
-public class ReplaceParse implements Parse<Replace> {
+public class ReplaceParse extends AbstractParse<Replace> {
 
-    private final ObjectNode replaceObj;
     public ReplaceParse() {
-        replaceObj = JacksonHelperUtil.getObjectNode();
-        // action parse
-        replaceObj.put(DbParseConstants.ACTION, DbParseConstants.REPLACE);
+        super(DbParseConstants.REPLACE);
     }
     @Override
     public ObjectNode parse(Replace parseObj) {
         // table parse
-        TableParse.parse(parseObj.getTable(), replaceObj);
+        TableParse.parse(parseObj.getTable(), sqlObjectNode);
 
         // columns parse
-        ColumnParse.parse(parseObj.getColumns(), parseObj.getItemsList(), replaceObj);
+        ColumnParse.parse(parseObj.getColumns(), parseObj.getItemsList(), sqlObjectNode);
 
         // expressions parse
-        ExpressionParse.parse(parseObj.getExpressions(), parseObj.getColumns(), replaceObj);
+        ExpressionParse.parse(parseObj.getExpressions(), parseObj.getColumns(), sqlObjectNode);
 
-        return replaceObj;
+        return sqlObjectNode;
     }
 }

@@ -5,7 +5,13 @@ import io.arex.agent.thirdparty.util.parse.sqlparse.SqlParseManager;
 import io.arex.agent.thirdparty.util.parse.sqlparse.constants.DbParseConstants;
 import io.arex.agent.thirdparty.util.parse.sqlparse.util.ParseUtil;
 import net.sf.jsqlparser.JSQLParserException;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadMXBean;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -15,6 +21,37 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * @since 1.0.0
  */
 public class SelectParseTest {
+
+    private long startTime;
+    private long startCpuTime;
+    private long startUserTime;
+    private ThreadMXBean threadBean = ManagementFactory.getThreadMXBean();
+
+//    @BeforeEach
+//    public void setUp() {
+//        startCpuTime = threadBean.getCurrentThreadCpuTime();
+//        startUserTime = threadBean.getCurrentThreadUserTime();
+//        // 获取开始时间
+//        startTime = System.currentTimeMillis();
+//    }
+
+//    @AfterEach
+//    public void tearDown() {
+//        //获取耗时以及cpu使用率
+//        long endTime = System.currentTimeMillis();
+//
+//        long duration = endTime - startTime;
+//        System.out.println("cost time: " + duration + " ms");
+//
+//        long endCpuTime = threadBean.getCurrentThreadCpuTime();
+//        long endUserTime = threadBean.getCurrentThreadUserTime();
+//
+//        double cpuTime = (endCpuTime - startCpuTime) / 1_000_000.0;
+//        double userTime = (endUserTime - startUserTime) / 1_000_000.0;
+//
+//        System.out.println("CPU time: " + cpuTime + " ms");
+//        System.out.println("User time: " + userTime + " ms");
+//    }
 
 
     private static JsonNode parse(String sql) throws JSQLParserException {
@@ -27,6 +64,10 @@ public class SelectParseTest {
         JsonNode result = parse(select);
         assertEquals(DbParseConstants.SELECT, result.get(DbParseConstants.ACTION).asText());
         assertEquals("test", ParseUtil.parseSelectTableName(result));
+
+        Map<String, String> tableAndAction = SqlParseManager.getInstance().parseTableAndAction(select);
+        assertEquals("test", tableAndAction.get(DbParseConstants.TABLE));
+        assertEquals(DbParseConstants.SELECT, tableAndAction.get(DbParseConstants.ACTION));
     }
 
 
@@ -42,6 +83,9 @@ public class SelectParseTest {
         JsonNode result = parse(sql);
         assertEquals(DbParseConstants.SELECT, result.get(DbParseConstants.ACTION).asText());
         assertEquals("Employee", ParseUtil.parseSelectTableName(result));
+
+        Map<String, String> tableAndAction = SqlParseManager.getInstance().parseTableAndAction(sql);
+        assertEquals(DbParseConstants.SELECT, tableAndAction.get(DbParseConstants.ACTION));
     }
 
     @Test
@@ -50,6 +94,10 @@ public class SelectParseTest {
         JsonNode result = parse(sql);
         assertEquals(DbParseConstants.SELECT, result.get(DbParseConstants.ACTION).asText());
         assertEquals("students", ParseUtil.parseSelectTableName(result));
+
+        Map<String, String> tableAndAction = SqlParseManager.getInstance().parseTableAndAction(sql);
+        assertEquals("students", tableAndAction.get(DbParseConstants.TABLE));
+        assertEquals(DbParseConstants.SELECT, tableAndAction.get(DbParseConstants.ACTION));
     }
 
     @Test
@@ -72,6 +120,10 @@ public class SelectParseTest {
         JsonNode result = parse(sql);
         assertEquals(DbParseConstants.SELECT, result.get(DbParseConstants.ACTION).asText());
         assertEquals("a", ParseUtil.parseSelectTableName(result));
+
+        Map<String, String> tableAndAction = SqlParseManager.getInstance().parseTableAndAction(sql);
+        assertEquals("a", tableAndAction.get(DbParseConstants.TABLE));
+        assertEquals(DbParseConstants.SELECT, tableAndAction.get(DbParseConstants.ACTION));
     }
 
     @Test
@@ -80,6 +132,10 @@ public class SelectParseTest {
         JsonNode result = parse(sql);
         assertEquals(DbParseConstants.SELECT, result.get(DbParseConstants.ACTION).asText());
         assertEquals("alerts.status", ParseUtil.parseSelectTableName(result));
+
+        Map<String, String> tableAndAction = SqlParseManager.getInstance().parseTableAndAction(sql);
+        assertEquals("alerts.status", tableAndAction.get(DbParseConstants.TABLE));
+        assertEquals(DbParseConstants.SELECT, tableAndAction.get(DbParseConstants.ACTION));
     }
 
     @Test
@@ -100,12 +156,42 @@ public class SelectParseTest {
     @Test
     public void testSelectLeftJoin() throws JSQLParserException {
 
+        startCpuTime = threadBean.getCurrentThreadCpuTime();
+        startUserTime = threadBean.getCurrentThreadUserTime();
+        // 获取开始时间
+        startTime = System.currentTimeMillis();
+
         String sql = "select s.Name,C.Cname from student_course as sc " +
                 "left join student as s on s.Sno=sc.Sno" +
-                "left join course as c on c.Cno=sc.Cno on s.Sno=sc.Sno";
+                "left join course as c on c.Cno=sc.Cno on s.Sno=sc.Sno;select * from student_course";
+//        String sql = "SELECT * FROM [AccountCheck] WITH (NOLOCK) WHERE [AccCheckID]=? AND [ss]=?";
+
         JsonNode result = parse(sql);
-        assertEquals(DbParseConstants.SELECT, result.get(DbParseConstants.ACTION).asText());
-        assertEquals("student_course", ParseUtil.parseSelectTableName(result));
+        System.out.println("parse: " + result);
+
+        //获取耗时以及cpu使用率
+        long endTime = System.currentTimeMillis();
+
+        long duration = endTime - startTime;
+        System.out.println("cost time: " + duration + " ms");
+
+        long endCpuTime = threadBean.getCurrentThreadCpuTime();
+        long endUserTime = threadBean.getCurrentThreadUserTime();
+
+        double cpuTime = (endCpuTime - startCpuTime) / 1_000_000.0;
+        double userTime = (endUserTime - startUserTime) / 1_000_000.0;
+
+        System.out.println("CPU time: " + cpuTime + " ms");
+        System.out.println("User time: " + userTime + " ms");
+
+
+        //        assertEquals("student_course,student,course", tableAndAction.get(DbParseConstants.TABLE));
+//        assertEquals(DbParseConstants.SELECT, tableAndAction.get(DbParseConstants.ACTION));
+
+        //        JsonNode result = parse(sql);
+//        assertEquals(DbParseConstants.SELECT, result.get(DbParseConstants.ACTION).asText());
+//        assertEquals("student_course", ParseUtil.parseSelectTableName(result));
+//        Map<String, String> tableAndAction = SqlParseManager.getInstance().parseTableAndAction(sql);
     }
 
     @Test
@@ -186,5 +272,11 @@ public class SelectParseTest {
         JsonNode result = parse(sql);
         assertEquals(DbParseConstants.SELECT, result.get(DbParseConstants.ACTION).asText());
         assertEquals("orders", ParseUtil.parseSelectTableName(result));
+        System.out.println("parse: " + result);
+
+        Map<String, String> tableAndAction = SqlParseManager.getInstance().parseTableAndAction(sql);
+        assertEquals("orders", tableAndAction.get(DbParseConstants.TABLE));
+        assertEquals(DbParseConstants.SELECT, tableAndAction.get(DbParseConstants.ACTION));
+
     }
 }

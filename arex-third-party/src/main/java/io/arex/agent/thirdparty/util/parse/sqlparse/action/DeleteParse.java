@@ -1,8 +1,6 @@
 package io.arex.agent.thirdparty.util.parse.sqlparse.action;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import io.arex.agent.thirdparty.util.JacksonHelperUtil;
-import io.arex.agent.thirdparty.util.parse.sqlparse.Parse;
 import io.arex.agent.thirdparty.util.parse.sqlparse.parse.CommonParse;
 import io.arex.agent.thirdparty.util.parse.sqlparse.parse.ExpressionParse;
 import io.arex.agent.thirdparty.util.parse.sqlparse.parse.JoinParse;
@@ -16,13 +14,10 @@ import net.sf.jsqlparser.statement.delete.Delete;
  * @date 2024/4/3
  * @since 1.0.0
  */
-public class DeleteParse implements Parse<Delete> {
+public class DeleteParse extends AbstractParse<Delete> {
 
-    private final ObjectNode sqlObjectNode;
     public DeleteParse() {
-        sqlObjectNode = JacksonHelperUtil.getObjectNode();
-        // action parse
-        sqlObjectNode.put(DbParseConstants.ACTION, DbParseConstants.DELETE);
+        super(DbParseConstants.DELETE);
     }
     @Override
     public ObjectNode parse(Delete parseObj) {

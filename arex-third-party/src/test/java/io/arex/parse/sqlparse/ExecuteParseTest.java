@@ -6,6 +6,8 @@ import io.arex.agent.thirdparty.util.parse.sqlparse.constants.DbParseConstants;
 import net.sf.jsqlparser.JSQLParserException;
 import org.junit.jupiter.api.Test;
 
+import java.util.Map;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
@@ -24,6 +26,11 @@ public class ExecuteParseTest {
         JsonNode result = parse(sql);
         assertEquals(DbParseConstants.EXECUTE, result.get("action").asText());
         assertEquals("cp_petowner", result.get(DbParseConstants.EXECUTE_NAME).asText());
+
+        Map<String, String> tableAndAction = SqlParseManager.getInstance().parseTableAndAction(sql);
+        assertEquals("cp_petowner", tableAndAction.get(DbParseConstants.TABLE));
+        assertEquals(DbParseConstants.EXECUTE, tableAndAction.get(DbParseConstants.ACTION));
+
     }
 
     @Test
@@ -32,5 +39,9 @@ public class ExecuteParseTest {
         JsonNode result = parse(sql);
         assertEquals(DbParseConstants.EXECUTE, result.get("action").asText());
         assertEquals("my_proc", result.get(DbParseConstants.EXECUTE_NAME).asText());
+
+        Map<String, String> tableAndAction = SqlParseManager.getInstance().parseTableAndAction(sql);
+        assertEquals("my_proc", tableAndAction.get(DbParseConstants.TABLE));
+        assertEquals(DbParseConstants.EXECUTE, tableAndAction.get(DbParseConstants.ACTION));
     }
 }
