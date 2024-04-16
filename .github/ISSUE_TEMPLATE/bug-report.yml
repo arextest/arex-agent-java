@@ -73,31 +73,17 @@ body:
       label: Anything else
       description: Anything else we need to know?
       placeholder: >
-        How often does this problem occur? (Once? Every time? Only when certain conditions are met?)
-        Any relevant logs to include? Put them here inside fenced
-        ``` ``` blocks or inside a collapsable details tag if it's too long:
-        <details><summary>x.log</summary> lots of stuff </details>
+        Links? References? Anything that will give us more context about the issue you are encountering!
 
+        Tip: You can attach images or log files by clicking this area to highlight it and then dragging files in.
+        
   - type: checkboxes
     attributes:
       label: Are you willing to submit a pull request to fix on your own?
       description: >
-        This is absolutely not required, but we are happy to guide you in the contribution process
-        especially if you already have a good understanding of how to implement the fix.
-        SkyWalking is a totally community-driven project and we love to bring new contributors in.
-        Find us in #skywalking on Slack!
+        We will be happy to guide you in the contribution process especially if you already have a good understanding of how to implement the fix.
       options:
         - label: Yes I am willing to submit a pull request on my own!
-
-  - type: checkboxes
-    attributes:
-      label: Code of Conduct
-      description: The Code of Conduct helps create a safe space for everyone. We require that everyone agrees to it.
-      options:
-        - label: >
-            I agree to follow this project's
-            [Code of Conduct](https://www.apache.org/foundation/policies/conduct)
-          required: true
 
   - type: markdown
     attributes:
