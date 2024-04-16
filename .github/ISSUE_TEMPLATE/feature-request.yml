@@ -1,13 +1,13 @@
 name: Feature Request
 description: Suggest an idea for this project
 title: "[Feature] "
-labels: [ "enhancement ⭐" ]
+labels: ["enhancement :star:"]
 body:
   - type: markdown
     attributes:
       value: |
         <img src="https://doc.arextest.com/img/logo.jpg" alt="AREX logo" height="90px" align="right" />
-        
+
         Thank you for finding the time to propose new feature!
 
   - type: checkboxes
