@@ -1,8 +1,13 @@
 name: Feature Request
 description: Suggest an idea for this project
-title: "[Feature] <title>"
+title: "[Feature] "
 labels: [ "feature" ]
 body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for finding the time to propose new feature!
+
   - type: checkboxes
     attributes:
       label: Is there an existing issue for this?
@@ -32,9 +37,13 @@ body:
       description: Is your feature request related to a problem or an issue? Please describe.
 
   - type: checkboxes
-      attributes:
-        label: Are you willing to submit a pull request to fix on your own?
-        description: |
-          We will be happy to guide you in the contribution process especially if you already have a good understanding of how to implement the fix.
-        options:
-          - label: Yes I am willing to submit a pull request on my own!
+    attributes:
+      label: Are you willing to submit a pull request to implement this on your own?
+      description: >
+        We will be happy to guide you in the contribution process especially if you already have a good understanding of how to implement the feature.
+      options:
+        - label: Yes I am willing to submit a pull request on my own!
+
+  - type: markdown
+    attributes:
+      value: "Thanks for completing the form!"
