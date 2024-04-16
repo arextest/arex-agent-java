@@ -1,11 +1,11 @@
 name: 🐞 Bug
 description: File a bug/issue of AREX
 title: "[BUG] <title>"
-labels: ["Bug"]
+labels: [ "bug" ]
 body:
 - type: markdown
     attributes:
-      value:
+      value: |
         Thank you for finding the time to report the problem! We really appreciate the community efforts to improve AREX.
 
         Please make sure what you are reporting is indeed a bug with reproducible steps, if you want to ask questions
@@ -20,7 +20,7 @@ body:
 - type: dropdown
     attributes:
       label: AREX Test Service
-      description: |
+      description: >
         Which AREX Test service did you find the bug in? AREX Test consists of many services, including [Schedule Service](https://github.com/arextest/arex-replay-schedule), 
         [API Service](https://github.com/arextest/arex-report), [Storage Service](https://github.com/arextest/arex-storage) and [UI](https://github.com/arextest/arex). 
         Please make sure to choose the service that you found the bug. 
