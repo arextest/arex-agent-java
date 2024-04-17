@@ -43,7 +43,9 @@ AREX utilizes the advanced Java technique, Instrument API, and is capable of ins
 - Spring WebClient [5.0,)
 - Spring Template
 - Feign [9.0,)
+- Elasticsearch Client [7.x,)
 #### Redis Client
+- RedisTemplate
 - Jedis [2.10+, 4+]
 - Redisson [3.0,)
 - Lettuce [5.x, 6.x]

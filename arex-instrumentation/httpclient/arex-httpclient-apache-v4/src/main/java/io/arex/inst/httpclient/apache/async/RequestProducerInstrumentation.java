@@ -14,10 +14,11 @@ import java.util.List;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
+import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpRequest;
 
 /**
- * Wrapped the http request for reading request body repeatedly.
+ * When entity is an InputStreamEntity, we need to buffer it in advance in order to repeat the reads.
  * @since 2024/2/21
  */
 public class RequestProducerInstrumentation extends TypeInstrumentation {
@@ -36,10 +37,12 @@ public class RequestProducerInstrumentation extends TypeInstrumentation {
     }
 
     static class ConstructorAdvice {
-        @Advice.OnMethodEnter
+        @Advice.OnMethodEnter(suppress = Throwable.class)
         public static void onEnter(@Advice.Argument(1) HttpRequest request) {
-            if (ContextManager.needRecordOrReplay()) {
-                ApacheHttpClientAdapter.wrapHttpEntity(request);
+            if (request instanceof HttpEntityEnclosingRequest) {
+                if (ContextManager.needRecordOrReplay()) {
+                    ApacheHttpClientAdapter.bufferRequestEntity((HttpEntityEnclosingRequest) request);
+                }
             }
         }
     }

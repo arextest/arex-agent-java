@@ -1,22 +1,21 @@
 package io.arex.inst.httpclient.apache.common;
 
-import io.arex.agent.bootstrap.util.CollectionUtil;
-import io.arex.agent.bootstrap.util.IOUtils;
+import io.arex.agent.bootstrap.util.ArrayUtils;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.httpclient.common.HttpClientAdapter;
 import io.arex.inst.httpclient.common.HttpResponseWrapper;
 import io.arex.inst.httpclient.common.HttpResponseWrapper.StringTuple;
 import io.arex.inst.runtime.log.LogManager;
-import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
-import org.apache.http.client.entity.GzipCompressingEntity;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.BasicHttpEntity;
+import org.apache.http.entity.BufferedHttpEntity;
 import org.apache.http.entity.HttpEntityWrapper;
 
 import java.io.ByteArrayInputStream;
@@ -31,7 +30,6 @@ public class ApacheHttpClientAdapter implements HttpClientAdapter<HttpRequest, H
 
     public ApacheHttpClientAdapter(HttpRequest httpRequest) {
         this.httpRequest = (HttpUriRequest) httpRequest;
-        wrapHttpEntity(httpRequest);
     }
 
     @Override
@@ -41,27 +39,17 @@ public class ApacheHttpClientAdapter implements HttpClientAdapter<HttpRequest, H
 
     @Override
     public byte[] getRequestBytes() {
-        HttpEntityEnclosingRequest enclosingRequest = enclosingRequest(httpRequest);
-        if (enclosingRequest == null) {
+        if (!(httpRequest instanceof HttpEntityEnclosingRequest)) {
             return ZERO_BYTE;
         }
-        HttpEntity entity = enclosingRequest.getEntity();
-        if (entity == null) {
+        HttpEntityEnclosingRequest enclosingRequest = (HttpEntityEnclosingRequest) httpRequest;
+        if (enclosingRequest.getEntity() == null) {
             return ZERO_BYTE;
         }
-        // getContent will throw UnsupportedOperationException
-        if (entity instanceof GzipCompressingEntity) {
-            return writeTo((GzipCompressingEntity) entity);
-        }
-        if (entity instanceof CachedHttpEntityWrapper) {
-            return ((CachedHttpEntityWrapper) entity).getCachedBody();
-        }
-        try {
-            return IOUtils.copyToByteArray(entity.getContent());
-        } catch (Exception e) {
-            LogManager.warn("copyToByteArray", "getRequestBytes error, uri: " + getUri(), e);
-            return ZERO_BYTE;
-        }
+
+        bufferRequestEntity(enclosingRequest);
+
+        return getEntityBytes(enclosingRequest.getEntity());
     }
 
     @Override
@@ -83,44 +71,32 @@ public class ApacheHttpClientAdapter implements HttpClientAdapter<HttpRequest, H
 
     @Override
     public HttpResponseWrapper wrap(HttpResponse response) {
+        Header[] responseHeaders = response.getAllHeaders();
+        if (ArrayUtils.isEmpty(responseHeaders)) {
+            return null;
+        }
 
-        List<HttpResponseWrapper.StringTuple> headers = new ArrayList<>(response.getAllHeaders().length);
-        for (Header header : response.getAllHeaders()) {
+        List<StringTuple> headers = new ArrayList<>(responseHeaders.length);
+        for (Header header : responseHeaders) {
             if (StringUtil.isEmpty(header.getName())) {
                 continue;
             }
-            headers.add(new HttpResponseWrapper.StringTuple(header.getName(), header.getValue()));
+            headers.add(new StringTuple(header.getName(), header.getValue()));
         }
 
-        HttpEntity httpEntity = response.getEntity();
         Locale locale = response.getLocale();
 
-        if (!check(httpEntity)) {
-            return buildEmptyBodyResponseWrapper(response.getStatusLine().toString(), locale, headers);
+        if (!check(response.getEntity())) {
+            return new HttpResponseWrapper(response.getStatusLine().toString(), null,
+                new StringTuple(locale.getLanguage(), locale.getCountry()), headers);
         }
 
-        byte[] responseBody;
-        try {
-            responseBody = IOUtils.copyToByteArray(httpEntity.getContent());
-            // For release connection, see PoolingHttpClientConnectionManager#requestConnection,releaseConnection
-            EntityUtils.consumeQuietly(httpEntity);
-        } catch (Exception e) {
-            LogManager.warn("AHC.wrap", "AHC copyToByteArray error, uri: " + getUri(), e);
-            return buildEmptyBodyResponseWrapper(response.getStatusLine().toString(), locale, headers);
-        }
+        // Compatible with org.apache.http.impl.client.InternalHttpClient.doExecute
+        bufferResponseEntity(response);
 
-        if (httpEntity instanceof BasicHttpEntity) {
-            ((BasicHttpEntity) httpEntity).setContent(new ByteArrayInputStream(responseBody));
-            response.setEntity(httpEntity);
-        } else if (httpEntity instanceof HttpEntityWrapper) {
-            // Output response normally now, later need to check revert DecompressingEntity
-            BasicHttpEntity entity = ApacheHttpClientHelper.createHttpEntity(response);
-            entity.setContent(new ByteArrayInputStream(responseBody));
-            response.setEntity(entity);
-        }
-
+        byte[] responseBody = getEntityBytes(response.getEntity());
         return new HttpResponseWrapper(response.getStatusLine().toString(), responseBody,
-            new HttpResponseWrapper.StringTuple(locale.getLanguage(), locale.getCountry()), headers);
+            new StringTuple(locale.getLanguage(), locale.getCountry()), headers);
     }
 
     @Override
@@ -147,16 +123,6 @@ public class ApacheHttpClientAdapter implements HttpClientAdapter<HttpRequest, H
         }
     }
 
-    private HttpResponseWrapper buildEmptyBodyResponseWrapper(String statusLine, Locale locale,
-        List<StringTuple> headers) {
-        if (CollectionUtil.isEmpty(headers)) {
-            LogManager.warn("AHC.wrap", "AHC response wrap failed, uri: " + getUri());
-            return null;
-        }
-        return new HttpResponseWrapper(statusLine, null,
-            new HttpResponseWrapper.StringTuple(locale.getLanguage(), locale.getCountry()), headers);
-    }
-
     private static boolean check(HttpEntity entity) {
         return entity instanceof BasicHttpEntity || entity instanceof HttpEntityWrapper;
     }
@@ -169,36 +135,36 @@ public class ApacheHttpClientAdapter implements HttpClientAdapter<HttpRequest, H
         return userAgent != null && userAgent.contains("arex");
     }
 
-    public static void wrapHttpEntity(HttpRequest httpRequest) {
-        HttpEntityEnclosingRequest enclosingRequest = enclosingRequest(httpRequest);
-        if (enclosingRequest == null) {
-            return;
-        }
-        HttpEntity entity = enclosingRequest.getEntity();
-        if (entity == null || entity.isRepeatable() || entity instanceof CachedHttpEntityWrapper) {
+    public static void bufferRequestEntity(HttpEntityEnclosingRequest enclosingRequest) {
+        if (enclosingRequest.getEntity() == null || enclosingRequest.getEntity() instanceof BufferedHttpEntity) {
             return;
         }
         try {
-            enclosingRequest.setEntity(new CachedHttpEntityWrapper(entity));
+            enclosingRequest.setEntity(new BufferedHttpEntity(enclosingRequest.getEntity()));
         } catch (Exception ignore) {
             // ignore exception
         }
     }
 
-    private static HttpEntityEnclosingRequest enclosingRequest(HttpRequest httpRequest) {
-        if (httpRequest instanceof HttpEntityEnclosingRequest) {
-            return (HttpEntityEnclosingRequest) httpRequest;
+    public static void bufferResponseEntity(HttpResponse response) {
+        if (response.getEntity() == null || response.getEntity() instanceof BufferedHttpEntity) {
+            return;
         }
-        return null;
+        try {
+            EntityUtils.updateEntity(response, new BufferedHttpEntity(response.getEntity()));
+        } catch (Exception e) {
+            // ignore exception
+        }
     }
 
-    private byte[] writeTo(GzipCompressingEntity entity) {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
+    private byte[] getEntityBytes(HttpEntity entity) {
+        if (!(entity instanceof BufferedHttpEntity)) {
+            return ZERO_BYTE;
+        }
         try {
-            entity.writeTo(out);
-            return out.toByteArray();
-        } catch (Exception e) {
-            LogManager.warn("writeTo", "getRequestBytes error, uri: " + getUri(), e);
+            return EntityUtils.toByteArray(entity);
+        } catch (IOException e) {
+            LogManager.warn("AHC.getEntityBytes", "getEntityBytes error, uri: " + getUri(), e);
             return ZERO_BYTE;
         }
     }
