@@ -14,6 +14,7 @@ import io.arex.inst.runtime.util.IgnoreUtils;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import net.bytebuddy.description.type.TypeDescription;
 import org.apache.http.HttpException;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.nio.client.methods.HttpAsyncMethods;
@@ -42,8 +43,9 @@ class InternalHttpAsyncClientInstrumentationTest {
     }
 
     @Test
-    void typeMatcher() {
-        assertNotNull(target.typeMatcher());
+    void typeMatcher() throws ClassNotFoundException {
+        assertTrue(target.typeMatcher().matches(TypeDescription.ForLoadedType.of(Class.forName("org.apache.http.impl.nio.client.InternalHttpAsyncClient"))));
+        assertTrue(target.typeMatcher().matches(TypeDescription.ForLoadedType.of(Class.forName("org.apache.http.impl.nio.client.MinimalHttpAsyncClient"))));
     }
 
     @Test

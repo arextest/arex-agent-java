@@ -20,6 +20,7 @@ import org.apache.http.nio.protocol.HttpAsyncRequestProducer;
 import static java.util.Collections.singletonList;
 import static net.bytebuddy.matcher.ElementMatchers.isMethod;
 import static net.bytebuddy.matcher.ElementMatchers.named;
+import static net.bytebuddy.matcher.ElementMatchers.namedOneOf;
 import static net.bytebuddy.matcher.ElementMatchers.takesArgument;
 import static net.bytebuddy.matcher.ElementMatchers.takesArguments;
 
@@ -27,7 +28,8 @@ public class InternalHttpAsyncClientInstrumentation extends TypeInstrumentation 
 
     @Override
     public ElementMatcher<TypeDescription> typeMatcher() {
-        return named("org.apache.http.impl.nio.client.InternalHttpAsyncClient");
+        return namedOneOf("org.apache.http.impl.nio.client.InternalHttpAsyncClient",
+            "org.apache.http.impl.nio.client.MinimalHttpAsyncClient");
     }
 
     @Override
@@ -59,6 +61,7 @@ public class InternalHttpAsyncClientInstrumentation extends TypeInstrumentation 
                 if (callbackWrapper != null) {
                     if (ContextManager.needRecord()) {
                         // recording works in callback wrapper
+                        ((FutureCallbackWrapper<?>)callbackWrapper).setNeedRecord(true);
                         callback = callbackWrapper;
                     } else if (ContextManager.needReplay()) {
                         mockResult = ((FutureCallbackWrapper<?>)callbackWrapper).replay();

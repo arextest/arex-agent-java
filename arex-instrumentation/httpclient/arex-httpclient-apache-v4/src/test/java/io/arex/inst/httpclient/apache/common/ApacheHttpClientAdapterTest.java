@@ -1,16 +1,14 @@
 package io.arex.inst.httpclient.apache.common;
 
 import io.arex.inst.httpclient.common.HttpResponseWrapper;
-import org.apache.http.Header;
 import org.apache.http.HttpResponse;
-import org.apache.http.StatusLine;
+import org.apache.http.ProtocolVersion;
 import org.apache.http.client.entity.GzipCompressingEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.BasicHttpEntity;
-import org.apache.http.entity.HttpEntityWrapper;
-import org.apache.http.message.BasicHeader;
-import org.apache.http.protocol.HTTP;
+import org.apache.http.message.BasicHttpResponse;
+import org.apache.http.message.BasicStatusLine;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -23,7 +21,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.ByteArrayInputStream;
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -105,63 +102,45 @@ class ApacheHttpClientAdapterTest {
         assertNull(target.getUri());
     }
 
-    @ParameterizedTest
-    @MethodSource("wrapCase")
-    void wrap(HttpResponse httpResponse, Predicate<HttpResponseWrapper> predicate) {
-        HttpResponseWrapper wrapper = target.wrap(httpResponse);
-        assertTrue(predicate.test(wrapper));
+    @Test
+    void wrap() {
+        HttpResponse mockHttpResponse = new BasicHttpResponse(
+            new BasicStatusLine(new ProtocolVersion("HTTP", 1, 1), 200, "OK"));
+        mockHttpResponse.setLocale(new Locale("zh", "CN"));
+
+        // null header
+        HttpResponseWrapper wrapper = target.wrap(mockHttpResponse);
+        assertNull(wrapper);
+
+        // test null entity
+        mockHttpResponse.setHeader("key1", "val1");
+        mockHttpResponse.setHeader("", "val2");
+        wrapper = target.wrap(mockHttpResponse);
+        assertNull(wrapper.getContent());
+
+        // test BasicHttpEntity
+        byte[] responseBytes = "mock".getBytes();
+        BasicHttpEntity basicHttpEntity = new BasicHttpEntity();
+        basicHttpEntity.setContent(new ByteArrayInputStream(responseBytes));
+        mockHttpResponse.setEntity(basicHttpEntity);
+        wrapper = target.wrap(mockHttpResponse);
+        assertArrayEquals(responseBytes, wrapper.getContent());
+
+        wrapper = target.wrap(mockHttpResponse);
+        assertArrayEquals(responseBytes, wrapper.getContent());
     }
 
     static Stream<Arguments> wrapCase() {
+        HttpResponse mockHttpResponse = new BasicHttpResponse(
+            new BasicStatusLine(new ProtocolVersion("HTTP", 1, 1), 200, "OK"));
+        mockHttpResponse.setHeader("key1", "val1");
+        mockHttpResponse.setHeader("", "val2");
+        mockHttpResponse.setLocale(new Locale("zh", "CN"));
 
-        Consumer<HttpResponse> emptyHeaderMocker = httpResponse -> {
-            Mockito.when(httpResponse.getAllHeaders()).thenReturn(new Header[0]);
-            Mockito.when(httpResponse.getLocale()).thenReturn(new Locale("zh", "CN"));
-            StatusLine statusLine = Mockito.mock(StatusLine.class);
-            Mockito.when(httpResponse.getStatusLine()).thenReturn(statusLine);
-        };
+        // test null entity
 
-        HttpResponse invalidResponse = Mockito.mock(HttpResponse.class);
-        emptyHeaderMocker.accept(invalidResponse);
-
-        HttpResponse responseWithoutContent = Mockito.mock(HttpResponse.class);
-        Mockito.when(responseWithoutContent.getEntity()).thenReturn(new BasicHttpEntity());
-        emptyHeaderMocker.accept(responseWithoutContent);
-
-        Consumer<HttpResponse> mocker = httpResponse -> {
-            Mockito.when(httpResponse.getAllHeaders()).thenReturn(new Header[]{
-                Mockito.mock(Header.class),
-                new BasicHeader("name", "value")
-            });
-            Mockito.when(httpResponse.getLocale()).thenReturn(new Locale("zh", "CN"));
-            StatusLine statusLine = Mockito.mock(StatusLine.class);
-            Mockito.when(httpResponse.getStatusLine()).thenReturn(statusLine);
-        };
-
-        HttpResponse invalidResponseWithHeader = Mockito.mock(HttpResponse.class);
-        mocker.accept(invalidResponseWithHeader);
-
-        BasicHttpEntity entity = new BasicHttpEntity();
-        entity.setContent(new ByteArrayInputStream("mock".getBytes()));
-        HttpResponse responseWithBasicEntity = Mockito.mock(HttpResponse.class);
-        Mockito.when(responseWithBasicEntity.getEntity()).thenReturn(entity);
-        mocker.accept(responseWithBasicEntity);
-
-        HttpResponse responseWithEntityWrapper = Mockito.mock(HttpResponse.class);
-        HttpEntityWrapper entityWrapper = new HttpEntityWrapper(entity);
-        Mockito.when(responseWithEntityWrapper.getEntity()).thenReturn(entityWrapper);
-        Mockito.when(responseWithEntityWrapper.getFirstHeader(HTTP.CONTENT_TYPE)).thenReturn(new BasicHeader(HTTP.CONTENT_TYPE, "application/json"));
-        Mockito.when(responseWithEntityWrapper.getFirstHeader(HTTP.CONTENT_ENCODING)).thenReturn(new BasicHeader(HTTP.CONTENT_ENCODING, "gzip"));
-        mocker.accept(responseWithEntityWrapper);
-
-        Predicate<HttpResponseWrapper> predicate1 = Objects::isNull;
-        Predicate<HttpResponseWrapper> predicate2 = Objects::nonNull;
         return Stream.of(
-                arguments(invalidResponse, predicate1),
-                arguments(invalidResponseWithHeader, predicate2),
-                arguments(responseWithoutContent, predicate1),
-                arguments(responseWithBasicEntity, predicate2),
-                arguments(responseWithEntityWrapper, predicate2)
+            arguments(mockHttpResponse, (Predicate<HttpResponseWrapper>) httpResponseWrapper -> httpResponseWrapper.getContent() == null)
         );
     }
 

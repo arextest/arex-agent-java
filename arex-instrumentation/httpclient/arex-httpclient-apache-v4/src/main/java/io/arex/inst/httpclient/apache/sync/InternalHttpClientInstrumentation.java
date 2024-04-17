@@ -25,7 +25,8 @@ public class InternalHttpClientInstrumentation extends TypeInstrumentation {
 
     @Override
     public ElementMatcher<TypeDescription> typeMatcher() {
-        return named("org.apache.http.impl.client.InternalHttpClient");
+        return namedOneOf("org.apache.http.impl.client.InternalHttpClient",
+            "org.apache.http.impl.client.MinimalHttpClient");
     }
 
     @Override

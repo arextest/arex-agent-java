@@ -17,6 +17,8 @@ public class FutureCallbackWrapper<T> implements FutureCallback<T> {
     // Maybe null, Just to pass the trace
     private final HttpClientExtractor<HttpRequest, HttpResponse> extractor;
 
+    private boolean needRecord;
+
     public FutureCallbackWrapper(FutureCallback<T> delegate) {
         this(null, delegate);
     }
@@ -59,6 +61,14 @@ public class FutureCallbackWrapper<T> implements FutureCallback<T> {
                 delegate.cancelled();
             }
         }
+    }
+
+    public void setNeedRecord(boolean needRecord) {
+        this.needRecord = needRecord;
+    }
+
+    public boolean isNeedRecord() {
+        return needRecord;
     }
 
     public MockResult replay() {

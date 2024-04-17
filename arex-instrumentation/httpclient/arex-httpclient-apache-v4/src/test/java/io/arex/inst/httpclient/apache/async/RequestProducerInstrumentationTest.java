@@ -1,5 +1,6 @@
 package io.arex.inst.httpclient.apache.async;
 
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.mockito.Mockito.mockStatic;
 
 import io.arex.inst.httpclient.apache.async.RequestProducerInstrumentation.ConstructorAdvice;
@@ -9,7 +10,9 @@ import net.bytebuddy.description.method.MethodDescription.ForLoadedConstructor;
 import net.bytebuddy.description.type.TypeDescription;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
-import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.BufferedHttpEntity;
+import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.nio.protocol.BasicAsyncRequestProducer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
@@ -52,8 +55,10 @@ class RequestProducerInstrumentationTest {
         try (MockedStatic<ContextManager> contextManager = mockStatic(ContextManager.class)) {
             contextManager.when(ContextManager::needRecordOrReplay).thenReturn(true);
 
-            HttpUriRequest request = Mockito.mock(HttpUriRequest.class);
+            HttpPost request = new HttpPost();
+            request.setEntity(new ByteArrayEntity("test".getBytes()));
             ConstructorAdvice.onEnter(request);
+            assertInstanceOf(BufferedHttpEntity.class, request.getEntity());
         }
     }
 }

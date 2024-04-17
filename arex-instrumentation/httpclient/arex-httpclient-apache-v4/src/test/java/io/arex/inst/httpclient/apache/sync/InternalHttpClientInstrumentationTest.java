@@ -5,6 +5,7 @@ import io.arex.inst.runtime.context.RepeatedCollectManager;
 import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.inst.httpclient.common.HttpClientExtractor;
 import io.arex.inst.runtime.util.IgnoreUtils;
+import net.bytebuddy.description.type.TypeDescription;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -47,8 +48,9 @@ class InternalHttpClientInstrumentationTest {
     }
 
     @Test
-    void typeMatcher() {
-        assertNotNull(target.typeMatcher());
+    void typeMatcher() throws ClassNotFoundException {
+        assertTrue(target.typeMatcher().matches(TypeDescription.ForLoadedType.of(Class.forName("org.apache.http.impl.client.InternalHttpClient"))));
+        assertTrue(target.typeMatcher().matches(TypeDescription.ForLoadedType.of(Class.forName("org.apache.http.impl.client.MinimalHttpClient"))));
     }
 
     @Test
