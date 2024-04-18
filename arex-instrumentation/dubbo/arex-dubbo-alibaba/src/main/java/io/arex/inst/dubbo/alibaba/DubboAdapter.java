@@ -193,6 +193,7 @@ public class DubboAdapter extends AbstractAdapter {
      * < 2.6.3 not support serverContext
      */
     public void setServerAttachment(String key, String val) {
+        RpcContext.getContext().setAttachment(key, val);
         if (SERVER_CONTEXT_METHOD != null) {
             RpcContext.getServerContext().setAttachment(key, val);
         }
