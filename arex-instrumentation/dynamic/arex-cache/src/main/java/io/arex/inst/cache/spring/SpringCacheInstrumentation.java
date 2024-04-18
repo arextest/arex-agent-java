@@ -53,7 +53,7 @@ public class SpringCacheInstrumentation extends TypeInstrumentation {
                 extractor = new DynamicClassExtractor(method, args, keyExpression, null);
             }
             if (extractor != null && ContextManager.needReplay()) {
-                mockResult = extractor.replay();
+                mockResult = extractor.replayOrRealCall();
                 return mockResult != null && mockResult.notIgnoreMockResult();
             }
             if (ContextManager.needRecord()) {
