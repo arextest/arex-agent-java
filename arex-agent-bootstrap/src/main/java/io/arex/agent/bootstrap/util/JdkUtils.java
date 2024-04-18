@@ -1,4 +1,4 @@
-package io.arex.foundation.util;
+package io.arex.agent.bootstrap.util;
 
 public class JdkUtils {
     public static final int JDK_11 = 11;
@@ -16,7 +16,7 @@ public class JdkUtils {
         return Integer.parseInt(version);
     }
 
-    public static boolean isJdk11() {
+    public static boolean isJdk11OrHigher() {
         return getJavaVersion() >= JDK_11;
     }
 }

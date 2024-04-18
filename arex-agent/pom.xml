@@ -218,31 +218,43 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>${maven-jar-plugin.version}</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                    </execution>
-                </executions>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.3.0</version>
                 <configuration>
+                    <finalName>arex</finalName>
+                    <descriptors>
+                        <descriptor>${assembly-xml-path}</descriptor>
+                    </descriptors>
                     <archive>
                         <manifest>
                             <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
                             <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
                         </manifest>
                         <manifestEntries>
-                            <Premain-Class>io.arex.agent.ArexJavaAgent</Premain-Class>
-                            <Agent-Class>io.arex.agent.ArexJavaAgent</Agent-Class>
+                            <Premain-Class>io.arex.agent.ArexAgent</Premain-Class>
+                            <Agent-Class>io.arex.agent.ArexAgent</Agent-Class>
                             <Can-Redefine-Classes>true</Can-Redefine-Classes>
                             <Can-Retransform-Classes>true</Can-Retransform-Classes>
                             <Can-Set-Native-Method-Prefix>true</Can-Set-Native-Method-Prefix>
                             <Build-Time>${maven.build.timestamp}</Build-Time>
                             <Built-By>arextest.com</Built-By>
-                            <Class-Path>${bootStrapJarName}</Class-Path>
+                            <!-- The absolute path of the bootstrap jars package inside the arex-agent.jar package.
+                                 The arex-agent.jar adds the jar package to the bootstrap classloader based on this configuration.
+                                 Multiple jars package paths are separated by ';'-->
+                            <Nested-BootStrap-Jars-Path>bootstrap/arex-agent-bootstrap.jar</Nested-BootStrap-Jars-Path>
                         </manifestEntries>
                     </archive>
                 </configuration>
+
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
 
             <plugin>
@@ -282,7 +294,6 @@
                             <include>net.bytebuddy:byte-buddy</include>
                             <include>org.slf4j:slf4j-simple</include>
                             <include>io.arex:**</include>
-                            <include>com.fasterxml.jackson.core:**</include>
                         </includes>
                     </artifactSet>
                 </configuration>
@@ -304,7 +315,6 @@
                                 </delete>
                                 <copy todir="../arex-agent-jar">
                                     <fileset dir="../arex-agent/target/" includes="arex-agent*.jar" />
-                                    <fileset dir="../arex-agent-bootstrap/target/" includes="arex-agent-bootstrap*.jar" />
                                 </copy>
                             </target>
                         </configuration>

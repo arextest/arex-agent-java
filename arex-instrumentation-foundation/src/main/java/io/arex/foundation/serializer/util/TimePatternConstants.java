@@ -1,6 +1,7 @@
 package io.arex.foundation.serializer.util;
 
-import io.arex.foundation.util.JdkUtils;
+
+import io.arex.agent.bootstrap.util.JdkUtils;
 
 public class TimePatternConstants {
     private TimePatternConstants() {
@@ -40,7 +41,7 @@ public class TimePatternConstants {
     public static String localTimeFormat = SHORT_TIME_FORMAT_MILLISECOND;
 
     static {
-        if (JdkUtils.isJdk11()) {
+        if (JdkUtils.isJdk11OrHigher()) {
             localDateTimeFormat = SIMPLE_DATE_FORMAT_NANOSECOND;
             localTimeFormat = SHORT_TIME_FORMAT_NANOSECOND;
             localTimeZeroSecondTimeRequest = "00.000000000";

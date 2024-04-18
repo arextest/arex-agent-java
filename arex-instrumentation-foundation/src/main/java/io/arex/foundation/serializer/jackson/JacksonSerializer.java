@@ -29,14 +29,8 @@ import io.arex.foundation.serializer.jackson.adapter.SqlDateAdapter;
 import io.arex.foundation.serializer.jackson.adapter.SqlTimeAdapter;
 import io.arex.foundation.serializer.jackson.adapter.TimestampAdapter;
 import io.arex.foundation.serializer.jackson.adapter.XMLGregorianCalendarAdapter;
-import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.log.LogManager;
-import io.arex.inst.runtime.model.ArexConstants;
-import io.arex.inst.runtime.model.SerializeSkipInfo;
 import io.arex.inst.runtime.serializer.StringSerializable;
-import io.arex.inst.runtime.util.TypeUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.lang.reflect.Type;
@@ -50,18 +44,10 @@ import java.time.OffsetDateTime;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 @AutoService(StringSerializable.class)
 public final class JacksonSerializer implements StringSerializable {
-    private static final String SKIP_INFO_LIST_TYPE = "java.util.ArrayList-io.arex.inst.runtime.model.SerializeSkipInfo";
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(JacksonSerializer.class);
-
     private final ObjectMapper MAPPER = new ArexObjectMapper();
-    private final Map<String, List<String>> skipInfoMap = new ConcurrentHashMap<>();
     private static final SimpleModule MODULE = new JacksonSimpleModule();
 
     public static JacksonSerializer INSTANCE = new JacksonSerializer();
@@ -72,7 +58,6 @@ public final class JacksonSerializer implements StringSerializable {
     }
 
     public JacksonSerializer() {
-        buildSkipInfoMap();
         configMapper();
         MODULE.setSerializers(new CustomBeanModifier.Serializers());
         MODULE.setDeserializers(new CustomBeanModifier.Deserializers());
@@ -92,40 +77,6 @@ public final class JacksonSerializer implements StringSerializable {
         } catch (Throwable ignored) {
             // jackson version is too low, ignore
         }
-    }
-
-    private void buildSkipInfoMap() {
-        try {
-            Config config = Config.get();
-            if (config == null) {
-                return;
-            }
-            String skipInfoString = config
-                    .getString(ArexConstants.SERIALIZE_SKIP_INFO_CONFIG_KEY, StringUtil.EMPTY);
-            if (StringUtil.isBlank(skipInfoString)) {
-                return;
-            }
-            JavaType javaType = MAPPER.getTypeFactory().constructType(TypeUtil.forName(SKIP_INFO_LIST_TYPE));
-            List<SerializeSkipInfo> serializeSkipInfos = MAPPER.readValue(skipInfoString, javaType);
-
-            if (serializeSkipInfos == null || serializeSkipInfos.isEmpty()) {
-                return;
-            }
-            for (SerializeSkipInfo skipInfo : serializeSkipInfos) {
-                String className = skipInfo.getFullClassName();
-                List<String> fieldNameList = skipInfo.getFieldNameList();
-                if (StringUtil.isBlank(className) || fieldNameList == null) {
-                    continue;
-                }
-                skipInfoMap.put(className, fieldNameList);
-            }
-        } catch (Throwable ex) {
-            LOGGER.warn("buildSkipInfoMap", ex);
-        }
-    }
-
-    public List<String> getSkipFieldNameList(String className) {
-        return skipInfoMap.get(className);
     }
 
     @Override

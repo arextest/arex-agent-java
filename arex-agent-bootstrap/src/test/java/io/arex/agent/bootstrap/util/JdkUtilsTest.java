@@ -1,13 +1,12 @@
-package io.arex.foundation.util;
-
-import static org.junit.jupiter.api.Assertions.*;
+package io.arex.agent.bootstrap.util;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class JdkUtilsTest {
+import static org.junit.jupiter.api.Assertions.*;
 
+class JdkUtilsTest {
     @BeforeEach
     void setUp() {
     }
@@ -23,6 +22,7 @@ class JdkUtilsTest {
 
     @Test
     void isJdk11() {
-        assertInstanceOf(Boolean.class, JdkUtils.isJdk11());
+        assertInstanceOf(Boolean.class, JdkUtils.isJdk11OrHigher());
     }
+
 }

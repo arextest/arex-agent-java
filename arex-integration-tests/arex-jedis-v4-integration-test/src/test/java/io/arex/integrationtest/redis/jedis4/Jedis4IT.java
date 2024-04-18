@@ -1,6 +1,6 @@
 package io.arex.integrationtest.redis.jedis4;
 
-import io.arex.agent.ArexJavaAgent;
+import io.arex.agent.ArexAgent;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.integrationtest.common.AbstractIT;
 import net.bytebuddy.agent.ByteBuddyAgent;
@@ -52,7 +52,7 @@ public class Jedis4IT extends AbstractIT {
                 .setReadTimeout(Duration.ofMillis(10))
                 .basicAuthentication("username", "password"));
 
-        ArexJavaAgent.init(ByteBuddyAgent.install(), getAgentJar("arex-agent"), getAgentJar("arex-agent-bootstrap"));
+        ArexAgent.init(ByteBuddyAgent.install(), getAgentJar("arex-agent"));
     }
 
     @AfterAll

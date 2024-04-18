@@ -225,7 +225,8 @@
             <id>default</id>
             <properties>
                 <jarName>${project.artifactId}</jarName>
-                <bootStrapJarName>arex-agent-bootstrap.${project.packaging}</bootStrapJarName>
+                <assembly-xml-path>src/main/assembly/assembly.xml</assembly-xml-path>
+                <assembly-id>agent</assembly-id>
             </properties>
             <activation>
                 <activeByDefault>true</activeByDefault>
@@ -235,7 +236,8 @@
             <id>jar-with-version</id>
             <properties>
                 <jarName>${project.artifactId}-${project.version}</jarName>
-                <bootStrapJarName>arex-agent-bootstrap-${project.version}.${project.packaging}</bootStrapJarName>
+                <assembly-xml-path>src/main/assembly/assembly.xml</assembly-xml-path>
+                <assembly-id>agent-${project.version}</assembly-id>
             </properties>
         </profile>
     </profiles>
@@ -266,6 +268,7 @@
                         --add-opens java.base/java.net=ALL-UNNAMED
                         --add-opens java.base/java.time=ALL-UNNAMED
                         --add-opens java.xml/com.sun.org.apache.xerces.internal.jaxp.datatype=ALL-UNNAMED
+                        --add-opens java.base/jdk.internal.loader=ALL-UNNAMED
                     </argLine>
                 </configuration>
             </plugin>

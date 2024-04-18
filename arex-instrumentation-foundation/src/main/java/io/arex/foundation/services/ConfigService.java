@@ -1,10 +1,6 @@
 package io.arex.foundation.services;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.MapperFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
+import com.google.gson.Gson;
 import io.arex.agent.bootstrap.constants.ConfigConstants;
 import io.arex.agent.bootstrap.model.ArexMocker;
 import io.arex.agent.bootstrap.util.MapUtils;
@@ -33,7 +29,6 @@ public class ConfigService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConfigService.class);
     private static final Map<String, String> TAGS_PROPERTIES = new HashMap<>();
-    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     public static final ConfigService INSTANCE = new ConfigService();
     private static final String TAGS_PREFIX = "arex.tags.";
@@ -43,15 +38,9 @@ public class ConfigService {
     private final AtomicBoolean firstLoad = new AtomicBoolean(false);
     private final AtomicBoolean reloadConfig = new AtomicBoolean(false);
     private static final long DELAY_MINUTES = 15L;
+    private static final Gson GSON = new Gson();
 
     private ConfigService() {
-        MAPPER.configure(JsonGenerator.Feature.IGNORE_UNKNOWN, true);
-        MAPPER.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-        MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        MAPPER.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
-        MAPPER.configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, false);
-        MAPPER.configure(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL, true);
-        MAPPER.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
     }
 
     public long loadAgentConfig(String agentArgs) {
@@ -165,7 +154,7 @@ public class ConfigService {
             return null;
         }
         try {
-            return MAPPER.writeValueAsString(object);
+            return GSON.toJson(object);
         } catch (Exception ex) {
             LOGGER.warn("serialize exception", ex);
             return null;
@@ -177,7 +166,7 @@ public class ConfigService {
             return null;
         }
         try {
-            return MAPPER.readValue(json, clazz);
+            return GSON.fromJson(json, clazz);
         } catch (Exception ex) {
             LOGGER.warn("deserialize exception", ex);
             return null;

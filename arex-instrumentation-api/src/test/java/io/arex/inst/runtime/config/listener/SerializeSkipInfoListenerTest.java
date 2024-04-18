@@ -1,10 +1,7 @@
 package io.arex.inst.runtime.config.listener;
 
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import io.arex.inst.runtime.config.Config;
-import io.arex.inst.runtime.listener.EventProcessorTest;
 import io.arex.inst.runtime.listener.EventProcessorTest.TestJacksonSerializable;
 import io.arex.inst.runtime.serializer.Serializer.Builder;
 import io.arex.inst.runtime.serializer.StringSerializable;
@@ -22,6 +19,8 @@ import io.arex.inst.runtime.config.ConfigBuilder;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.model.SerializeSkipInfo;
 import io.arex.inst.runtime.serializer.Serializer;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class SerializeSkipInfoListenerTest {
     static SerializeSkipInfoListener listener = null;
@@ -47,7 +46,7 @@ class SerializeSkipInfoListenerTest {
         builder.addProperty(ArexConstants.SERIALIZE_SKIP_INFO_CONFIG_KEY, "testSkipInfo");
         builder.build();
 
-        assertTrue(listener.validate(Config.get()));
+        assertTrue(listener.validate());
 
         // recreate serializer
         listener.load(Config.get());
@@ -64,6 +63,35 @@ class SerializeSkipInfoListenerTest {
         StringSerializable defaultSerializer = Serializer.getINSTANCE().getSerializer();
         listener.load(Config.get());
         Assertions.assertEquals(Serializer.getINSTANCE().getSerializer().hashCode(), defaultSerializer.hashCode());
+    }
+
+    @Test
+    void test() {
+        String json = "[{\"fullClassName\":\"testClass1\",\"fieldName\":\"testField1\"},{\"fullClassName\":\"testClass2\",\"fieldName\":\"testField21,testField22\"},{\"fullClassName\":\"testClass2\",\"fieldName\":\"testField23\"}]";
+        ConfigBuilder configBuilder = ConfigBuilder.create("test");
+        configBuilder.addProperty(ArexConstants.SERIALIZE_SKIP_INFO_CONFIG_KEY, json);
+        configBuilder.build();
+
+        listener.load(Config.get());
+        assertTrue(SerializeSkipInfoListener.isSkipField("testClass1", "testField1"));
+        assertTrue(SerializeSkipInfoListener.isSkipField("testClass2", "testField21"));
+        assertTrue(SerializeSkipInfoListener.isSkipField("testClass2", "testField22"));
+        assertTrue(SerializeSkipInfoListener.isSkipField("testClass2", "testField23"));
+        assertFalse(SerializeSkipInfoListener.isSkipField("testClass1", "testField2"));
+
+        // only class name
+        json = "[{\"fullClassName\":\"testClass1\"}]";
+        configBuilder.addProperty(ArexConstants.SERIALIZE_SKIP_INFO_CONFIG_KEY, json);
+        configBuilder.build();
+        listener.load(Config.get());
+        assertTrue(SerializeSkipInfoListener.isSkipField("testClass1", "testField1123"));
+        assertFalse(SerializeSkipInfoListener.isSkipField("testClass2", "testField21"));
+
+        // empty
+        configBuilder = ConfigBuilder.create("test2");
+        configBuilder.build();
+        listener.load(Config.get());
+        assertFalse(SerializeSkipInfoListener.isSkipField("testClass1", "testField1123"));
     }
 
     static class TestSerialize implements StringSerializable {
@@ -116,4 +144,5 @@ class SerializeSkipInfoListenerTest {
             return newSerializer;
         }
     }
+
 }

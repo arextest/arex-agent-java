@@ -1,7 +1,6 @@
 package io.arex.agent.bootstrap.util;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -48,9 +47,8 @@ public class ServiceLoader {
      * SERVICE_CACHE: key: io.arex.inst.runtime.serializer.StringSerializable
      *                value: [io.arex.foundation.serializer.gson.GsonSerializer, io.arex.foundation.serializer.jackson.JacksonSerializer]
      */
-    public static void buildCache(File file, JarEntry jarEntry, String entryName) {
-        try(JarFile jarFile = new JarFile(file);
-                InputStream inputStream = jarFile.getInputStream(jarEntry)) {
+    public static void buildCache(JarFile jarFile, JarEntry jarEntry, String entryName) {
+        try(InputStream inputStream = jarFile.getInputStream(jarEntry)) {
             List<String> serviceList = readAllLines(inputStream);
             if (CollectionUtil.isNotEmpty(serviceList)) {
                 String className = entryName.substring(PREFIX.length());

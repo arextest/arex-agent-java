@@ -1,19 +1,23 @@
 package io.arex.agent.bootstrap;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
+import java.util.jar.JarEntry;
+import java.util.jar.JarOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 public class CreateFileCommon {
     public static final String path;
+    public static File jarInJarFile;
 
     static {
         try {
@@ -39,6 +43,26 @@ public class CreateFileCommon {
             file1.deleteOnExit();
             file2.deleteOnExit();
             file3.deleteOnExit();
+
+            // jar in jar file
+            String outputJarPath = Files.createTempDirectory("arex").toAbsolutePath().toString();
+            File outputJarFile = CreateFileCommon.createFile(outputJarPath ,"/output.jar");
+
+            try (FileOutputStream fos = new FileOutputStream(outputJarFile);
+                 JarOutputStream jos = new JarOutputStream(fos)) {
+                File internalJarFile = CreateFileCommon.createFile(outputJarPath ,"/internal-test.jar");
+                File internalThirdPartyJarFile = CreateFileCommon.createFile(outputJarPath ,"/third-party/jackson/jackson-test.jar");
+                File internalBootstrapJarFile = CreateFileCommon.createFile(outputJarPath ,"/bootstrap/bootstrap-test.jar");
+                addFileToJar(internalBootstrapJarFile, jos, outputJarPath);
+                addFileToJar(internalJarFile, jos, outputJarPath);
+                addFileToJar(internalThirdPartyJarFile, jos, outputJarPath);
+                internalJarFile.delete();
+                internalBootstrapJarFile.delete();
+                jarInJarFile = outputJarFile;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
         } catch (IOException e) {
             assert file1 != null;
             file1.deleteOnExit();
@@ -66,6 +90,8 @@ public class CreateFileCommon {
         zipFile.deleteOnExit();
         assert zipExtensionFile != null;
         zipExtensionFile.deleteOnExit();
+        assert jarInJarFile != null;
+        jarInJarFile.deleteOnExit();;
     }
 
     public static File getZipFile() {
@@ -76,11 +102,28 @@ public class CreateFileCommon {
         return zipExtensionFile;
     }
 
+    public static File getJarInJarFile() {
+        return jarInJarFile;
+    }
+
+    private static void addFileToJar(File file, JarOutputStream jos, String outputJarPath) throws IOException {
+        try (FileInputStream fis = new FileInputStream(file);
+             BufferedInputStream bis = new BufferedInputStream(fis)) {
+            JarEntry jarEntry = new JarEntry(file.getAbsolutePath().substring(outputJarPath.length() + 1));
+            jos.putNextEntry(jarEntry);
+            byte[] buffer = new byte[1024];
+            int bytesRead;
+            while ((bytesRead = bis.read(buffer)) != -1) {
+                jos.write(buffer, 0, bytesRead);
+            }
+        }
+    }
+
     public static File createFile(String name) {
         return createFile(path, name);
     }
 
-    private static File createFile(String path, String name) {
+    public static File createFile(String path, String name) {
         try {
             File file = new File(path + name);
             if (!file.getParentFile().exists()) {
