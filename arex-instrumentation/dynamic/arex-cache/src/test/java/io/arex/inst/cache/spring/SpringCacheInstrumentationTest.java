@@ -57,7 +57,7 @@ class SpringCacheInstrumentationTest {
     void onEnter() throws NoSuchMethodException {
         Method test1 = TestArexMock.class.getDeclaredMethod("testWithCacheableAnnotation", String.class, int.class);
         try(MockedConstruction ignored = Mockito.mockConstruction(DynamicClassExtractor.class, ((extractor, context) -> {
-            Mockito.when(extractor.replay()).thenReturn(MockResult.success("test"));
+            Mockito.when(extractor.replayOrRealCall()).thenReturn(MockResult.success("test"));
         }))) {
             Method testReturnVoid = TestArexMock.class.getDeclaredMethod("testReturnVoid");
             boolean actualResult = SpringCacheInstrumentation.SpringCacheAdvice.onEnter(testReturnVoid, null, null, null);
