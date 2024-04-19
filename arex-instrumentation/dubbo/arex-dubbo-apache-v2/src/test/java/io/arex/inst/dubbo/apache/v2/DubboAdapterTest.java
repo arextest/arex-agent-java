@@ -2,6 +2,7 @@ package io.arex.inst.dubbo.apache.v2;
 
 import io.arex.agent.bootstrap.model.ArexMocker;
 import io.arex.agent.bootstrap.model.Mocker;
+import io.arex.inst.dubbo.common.AbstractAdapter;
 import io.arex.inst.dubbo.common.DubboConstants;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.util.MockUtils;
@@ -31,7 +32,7 @@ import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class DubboAdapterTest {
-    static DubboAdapter adapter;
+    static AbstractAdapter adapter;
     static Invoker<String> invoker;
     static RpcInvocation invocation;
 
@@ -99,7 +100,7 @@ class DubboAdapterTest {
 
     @Test
     void getUrl() {
-        adapter.getUrl();
+        ((DubboAdapter)adapter).getUrl();
         verify(invoker, atLeastOnce()).getUrl();
     }
 
@@ -123,7 +124,7 @@ class DubboAdapterTest {
 
     @Test
     void getInvocation() {
-        assertNotNull(adapter.getInvocation());
+        assertNotNull(((DubboAdapter)adapter).getInvocation());
     }
 
     @Test
@@ -142,7 +143,7 @@ class DubboAdapterTest {
         mocker.run();
         ArexMocker arexMocker = new ArexMocker();
         arexMocker.setTargetResponse(new Mocker.Target());
-        assertNotNull(adapter.execute(result, arexMocker));
+        assertNotNull(((DubboAdapter)adapter).execute(result, arexMocker));
     }
 
     static Stream<Arguments> executeCase() {

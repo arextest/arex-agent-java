@@ -264,7 +264,7 @@ public class ConfigManager {
         setAllowTimeOfDayFrom(System.getProperty(ALLOW_TIME_FROM, "00:01"));
         setAllowTimeOfDayTo(System.getProperty(ALLOW_TIME_TO, "23:59"));
         setDisabledModules(System.getProperty(DISABLE_MODULE));
-        setRetransformModules(System.getProperty(RETRANSFORM_MODULE));
+        setRetransformModules(System.getProperty(RETRANSFORM_MODULE, "dynamic-class"));
         setExcludeServiceOperations(System.getProperty(EXCLUDE_SERVICE_OPERATION));
         setDubboStreamReplayThreshold(System.getProperty(DUBBO_STREAM_REPLAY_THRESHOLD, "100"));
         setBufferSize(System.getProperty(BUFFER_SIZE, "1024"));
@@ -288,7 +288,7 @@ public class ConfigManager {
         setDynamicResultSizeLimit(configMap.get(DYNAMIC_RESULT_SIZE_LIMIT));
         setStorageServiceMode(configMap.get(STORAGE_SERVICE_MODE));
         setDisabledModules(configMap.get(DISABLE_MODULE));
-        setRetransformModules(configMap.get(RETRANSFORM_MODULE));
+        setRetransformModules(configMap.getOrDefault(RETRANSFORM_MODULE, "dynamic-class"));
         setExcludeServiceOperations(configMap.get(EXCLUDE_SERVICE_OPERATION));
         System.setProperty(DISABLE_REPLAY, StringUtil.defaultString(configMap.get(DISABLE_REPLAY)));
         System.setProperty(DISABLE_RECORD, StringUtil.defaultString(configMap.get(DISABLE_RECORD)));

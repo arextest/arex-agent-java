@@ -25,6 +25,18 @@ class StringUtilTest {
     }
 
     @Test
+    void defaultIfEmpty() {
+        String actualResult = StringUtil.defaultIfEmpty(null, "abc");
+        assertEquals("abc", actualResult);
+
+        actualResult = StringUtil.defaultIfEmpty("", "abc");
+        assertEquals("abc", actualResult);
+
+        actualResult = StringUtil.defaultIfEmpty("abc", "def");
+        assertEquals("abc", actualResult);
+    }
+
+    @Test
     void isEmpty() {
         boolean actualResult = StringUtil.isEmpty(null);
         assertTrue(actualResult);

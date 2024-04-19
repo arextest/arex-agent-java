@@ -1,7 +1,6 @@
 package io.arex.inst.httpservlet;
 
 import io.arex.agent.bootstrap.internal.Pair;
-import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
@@ -101,16 +100,16 @@ class ServletAdviceHelperTest {
             Mockito.when(adapter.getMethod(any())).thenReturn("POST");
             Mockito.when(adapter.getRequestHeader(any(), eq(ArexConstants.RECORD_ID))).thenReturn("mock");
             Mockito.when(ContextManager.currentContext()).thenReturn(ArexContext.of("mock"));
-            Mockito.when(adapter.getRequestHeader(any(), eq(ArexConstants.FORCE_RECORD))).thenReturn("true");
+            Mockito.when(adapter.getRequestHeader(any(), eq(ArexConstants.FORCE_RECORD), eq(ArexConstants.HEADER_X_PREFIX))).thenReturn("true");
         };
         Runnable getRedirectRecordId1 = () -> {
             Mockito.when(adapter.getParameterFromQueryString(any(), eq(ArexConstants.RECORD_ID))).thenReturn(null);
-            Mockito.when(adapter.getRequestHeader(any(), eq(ArexConstants.FORCE_RECORD))).thenReturn("true");
+            Mockito.when(adapter.getRequestHeader(any(), eq(ArexConstants.FORCE_RECORD), eq(ArexConstants.HEADER_X_PREFIX))).thenReturn("true");
         };
         Runnable getRedirectRecordId2 = () -> {
             Mockito.when(adapter.getParameterFromQueryString(any(), eq(ArexConstants.RECORD_ID))).thenReturn("mock-redirectRecordId");
             Mockito.when(adapter.getRequestHeader(any(), eq("referer"))).thenReturn(null);
-            Mockito.when(adapter.getRequestHeader(any(), eq("FORCE_RECORD"))).thenReturn(null);
+            Mockito.when(adapter.getRequestHeader(any(), eq(ArexConstants.FORCE_RECORD), eq(ArexConstants.HEADER_X_PREFIX))).thenReturn(null);
         };
         Runnable getRedirectRecordId3 = () -> {
             Mockito.when(adapter.getParameterFromQueryString(any(), eq(ArexConstants.RECORD_ID))).thenReturn("mock-redirectRecordId");
@@ -121,10 +120,10 @@ class ServletAdviceHelperTest {
         };
         Runnable shouldSkip2 = () -> {
             Mockito.when(adapter.getRequestHeader(any(), eq(ArexConstants.RECORD_ID))).thenReturn("");
-            Mockito.when(adapter.getRequestHeader(any(), eq(ArexConstants.FORCE_RECORD))).thenReturn("true");
+            Mockito.when(adapter.getRequestHeader(any(), eq(ArexConstants.FORCE_RECORD), eq(ArexConstants.HEADER_X_PREFIX))).thenReturn("true");
         };
         Runnable shouldSkip3 = () -> {
-            Mockito.when(adapter.getRequestHeader(any(), eq(ArexConstants.FORCE_RECORD))).thenReturn("false");
+            Mockito.when(adapter.getRequestHeader(any(), eq(ArexConstants.FORCE_RECORD), eq(ArexConstants.HEADER_X_PREFIX))).thenReturn("false");
             Mockito.when(adapter.getRequestHeader(any(), eq(ArexConstants.REPLAY_WARM_UP))).thenReturn("true");
         };
         Runnable shouldSkip4 = () -> {

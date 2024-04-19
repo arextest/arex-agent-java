@@ -1,18 +1,42 @@
 package io.arex.inst.dubbo.common;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class DubboAdapterTest extends AbstractAdapter {
     private String operationName;
     private String serviceOperation;
-    private String request;
     private String requestParamType;
     private String recordRequestType;
     private String caseId;
-    private String protocol;
     private boolean forceRecord;
     private boolean replayWarmUp;
     private Map<String, String> requestHeaderMap;
+
+    @Override
+    protected Map<String, String> getAttachments() {
+        return new HashMap<>();
+    }
+
+    @Override
+    protected String getParameter(String key) {
+        return "parameter: " + key;
+    }
+
+    @Override
+    public String getServiceName() {
+        return null;
+    }
+
+    @Override
+    protected Object[] getArguments() {
+        return new Object[] { "arg1" };
+    }
+
+    @Override
+    protected Class<?>[] getParameterTypes() {
+        return new Class[0];
+    }
 
     public void setOperationName(String operationName) {
         this.operationName = operationName;
@@ -22,20 +46,12 @@ public class DubboAdapterTest extends AbstractAdapter {
         this.serviceOperation = serviceOperation;
     }
 
-    public void setRequest(String request) {
-        this.request = request;
-    }
-
     public void setRequestParamType(String requestParamType) {
         this.requestParamType = requestParamType;
     }
 
     public void setCaseId(String caseId) {
         this.caseId = caseId;
-    }
-
-    public void setProtocol(String protocol) {
-        this.protocol = protocol;
     }
 
     public void setForceRecord(boolean forceRecord) {
@@ -51,13 +67,10 @@ public class DubboAdapterTest extends AbstractAdapter {
     }
 
     public String getOperationName() {
-        return operationName;
+        return "testOperationName";
     }
     public String getServiceOperation() {
         return serviceOperation;
-    }
-    public String getRequest() {
-        return request;
     }
     public String getRequestParamType() {
         return requestParamType;
@@ -75,9 +88,14 @@ public class DubboAdapterTest extends AbstractAdapter {
         return replayWarmUp;
     }
     public String getProtocol() {
-        return protocol;
+        return "dubbo";
     }
-    public Map<String, String> getRequestHeaders() {
-        return requestHeaderMap;
+
+    @Override
+    protected String getAttachment(String key) {
+        if ("null".equals(key)) {
+            return null;
+        }
+        return "attachment: " + key;
     }
 }

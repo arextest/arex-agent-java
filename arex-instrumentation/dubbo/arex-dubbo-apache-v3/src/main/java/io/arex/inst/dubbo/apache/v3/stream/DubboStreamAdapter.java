@@ -3,7 +3,6 @@ package io.arex.inst.dubbo.apache.v3.stream;
 import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.agent.bootstrap.model.MockStrategyEnum;
 import io.arex.agent.bootstrap.model.Mocker;
-import io.arex.inst.dubbo.common.AbstractAdapter;
 import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.model.ArexConstants;
@@ -22,8 +21,8 @@ import java.util.List;
  * DubboStreamAdapter
  */
 public class DubboStreamAdapter {
-    private String streamId;
-    private MethodDescriptor methodDescriptor;
+    private final String streamId;
+    private final MethodDescriptor methodDescriptor;
     private DubboStreamAdapter(String streamId, MethodDescriptor methodDescriptor) {
         this.streamId = streamId;
         this.methodDescriptor = methodDescriptor;
@@ -87,16 +86,16 @@ public class DubboStreamAdapter {
     }
 
     public String getRequest(Object request) {
-        return AbstractAdapter.parseRequest(request, req -> Serializer.serialize(req, ArexConstants.JACKSON_REQUEST_SERIALIZER));
+        return Serializer.serialize(request, ArexConstants.JACKSON_REQUEST_SERIALIZER);
     }
 
     public String getRequestParamType(Object request) {
         if (methodDescriptor.getMethod() == null) {
-            return AbstractAdapter.parseRequest(request, TypeUtil::getName);
+            return TypeUtil.getName(request);
         }
         Type[] genericParameters = methodDescriptor.getMethod().getGenericParameterTypes();
-        if (genericParameters.length <= 0) {
-            return AbstractAdapter.parseRequest(request, TypeUtil::getName);
+        if (genericParameters.length == 0) {
+            return TypeUtil.getName(request);
         }
         Type genericType = genericParameters[0];
         if (genericType instanceof ParameterizedType) {
@@ -105,6 +104,6 @@ public class DubboStreamAdapter {
                 return actualTypes[0].getTypeName();
             }
         }
-        return AbstractAdapter.parseRequest(request, TypeUtil::getName);
+        return TypeUtil.getName(request);
     }
 }
