@@ -30,19 +30,16 @@ public class DubboConsumerExtractor extends DubboExtractor {
     public MockResult replay() {
         Object result = MockUtils.replayBody(makeMocker());
         boolean ignoreMockResult = IgnoreUtils.ignoreMockResult(adapter.getPath(), adapter.getOperationName());
-        RpcResult rpcResult = null;
-        if (result != null && !ignoreMockResult) {
-            rpcResult = new RpcResult();
-            boolean isAsync = RpcUtils.isAsync(adapter.getUrl(), adapter.getInvocation());
-            if (isAsync) {
-                ResponseFuture future = new SimpleFuture(result);
-                RpcContext.getContext().setFuture(new FutureAdapter<>(future));
+        RpcResult rpcResult = new RpcResult();
+        boolean isAsync = RpcUtils.isAsync(adapter.getUrl(), adapter.getInvocation());
+        if (isAsync) {
+            ResponseFuture future = new SimpleFuture(result);
+            RpcContext.getContext().setFuture(new FutureAdapter<>(future));
+        } else {
+            if (result instanceof Throwable) {
+                rpcResult.setException((Throwable) result);
             } else {
-                if (result instanceof Throwable) {
-                    rpcResult.setException((Throwable) result);
-                } else {
-                    rpcResult.setValue(result);
-                }
+                rpcResult.setValue(result);
             }
         }
         return MockResult.success(ignoreMockResult, rpcResult);

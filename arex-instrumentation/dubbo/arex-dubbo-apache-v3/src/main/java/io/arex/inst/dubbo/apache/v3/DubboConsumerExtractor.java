@@ -24,21 +24,19 @@ public class DubboConsumerExtractor extends DubboExtractor {
     public MockResult replay() {
         Object result = MockUtils.replayBody(makeMocker());
         boolean ignoreMockResult = IgnoreUtils.ignoreMockResult(adapter.getPath(), adapter.getOperationName());
-        AsyncRpcResult asyncRpcResult = null;
-        if (result != null && !ignoreMockResult) {
-            Invocation invocation = adapter.getInvocation();
-            if (result instanceof Throwable) {
-                asyncRpcResult = AsyncRpcResult.newDefaultAsyncResult((Throwable) result, invocation);
-            } else {
-                asyncRpcResult = AsyncRpcResult.newDefaultAsyncResult(result, invocation);
-            }
-            // need to set invoke mode to FUTURE if return type is CompletableFuture
-            if (invocation instanceof RpcInvocation) {
-                RpcInvocation rpcInv = (RpcInvocation) invocation;
-                rpcInv.setInvokeMode(RpcUtils.getInvokeMode(adapter.getUrl(), invocation));
-            }
-            RpcContext.getContext().setFuture(new FutureAdapter<>(asyncRpcResult.getResponseFuture()));
+        AsyncRpcResult asyncRpcResult;
+        Invocation invocation = adapter.getInvocation();
+        if (result instanceof Throwable) {
+            asyncRpcResult = AsyncRpcResult.newDefaultAsyncResult((Throwable) result, invocation);
+        } else {
+            asyncRpcResult = AsyncRpcResult.newDefaultAsyncResult(result, invocation);
         }
+        // need to set invoke mode to FUTURE if return type is CompletableFuture
+        if (invocation instanceof RpcInvocation) {
+            RpcInvocation rpcInv = (RpcInvocation) invocation;
+            rpcInv.setInvokeMode(RpcUtils.getInvokeMode(adapter.getUrl(), invocation));
+        }
+        RpcContext.getContext().setFuture(new FutureAdapter<>(asyncRpcResult.getResponseFuture()));
         return MockResult.success(ignoreMockResult, asyncRpcResult);
     }
 }
