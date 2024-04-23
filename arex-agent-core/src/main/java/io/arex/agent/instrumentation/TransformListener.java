@@ -1,15 +1,15 @@
 package io.arex.agent.instrumentation;
 
 import io.arex.foundation.config.ConfigManager;
+import io.arex.foundation.logger.AgentLogger;
+import io.arex.foundation.logger.AgentLoggerFactory;
 import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.dynamic.DynamicType;
 import net.bytebuddy.utility.JavaModule;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class TransformListener  extends AgentBuilder.Listener.Adapter {
-    private static final Logger LOGGER = LoggerFactory.getLogger(TransformListener.class);
+    private static final AgentLogger LOGGER = AgentLoggerFactory.getAgentLogger(TransformListener.class);
 
     @Override
     public void onTransformation(TypeDescription typeDescription, ClassLoader classLoader, JavaModule module,
