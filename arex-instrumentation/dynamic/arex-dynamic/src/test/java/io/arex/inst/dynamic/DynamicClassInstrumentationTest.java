@@ -132,7 +132,7 @@ class DynamicClassInstrumentationTest {
         DynamicClassEntity emptyOperation = new DynamicClassEntity("io.arex.inst.dynamic.DynamicTestClass", "", "", "");
         Predicate<List<MethodInstrumentation>> emptyOperationPredicate = methodAdvices -> {
             ElementMatcher<? super MethodDescription> matcher = methodAdvices.get(0).getMethodMatcher();
-            return methodAdvices.size() == 1 && matchedMethodCount(matcher, DynamicTestClass.class) == 3;
+            return methodAdvices.size() == 1 && matchedMethodCount(matcher, DynamicTestClass.class) == 2;
         };
 
         DynamicClassEntity testReturnVoidEntity = new DynamicClassEntity("io.arex.inst.dynamic.DynamicTestClass", "testReturnVoid", "", "");
@@ -161,7 +161,7 @@ class DynamicClassInstrumentationTest {
         Predicate<List<MethodInstrumentation>> emptyListPredicate = List::isEmpty;
 
         return Stream.of(
-                arguments("should_match_3_methods_when_empty_operation", Collections.singletonList(emptyOperation), NOT_EMPTY_PREDICATE.and(emptyOperationPredicate)),
+                arguments("should_match_2_methods_when_empty_operation", Collections.singletonList(emptyOperation), NOT_EMPTY_PREDICATE.and(emptyOperationPredicate)),
                 arguments("should_match_1_method_when_with_return_void", Arrays.asList(testReturnVoidEntity, testReturnVoidWithParameterEntity), NOT_EMPTY_PREDICATE.and(emptyOperationAndVoidPredicate)),
                 arguments("should_match_2_method_when_with_parameter", Arrays.asList(testReturnNonPrimitiveTypeWithParameterEntity, testReturnPrimitiveTypeWithParameter), NOT_EMPTY_PREDICATE.and(operationWithParameterPredicate)),
                 arguments("should_match_4_method_when_with_parameter_wildcard", Arrays.asList(testReturnWithParameterWildcard), NOT_EMPTY_PREDICATE.and(operationWithParameterWildcardPredicate)),
