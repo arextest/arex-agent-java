@@ -1,23 +1,24 @@
 package io.arex.inst.spring.data.redis;
 
-import static java.util.Collections.singletonList;
+import static java.util.Arrays.asList;
 import com.google.auto.service.AutoService;
-import io.arex.inst.extension.ModuleDescription;
 import io.arex.inst.extension.ModuleInstrumentation;
 import io.arex.inst.extension.TypeInstrumentation;
 import java.util.List;
 
 /**
- * SpringDataRedisModuleInstrumentation
+ * RedisModuleInstrumentation
  */
 @AutoService(ModuleInstrumentation.class)
-public class SpringDataRedisModuleInstrumentation extends ModuleInstrumentation {
-    public SpringDataRedisModuleInstrumentation() {
+public class RedisModuleInstrumentation extends ModuleInstrumentation {
+    public RedisModuleInstrumentation() {
         super("spring-data-redis");
     }
 
     @Override
     public List<TypeInstrumentation> instrumentationTypes() {
-        return singletonList(new SpringDataRedisInstrumentation());
+        return asList(
+            new RedisTemplateInstrumentation(),
+            new OperationsInstrumentation());
     }
 }

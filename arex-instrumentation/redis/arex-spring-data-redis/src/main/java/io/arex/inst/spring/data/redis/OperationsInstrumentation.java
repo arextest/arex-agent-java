@@ -15,9 +15,9 @@ import net.bytebuddy.matcher.ElementMatcher;
 import org.springframework.data.redis.core.RedisTemplate;
 
 /**
- * SpringDataRedisInstrumentation
+ * OperationsInstrumentation
  */
-public class SpringDataRedisInstrumentation extends TypeInstrumentation {
+public class OperationsInstrumentation extends TypeInstrumentation {
 
     @Override
     protected ElementMatcher<TypeDescription> typeMatcher() {
