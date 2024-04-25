@@ -6,8 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import com.google.common.collect.Lists;
 import io.arex.agent.bootstrap.model.MockResult;
-import io.arex.inst.spring.data.redis.SpringDataRedisInstrumentation.OneKeyAdvice;
-import io.arex.inst.spring.data.redis.SpringDataRedisInstrumentation.TwoKeysAdvice;
+import io.arex.inst.spring.data.redis.OperationsInstrumentation.OneKeyAdvice;
+import io.arex.inst.spring.data.redis.OperationsInstrumentation.TwoKeysAdvice;
 import java.util.List;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -18,9 +18,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.RedisTemplate;
 
 @ExtendWith(MockitoExtension.class)
-class SpringDataRedisInstrumentationTest {
+class OperationsInstrumentationTest {
 
-    private static SpringDataRedisInstrumentation target;
+    private static OperationsInstrumentation target;
     private static RedisTemplate redisTemplate = new RedisTemplate();
     private static final String KEY = "key";
     private static final String RESTULT = "result";
@@ -30,7 +30,7 @@ class SpringDataRedisInstrumentationTest {
     @BeforeAll
     static void setUp() {
         redisTemplate = Mockito.mock(RedisTemplate.class);
-        target = new SpringDataRedisInstrumentation();
+        target = new OperationsInstrumentation();
     }
 
 
