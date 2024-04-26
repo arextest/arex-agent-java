@@ -13,8 +13,12 @@ public class StringUtil {
         return str == null ? EMPTY : str;
     }
 
+    public static String defaultIfEmpty(String str, String defaultStr) {
+        return isEmpty(str) ? defaultStr : str;
+    }
+
     public static boolean isEmpty(String value) {
-        return value == null || value.length() == 0;
+        return value == null || value.isEmpty();
     }
 
     public static boolean isNotEmpty(String value) {
