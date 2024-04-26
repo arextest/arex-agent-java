@@ -394,9 +394,7 @@ public class ConfigManager {
 
     private void publish(Config config) {
         for (ConfigListener listener : listeners) {
-            if (listener.validate(config)) {
-                listener.load(config);
-            }
+            listener.load(config);
         }
     }
 

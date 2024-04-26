@@ -10,19 +10,21 @@ public class AgentInitializer {
 
     private static ClassLoader classLoader;
 
-    public static void initialize(Instrumentation inst, File agentFile, String agentArgs)
+    /**
+     * @param parentClassLoader Normally, the parentClassLoader should be ClassLoaders.AppClassLoader.
+     */
+    public static void initialize(Instrumentation inst, File agentFile, String agentArgs, ClassLoader parentClassLoader)
             throws Exception {
         if (classLoader != null) {
             return;
         }
-
-        System.setProperty("arex.agent.jar.file.path", agentFile.getAbsolutePath());
         System.setProperty(ConfigConstants.SHADED_LOGGER_SHOW_DATE_TIME, "true");
         System.setProperty(ConfigConstants.SHADED_LOGGER_DATE_TIME_FORMAT, "yyyy-MM-dd HH:mm:ss:SSS");
         File[] extensionFiles = getExtensionJarFiles(agentFile);
-        classLoader = createAgentClassLoader(agentFile, extensionFiles);
+        classLoader = new AgentClassLoader(agentFile, parentClassLoader, extensionFiles);
         InstrumentationHolder.setAgentClassLoader(classLoader);
         InstrumentationHolder.setInstrumentation(inst);
+        InstrumentationHolder.setAgentFile(agentFile);
         AgentInstaller installer = createAgentInstaller(inst, agentFile, agentArgs);
         addJarToLoaderSearch(agentFile, extensionFiles);
         installer.install();
@@ -40,10 +42,6 @@ public class AgentInitializer {
         }
     }
 
-    private static AgentClassLoader createAgentClassLoader(File agentFile, File[] extensionFiles) {
-        return new AgentClassLoader(agentFile, getParentClassLoader(), extensionFiles);
-    }
-
     private static File[] getExtensionJarFiles(File jarFile) {
         String extensionDir = jarFile.getParent() + "/extensions/";
         return new File(extensionDir).listFiles(AgentInitializer::isJar);
@@ -57,9 +55,5 @@ public class AgentInitializer {
         Class<?> clazz = classLoader.loadClass("io.arex.agent.instrumentation.InstrumentationInstaller");
         Constructor<?> constructor = clazz.getDeclaredConstructor(Instrumentation.class, File.class, String.class);
         return (AgentInstaller) constructor.newInstance(inst, file, agentArgs);
-    }
-
-    private static ClassLoader getParentClassLoader() {
-        return AgentInitializer.class.getClassLoader();
     }
 }

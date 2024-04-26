@@ -1,6 +1,6 @@
 package io.arex.integrationtest.dynamic;
 
-import io.arex.agent.ArexJavaAgent;
+import io.arex.agent.ArexAgent;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.integrationtest.common.AbstractIT;
 import net.bytebuddy.agent.ByteBuddyAgent;
@@ -44,7 +44,7 @@ public class DynamicClassIT extends AbstractIT  {
                 .setReadTimeout(Duration.ofMillis(10))
                 .basicAuthentication("username", "password"));
 
-        ArexJavaAgent.init(ByteBuddyAgent.install(), getAgentJar("arex-agent"), getAgentJar("arex-agent-bootstrap"));
+        ArexAgent.init(ByteBuddyAgent.install(), getAgentJar("arex-agent"));
     }
 
     @AfterAll

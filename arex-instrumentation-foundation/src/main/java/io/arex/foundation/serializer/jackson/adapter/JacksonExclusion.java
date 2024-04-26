@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.SerializationConfig;
 import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
 import com.fasterxml.jackson.databind.ser.BeanSerializerModifier;
 import io.arex.agent.bootstrap.util.StringUtil;
-import io.arex.foundation.serializer.jackson.JacksonSerializer;
+import io.arex.inst.runtime.config.listener.SerializeSkipInfoListener;
 
 import java.util.List;
 
@@ -26,19 +26,7 @@ public class JacksonExclusion extends BeanSerializerModifier {
         if (TK_MYBATIS_PLUS_CLASS_LIST.contains(className)) {
             beanProperties.removeIf(beanPropertyWriter -> StringUtil.equals(beanPropertyWriter.getName(), "table"));
         }
-
-        List<String> fieldNameList = JacksonSerializer.INSTANCE.getSkipFieldNameList(className);
-
-        if (fieldNameList == null) {
-            return beanProperties;
-        }
-
-        if (fieldNameList.isEmpty()) {
-            beanProperties.clear();
-            return beanProperties;
-        }
-
-        beanProperties.removeIf(beanPropertyWriter -> fieldNameList.contains(beanPropertyWriter.getName()));
+        beanProperties.removeIf(beanPropertyWriter -> SerializeSkipInfoListener.isSkipField(className, beanPropertyWriter.getName()));
         return beanProperties;
     }
 }

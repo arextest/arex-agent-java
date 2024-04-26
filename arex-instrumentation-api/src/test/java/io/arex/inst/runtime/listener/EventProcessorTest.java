@@ -71,30 +71,13 @@ public class EventProcessorTest {
 
     @Test
     @Order(1)
-    void testInit() {
+    void testInit() throws InterruptedException {
         // not Init Complete
         EventProcessor.onCreate(EventSource.empty());
         contextMockedStatic.verify(() -> ContextManager.currentContext(true, null), Mockito.times(0));
-        // load serializer
-        Mockito.when(ServiceLoader.load(StringSerializable.class, Thread.currentThread()
-                .getContextClassLoader())).thenReturn(Arrays.asList(new TestJacksonSerializable(), new TestGsonSerializer()));
-        // logger
-        Mockito.when(ServiceLoader.load(Logger.class, Thread.currentThread()
-                .getContextClassLoader())).thenReturn(Collections.singletonList(logger));
-
         EventProcessor.onRequest();
-        // logger
-        mockedStatic.verify(() -> LogManager.build(any()), Mockito.times(1));
-        // serializer
-        Assertions.assertNotNull(Serializer.getINSTANCE());
-        Assertions.assertEquals("gson", Serializer.getINSTANCE().getSerializer().name());
-        Assertions.assertEquals(2, Serializer.getINSTANCE().getSerializers().size());
-
-        // atomic load, only load once
-        Mockito.when(ServiceLoader.load(StringSerializable.class, Thread.currentThread()
-                .getContextClassLoader())).thenReturn(null);
-        EventProcessor.onRequest();
-        Assertions.assertNotNull(Serializer.getINSTANCE());
+        Thread.sleep(1000);
+        contextMockedStatic.verify(() -> ContextManager.remove(), Mockito.times(1));
     }
 
     @Test

@@ -37,7 +37,7 @@ class AgentInitializerTest {
     @Test
     void testFirstInitialize() {
         try (MockedConstruction<AgentClassLoader> mocked = Mockito.mockConstruction(AgentClassLoader.class, (mock, context) -> Mockito.doReturn(InstrumentationInstallerTest.class).when(mock).loadClass(any()))){
-            Assertions.assertDoesNotThrow(() -> AgentInitializer.initialize(instrumentation, zipFile, null));
+            Assertions.assertDoesNotThrow(() -> AgentInitializer.initialize(instrumentation, zipFile, null, AgentInitializerTest.class.getClassLoader()));
         } catch (Throwable ex) {
             ex.printStackTrace();
         }
@@ -46,8 +46,8 @@ class AgentInitializerTest {
     @Test
     void testDoubleInitialize() {
         try (MockedConstruction<AgentClassLoader> mocked = Mockito.mockConstruction(AgentClassLoader.class, (mock, context) -> Mockito.doReturn(InstrumentationInstallerTest.class).when(mock).loadClass(any()))){
-            Assertions.assertDoesNotThrow(() -> AgentInitializer.initialize(instrumentation, zipFile, null));
-            Assertions.assertDoesNotThrow(() -> AgentInitializer.initialize(instrumentation, zipFile, null));
+            Assertions.assertDoesNotThrow(() -> AgentInitializer.initialize(instrumentation, zipFile, null, AgentInitializerTest.class.getClassLoader()));
+            Assertions.assertDoesNotThrow(() -> AgentInitializer.initialize(instrumentation, zipFile, null, AgentInitializerTest.class.getClassLoader()));
         } catch (Throwable ex) {
             ex.printStackTrace();
         }
