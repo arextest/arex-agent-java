@@ -383,4 +383,18 @@ class StringUtilTest {
         assertEquals("k", StringUtil.substringAfter("mock", "c"));
         assertEquals("mock", StringUtil.substringAfter("mock", "cd"));
     }
+
+    @Test
+    void splitByLastSeparator() {
+        String[] actualResult = StringUtil.splitByLastSeparator(null, ',');
+        assertArrayEquals(new String[0], actualResult);
+
+        String noSeparator = "x";
+        actualResult = StringUtil.splitByLastSeparator(noSeparator, ',');
+        assertArrayEquals(new String[] {"x"}, actualResult);
+
+        String val = "x,,y,z";
+        actualResult = StringUtil.splitByLastSeparator(val, ',');
+        assertArrayEquals(new String[] {"x,,y", "z"}, actualResult);
+    }
 }

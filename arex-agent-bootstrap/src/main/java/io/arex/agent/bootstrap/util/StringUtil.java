@@ -254,6 +254,17 @@ public class StringUtil {
         return new String[]{str.substring(0, index), str.substring(index + 1)};
     }
 
+    public static String[] splitByLastSeparator(String str, char separator) {
+        if (str == null) {
+            return StringUtil.EMPTY_STRING_ARRAY;
+        }
+        int index = str.lastIndexOf(separator);
+        if (index == -1) {
+            return new String[]{str};
+        }
+        return new String[]{str.substring(0, index), str.substring(index + 1)};
+    }
+
     public static int encodeAndHash(String str){
         if (isBlank(str)) {
             return 0;
