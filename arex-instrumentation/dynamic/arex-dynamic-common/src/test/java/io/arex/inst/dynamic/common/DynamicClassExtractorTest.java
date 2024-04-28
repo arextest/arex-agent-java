@@ -28,6 +28,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 import io.arex.inst.runtime.util.sizeof.AgentSizeOf;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.Signature;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -554,5 +556,22 @@ class DynamicClassExtractorTest {
         assertEquals("com.trip.flight.BasicClient", extractor.normalizeClassName(normalClassName));
 
         assertNull(extractor.normalizeClassName(null));
+    }
+
+    @Test
+    void testProceedingJointPoint() throws Throwable {
+        Method testProceedingJointPoint = DynamicClassExtractorTest.class.getDeclaredMethod("testProceedingJointPoint", ProceedingJoinPoint.class);
+        ProceedingJoinPoint joinPoint = Mockito.mock(ProceedingJoinPoint.class);
+        Signature signature = Mockito.mock(Signature.class);
+        Mockito.when(joinPoint.getSignature()).thenReturn(signature);
+        String arg1 = "arg1";
+        Mockito.when(joinPoint.getArgs()).thenReturn(new Object[]{arg1});
+        DynamicClassExtractor extractor = new DynamicClassExtractor(testProceedingJointPoint, new Object[]{joinPoint});
+        Field requestType = DynamicClassExtractor.class.getDeclaredField("requestType");
+        requestType.setAccessible(true);
+        assertEquals("[\"java.lang.String\"]", requestType.get(extractor));
+    }
+
+    public void testProceedingJointPoint(ProceedingJoinPoint joinPoint) {
     }
 }
