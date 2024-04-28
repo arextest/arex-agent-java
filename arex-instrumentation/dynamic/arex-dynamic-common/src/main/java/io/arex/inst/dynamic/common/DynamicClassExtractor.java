@@ -61,7 +61,7 @@ public class DynamicClassExtractor {
     private static final AgentSizeOf agentSizeOf = AgentSizeOf.newInstance(ThrowableFilter.INSTANCE);
 
     public DynamicClassExtractor(Method method, Object[] args, String keyExpression, Class<?> actualType) {
-        this.clazzName = method.getDeclaringClass().getName();
+        this.clazzName = normalizeClassName(method.getDeclaringClass().getName());
         this.methodName = method.getName();
         this.args = args;
         this.dynamicSignature = getDynamicEntitySignature();
@@ -72,7 +72,7 @@ public class DynamicClassExtractor {
     }
 
     public DynamicClassExtractor(Method method, Object[] args) {
-        this.clazzName = method.getDeclaringClass().getName();
+        this.clazzName = normalizeClassName(method.getDeclaringClass().getName());
         this.methodName = method.getName();
         this.args = args;
         this.dynamicSignature = getDynamicEntitySignature();
@@ -83,7 +83,7 @@ public class DynamicClassExtractor {
     }
 
     public DynamicClassExtractor(String clazzName, String methodName, Object[] args, String methodReturnType) {
-        this.clazzName = clazzName;
+        this.clazzName = normalizeClassName(clazzName);
         this.methodName = methodName;
         this.args = args;
         this.dynamicSignature = getDynamicEntitySignature();
@@ -375,5 +375,13 @@ public class DynamicClassExtractor {
             return StringUtil.encodeAndHash(String.format("%s_%s_%s", this.clazzName, this.methodName, getSerializedResult()));
         }
         return StringUtil.encodeAndHash(String.format("%s_%s_%s", this.clazzName, this.methodName, null));
+    }
+
+    String normalizeClassName(String className) {
+        // ex: com.xxx.xxx.client$$EnhancerBySpringCGLIB$$1e3f5g
+        if (StringUtil.isNotEmpty(className) && className.contains("CGLIB$$")) {
+            return StringUtil.substringBefore(className, "$$");
+        }
+        return className;
     }
 }
