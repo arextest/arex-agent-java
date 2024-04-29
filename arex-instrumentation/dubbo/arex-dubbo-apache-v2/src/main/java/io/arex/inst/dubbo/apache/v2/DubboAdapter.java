@@ -1,6 +1,5 @@
 package io.arex.inst.dubbo.apache.v2;
 
-import com.alibaba.dubbo.rpc.support.RpcUtils;
 import io.arex.agent.bootstrap.ctx.TraceTransmitter;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.inst.dubbo.common.AbstractAdapter;
@@ -8,6 +7,7 @@ import io.arex.inst.runtime.log.LogManager;
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.rpc.*;
 import org.apache.dubbo.rpc.support.ProtocolUtils;
+import org.apache.dubbo.rpc.support.RpcUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
