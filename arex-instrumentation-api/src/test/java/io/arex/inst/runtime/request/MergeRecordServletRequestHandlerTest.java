@@ -8,11 +8,11 @@ class MergeRecordServletRequestHandlerTest {
 
     @Test
     void name() {
-        assertNotNull(new MergeRecordServletRequestHandler().name());
+        assertNotNull(new MergeRecordServletV3RequestHandler().name());
     }
 
     @Test
     void handleAfterCreateContext() {
-        assertDoesNotThrow(() ->  new MergeRecordServletRequestHandler().handleAfterCreateContext("mock"));
+        assertDoesNotThrow(() ->  new MergeRecordServletV3RequestHandler().handleAfterCreateContext(null));
     }
 }

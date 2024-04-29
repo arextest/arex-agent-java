@@ -6,6 +6,7 @@ import io.arex.inst.httpservlet.adapter.ServletAdapter;
 import io.arex.inst.httpservlet.listener.ServletAsyncListenerV5;
 import io.arex.inst.httpservlet.wrapper.CachedBodyRequestWrapperV5;
 import io.arex.inst.httpservlet.wrapper.CachedBodyResponseWrapperV5;
+import io.arex.inst.runtime.model.ArexConstants;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.context.request.NativeWebRequest;
@@ -228,5 +229,10 @@ public class ServletAdapterImplV5 implements ServletAdapter<HttpServletRequest, 
     @Override
     public String getQueryString(HttpServletRequest httpServletRequest) {
         return httpServletRequest.getQueryString();
+    }
+
+    @Override
+    public String getServletVersion() {
+        return ArexConstants.SERVLET_V5;
     }
 }

@@ -54,4 +54,6 @@ public class ArexConstants {
     public static final String EXCEED_MAX_SIZE_TITLE = "exceed.max.size";
     public static final String EXCEED_MAX_SIZE_FLAG = "isExceedMaxSize";
     public static final String RECORD_SIZE_LIMIT = "arex.record.size.limit";
+    public static final String SERVLET_V3 = "ServletV3";
+    public static final String SERVLET_V5 = "ServletV5";
 }
