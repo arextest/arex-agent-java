@@ -5,7 +5,6 @@ import com.alibaba.dubbo.common.serialize.ObjectOutput;
 import com.alibaba.dubbo.remoting.Channel;
 import com.alibaba.dubbo.rpc.Result;
 import com.alibaba.dubbo.rpc.RpcResult;
-import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.model.ArexConstants;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -34,7 +33,6 @@ class DubboCodecExtractorTest {
         out = Mockito.mock(ObjectOutput.class);
         url = Mockito.mock(URL.class);
         Mockito.when(channel.getUrl()).thenReturn(url);
-        Mockito.mockStatic(ContextManager.class);
     }
 
     @AfterAll
@@ -56,7 +54,7 @@ class DubboCodecExtractorTest {
         Runnable emptyMocker = () -> {
         };
         Runnable mocker1 = () -> {
-            Mockito.when(ContextManager.needReplay()).thenReturn(true);
+            rpcResult.setAttachment(ArexConstants.REPLAY_ID, "mock");
         };
         Runnable mocker2 = () -> {
             rpcResult.setAttachment(ArexConstants.SCHEDULE_REPLAY_FLAG, Boolean.TRUE.toString());

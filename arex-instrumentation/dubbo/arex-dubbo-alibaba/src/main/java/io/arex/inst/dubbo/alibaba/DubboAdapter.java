@@ -12,6 +12,7 @@ import io.arex.inst.dubbo.common.AbstractAdapter;
 import io.arex.inst.runtime.log.LogManager;
 import com.alibaba.dubbo.common.URL;
 import com.alibaba.dubbo.rpc.support.ProtocolUtils;
+import java.util.Collections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -133,7 +134,7 @@ public class DubboAdapter extends AbstractAdapter {
         if (SERVER_CONTEXT_METHOD != null) {
             return RpcContext.getServerContext().getAttachments();
         }
-        return null;
+        return Collections.emptyMap();
     }
 
     /**
