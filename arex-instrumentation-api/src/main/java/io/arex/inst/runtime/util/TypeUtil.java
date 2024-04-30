@@ -66,7 +66,11 @@ public class TypeUtil {
                 }
 
                 if (typeParametersLength == 2) {
-                    final String[] split = StringUtil.splitByFirstSeparator(types[1], COMMA);
+                    String[] split = StringUtil.splitByFirstSeparator(types[1], COMMA);
+                    if (split[0].contains(HORIZONTAL_LINE_STR)) {
+                        // ex: Pair-Map-String,String,Boolean
+                        split = StringUtil.splitByLastSeparator(types[1], COMMA);
+                    }
                     Type[] args = new Type[]{forName(split[0]), forName(split[1])};
                     ParameterizedTypeImpl parameterizedType = ParameterizedTypeImpl.make(raw, args, null);
                     TYPE_NAME_CACHE.put(typeName, parameterizedType);

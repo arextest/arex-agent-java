@@ -25,6 +25,18 @@ class StringUtilTest {
     }
 
     @Test
+    void defaultIfEmpty() {
+        String actualResult = StringUtil.defaultIfEmpty(null, "abc");
+        assertEquals("abc", actualResult);
+
+        actualResult = StringUtil.defaultIfEmpty("", "abc");
+        assertEquals("abc", actualResult);
+
+        actualResult = StringUtil.defaultIfEmpty("abc", "def");
+        assertEquals("abc", actualResult);
+    }
+
+    @Test
     void isEmpty() {
         boolean actualResult = StringUtil.isEmpty(null);
         assertTrue(actualResult);
@@ -382,5 +394,19 @@ class StringUtilTest {
         assertEquals("ck", StringUtil.substringAfter("mock", "o"));
         assertEquals("k", StringUtil.substringAfter("mock", "c"));
         assertEquals("mock", StringUtil.substringAfter("mock", "cd"));
+    }
+
+    @Test
+    void splitByLastSeparator() {
+        String[] actualResult = StringUtil.splitByLastSeparator(null, ',');
+        assertArrayEquals(new String[0], actualResult);
+
+        String noSeparator = "x";
+        actualResult = StringUtil.splitByLastSeparator(noSeparator, ',');
+        assertArrayEquals(new String[] {"x"}, actualResult);
+
+        String val = "x,,y,z";
+        actualResult = StringUtil.splitByLastSeparator(val, ',');
+        assertArrayEquals(new String[] {"x,,y", "z"}, actualResult);
     }
 }

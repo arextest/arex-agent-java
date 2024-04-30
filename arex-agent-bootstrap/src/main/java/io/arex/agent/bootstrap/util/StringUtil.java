@@ -13,8 +13,12 @@ public class StringUtil {
         return str == null ? EMPTY : str;
     }
 
+    public static String defaultIfEmpty(String str, String defaultStr) {
+        return isEmpty(str) ? defaultStr : str;
+    }
+
     public static boolean isEmpty(String value) {
-        return value == null || value.length() == 0;
+        return value == null || value.isEmpty();
     }
 
     public static boolean isNotEmpty(String value) {
@@ -248,6 +252,17 @@ public class StringUtil {
             return StringUtil.EMPTY_STRING_ARRAY;
         }
         int index = str.indexOf(separator);
+        if (index == -1) {
+            return new String[]{str};
+        }
+        return new String[]{str.substring(0, index), str.substring(index + 1)};
+    }
+
+    public static String[] splitByLastSeparator(String str, char separator) {
+        if (str == null) {
+            return StringUtil.EMPTY_STRING_ARRAY;
+        }
+        int index = str.lastIndexOf(separator);
         if (index == -1) {
             return new String[]{str};
         }

@@ -120,7 +120,7 @@ public class ServletAdviceHelper {
             String excludeMockTemplate = adapter.getRequestHeader(httpServletRequest, ArexConstants.HEADER_EXCLUDE_MOCK);
             CaseEventDispatcher.onEvent(CaseEvent.ofCreateEvent(EventSource.of(caseId, excludeMockTemplate)));
             ContextManager.currentContext().setAttachment(ArexConstants.FORCE_RECORD,
-                adapter.getRequestHeader(httpServletRequest, ArexConstants.FORCE_RECORD));
+                adapter.getRequestHeader(httpServletRequest, ArexConstants.FORCE_RECORD, ArexConstants.HEADER_X_PREFIX));
             RequestHandlerManager.handleAfterCreateContext(httpServletRequest, adapter.getServletVersion());
         }
 
@@ -219,7 +219,7 @@ public class ServletAdviceHelper {
             return Config.get().getBoolean(ConfigConstants.DISABLE_REPLAY, false);
         }
 
-        String forceRecord = adapter.getRequestHeader(httpServletRequest, ArexConstants.FORCE_RECORD);
+        String forceRecord = adapter.getRequestHeader(httpServletRequest, ArexConstants.FORCE_RECORD, ArexConstants.HEADER_X_PREFIX);
         // Do not skip if header with arex-force-record=true
         if (Boolean.parseBoolean(forceRecord)) {
             return false;

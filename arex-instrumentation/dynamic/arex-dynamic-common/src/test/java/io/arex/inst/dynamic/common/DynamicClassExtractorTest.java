@@ -542,4 +542,17 @@ class DynamicClassExtractorTest {
             throw new RuntimeException(e);
         }
     }
+
+    @Test
+    void refactorClassName() throws NoSuchMethodException {
+        DynamicClassExtractor extractor = new DynamicClassExtractor("refactorClassName", "methoName", null, null);
+
+        String enhancerBySpringCGLIBClassName = "com.trip.flight.BasicClient$$EnhancerBySpringCGLIB$$fc02870";
+        assertEquals("com.trip.flight.BasicClient", extractor.normalizeClassName(enhancerBySpringCGLIBClassName));
+
+        String normalClassName = "com.trip.flight.BasicClient";
+        assertEquals("com.trip.flight.BasicClient", extractor.normalizeClassName(normalClassName));
+
+        assertNull(extractor.normalizeClassName(null));
+    }
 }

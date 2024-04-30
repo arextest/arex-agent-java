@@ -2,6 +2,7 @@ package io.arex.agent.bootstrap;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.io.File;
 import java.lang.instrument.Instrumentation;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,6 +20,9 @@ class InstrumentationHolderTest {
     @Mock
     ClassLoader agentClassLoader;
 
+    @Mock
+    File agentFile;
+
     @Test
     void getInstrumentation() {
         InstrumentationHolder.setInstrumentation(instrumentation);
@@ -29,5 +33,11 @@ class InstrumentationHolderTest {
     void getAgentClassLoader() {
         InstrumentationHolder.setAgentClassLoader(agentClassLoader);
         assertEquals(agentClassLoader, InstrumentationHolder.getAgentClassLoader());
+    }
+
+    @Test
+    void getAgentFile() {
+        InstrumentationHolder.setAgentFile(agentFile);
+        assertEquals(agentFile, InstrumentationHolder.getAgentFile());
     }
 }

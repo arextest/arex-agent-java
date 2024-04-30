@@ -5,9 +5,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.httpservlet.wrapper.CachedBodyRequestWrapperV3;
 import io.arex.inst.httpservlet.wrapper.CachedBodyResponseWrapperV3;
+import io.arex.inst.runtime.model.ArexConstants;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -55,6 +55,21 @@ class ServletAdapterImplV3Test {
         when(mockRequest.getHeader("mock-header-name")).thenReturn("mock-header-value");
         String actualValue = instance.getRequestHeader(mockRequest, "mock-header-name");
         assertEquals("mock-header-value", actualValue);
+
+        // test headValue not null and with prefix
+        when(mockRequest.getHeader(ArexConstants.FORCE_RECORD)).thenReturn("true");
+        actualValue = instance.getRequestHeader(mockRequest, ArexConstants.FORCE_RECORD, ArexConstants.HEADER_X_PREFIX);
+        assertEquals("true", actualValue);
+
+        // test headValue is null and without prefix
+        when(mockRequest.getHeader(ArexConstants.FORCE_RECORD)).thenReturn(null);
+        actualValue = instance.getRequestHeader(mockRequest, ArexConstants.FORCE_RECORD, null);
+        assertNull(actualValue);
+
+        // test headValue is null and with prefix
+        when(mockRequest.getHeader(ArexConstants.HEADER_X_PREFIX + ArexConstants.FORCE_RECORD)).thenReturn("true");
+        actualValue = instance.getRequestHeader(mockRequest, ArexConstants.FORCE_RECORD, ArexConstants.HEADER_X_PREFIX);
+        assertEquals("true", actualValue);
     }
 
     @Test

@@ -16,6 +16,17 @@ public interface ServletAdapter<HttpServletRequest, HttpServletResponse> {
     @Nullable
     HttpServletRequest getNativeRequest(NativeWebRequest nativeWebRequest);
 
+    /**
+     * Get the request header passed through the gateway.
+     */
+    default String getRequestHeader(HttpServletRequest httpServletRequest, String name, String prefix) {
+        String headerValue = getRequestHeader(httpServletRequest, name);
+        if (StringUtil.isNotEmpty(headerValue) || StringUtil.isEmpty(prefix)) {
+            return headerValue;
+        }
+        return getRequestHeader(httpServletRequest, prefix + name);
+    }
+
     String getRequestHeader(HttpServletRequest httpServletRequest, String name);
 
     String getResponseHeader(HttpServletResponse httpServletResponse, String name);

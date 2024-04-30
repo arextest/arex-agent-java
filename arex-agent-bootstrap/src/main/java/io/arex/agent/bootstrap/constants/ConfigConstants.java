@@ -33,4 +33,5 @@ public class ConfigConstants {
     public static final String SHADED_LOGGER_SHOW_DATE_TIME = "shaded.org.slf4j.simpleLogger.showDateTime";
     public static final String SHADED_LOGGER_DATE_TIME_FORMAT = "shaded.org.slf4j.simpleLogger.dateTimeFormat";
     public static final String COVERAGE_PACKAGES = "arex.coverage.packages";
+    public static final String APP_CLASSLOADER_NAME = "jdk.internal.loader.ClassLoaders$AppClassLoader";
 }

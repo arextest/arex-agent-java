@@ -6,13 +6,11 @@ import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.agent.bootstrap.util.FileUtils;
 import io.arex.foundation.config.ConfigManager;
 import io.arex.foundation.healthy.HealthManager;
-import io.arex.foundation.serializer.jackson.JacksonSerializer;
 import io.arex.foundation.services.ConfigService;
 import io.arex.foundation.services.DataCollectorService;
 import io.arex.foundation.services.TimerService;
 import io.arex.foundation.util.NetUtils;
 import io.arex.inst.runtime.context.RecordLimiter;
-import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.service.DataCollector;
 import io.arex.inst.runtime.service.DataService;
 
@@ -113,15 +111,7 @@ public abstract class BaseAgentInstaller implements AgentInstaller {
     private void initDependentComponents() {
         TraceContextManager.init(NetUtils.getIpAddress());
         RecordLimiter.init(HealthManager::acquire);
-        initSerializer();
         initDataCollector();
-    }
-
-    /**
-     * add class to user loader search. ex: ParallelWebappClassLoader
-     */
-    private void initSerializer() {
-        Serializer.builder(JacksonSerializer.INSTANCE).build();
     }
     private void initDataCollector() {
         DataCollector collector = DataCollectorService.INSTANCE;

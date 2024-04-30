@@ -34,12 +34,12 @@ class MainAppIT extends AbstractIT {
                 .withCommand("java -javaagent:/tmp/arex/arex-agent-jar/arex-agent.jar" +
                         " -Darex.service.name=test-app" +
                         " -jar /tmp/main-app.jar")
-                .waitingFor(Wait.forLogMessage(".*ArexJavaAgent AgentInstaller initialized.*", 1));
+                .waitingFor(Wait.forLogMessage(".*ArexAgent AgentInstaller initialized.*", 1));
 
         container.start();
 
         try {
-            assertTrue(container.getLogs().contains("ArexJavaAgent AgentInstaller initialized"));
+            assertTrue(container.getLogs().contains("ArexAgent AgentInstaller initialized"));
         } finally {
             container.stop();
         }
