@@ -5,9 +5,6 @@ import com.alibaba.dubbo.remoting.Channel;
 import com.alibaba.dubbo.rpc.*;
 import io.arex.agent.bootstrap.util.NumberUtil;
 import io.arex.agent.bootstrap.util.StringUtil;
-import io.arex.inst.runtime.context.ContextManager;
-import io.arex.inst.runtime.listener.CaseEvent;
-import io.arex.inst.runtime.listener.CaseEventDispatcher;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.log.LogManager;
 import org.slf4j.Logger;
@@ -34,12 +31,12 @@ public class DubboCodecExtractor {
      */
     public static boolean writeAttachments(Channel channel, ObjectOutput out, Object data) {
         try {
-            if (!ContextManager.needReplay()) {
+            RpcResult result = (RpcResult) data;
+            Map<String, String> attachments = result.getAttachments();
+            if (attachments.get(ArexConstants.REPLAY_ID) == null) {
                 return false;
             }
 
-            RpcResult result = (RpcResult) data;
-            Map<String, String> attachments = new HashMap<>(result.getAttachments());
             String version = channel.getUrl().getParameter("version", "");
             boolean attach = isNeedAttach(version, attachments);
             if (!attach) {
@@ -59,9 +56,7 @@ public class DubboCodecExtractor {
                 out.writeByte(RESPONSE_WITH_EXCEPTION_WITH_ATTACHMENTS);
                 out.writeObject(throwable);
             }
-            out.writeObject(result.getAttachments());
-            // DubboCodec#encodeResponseData after main entry AbstractProxyInvoker#invoke, so trigger exit event here
-            CaseEventDispatcher.onEvent(CaseEvent.ofExitEvent());
+            out.writeObject(attachments);
             return true;
         } catch (Throwable e) {
             LOGGER.warn(LogManager.buildTitle("alibaba.dubbo.writeAttachments"), e);
