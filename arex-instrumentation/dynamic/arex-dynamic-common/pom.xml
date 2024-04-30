@@ -36,5 +36,11 @@
             <version>${reactor.version}</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjweaver</artifactId>
+            <version>1.8.9</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 </project>
