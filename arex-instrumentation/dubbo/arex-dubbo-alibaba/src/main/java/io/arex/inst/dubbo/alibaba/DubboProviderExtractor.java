@@ -38,10 +38,11 @@ public class DubboProviderExtractor extends DubboExtractor {
             return;
         }
         DubboAdapter adapter = DubboAdapter.of(invoker, invocation);
-        setResponseHeader((k, v) -> setAttachment(invocation, k, v, adapter));
+        setResponseHeader((k, v) -> setAttachment(invocation, k, v, adapter, result));
         RequestHandlerManager.postHandle(invocation.getAttachments(), result != null ? result.getAttachments() : null,
                 MockCategoryType.DUBBO_PROVIDER.getName());
         adapter.execute(result, makeMocker(adapter));
+        CaseEventDispatcher.onEvent(CaseEvent.ofExitEvent());
         invocation.getAttachments().remove(ArexConstants.ORIGINAL_REQUEST);
     }
     private static Mocker makeMocker(DubboAdapter adapter) {
@@ -53,12 +54,21 @@ public class DubboProviderExtractor extends DubboExtractor {
         responseAttributes.put(KEY_HEADERS, adapter.getServerAttachment());
         return buildMocker(mocker, adapter, requestAttributes, responseAttributes);
     }
-    private static void setAttachment(Invocation invocation, String key, String value, DubboAdapter adapter) {
+    private static void setAttachment(Invocation invocation, String key, String value, DubboAdapter adapter, Result result) {
         // dubbo < 2.6.3 set server attachment(such as:arex-replay-id) at DubboCodecExtractor#writeAttachments
         adapter.setServerAttachment(key, value);
         if (invocation instanceof RpcInvocation) {
             RpcInvocation rpcInvocation = (RpcInvocation) invocation;
             rpcInvocation.setAttachment(key, value);
+        }
+        if (result != null) {
+            /*
+             * compatible dubbo version < 2.6.3 not support provider return attachment to consumer
+             * the set result is used in DubboCodec#encodeResponseData (serialize)
+             */
+            result.getAttachments().put(key, value);
+            result.getAttachments().put(ArexConstants.SCHEDULE_REPLAY_FLAG,
+                    invocation.getAttachment(ArexConstants.SCHEDULE_REPLAY_FLAG, Boolean.FALSE.toString()));
         }
     }
 }

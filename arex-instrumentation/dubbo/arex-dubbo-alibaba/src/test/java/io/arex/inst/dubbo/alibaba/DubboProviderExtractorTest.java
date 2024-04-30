@@ -1,5 +1,6 @@
 package io.arex.inst.dubbo.alibaba;
 
+import com.alibaba.dubbo.rpc.Result;
 import com.alibaba.dubbo.rpc.RpcContext;
 import com.alibaba.dubbo.rpc.RpcInvocation;
 import io.arex.inst.runtime.config.Config;
@@ -63,7 +64,8 @@ class DubboProviderExtractorTest {
     @MethodSource("onServiceExitCase")
     void onServiceExit(Runnable mocker, Runnable asserts) {
         mocker.run();
-        DubboProviderExtractor.onServiceExit(null, invocation, null);
+        Result result = Mockito.mock(Result.class);
+        DubboProviderExtractor.onServiceExit(null, invocation, result);
         asserts.run();
     }
 
