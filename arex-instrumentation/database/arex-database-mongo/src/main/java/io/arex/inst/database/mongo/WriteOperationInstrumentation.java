@@ -74,9 +74,6 @@ public class WriteOperationInstrumentation extends TypeInstrumentation {
                 RepeatedCollectManager.enter();
             }
             if (ContextManager.needReplay()) {
-                if (void.class.isAssignableFrom(method.getReturnType())) {
-                    return true;
-                }
                 mockResult = MongoHelper.replay(methodName, namespace, filter);
                 return mockResult != null && mockResult.notIgnoreMockResult();
             }
@@ -100,7 +97,7 @@ public class WriteOperationInstrumentation extends TypeInstrumentation {
                 return;
             }
 
-            if (ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate() && !void.class.isAssignableFrom(method.getReturnType())) {
+            if (ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate()) {
                 MongoHelper.record(methodName, namespace, filter, result, throwable);
             }
         }
