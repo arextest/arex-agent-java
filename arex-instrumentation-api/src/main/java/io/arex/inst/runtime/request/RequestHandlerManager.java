@@ -12,8 +12,8 @@ import io.arex.inst.runtime.log.LogManager;
 public class RequestHandlerManager {
     private static final Map<String, List<RequestHandler>> REQUEST_HANDLER_CACHE = new ConcurrentHashMap<>();
 
-    public static void init() {
-        final List<RequestHandler> requestHandlers = ServiceLoader.load(RequestHandler.class);
+    public static void init(ClassLoader contextClassLoader) {
+        final List<RequestHandler> requestHandlers = ServiceLoader.load(RequestHandler.class, contextClassLoader);
         final Map<String, List<RequestHandler>> requestHandlerMap = requestHandlers.stream().collect(Collectors.groupingBy(RequestHandler::name));
         REQUEST_HANDLER_CACHE.putAll(requestHandlerMap);
     }
