@@ -15,6 +15,7 @@ class RequestHandlerManagerTest {
 
     @BeforeAll
     static void setUp() {
+        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         Mockito.mockStatic(ServiceLoader.class);
         requestHandler = Mockito.mock(RequestHandler.class);
         requestHandlerError = Mockito.mock(RequestHandler.class);
@@ -23,8 +24,8 @@ class RequestHandlerManagerTest {
         Mockito.doThrow(new RuntimeException()).when(requestHandlerError).preHandle("request");
         Mockito.doThrow(new RuntimeException()).when(requestHandlerError).handleAfterCreateContext("request");
         Mockito.doThrow(new RuntimeException()).when(requestHandlerError).postHandle("request", "response");
-        Mockito.when(ServiceLoader.load(RequestHandler.class)).thenReturn(Arrays.asList(requestHandler, requestHandlerError));
-        RequestHandlerManager.init();
+        Mockito.when(ServiceLoader.load(RequestHandler.class, classLoader)).thenReturn(Arrays.asList(requestHandler, requestHandlerError));
+        RequestHandlerManager.init(classLoader);
     }
 
     @AfterAll

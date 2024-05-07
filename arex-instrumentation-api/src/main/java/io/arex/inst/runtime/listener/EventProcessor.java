@@ -66,13 +66,13 @@ public class EventProcessor {
     /**
      * user loader to load serializer, ex: ParallelWebappClassLoader
      */
-    private static void initSerializer() {
+    private static void initSerializer(ClassLoader contextClassLoader) {
         if (!existJacksonDependency) {
             AdviceClassesCollector.INSTANCE.appendToClassLoaderSearch("jackson",
-                Thread.currentThread().getContextClassLoader());
+                    contextClassLoader);
         }
         Serializer.initSerializerConfigMap();
-        final List<StringSerializable> serializableList = ServiceLoader.load(StringSerializable.class, Thread.currentThread().getContextClassLoader());
+        final List<StringSerializable> serializableList = ServiceLoader.load(StringSerializable.class, contextClassLoader);
         Serializer.builder(serializableList).build();
     }
 
@@ -114,10 +114,12 @@ public class EventProcessor {
      */
     public static void onRequest(){
         if (INIT_DEPENDENCY.compareAndSet(InitializeEnum.START, InitializeEnum.RUNNING)) {
+            ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+            // https://bugs.openjdk.org/browse/JDK-8172726
             CompletableFuture.runAsync(() -> {
-                initSerializer();
-                initLog();
-                RequestHandlerManager.init();
+                initSerializer(contextClassLoader);
+                initLog(contextClassLoader);
+                RequestHandlerManager.init(contextClassLoader);
                 INIT_DEPENDENCY.set(InitializeEnum.COMPLETE);
             });
         }
@@ -125,8 +127,8 @@ public class EventProcessor {
         ContextManager.remove();
     }
 
-    private static void initLog() {
-        List<Logger> extensionLoggerList = ServiceLoader.load(Logger.class, Thread.currentThread().getContextClassLoader());
+    private static void initLog(ClassLoader contextClassLoader) {
+        List<Logger> extensionLoggerList = ServiceLoader.load(Logger.class, contextClassLoader);
         LogManager.build(extensionLoggerList);
     }
 }
