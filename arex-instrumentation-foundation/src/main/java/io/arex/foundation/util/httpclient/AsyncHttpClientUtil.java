@@ -1,12 +1,15 @@
 package io.arex.foundation.util.httpclient;
 
+import io.arex.agent.bootstrap.constants.ConfigConstants;
 import io.arex.agent.bootstrap.util.MapUtils;
+import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.foundation.config.ConfigManager;
 import io.arex.foundation.model.HttpClientResponse;
 import io.arex.foundation.util.CompressUtil;
 import io.arex.foundation.util.httpclient.async.AutoCleanedPoolingNHttpClientConnectionManager;
 import io.arex.foundation.util.httpclient.async.ThreadFactoryImpl;
 import io.arex.inst.runtime.log.LogManager;
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
 import org.apache.http.client.config.RequestConfig;
@@ -15,6 +18,7 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
 import org.apache.http.impl.nio.client.HttpAsyncClients;
+import org.apache.http.message.BasicHeader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,8 +34,7 @@ import java.util.concurrent.CompletableFuture;
 public class AsyncHttpClientUtil {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AsyncHttpClientUtil.class);
-    private static final String USER_AGENT = String.format("arex-async-http-client-%s",
-        ConfigManager.INSTANCE.getAgentVersion());
+
     /**
      * the compressed size of the sent httpEntity is limited to less than 5MB
      */
@@ -95,7 +98,7 @@ public class AsyncHttpClientUtil {
             ClientConfig.DEFAULT_SOCKET_TIMEOUT);
         httpPost.setEntity(httpEntity);
 
-        if (requestHeaders != null && requestHeaders.size() > 0) {
+        if (MapUtils.isNotEmpty(requestHeaders)) {
             requestHeaders.forEach(httpPost::addHeader);
         }
         return httpPost;
@@ -107,8 +110,9 @@ public class AsyncHttpClientUtil {
         RequestConfig requestConfig = createRequestConfig(connectTimeout, socketTimeout);
 
         httpPost.setConfig(requestConfig);
-        httpPost.addHeader(HttpHeaders.ACCEPT, "*");
-        httpPost.addHeader(HttpHeaders.USER_AGENT, USER_AGENT);
+        httpPost.addHeader(ClientConfig.HEADER_ACCEPT);
+        httpPost.addHeader(ClientConfig.HEADER_USER_AGENT);
+        httpPost.addHeader(ClientConfig.HEADER_API_TOKEN);
 
         return httpPost;
     }
@@ -141,5 +145,11 @@ public class AsyncHttpClientUtil {
         private static final int DEFAULT_SOCKET_TIMEOUT = 5000;
         private static final String APPLICATION_ZSTD_JSON = "application/zstd-json;charset=UTF-8";
         private static final String APPLICATION_JSON = "application/json;charset=UTF-8";
+
+        private static final Header HEADER_ACCEPT = new BasicHeader(HttpHeaders.ACCEPT, "*/*");
+        private static final Header HEADER_USER_AGENT = new BasicHeader(HttpHeaders.USER_AGENT,
+            String.format("arex-async-http-client-%s", ConfigManager.INSTANCE.getAgentVersion()));
+        private static final Header HEADER_API_TOKEN = new BasicHeader("arex-api-token",
+            System.getProperty(ConfigConstants.API_TOKEN, StringUtil.EMPTY));
     }
 }
