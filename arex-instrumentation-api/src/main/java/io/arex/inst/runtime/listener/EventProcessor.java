@@ -41,7 +41,7 @@ public class EventProcessor {
      * the onRequest method must be called before calling the onCreate method
      */
     public static void onCreate(EventSource source){
-        if (!InitializeEnum.COMPLETE.equals(INIT_DEPENDENCY.get())) {
+        if (!dependencyInitComplete()) {
             return;
         }
         initContext(source);
@@ -130,5 +130,9 @@ public class EventProcessor {
     private static void initLog(ClassLoader contextClassLoader) {
         List<Logger> extensionLoggerList = ServiceLoader.load(Logger.class, contextClassLoader);
         LogManager.build(extensionLoggerList);
+    }
+
+    public static boolean dependencyInitComplete() {
+        return InitializeEnum.COMPLETE.equals(INIT_DEPENDENCY.get());
     }
 }
