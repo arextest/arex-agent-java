@@ -103,13 +103,13 @@ public class DatabaseExtractor {
                 replayResult = Serializer.deserialize(replayMocker.getTargetResponse().getBody(),
                         replayMocker.getTargetResponse().getType(), serializer);
             }
-
-            if (replayResult != null) {
-                // restore keyHolder
-                setKeyHolder(replayMocker.getTargetResponse().attributeAsString(KEY_HOLDER));
-                setPage(replayMocker.getTargetResponse().attributeAsString(PAGE_NAME));
-                setKeyHolderName(replayMocker.getTargetResponse().attributeAsString(KEY_HOLDER_NAME));
-            }
+        }
+        // compatible with methods whose return type is void but need to restore the keyHolder. ex: mongo insert(version < 4.0.1)
+        if (replayMocker != null) {
+            // restore keyHolder
+            setKeyHolder(replayMocker.getTargetResponse().attributeAsString(KEY_HOLDER));
+            setPage(replayMocker.getTargetResponse().attributeAsString(PAGE_NAME));
+            setKeyHolderName(replayMocker.getTargetResponse().attributeAsString(KEY_HOLDER_NAME));
         }
 
         return MockResult.success(ignoreMockResult, replayResult);
