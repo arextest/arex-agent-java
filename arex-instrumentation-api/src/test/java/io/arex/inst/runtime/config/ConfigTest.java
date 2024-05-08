@@ -3,16 +3,22 @@ package io.arex.inst.runtime.config;
 import io.arex.agent.bootstrap.constants.ConfigConstants;
 import io.arex.agent.bootstrap.util.ConcurrentHashSet;
 import io.arex.inst.runtime.context.RecordLimiter;
+import io.arex.inst.runtime.listener.EventProcessor;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.model.DynamicClassEntity;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -21,6 +27,15 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 class ConfigTest {
+    @BeforeAll
+    static void setUp() {
+        Mockito.mockStatic(EventProcessor.class);
+    }
+
+    @AfterAll
+    static void tearDown() {
+        Mockito.clearAllCaches();
+    }
 
     @ParameterizedTest
     @MethodSource("invalidCase")
@@ -32,25 +47,36 @@ class ConfigTest {
     static Stream<Arguments> invalidCase() {
         ConfigBuilder config = ConfigBuilder.create("mock");
         Runnable mocker1 = () -> {
+            Mockito.when(EventProcessor.dependencyInitComplete()).thenReturn(true);
             config.addProperty(ConfigConstants.STORAGE_SERVICE_MODE, "local").build();;
         };
         Runnable mocker2 = () -> {
+            Mockito.when(EventProcessor.dependencyInitComplete()).thenReturn(true);
             config.addProperty(ConfigConstants.STORAGE_SERVICE_MODE, "").build();;
             config.recordRate(0).build();
         };
         Runnable mocker3 = () -> {
+            Mockito.when(EventProcessor.dependencyInitComplete()).thenReturn(true);
             config.recordRate(1).build();
         };
         Runnable mocker4 = () -> {
+            Mockito.when(EventProcessor.dependencyInitComplete()).thenReturn(true);
             config.addProperty(ConfigConstants.DURING_WORK, "true").build();;
         };
         Runnable mocker5 = () -> {
+            Mockito.when(EventProcessor.dependencyInitComplete()).thenReturn(true);
             config.addProperty(ConfigConstants.AGENT_ENABLED, "true").build();
             RecordLimiter.init(mock -> true);
         };
         Runnable disableRecord = () -> {
+            Mockito.when(EventProcessor.dependencyInitComplete()).thenReturn(true);
             config.addProperty(ConfigConstants.DISABLE_RECORD, "true").build();;
             RecordLimiter.init(mock -> true);
+        };
+
+        Runnable dependencyNotInitComplete = () -> {
+            Mockito.when(EventProcessor.dependencyInitComplete()).thenReturn(false);
+            config.build();;
         };
 
         Predicate<Boolean> assertFalse = result -> !result;
@@ -61,7 +87,8 @@ class ConfigTest {
             arguments(mocker3, assertTrue),
             arguments(mocker4, assertTrue),
             arguments(mocker5, assertFalse),
-            arguments(disableRecord, assertTrue)
+            arguments(disableRecord, assertTrue),
+            arguments(dependencyNotInitComplete, assertTrue)
         );
     }
 
