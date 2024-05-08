@@ -18,12 +18,10 @@ public class ApolloServletV5RequestHandler implements RequestHandler<HttpServlet
     @Override
     public void preHandle(HttpServletRequest request) {
         // no need implement
-        System.out.println("ApolloServletV5RequestHandler preHandle:"+name());
     }
 
     @Override
     public void handleAfterCreateContext(HttpServletRequest request) {
-        System.out.println("ApolloServletV5RequestHandler handleAfterCreateContext:"+name());
         // check business application if loaded apollo-client
         if (ApolloConfigChecker.unloadApollo()) {
             return;
@@ -35,7 +33,6 @@ public class ApolloServletV5RequestHandler implements RequestHandler<HttpServlet
 
     @Override
     public void postHandle(HttpServletRequest request, HttpServletResponse response) {
-        System.out.println("ApolloServletV5RequestHandler postHandle:"+name());
         if (postInvalid(request, response)) {
             return;
         }
