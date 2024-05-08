@@ -1,12 +1,13 @@
-package io.arex.inst.runtime.request;
+package io.arex.inst.dubbo.common;
 
 import com.google.auto.service.AutoService;
 import io.arex.agent.bootstrap.model.MockCategoryType;
+import io.arex.inst.runtime.request.RequestHandler;
 import io.arex.inst.runtime.util.MergeRecordReplayUtil;
 
 
 @AutoService(RequestHandler.class)
-public class MergeRecordDubboRequestHandler implements RequestHandler<Object, Object> {
+public class DubboRequestHandler implements RequestHandler<Object, Object> {
     @Override
     public String name() {
         return MockCategoryType.DUBBO_PROVIDER.getName();

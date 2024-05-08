@@ -1,18 +1,19 @@
-package io.arex.inst.runtime.request;
+package io.arex.inst.httpservlet.handler;
 
 import com.google.auto.service.AutoService;
 import io.arex.inst.runtime.model.ArexConstants;
+import io.arex.inst.runtime.request.RequestHandler;
 import io.arex.inst.runtime.util.MergeRecordReplayUtil;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 
 @AutoService(RequestHandler.class)
-public class MergeRecordServletV5RequestHandler implements RequestHandler<HttpServletRequest, HttpServletResponse> {
+public class ServletV3RequestHandler implements RequestHandler<HttpServletRequest, HttpServletResponse> {
     @Override
     public String name() {
-        return ArexConstants.SERVLET_V5;
+        return ArexConstants.SERVLET_V3;
     }
 
     @Override
@@ -22,7 +23,6 @@ public class MergeRecordServletV5RequestHandler implements RequestHandler<HttpSe
 
     @Override
     public void handleAfterCreateContext(HttpServletRequest request) {
-        System.out.println("MergeRecordServletV5RequestHandler handleAfterCreateContext:"+name());
         // init replay and cached dynamic class
         MergeRecordReplayUtil.mergeReplay();
     }
