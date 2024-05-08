@@ -301,4 +301,9 @@ class ServletAdapterImplV3Test {
         String redirectRecordId = instance.getParameterFromQueryString(mockRequest, "arex-record-id");
         assertEquals("mock-redirectRecordId", redirectRecordId);
     }
+
+    @Test
+    void getServletVersion() {
+        assertEquals(ArexConstants.SERVLET_V3, instance.getServletVersion());
+    }
 }
