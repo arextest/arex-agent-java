@@ -98,4 +98,6 @@ public interface ServletAdapter<HttpServletRequest, HttpServletResponse> {
         end = end < 0 ? queryString.length() : end;
         return StringUtil.substring(queryString, start, end);
     }
+
+    String getServletVersion();
 }

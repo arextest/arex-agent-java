@@ -3,7 +3,6 @@ package io.arex.inst.httpservlet;
 import io.arex.agent.bootstrap.TraceContextManager;
 import io.arex.agent.bootstrap.constants.ConfigConstants;
 import io.arex.agent.bootstrap.internal.Pair;
-import io.arex.agent.bootstrap.model.MockCategoryType;
 import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.httpservlet.adapter.ServletAdapter;
@@ -104,7 +103,7 @@ public class ServletAdviceHelper {
             return null;
         }
 
-        RequestHandlerManager.preHandle(httpServletRequest, MockCategoryType.SERVLET.getName());
+        RequestHandlerManager.preHandle(httpServletRequest, adapter.getServletVersion());
         // skip servlet if attr with arex-skip-flag
         if (Boolean.TRUE.equals(adapter.getAttribute(httpServletRequest, ArexConstants.SKIP_FLAG))) {
             return null;
@@ -121,7 +120,7 @@ public class ServletAdviceHelper {
             CaseEventDispatcher.onEvent(CaseEvent.ofCreateEvent(EventSource.of(caseId, excludeMockTemplate)));
             ContextManager.currentContext().setAttachment(ArexConstants.FORCE_RECORD,
                 adapter.getRequestHeader(httpServletRequest, ArexConstants.FORCE_RECORD, ArexConstants.HEADER_X_PREFIX));
-            RequestHandlerManager.handleAfterCreateContext(httpServletRequest, MockCategoryType.SERVLET.getName());
+            RequestHandlerManager.handleAfterCreateContext(httpServletRequest, adapter.getServletVersion());
         }
 
         if (ContextManager.needRecordOrReplay()) {
@@ -140,7 +139,7 @@ public class ServletAdviceHelper {
             TRequest httpServletRequest = adapter.asHttpServletRequest(servletRequest);
             TResponse httpServletResponse = adapter.asHttpServletResponse(servletResponse);
 
-            RequestHandlerManager.postHandle(httpServletRequest, httpServletResponse, MockCategoryType.SERVLET.getName());
+            RequestHandlerManager.postHandle(httpServletRequest, httpServletResponse, adapter.getServletVersion());
 
             if (httpServletRequest == null || httpServletResponse == null) {
                 return;

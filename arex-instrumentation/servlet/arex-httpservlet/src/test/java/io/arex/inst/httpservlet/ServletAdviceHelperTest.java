@@ -61,6 +61,7 @@ class ServletAdviceHelperTest {
         Mockito.mockStatic(IgnoreUtils.class);
         Mockito.mockStatic(Config.class);
         Mockito.when(Config.get()).thenReturn(Mockito.mock(Config.class));
+        Mockito.when(adapter.getServletVersion()).thenReturn("mock");
     }
 
     @AfterAll

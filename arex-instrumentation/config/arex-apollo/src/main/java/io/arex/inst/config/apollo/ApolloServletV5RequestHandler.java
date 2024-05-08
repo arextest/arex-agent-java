@@ -1,17 +1,18 @@
 package io.arex.inst.config.apollo;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import com.google.auto.service.AutoService;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.request.RequestHandler;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
 @AutoService(RequestHandler.class)
-public class ApolloServletV3RequestHandler implements RequestHandler<HttpServletRequest, HttpServletResponse> {
+public class ApolloServletV5RequestHandler implements RequestHandler<HttpServletRequest, HttpServletResponse> {
     @Override
     public String name() {
-        return ArexConstants.SERVLET_V3;
+        return ArexConstants.SERVLET_V5;
     }
 
     @Override

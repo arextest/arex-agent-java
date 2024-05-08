@@ -6,6 +6,7 @@ import io.arex.inst.httpservlet.adapter.ServletAdapter;
 import io.arex.inst.httpservlet.wrapper.CachedBodyRequestWrapperV3;
 import io.arex.inst.httpservlet.wrapper.CachedBodyResponseWrapperV3;
 import io.arex.inst.httpservlet.listener.ServletAsyncListenerV3;
+import io.arex.inst.runtime.model.ArexConstants;
 import org.springframework.web.context.request.NativeWebRequest;
 
 import javax.annotation.Nullable;
@@ -228,5 +229,10 @@ public class ServletAdapterImplV3 implements ServletAdapter<HttpServletRequest, 
     @Override
     public String getQueryString(HttpServletRequest servletRequest) {
         return servletRequest.getQueryString();
+    }
+
+    @Override
+    public String getServletVersion() {
+        return ArexConstants.SERVLET_V3;
     }
 }

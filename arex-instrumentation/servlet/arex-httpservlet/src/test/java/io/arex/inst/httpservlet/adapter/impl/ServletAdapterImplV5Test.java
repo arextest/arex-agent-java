@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 
 import io.arex.inst.httpservlet.wrapper.CachedBodyRequestWrapperV5;
 import io.arex.inst.httpservlet.wrapper.CachedBodyResponseWrapperV5;
+import io.arex.inst.runtime.model.ArexConstants;
 import jakarta.servlet.ReadListener;
 import jakarta.servlet.ServletInputStream;
 import java.io.ByteArrayInputStream;
@@ -271,5 +272,10 @@ class ServletAdapterImplV5Test {
     void getQueryString() {
         when(mockRequest.getQueryString()).thenReturn("k1=v1&k2=v2");
         assertEquals("k1=v1&k2=v2", instance.getQueryString(mockRequest));
+    }
+
+    @Test
+    void getServletVersion() {
+        assertEquals(ArexConstants.SERVLET_V5, instance.getServletVersion());
     }
 }
