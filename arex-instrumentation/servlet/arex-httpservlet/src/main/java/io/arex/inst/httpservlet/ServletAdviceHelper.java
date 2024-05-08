@@ -3,7 +3,6 @@ package io.arex.inst.httpservlet;
 import io.arex.agent.bootstrap.TraceContextManager;
 import io.arex.agent.bootstrap.constants.ConfigConstants;
 import io.arex.agent.bootstrap.internal.Pair;
-import io.arex.agent.bootstrap.model.MockCategoryType;
 import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.httpservlet.adapter.ServletAdapter;
