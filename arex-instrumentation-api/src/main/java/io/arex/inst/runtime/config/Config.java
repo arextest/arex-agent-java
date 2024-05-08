@@ -4,6 +4,7 @@ import io.arex.agent.bootstrap.constants.ConfigConstants;
 import io.arex.agent.bootstrap.util.ConcurrentHashSet;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.context.RecordLimiter;
+import io.arex.inst.runtime.listener.EventProcessor;
 import io.arex.inst.runtime.model.DynamicClassEntity;
 
 import java.util.ArrayList;
@@ -197,6 +198,9 @@ public class Config {
      * @return true: invalid, false: valid
      */
     public boolean invalidRecord(String path) {
+        if (!EventProcessor.dependencyInitComplete()) {
+            return true;
+        }
         if (isLocalStorage()) {
             return false;
         }
