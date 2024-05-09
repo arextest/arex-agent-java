@@ -74,7 +74,7 @@ public class DynamicClassExtractor {
         this.requestType = buildRequestType(method);
     }
 
-    public DynamicClassExtractor(Method method, Object[] args) {
+    public DynamicClassExtractor(Method method, Object[] args, Object target) {
         int proceedingJoinPointIndex = proceedingJoinPointIndex(method.getParameterTypes());
         if (proceedingJoinPointIndex != -1) {
             ProceedingJoinPoint proceedingJoinPoint = (ProceedingJoinPoint) args[proceedingJoinPointIndex];
@@ -84,7 +84,7 @@ public class DynamicClassExtractor {
             this.args = proceedingJoinPoint.getArgs();
             this.requestType = ArrayUtils.toString(this.args, o -> o.getClass().getTypeName());
         } else {
-            this.clazzName = normalizeClassName(method.getDeclaringClass().getName());
+            this.clazzName = normalizeClassName(getTargetClassName(method.getDeclaringClass(), target));
             this.methodName = method.getName();
             this.args = args;
             this.requestType = ArrayUtils.toString(method.getParameterTypes(), obj -> ((Class<?>)obj).getTypeName());
@@ -400,6 +400,26 @@ public class DynamicClassExtractor {
             return StringUtil.encodeAndHash(String.format("%s_%s_%s", this.clazzName, this.methodName, getSerializedResult()));
         }
         return StringUtil.encodeAndHash(String.format("%s_%s_%s", this.clazzName, this.methodName, null));
+    }
+
+    /**
+     * abstract class BaseCache{
+     *     Object method() {
+     *     }
+     * }
+     * class subCache extends BaseCache{
+     *    Object methodB() {
+     *    }
+     * }
+     * when call subCache.method() -> BaseCache.method(), the target class name is subCache
+     * when call subCache.methodB(), the target class name is subCache
+     * @param target maybe null when method is static
+     */
+    private String getTargetClassName(Class<?> clazz, Object target) {
+        if (target != null) {
+            return target.getClass().getName();
+        }
+        return clazz.getName();
     }
 
     String normalizeClassName(String className) {
