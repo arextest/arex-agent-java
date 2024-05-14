@@ -4,6 +4,7 @@ import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.ContextManager;
+import io.arex.inst.runtime.listener.EventProcessor;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.util.IgnoreUtils;
 
@@ -23,6 +24,9 @@ public class DubboExtractor {
     }
 
     protected static boolean shouldSkip(AbstractAdapter adapter) {
+        if (!EventProcessor.dependencyInitComplete()) {
+            return true;
+        }
         // exclude dubbo framework method
         if (EXCLUDE_DUBBO_METHOD_LIST.contains(adapter.getServiceOperation())) {
             return true;

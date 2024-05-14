@@ -9,7 +9,9 @@ import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.context.RecordLimiter;
 import io.arex.inst.runtime.listener.CaseEventDispatcher;
+import io.arex.inst.runtime.listener.EventProcessor;
 import io.arex.inst.runtime.model.ArexConstants;
+import io.arex.inst.runtime.util.CaseManager;
 import io.arex.inst.runtime.util.IgnoreUtils;
 import io.arex.inst.runtime.util.MockUtils;
 import org.jboss.netty.channel.ChannelHandlerContext;
@@ -53,6 +55,8 @@ class RequestTracingHandlerTest {
         Mockito.when(Config.get()).thenReturn(Mockito.mock(Config.class));
         Mockito.mockStatic(MockUtils.class);
         Mockito.when(ContextManager.currentContext()).thenReturn(ArexContext.of("mock"));
+        Mockito.mockStatic(EventProcessor.class);
+        Mockito.when(EventProcessor.dependencyInitComplete()).thenReturn(true);
     }
 
     @AfterAll
@@ -109,6 +113,10 @@ class RequestTracingHandlerTest {
             Mockito.when(ContextManager.currentContext()).thenReturn(Mockito.mock(ArexContext.class));
         };
 
+        Runnable mocker8 = () -> {
+            Mockito.when(EventProcessor.dependencyInitComplete()).thenReturn(false);
+        };
+
         return Stream.of(
                 arguments(mocker1, event),
                 arguments(mocker2, event),
@@ -117,7 +125,8 @@ class RequestTracingHandlerTest {
                 arguments(mocker4_1, event),
                 arguments(mocker5, event),
                 arguments(mocker6, event),
-                arguments(mocker7, event)
+                arguments(mocker7, event),
+                arguments(mocker8, event)
         );
     }
 

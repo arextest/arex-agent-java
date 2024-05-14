@@ -10,7 +10,7 @@ import io.arex.inst.runtime.listener.EventProcessorTest.TestGsonSerializer;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.util.TypeUtil;
 import java.lang.reflect.Field;
-import java.lang.reflect.Type;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -134,23 +134,26 @@ class SerializerTest {
 
     @Test
     void testInitSerializerConfigMap() throws Exception {
+        Method initSerializerConfigMap = Serializer.class.getDeclaredMethod("initSerializerConfigMap");
+        initSerializerConfigMap.setAccessible(true);
         // null config
         final Field instance = Config.class.getDeclaredField("INSTANCE");
         instance.setAccessible(true);
         instance.set(null, null);
-        Assertions.assertDoesNotThrow(Serializer::initSerializerConfigMap);
+        initSerializerConfigMap.invoke(null);
+        Assertions.assertDoesNotThrow(() -> Serializer.getSerializerFromType("dubboRequest"));
 
         // empty serializer config
         ConfigBuilder builder = new ConfigBuilder("testSerializer");
         builder.build();
-        Serializer.initSerializerConfigMap();
+        initSerializerConfigMap.invoke(null);
         assertNull(Serializer.getSerializerFromType("dubboRequest"));
 
         // serializer config
         builder = new ConfigBuilder("testSerializer");
         builder.addProperty(ConfigConstants.SERIALIZER_CONFIG, "soa:gson,dubboRequest:jackson,httpRequest");
         builder.build();
-        Serializer.initSerializerConfigMap();
+        initSerializerConfigMap.invoke(null);
         assertEquals("jackson", Serializer.getSerializerFromType("dubboRequest"));
         assertEquals("gson", Serializer.getSerializerFromType("soa"));
         assertNull(Serializer.getSerializerFromType("httpRequest"));

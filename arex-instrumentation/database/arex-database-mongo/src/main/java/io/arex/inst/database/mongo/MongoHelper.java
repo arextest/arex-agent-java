@@ -1,9 +1,9 @@
 package io.arex.inst.database.mongo;
 
-import com.google.common.collect.Sets;
 import com.mongodb.MongoNamespace;
 
 import io.arex.agent.bootstrap.model.MockResult;
+import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.database.common.DatabaseExtractor;
 import io.arex.inst.database.mongo.wrapper.ResultWrapper;
@@ -12,6 +12,7 @@ import io.arex.inst.runtime.util.TypeUtil;
 import org.bson.Document;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -24,7 +25,7 @@ import static io.arex.inst.runtime.model.ArexConstants.GSON_SERIALIZER;
  */
 public class MongoHelper {
     private static final String ID_FIELD = "_id";
-    private static final Set<String> INSERT_METHODS = Sets.newHashSet("executeInsertOne", "executeInsertMany");
+    private static final Set<String> INSERT_METHODS = CollectionUtil.newHashSet("executeInsertOne", "executeInsertMany");
     /**
      * used to separate keyHolder and keyHolderType
      */
