@@ -386,7 +386,11 @@ public class TypeUtil {
     public static String arrayObjectToString(Object[] objects) {
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i < objects.length; i++) {
-            builder.append(objects[i].getClass().getName());
+            if (objects[i] == null) {
+                builder.append("null");
+            } else {
+                builder.append(objects[i].getClass().getName());
+            }
             if (i != objects.length - 1) {
                 builder.append(",");
             }
