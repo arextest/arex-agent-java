@@ -6,6 +6,7 @@ import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.context.RecordLimiter;
 import io.arex.inst.runtime.listener.CaseEventDispatcher;
+import io.arex.inst.runtime.listener.EventProcessor;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.httpservlet.adapter.ServletAdapter;
 import io.arex.inst.runtime.util.IgnoreUtils;
@@ -20,7 +21,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.MockedConstruction;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -62,6 +62,8 @@ class ServletAdviceHelperTest {
         Mockito.mockStatic(Config.class);
         Mockito.when(Config.get()).thenReturn(Mockito.mock(Config.class));
         Mockito.when(adapter.getServletVersion()).thenReturn("mock");
+        Mockito.mockStatic(EventProcessor.class);
+        Mockito.when(EventProcessor.dependencyInitComplete()).thenReturn(true);
     }
 
     @AfterAll
@@ -93,6 +95,7 @@ class ServletAdviceHelperTest {
             Mockito.when(adapter.asHttpServletResponse(any())).thenReturn("mock");
             Mockito.when(adapter.getAttribute(any(), any())).thenReturn(Boolean.TRUE);
         };
+
         Runnable shouldSkipPreRequest = () -> {
             Mockito.when(adapter.getAttribute(any(), any())).thenReturn(Boolean.FALSE);
             Mockito.when(adapter.getMethod(any())).thenReturn("OPTIONS");
@@ -194,6 +197,10 @@ class ServletAdviceHelperTest {
             Mockito.when(IgnoreUtils.excludeOperation(any())).thenReturn(true);
         };
 
+        Runnable shouldSkipInvalidCase = () -> {
+            Mockito.when(EventProcessor.dependencyInitComplete()).thenReturn(false);
+        };
+
         Predicate<Pair<?, ?>> predicate1 = Objects::isNull;
         Predicate<Pair<?, ?>> predicate2 = Objects::nonNull;
         return Stream.of(
@@ -220,8 +227,9 @@ class ServletAdviceHelperTest {
             arguments("shouldSkip: hit includeOperaions while contextPath is empty", shouldSkip10, predicate1),
             arguments("shouldSkip: hit includeOperaions while contextPath is not empty", shouldSkip11, predicate1),
             arguments("shouldSkip: hit excludeOperaions while contextPath is empty", shouldSkip12, predicate1),
-            arguments("shouldSkip: hit excludeOperaions while contextPath is not empty", shouldSkip13, predicate1)
-        );
+            arguments("shouldSkip: hit excludeOperaions while contextPath is not empty", shouldSkip13, predicate1),
+            arguments("shouldSkip: CaseManager.invalid returns true", shouldSkipInvalidCase, predicate1)
+            );
     }
 
     @ParameterizedTest(name = "[{index}] {0}")

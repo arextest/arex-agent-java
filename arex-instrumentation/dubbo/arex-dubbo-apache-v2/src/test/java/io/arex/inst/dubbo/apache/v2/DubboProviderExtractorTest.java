@@ -5,6 +5,8 @@ import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.context.RecordLimiter;
 import io.arex.inst.runtime.listener.CaseEventDispatcher;
+import io.arex.inst.runtime.listener.EventProcessor;
+import io.arex.inst.runtime.util.CaseManager;
 import io.arex.inst.runtime.util.IgnoreUtils;
 import org.apache.dubbo.rpc.RpcContext;
 import org.apache.dubbo.rpc.RpcInvocation;
@@ -43,6 +45,8 @@ class DubboProviderExtractorTest {
         Mockito.mockStatic(Config.class);
         Mockito.when(Config.get()).thenReturn(Mockito.mock(Config.class));
         Mockito.when(ContextManager.currentContext()).thenReturn(ArexContext.of("mock"));
+        Mockito.mockStatic(EventProcessor.class);
+        Mockito.when(EventProcessor.dependencyInitComplete()).thenReturn(true);
     }
 
     @AfterAll

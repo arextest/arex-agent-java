@@ -8,8 +8,10 @@ import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.context.RecordLimiter;
 import io.arex.inst.runtime.listener.CaseEventDispatcher;
+import io.arex.inst.runtime.listener.EventProcessor;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.netty.v4.common.NettyHelper;
+import io.arex.inst.runtime.util.CaseManager;
 import io.arex.inst.runtime.util.IgnoreUtils;
 import io.arex.inst.runtime.util.MockUtils;
 import io.netty.buffer.EmptyByteBuf;
@@ -59,6 +61,8 @@ class RequestTracingHandlerTest {
         mockCaseEvent = Mockito.mockStatic(CaseEventDispatcher.class);
         Mockito.mockStatic(MockUtils.class);
         Mockito.when(ContextManager.currentContext()).thenReturn(ArexContext.of("mock"));
+        Mockito.mockStatic(EventProcessor.class);
+        Mockito.when(EventProcessor.dependencyInitComplete()).thenReturn(true);
     }
 
     @AfterAll
@@ -126,6 +130,9 @@ class RequestTracingHandlerTest {
         Runnable mocker9 = () -> {
             mocker.getTargetRequest().setBody("mock");
         };
+        Runnable mocker10 = () -> {
+            Mockito.when(EventProcessor.dependencyInitComplete()).thenReturn(false);
+        };
 
         return Stream.of(
                 arguments(mocker1, request),
@@ -137,7 +144,8 @@ class RequestTracingHandlerTest {
                 arguments(mocker6, request),
                 arguments(mocker7, httpContent),
                 arguments(mocker8, httpContent),
-                arguments(mocker9, httpContent)
+                arguments(mocker9, httpContent),
+                arguments(mocker10, request)
         );
     }
 

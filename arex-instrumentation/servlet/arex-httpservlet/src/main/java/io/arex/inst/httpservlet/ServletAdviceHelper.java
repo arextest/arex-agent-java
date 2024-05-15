@@ -9,6 +9,7 @@ import io.arex.inst.httpservlet.adapter.ServletAdapter;
 import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
+import io.arex.inst.runtime.listener.EventProcessor;
 import io.arex.inst.runtime.request.RequestHandlerManager;
 import io.arex.inst.runtime.listener.CaseEvent;
 import io.arex.inst.runtime.listener.CaseEventDispatcher;
@@ -205,6 +206,10 @@ public class ServletAdviceHelper {
 
     private static <TRequest> boolean shouldSkip(ServletAdapter<TRequest, ?> adapter,
                                                  TRequest httpServletRequest) {
+        if (!EventProcessor.dependencyInitComplete()) {
+            return true;
+        }
+
         // skip if pre-request http-method is HEAD or OPTIONS
         if (HttpMethod.HEAD.matches(adapter.getMethod(httpServletRequest))
                 || HttpMethod.OPTIONS.matches(adapter.getMethod(httpServletRequest))) {

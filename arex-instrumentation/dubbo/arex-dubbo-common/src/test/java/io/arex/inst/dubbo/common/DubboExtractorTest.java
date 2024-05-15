@@ -5,7 +5,9 @@ import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
+import io.arex.inst.runtime.listener.EventProcessor;
 import io.arex.inst.runtime.model.ArexConstants;
+import io.arex.inst.runtime.util.CaseManager;
 import io.arex.inst.runtime.util.IgnoreUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -34,6 +36,7 @@ class DubboExtractorTest {
         Mockito.mockStatic(Config.class);
         Mockito.when(Config.get()).thenReturn(Mockito.mock(Config.class));
         Mockito.mockStatic(ContextManager.class);
+        Mockito.mockStatic(EventProcessor.class);
     }
 
     @AfterAll
@@ -58,6 +61,7 @@ class DubboExtractorTest {
     }
 
     static Stream<Arguments> shouldSkipCase() {
+        Mockito.when(EventProcessor.dependencyInitComplete()).thenReturn(true);
         Runnable mocker1 = () -> {
             adapter.setServiceOperation("org.apache.dubbo.metadata.MetadataService.getMetadataInfo");
         };
@@ -80,6 +84,9 @@ class DubboExtractorTest {
         Runnable mocker6 = () -> {
             Mockito.when(IgnoreUtils.excludeEntranceOperation(any())).thenReturn(false);
         };
+        Runnable mocker7 = () -> {
+            Mockito.when(EventProcessor.dependencyInitComplete()).thenReturn(false);
+        };
         Predicate<Boolean> predicate1 = result -> result;
         Predicate<Boolean> predicate2 = result -> !result;
         return Stream.of(
@@ -88,7 +95,8 @@ class DubboExtractorTest {
                 arguments(mocker3, predicate2),
                 arguments(mocker4, predicate1),
                 arguments(mocker5, predicate1),
-                arguments(mocker6, predicate2)
+                arguments(mocker6, predicate2),
+                arguments(mocker7, predicate1)
         );
     }
 
