@@ -47,5 +47,18 @@ class ArrayUtilsTest {
         assertEquals(expect, ArrayUtils.toString(array, Object::toString));
     }
 
+    @ParameterizedTest
+    @MethodSource("ArrayUtilsToStringCase")
+    void toString(Object[] array, String expect) {
+        assertEquals(expect, ArrayUtils.toString(array, Object::toString));
+    }
+
+    static Stream<Arguments> ArrayUtilsToStringCase() {
+        return Stream.of(
+                arguments(new Object[]{null}, "[\"null\"]"),
+                arguments(new Object[]{"paramString", null}, "[\"paramString\", \"null\"]")
+        );
+    }
+
 
 }
