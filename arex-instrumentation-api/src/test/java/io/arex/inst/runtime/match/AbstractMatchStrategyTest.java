@@ -35,12 +35,4 @@ class AbstractMatchStrategyTest {
         MatchStrategyContext context = new MatchStrategyContext(mocker, new ArrayList<>(), null);
         assertDoesNotThrow(() -> target.match(context));
     }
-
-    @Test
-    void buildMatchedMocker() {
-        Mocker result = target.buildMatchedMocker(mocker, null);
-        assertNull(result);
-        result = target.buildMatchedMocker(mocker, new MergeDTO());
-        assertNotNull(result);
-    }
 }

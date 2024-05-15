@@ -4,7 +4,6 @@ import io.arex.agent.bootstrap.model.ArexMocker;
 import io.arex.agent.bootstrap.model.MockCategoryType;
 import io.arex.agent.bootstrap.model.MockStrategyEnum;
 import io.arex.agent.bootstrap.model.Mocker;
-import io.arex.inst.runtime.model.MergeDTO;
 import io.arex.inst.runtime.util.MockUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -52,26 +51,24 @@ class AccurateMatchStrategyTest {
             mocker.setTargetResponse(new Mocker.Target());
             mocker.setTargetRequest(new Mocker.Target());
             mocker.setCategoryType(MockCategoryType.DYNAMIC_CLASS);
-            List<MergeDTO> mergeReplayList = new ArrayList<>();
-            MergeDTO mergeDTO = new MergeDTO();
-            mergeReplayList.add(mergeDTO);
+            List<Mocker> mergeReplayList = new ArrayList<>();
+            mergeReplayList.add(new ArexMocker());
             return new MatchStrategyContext(mocker, mergeReplayList, MockStrategyEnum.FIND_LAST);
         };
         Supplier<MatchStrategyContext> contextSupplier2 = () -> {
             MatchStrategyContext context = contextSupplier1.get();
-            context.getMergeReplayList().get(0).setMatched(true);
+            context.getReplayList().get(0).setMatched(true);
             context.setMockStrategy(MockStrategyEnum.STRICT_MATCH);
             return context;
         };
         Supplier<MatchStrategyContext> contextSupplier3 = () -> {
             MatchStrategyContext context = contextSupplier1.get();
-            MergeDTO mergeDTO = new MergeDTO();
-            context.getMergeReplayList().add(mergeDTO);
+            context.getReplayList().add(new ArexMocker());
             return context;
         };
         Supplier<MatchStrategyContext> contextSupplier4 = () -> {
             MatchStrategyContext context = contextSupplier1.get();
-            context.getMergeReplayList().get(0).setMethodSignatureHash(1);
+            context.getReplayList().get(0).setMethodSignatureHash(1);
             context.setMockStrategy(MockStrategyEnum.STRICT_MATCH);
             return context;
         };

@@ -64,7 +64,7 @@ AREX utilizes the advanced Java technique, Instrument API, and is capable of ins
 - Auth0 jwt 3.x
 - JWTK jjwt 0.1+、jjwt-api 0.10+
 #### Netty
-- Netty server [3.x, 4.x]
+- Netty http server [3.x, 4.x]
 #### Config
 - Apollo Config [1.x, 2.x]
 

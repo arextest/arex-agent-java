@@ -15,8 +15,19 @@ public class ArexMocker implements Mocker {
     private long creationTime;
     private Mocker.Target targetRequest;
     private Mocker.Target targetResponse;
-    private boolean needMerge;
+    private transient boolean needMerge;
     private String operationName;
+    private transient boolean matched;
+    /**
+     * categoryType + operationName + requestType
+     * replay match need
+     */
+    private transient int methodRequestTypeHash;
+    /**
+     * operationName + requestBody
+     * replay match need
+     */
+    private transient int methodSignatureHash;
 
     public ArexMocker() {
     }
@@ -124,5 +135,29 @@ public class ArexMocker implements Mocker {
 
     public void setNeedMerge(boolean needMerge) {
         this.needMerge = needMerge;
+    }
+
+    public boolean isMatched() {
+        return matched;
+    }
+
+    public void setMatched(boolean matched) {
+        this.matched = matched;
+    }
+
+    public int getMethodSignatureHash() {
+        return methodSignatureHash;
+    }
+
+    public void setMethodSignatureHash(int methodSignatureHash) {
+        this.methodSignatureHash = methodSignatureHash;
+    }
+
+    public int getMethodRequestTypeHash() {
+        return methodRequestTypeHash;
+    }
+
+    public void setMethodRequestTypeHash(int methodRequestTypeHash) {
+        this.methodRequestTypeHash = methodRequestTypeHash;
     }
 }

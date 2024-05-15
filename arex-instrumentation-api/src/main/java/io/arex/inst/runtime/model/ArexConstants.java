@@ -48,17 +48,18 @@ public class ArexConstants {
     public static final String ORIGINAL_REQUEST = "arex-original-request";
     public static final String MERGE_RECORD_NAME = "arex.mergeRecord";
     public static final String MERGE_RECORD_THRESHOLD = "arex.merge.record.threshold";
-    public static final String MERGE_REPLAY_THRESHOLD = "arex.merge.replay.threshold";
+    public static final String DISABLE_MERGE_RECORD = "arex.disable.merge.record";
     public static final int MERGE_RECORD_THRESHOLD_DEFAULT = 10;
-    public static final int MERGE_REPLAY_THRESHOLD_DEFAULT = 1000;
     public static final String MERGE_TYPE = "java.util.ArrayList-io.arex.inst.runtime.model.MergeDTO";
     public static final String MERGE_SPLIT_COUNT = "arex.merge.split.count";
     public static final long MEMORY_SIZE_1MB = 1024L * 1024L;
     public static final long MEMORY_SIZE_5MB = 5 * 1024L * 1024L;
-    public static final String CALL_REPLAY_MAX = "callReplayMax";
     public static final String EXCEED_MAX_SIZE_TITLE = "exceed.max.size";
     public static final String EXCEED_MAX_SIZE_FLAG = "isExceedMaxSize";
     public static final String RECORD_SIZE_LIMIT = "arex.record.size.limit";
     public static final String SERVLET_V3 = "ServletV3";
     public static final String SERVLET_V5 = "ServletV5";
+    public static final String INTEGRATED_MODE = "integrated";
+    public static final String STANDALONE_MODE = "standalone";
+    public static final String MERGE_MOCKER_TYPE = "java.util.ArrayList-io.arex.agent.bootstrap.model.ArexMocker";
 }

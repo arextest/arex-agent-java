@@ -3,7 +3,7 @@ package io.arex.inst.dubbo.common;
 import com.google.auto.service.AutoService;
 import io.arex.agent.bootstrap.model.MockCategoryType;
 import io.arex.inst.runtime.request.RequestHandler;
-import io.arex.inst.runtime.util.MergeRecordReplayUtil;
+import io.arex.inst.runtime.util.ReplayUtil;
 
 
 @AutoService(RequestHandler.class)
@@ -21,7 +21,7 @@ public class DubboRequestHandler implements RequestHandler<Object, Object> {
     @Override
     public void handleAfterCreateContext(Object request) {
         // init replay and cached dynamic class
-        MergeRecordReplayUtil.mergeReplay();
+        ReplayUtil.replayAllMocker();
     }
 
     @Override

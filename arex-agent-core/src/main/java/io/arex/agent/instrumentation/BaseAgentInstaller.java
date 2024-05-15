@@ -111,18 +111,6 @@ public abstract class BaseAgentInstaller implements AgentInstaller {
     private void initDependentComponents() {
         TraceContextManager.init(NetUtils.getIpAddress());
         RecordLimiter.init(HealthManager::acquire);
-        initDataCollector();
-    }
-    private void initDataCollector() {
-        DataCollector collector = DataCollectorService.INSTANCE;
-        if (ConfigManager.INSTANCE.isLocalStorage()) {
-            List<DataCollector> extendCollectorList = ServiceLoader.load(DataCollector.class, getClassLoader());
-            if (CollectionUtil.isNotEmpty(extendCollectorList)) {
-                collector = extendCollectorList.get(0);
-            }
-        }
-        collector.start();
-        DataService.builder().setDataCollector(collector).build();
     }
 
     /**

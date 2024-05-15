@@ -19,6 +19,7 @@ import io.arex.inst.runtime.serializer.StringSerializable;
 import io.arex.inst.runtime.service.DataCollector;
 import io.arex.inst.runtime.service.DataService;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
@@ -36,13 +37,13 @@ class MockUtilsTest {
 
         configBuilder = ConfigBuilder.create("test");
         dataCollector = Mockito.mock(DataCollector.class);
-        DataService.builder().setDataCollector(dataCollector).build();
+        DataService.setDataCollector(Collections.singletonList(dataCollector));
 
         final List<StringSerializable> list = new ArrayList<>(2);
         list.add(new TestJacksonSerializable());
         list.add(new TestGsonSerializer());
         Serializer.builder(list).build();
-        Mockito.mockStatic(MergeRecordReplayUtil.class);
+        Mockito.mockStatic(MergeRecordUtil.class);
         Mockito.mockStatic(ReplayMatcher.class);
     }
 

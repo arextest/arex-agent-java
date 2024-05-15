@@ -3,7 +3,7 @@ package io.arex.inst.httpservlet.handler;
 import com.google.auto.service.AutoService;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.request.RequestHandler;
-import io.arex.inst.runtime.util.MergeRecordReplayUtil;
+import io.arex.inst.runtime.util.ReplayUtil;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -24,7 +24,7 @@ public class ServletV3RequestHandler implements RequestHandler<HttpServletReques
     @Override
     public void handleAfterCreateContext(HttpServletRequest request) {
         // init replay and cached dynamic class
-        MergeRecordReplayUtil.mergeReplay();
+        ReplayUtil.replayAllMocker();
     }
 
     @Override

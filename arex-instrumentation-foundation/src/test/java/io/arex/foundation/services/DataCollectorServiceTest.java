@@ -14,6 +14,8 @@ import io.arex.foundation.serializer.gson.GsonSerializer;
 import io.arex.foundation.util.httpclient.AsyncHttpClientUtil;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
+
+import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 
 import io.arex.inst.runtime.serializer.Serializer;
@@ -46,12 +48,12 @@ class DataCollectorServiceTest {
         mocker.setRecordId("testRecordId");
         CompletableFuture<HttpClientResponse> mockResponse = CompletableFuture.completedFuture(HttpClientResponse.emptyResponse());
         Mockito.when(AsyncHttpClientUtil.postAsyncWithZstdJson(anyString(), any(), any())).thenReturn(mockResponse);
-        assertDoesNotThrow(()-> DataCollectorService.INSTANCE.saveData(new DataEntity(mocker)));
+        assertDoesNotThrow(()-> DataCollectorService.INSTANCE.saveData(new DataEntity(Collections.singletonList(mocker))));
 
         CompletableFuture<HttpClientResponse> mockException = new CompletableFuture<>();
         mockException.completeExceptionally(new RuntimeException("mock exception"));
         Mockito.when(AsyncHttpClientUtil.postAsyncWithZstdJson(anyString(), any(), any())).thenReturn(mockException);
-        assertDoesNotThrow(()-> DataCollectorService.INSTANCE.saveData(new DataEntity(mocker)));
+        assertDoesNotThrow(()-> DataCollectorService.INSTANCE.saveData(new DataEntity(Collections.singletonList(mocker))));
         caseManagerMocked.verify(()-> CaseManager.invalid("testRecordId", null, null, DecelerateReasonEnum.SERVICE_EXCEPTION.getValue()), Mockito.times(1));
 
         // null entity
@@ -62,7 +64,7 @@ class DataCollectorServiceTest {
         context.setInvalidCase(true);
         Mockito.when(ContextManager.getContext("testRecordId")).thenReturn(context);
         mocker.setRecordId("testRecordId");
-        assertDoesNotThrow(()-> DataCollectorService.INSTANCE.saveData(new DataEntity(mocker)));
+        assertDoesNotThrow(()-> DataCollectorService.INSTANCE.saveData(new DataEntity(Collections.singletonList(mocker))));
     }
 
     @Test

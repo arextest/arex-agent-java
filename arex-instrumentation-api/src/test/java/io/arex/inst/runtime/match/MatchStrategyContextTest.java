@@ -24,13 +24,13 @@ class MatchStrategyContextTest {
     }
 
     @Test
-    void getMergeReplayList() {
-        assertNull(context.getMergeReplayList());
+    void getReplayList() {
+        assertNull(context.getReplayList());
     }
 
     @Test
-    void setMergeReplayList() {
-        assertDoesNotThrow(() -> context.setMergeReplayList(null));
+    void setReplayList() {
+        assertDoesNotThrow(() -> context.setReplayList(null));
     }
 
     @Test

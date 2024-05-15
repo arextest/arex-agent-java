@@ -2,14 +2,14 @@ package io.arex.inst.runtime.service;
 
 import io.arex.agent.bootstrap.model.MockStrategyEnum;
 import io.arex.agent.bootstrap.model.Mocker;
+import io.arex.inst.runtime.config.Config;
+import io.arex.inst.runtime.model.ArexConstants;
+
+import java.util.List;
 
 public class DataService {
 
     public static DataService INSTANCE;
-
-    public static Builder builder() {
-        return new Builder();
-    }
 
     private final DataCollector saver;
 
@@ -17,8 +17,8 @@ public class DataService {
         this.saver = dataSaver;
     }
 
-    public void save(Mocker requestMocker) {
-        saver.save(requestMocker);
+    public void save(List<Mocker> mockerList) {
+        saver.save(mockerList);
     }
 
     public void invalidCase(String postData) {
@@ -29,17 +29,20 @@ public class DataService {
         return saver.query(data, mockStrategy);
     }
 
-    public static class Builder {
+    public String queryAll(String data) {
+        return saver.queryAll(data);
+    }
 
-        private DataCollector collector;
-
-        public Builder setDataCollector(DataCollector collector) {
-            this.collector = collector;
-            return this;
+    public static void setDataCollector(List<DataCollector> collectors) {
+        DataCollector collector = collectors.get(0);
+        if (Config.get().isLocalStorage()) {
+            for (DataCollector dataCollector : collectors) {
+                if (ArexConstants.STANDALONE_MODE.equals(dataCollector.mode())) {
+                    collector = dataCollector;
+                }
+            }
         }
-
-        public void build() {
-            INSTANCE = new DataService(this.collector);
-        }
+        collector.start();
+        INSTANCE = new DataService(collector);
     }
 }

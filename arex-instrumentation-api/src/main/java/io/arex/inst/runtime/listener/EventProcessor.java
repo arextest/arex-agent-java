@@ -2,9 +2,8 @@ package io.arex.inst.runtime.listener;
 
 import io.arex.agent.bootstrap.cache.TimeCache;
 import io.arex.agent.bootstrap.model.Mocker;
-import io.arex.agent.bootstrap.util.AdviceClassesCollector;
-import io.arex.agent.bootstrap.util.NumberUtil;
-import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.agent.bootstrap.util.*;
+import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.model.InitializeEnum;
 import io.arex.inst.runtime.request.RequestHandlerManager;
 import io.arex.inst.runtime.log.LogManager;
@@ -13,8 +12,9 @@ import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.log.Logger;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.serializer.StringSerializable;
+import io.arex.inst.runtime.service.DataCollector;
+import io.arex.inst.runtime.service.DataService;
 import io.arex.inst.runtime.util.MockUtils;
-import io.arex.agent.bootstrap.util.ServiceLoader;
 
 import java.util.List;
 
@@ -45,6 +45,7 @@ public class EventProcessor {
             return;
         }
         initContext(source);
+        initDataCollector();
         initClock();
         addEnterLog();
     }
@@ -134,5 +135,10 @@ public class EventProcessor {
 
     public static boolean dependencyInitComplete() {
         return InitializeEnum.COMPLETE.equals(INIT_DEPENDENCY.get());
+    }
+
+    private static void initDataCollector() {
+        List<DataCollector> collectorList = ServiceLoader.load(DataCollector.class, Thread.currentThread().getContextClassLoader());
+        DataService.setDataCollector(collectorList);
     }
 }
