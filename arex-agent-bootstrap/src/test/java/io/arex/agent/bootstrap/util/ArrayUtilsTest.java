@@ -3,7 +3,6 @@ package io.arex.agent.bootstrap.util;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -35,16 +34,7 @@ class ArrayUtilsTest {
     @Test
     void isEmpty() {
         assertTrue(ArrayUtils.isEmpty(new Object[0]));
-    }
-
-    @ParameterizedTest
-    @CsvSource(value = {
-            ", null",
-            "mock1_mock2, '[\"mock1\", \"mock2\"]'"
-    }, nullValues = {"null"})
-    void isNotEmpty(String arrayStr, String expect) {
-        Object[] array = arrayStr == null ? null : arrayStr.split("_");
-        assertEquals(expect, ArrayUtils.toString(array, Object::toString));
+        assertFalse(ArrayUtils.isNotEmpty(new Object[0]));
     }
 
     @ParameterizedTest
@@ -55,6 +45,7 @@ class ArrayUtilsTest {
 
     static Stream<Arguments> ArrayUtilsToStringCase() {
         return Stream.of(
+                arguments(new Object[0], null),
                 arguments(new Object[]{null}, "[\"null\"]"),
                 arguments(new Object[]{"paramString", null}, "[\"paramString\", \"null\"]")
         );

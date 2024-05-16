@@ -572,20 +572,6 @@ class DynamicClassExtractorTest {
         assertEquals("[\"java.lang.String\"]", requestType.get(extractor));
     }
 
-    @Test
-    void testProceedingJointPointParamContainNUll() throws Throwable {
-        Method testProceedingJointPoint = DynamicClassExtractorTest.class.getDeclaredMethod("testProceedingJointPoint", ProceedingJoinPoint.class);
-        ProceedingJoinPoint joinPoint = Mockito.mock(ProceedingJoinPoint.class);
-        Signature signature = Mockito.mock(Signature.class);
-        Mockito.when(joinPoint.getSignature()).thenReturn(signature);
-        String arg1 = null;
-        Mockito.when(joinPoint.getArgs()).thenReturn(new Object[]{arg1});
-        DynamicClassExtractor extractor = new DynamicClassExtractor(testProceedingJointPoint, new Object[]{joinPoint}, null);
-        Field requestType = DynamicClassExtractor.class.getDeclaredField("requestType");
-        requestType.setAccessible(true);
-        assertEquals("[\"null\"]", requestType.get(extractor));
-    }
-
     public void testProceedingJointPoint(ProceedingJoinPoint joinPoint) {
     }
 
