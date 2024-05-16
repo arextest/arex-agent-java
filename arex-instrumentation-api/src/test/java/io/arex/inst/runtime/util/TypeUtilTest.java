@@ -258,7 +258,7 @@ class TypeUtilTest {
         args[1] = arg2;
         args[2] = arg3;
         String argsType = TypeUtil.errorSerializeToString(args);
-        assertEquals("java.lang.String,java.lang.Double,java.time.LocalDateTime", argsType);
+        assertEquals("[\"java.lang.String\", \"java.lang.Double\", \"java.time.LocalDateTime\"]", argsType);
         // just one class
         final String arg2Type = TypeUtil.errorSerializeToString(arg2);
         assertEquals("java.lang.Double", arg2Type);
