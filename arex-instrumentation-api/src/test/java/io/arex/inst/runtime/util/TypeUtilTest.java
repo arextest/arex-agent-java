@@ -329,8 +329,9 @@ class TypeUtilTest {
         assertNull(actualResult);
 
         collection.add(null);
+        collection.add(null);
         actualResult = TypeUtil.toNestedCollection(collection);
-        assertEquals(collection, actualResult);
+        assertNull(actualResult);
 
         collection.add(new ArrayList<>());
         actualResult = TypeUtil.toNestedCollection(collection);
