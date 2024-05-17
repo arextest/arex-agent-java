@@ -455,15 +455,12 @@ public class TypeUtil {
         }
 
         for (Object innerCollection : collection) {
-            if (innerCollection == null) {
-                continue;
-            }
-            if (!(innerCollection instanceof Collection<?>)) {
-                return null;
+            if (innerCollection instanceof Collection<?>) {
+                return collection;
             }
         }
 
-        return collection;
+        return null;
     }
 
     public static boolean isProtobufClass(Class<?> clazz) {

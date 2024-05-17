@@ -77,6 +77,12 @@ class SerializerTest {
         nestedList2.add("nestList2-2");
 
         list.add(null);
+        String nullListJson = Serializer.serialize(list, "jackson");
+        assertEquals("[null]", nullListJson);
+        String nullListTypeName = TypeUtil.getName(list);
+        Object deserialize = Serializer.deserialize(nullListJson, nullListTypeName);
+        assertEquals(list, deserialize);
+
         list.add(new ArrayList<>());
         list.add(nestedList1);
         list.add(nestedList2);
