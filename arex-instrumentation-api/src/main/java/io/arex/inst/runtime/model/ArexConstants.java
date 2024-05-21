@@ -32,7 +32,7 @@ public class ArexConstants {
     public static final String CURRENT_TIME_MILLIS_SIGNATURE = "java.lang.System.currentTimeMillis";
     public static final String NEXT_INT_SIGNATURE = "java.util.Random.nextInt";
     public static final String SERIALIZE_SKIP_INFO_CONFIG_KEY = "serializeSkipInfoList";
-    public static final String SCHEDULE_REPLAY_FLAG = "arex-schedule-replay";
+    public static final String SCHEDULE_REPLAY = "arex-schedule-replay";
     public static final String REPLAY_ORIGINAL_MOCKER = "arex-replay-original-mocker";
     public static final String AREX_EXTENSION_ATTRIBUTE = "arex-extension-attribute";
     public static final String GSON_SERIALIZER = "gson";

@@ -65,7 +65,7 @@ public class DubboCodecExtractor {
     }
 
     private static boolean isNeedAttach(String version, Map<String, String> attachments) {
-        if (!Boolean.TRUE.toString().equals(attachments.get(ArexConstants.SCHEDULE_REPLAY_FLAG))) {
+        if (StringUtil.isEmpty(attachments.get(ArexConstants.SCHEDULE_REPLAY))) {
             return false;
         }
         if (StringUtil.isEmpty(version)) {

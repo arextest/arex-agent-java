@@ -119,8 +119,7 @@ public class ServletAdviceHelper {
             String caseId = adapter.getRequestHeader(httpServletRequest, ArexConstants.RECORD_ID);
             String excludeMockTemplate = adapter.getRequestHeader(httpServletRequest, ArexConstants.HEADER_EXCLUDE_MOCK);
             CaseEventDispatcher.onEvent(CaseEvent.ofCreateEvent(EventSource.of(caseId, excludeMockTemplate)));
-            ContextManager.currentContext().setAttachment(ArexConstants.FORCE_RECORD,
-                adapter.getRequestHeader(httpServletRequest, ArexConstants.FORCE_RECORD, ArexConstants.HEADER_X_PREFIX));
+            addAttachmentsToContext(adapter, httpServletRequest);
             RequestHandlerManager.handleAfterCreateContext(httpServletRequest, adapter.getServletVersion());
         }
 
@@ -284,5 +283,10 @@ public class ServletAdviceHelper {
         }
 
         return null;
+    }
+
+    private static <TRequest, TResponse> void addAttachmentsToContext(ServletAdapter<TRequest, TResponse> adapter, TRequest request) {
+        ContextManager.setAttachment(ArexConstants.FORCE_RECORD, adapter.getRequestHeader(request, ArexConstants.FORCE_RECORD, ArexConstants.HEADER_X_PREFIX));
+        ContextManager.setAttachment(ArexConstants.SCHEDULE_REPLAY, adapter.getRequestHeader(request, ArexConstants.SCHEDULE_REPLAY));
     }
 }
