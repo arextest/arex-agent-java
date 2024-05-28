@@ -34,6 +34,7 @@ public class DubboAdapter extends AbstractAdapter {
 
     @Override
     public String getServiceName() {
+        // format：group/interface:version
         return invocation.getTargetServiceUniqueName();
     }
 
