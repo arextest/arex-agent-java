@@ -201,6 +201,8 @@ public class InternalExecutor {
             int firstDot = keyProperties[i].indexOf(".");
             if (firstDot != -1) {
                 primaryKeyNames[i] = StringUtil.substring(keyProperties[i], firstDot + 1);
+            } else {
+                primaryKeyNames[i] = keyProperties[i];
             }
         }
         return primaryKeyNames;

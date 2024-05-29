@@ -219,6 +219,15 @@ class InternalExecutorTest {
         target.record(extractor1, mappedStatement1, parameterObject, 1, null);
         Mockito.verify(extractor1, Mockito.times(1)).setKeyHolder("100120,java.lang.String;name,java.lang.String");
         Mockito.verify(extractor1, Mockito.times(1)).setKeyHolderName("id;name");
+
+        // parameterObject is ParamMap
+        MappedStatement mappedStatement2 = Mockito.mock(MappedStatement.class);
+        Mockito.when(mappedStatement2.getKeyProperties()).thenReturn(new String[]{"id"});
+        MapperMethod.ParamMap<Entity> paramMap = new MapperMethod.ParamMap<>();
+        parameterObject.setId("test1");
+        paramMap.put("id", parameterObject);
+        target.record(extractor1, mappedStatement2, paramMap, 1, null);
+        Mockito.verify(extractor1, Mockito.times(1)).setKeyHolder("test1,java.lang.String");
     }
 
     @Test
