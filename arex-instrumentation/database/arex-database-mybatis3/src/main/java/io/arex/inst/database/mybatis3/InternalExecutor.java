@@ -15,12 +15,14 @@ import org.apache.ibatis.binding.MapperMethod.ParamMap;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.reflection.Reflector;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class InternalExecutor {
     private static final Map<String, Reflector> REFLECTOR_MAP = new ConcurrentHashMap<>();
     private static final char KEYHOLDER_SEPARATOR = ';';
+    private static final char LIST_KEYHOLDER_SEPARATOR = '@';
     private static final char KEYHOLDER_TYPE_SEPARATOR = ',';
     private static boolean isIPageLoaded = false;
     static {
@@ -104,28 +106,40 @@ public class InternalExecutor {
     }
 
     private static void restoreKeyHolder(MappedStatement ms, DatabaseExtractor executor, Object o) {
-        String[] keyHolderList = StringUtil.split(executor.getKeyHolder(), KEYHOLDER_SEPARATOR);
-        if (ArrayUtils.isEmpty(keyHolderList)) {
+        String recordKeyHolder = executor.getKeyHolder();
+        if (StringUtil.isEmpty(recordKeyHolder)) {
             return;
         }
-
         Object insertEntity = o instanceof ParamMap ? getEntityFromMap((ParamMap<?>) o) : o;
+        String[] keyHolderList = StringUtil.split(recordKeyHolder, LIST_KEYHOLDER_SEPARATOR);
         String[] keyProperties = getPrimaryKeyNames(ms, o, executor);
-
-        if (ArrayUtils.isEmpty(keyProperties) || keyProperties.length != keyHolderList.length || insertEntity == null) {
-            return;
+        if (insertEntity instanceof List) {
+            List<?> list = (List<?>) insertEntity;
+            for (int i = 0; i < list.size(); i++) {
+                Object entity = list.get(i);
+                restoreKeyHolderForEntity(entity, keyHolderList[i], keyProperties);
+            }
+        } else {
+            restoreKeyHolderForEntity(insertEntity, recordKeyHolder, keyProperties);
         }
 
+    }
+
+    private static void restoreKeyHolderForEntity(Object insertEntity, String entityKeyHolder, String[] keyProperties) {
+        String[] multiKeyHolder = StringUtil.split(entityKeyHolder, KEYHOLDER_SEPARATOR);
+        if (insertEntity == null || ArrayUtils.isEmpty(multiKeyHolder) || ArrayUtils.isEmpty(keyProperties)) {
+            return;
+        }
         try {
             Class<?> entityClass = insertEntity.getClass();
             Reflector reflector = REFLECTOR_MAP.computeIfAbsent(entityClass.getName(),
                     className -> new Reflector(entityClass));
-            for (int i = 0; i < keyHolderList.length; i++) {
-                String[] valueType = StringUtil.split(keyHolderList[i], KEYHOLDER_TYPE_SEPARATOR);
+            for (int i = 0; i < multiKeyHolder.length; i++) {
+                String[] valueType = StringUtil.split(multiKeyHolder[i], KEYHOLDER_TYPE_SEPARATOR);
                 Object keyHolderValue = Serializer.deserialize(valueType[0], valueType[1]);
                 reflector.getSetInvoker(keyProperties[i]).invoke(insertEntity, new Object[]{keyHolderValue});
             }
-        } catch (Exception ignored) {}
+        }catch (Exception ignored) {}
     }
 
     private static void saveKeyHolder(MappedStatement ms, DatabaseExtractor executor, Object o) {
@@ -141,6 +155,28 @@ public class InternalExecutor {
 
         StringBuilder builder = new StringBuilder();
         StringBuilder keyHolderNameBuilder = new StringBuilder();
+
+        if (insertEntity instanceof List) {
+            List<?> list = (List<?>) insertEntity;
+            for (int i = 0; i < list.size(); i++) {
+                Object entity = list.get(i);
+                if (entity == null) {
+                    continue;
+                }
+                buildKeyHolderForEntity(entity, primaryKeyNames, builder, keyHolderNameBuilder);
+                if (i < list.size() - 1) {
+                    keyHolderNameBuilder.append(LIST_KEYHOLDER_SEPARATOR);
+                    builder.append(LIST_KEYHOLDER_SEPARATOR);
+                }
+            }
+        } else {
+            buildKeyHolderForEntity(insertEntity, primaryKeyNames, builder, keyHolderNameBuilder);
+        }
+        executor.setKeyHolderName(keyHolderNameBuilder.toString());
+        executor.setKeyHolder(builder.toString());
+    }
+
+    private static void buildKeyHolderForEntity(Object insertEntity, String[] primaryKeyNames, StringBuilder builder, StringBuilder keyHolderNameBuilder) {
         Class<?> entityClass = insertEntity.getClass();
         Reflector reflector = REFLECTOR_MAP.computeIfAbsent(entityClass.getName(),
                 className -> new Reflector(entityClass));
@@ -160,8 +196,6 @@ public class InternalExecutor {
             } catch (Exception ignored) {
             }
         }
-        executor.setKeyHolderName(keyHolderNameBuilder.toString());
-        executor.setKeyHolder(builder.toString());
     }
 
     private static String[] getPrimaryKeyNames(MappedStatement ms, Object o) {
@@ -180,7 +214,8 @@ public class InternalExecutor {
 
     private static String[] getPrimaryKeyNames(MappedStatement ms, Object o, DatabaseExtractor extractor) {
         if (extractor != null && StringUtil.isNotEmpty(extractor.getKeyHolderName())) {
-            return StringUtil.split(extractor.getKeyHolderName(), KEYHOLDER_SEPARATOR);
+            String[] keyHolderNameList = StringUtil.split(extractor.getKeyHolderName(), LIST_KEYHOLDER_SEPARATOR);
+            return StringUtil.split(keyHolderNameList[0], KEYHOLDER_SEPARATOR);
         }
 
         String[] keyProperties = ms.getKeyProperties();
