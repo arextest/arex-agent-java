@@ -1,5 +1,6 @@
 package io.arex.inst.runtime.util;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import io.arex.agent.bootstrap.model.ArexMocker;
 import io.arex.agent.bootstrap.model.MockCategoryType;
 import io.arex.agent.bootstrap.model.MockStrategyEnum;
@@ -7,6 +8,8 @@ import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.model.Mocker.Target;
 import io.arex.agent.bootstrap.util.MapUtils;
 import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.agent.thirdparty.util.parse.sqlparse.SqlParseManager;
+import io.arex.agent.thirdparty.util.parse.sqlparse.constants.DbParseConstants;
 import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.ArexContext;
@@ -16,6 +19,8 @@ import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.service.DataService;
 import io.arex.inst.runtime.util.sizeof.AgentSizeOf;
+
+import java.util.Map;
 
 public final class MockUtils {
 
@@ -46,6 +51,25 @@ public final class MockUtils {
 
     public static ArexMocker createDatabase(String method) {
         return create(MockCategoryType.DATABASE, method);
+    }
+
+    public static ArexMocker createDatabase(String method, String sql, String dbName) {
+        StringBuilder operationName = new StringBuilder();
+        try {
+            String[] splitSql = sql.split(";");
+            for (String s : splitSql) {
+                Map<String, String> tableAndAction = SqlParseManager.getInstance().parseTableAndAction(s);
+                if (tableAndAction != null && !tableAndAction.isEmpty()) {
+                    String action = tableAndAction.getOrDefault(DbParseConstants.ACTION, StringUtil.EMPTY);
+                    String tableName = tableAndAction.getOrDefault(DbParseConstants.TABLE, StringUtil.EMPTY);
+                    operationName.append(dbName).append("-").append(tableName).append("-").append(action).append(";");
+                }
+            }
+        } catch (Exception e) {
+            LogManager.warn("createDatabase", "parse sql error", e);
+            operationName.append(method);
+        }
+        return createDatabase(operationName.toString());
     }
 
     public static ArexMocker createRedis(String method) {

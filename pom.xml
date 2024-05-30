@@ -73,6 +73,7 @@
         <mockito-junit-jupiter.version>4.7.0</mockito-junit-jupiter.version>
         <jackson.version>2.13.1</jackson.version>
         <gson.version>2.10.1</gson.version>
+        <jsqlparser.version>4.5</jsqlparser.version>
         <sonar.exclusions>
             **/test/**,
             **/*Test.java,
@@ -159,6 +160,16 @@
                 <groupId>net.bytebuddy</groupId>
                 <artifactId>byte-buddy</artifactId>
                 <version>${byte-buddy.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.jsqlparser</groupId>
+                <artifactId>jsqlparser</artifactId>
+                <version>${jsqlparser.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson</groupId>
+                <artifactId>jackson-bom</artifactId>
+                <version>${jackson.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.junit.jupiter</groupId>

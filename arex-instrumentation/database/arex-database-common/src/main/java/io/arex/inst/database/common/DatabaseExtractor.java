@@ -116,7 +116,7 @@ public class DatabaseExtractor {
     }
 
     private Mocker makeMocker(Object response, String serializer) {
-        Mocker mocker = MockUtils.createDatabase(this.methodName);
+        Mocker mocker = MockUtils.createDatabase(this.methodName, this.sql, this.dbName);
         mocker.getTargetRequest().setBody(this.sql);
         mocker.getTargetRequest().setAttribute("dbName", this.dbName);
         mocker.getTargetRequest().setAttribute("parameters", this.parameters);
