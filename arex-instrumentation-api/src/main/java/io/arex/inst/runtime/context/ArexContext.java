@@ -96,7 +96,7 @@ public class ArexContext {
         }
 
         if (attachments == null) {
-            attachments = new HashMap<>();
+            attachments = new ConcurrentHashMap<>();
         }
 
         attachments.put(key, value);
@@ -108,6 +108,14 @@ public class ArexContext {
         }
 
         return attachments.get(key);
+    }
+
+    public Object removeAttachment(String key) {
+        if (attachments == null) {
+            return null;
+        }
+
+        return attachments.remove(key);
     }
 
     public boolean isRedirectRequest() {
