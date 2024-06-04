@@ -26,18 +26,13 @@ public class DatabaseUtils {
             if (StringUtil.isEmpty(sql)) {
                 continue;
             }
-
-            TableSchema tableSchema = null;
             try{
-                tableSchema = JSqlParserUtil.parse(sql);
-            } catch (Throwable e) {
+                TableSchema tableSchema = JSqlParserUtil.parse(sql);
+                tableSchema.setDbName(dbName);
+                operationNames.add(regenerateOperationName(tableSchema, operationName));
+            } catch (Exception e) {
                 // ignore
             }
-            if (tableSchema == null) {
-                continue;
-            }
-            tableSchema.setDbName(dbName);
-            operationNames.add(regenerateOperationName(tableSchema, operationName));
         }
         return StringUtil.join(operationNames, ";");
     }
