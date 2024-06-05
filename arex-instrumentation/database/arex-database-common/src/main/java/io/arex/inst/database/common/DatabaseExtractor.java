@@ -6,6 +6,7 @@ import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.serializer.Serializer;
 
+import io.arex.inst.runtime.util.DatabaseUtils;
 import io.arex.inst.runtime.util.IgnoreUtils;
 import io.arex.inst.runtime.util.MockUtils;
 import io.arex.inst.runtime.util.TypeUtil;
@@ -92,8 +93,10 @@ public class DatabaseExtractor {
     }
 
     public MockResult replay(String serializer) {
-        // update after all dal components have obtained the real dbName(temporary solution)
-        boolean ignoreMockResult = IgnoreUtils.ignoreMockResult("database", methodName);
+        String serviceKey = StringUtil.defaultIfEmpty(this.dbName, ArexConstants.DATABASE);
+        String operationKey = DatabaseUtils.regenerateOperationName(dbName, this.methodName, this.sql);
+        boolean ignoreMockResult = IgnoreUtils.ignoreMockResult(serviceKey, operationKey);
+
         Mocker replayMocker = MockUtils.replayMocker(makeMocker(null, serializer));
         Object replayResult = null;
         if (MockUtils.checkResponseMocker(replayMocker)) {
@@ -118,8 +121,8 @@ public class DatabaseExtractor {
     private Mocker makeMocker(Object response, String serializer) {
         Mocker mocker = MockUtils.createDatabase(this.methodName);
         mocker.getTargetRequest().setBody(this.sql);
-        mocker.getTargetRequest().setAttribute("dbName", this.dbName);
-        mocker.getTargetRequest().setAttribute("parameters", this.parameters);
+        mocker.getTargetRequest().setAttribute(ArexConstants.DB_NAME, this.dbName);
+        mocker.getTargetRequest().setAttribute(ArexConstants.DB_PARAMETERS, this.parameters);
         for (Map.Entry<String, String> entry : extendFields.entrySet()) {
             mocker.getTargetResponse().setAttribute(entry.getKey(), entry.getValue());
         }

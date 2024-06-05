@@ -61,4 +61,7 @@ public class ArexConstants {
     public static final String RECORD_SIZE_LIMIT = "arex.record.size.limit";
     public static final String SERVLET_V3 = "ServletV3";
     public static final String SERVLET_V5 = "ServletV5";
+    public static final String DATABASE = "database";
+    public static final String DB_NAME = "dbName";
+    public static final String DB_PARAMETERS = "parameters";
 }
