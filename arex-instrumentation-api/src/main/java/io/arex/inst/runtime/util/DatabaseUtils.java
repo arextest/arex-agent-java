@@ -28,7 +28,7 @@ public class DatabaseUtils {
         for (String sql : sqls) {
             System.out.println(sql.length());
             if (StringUtil.isEmpty(sql) || sql.length() > THRESHOLD) {
-                // if exceed the threshold, too long may be due to parse stack overflow
+                // if exceed the threshold, too large may be due parse stack overflow
                 continue;
             }
             try{
