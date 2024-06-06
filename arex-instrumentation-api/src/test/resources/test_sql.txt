@@ -1,0 +1,2090 @@
+SELECT s.ci_no, s.* FROM server AS s WHERE s.exclusive IN ( ? , ? , ? )
+			AND
+			    ( s.hostname LIKE concat('%', ?, '%')
+			OR
+			    s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+            OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+            OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+            OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			OR
+				s.hostname LIKE concat('%', ?, '%')
+			)
+
+			ORDER BY hostname ASC
