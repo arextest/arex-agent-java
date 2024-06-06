@@ -57,4 +57,9 @@ public class DubboExtractor {
             consumer.accept(ArexConstants.REPLAY_ID, ContextManager.currentContext().getReplayId());
         }
     }
+
+    protected static void addAttachmentsToContext(AbstractAdapter adapter) {
+        ContextManager.setAttachment(ArexConstants.FORCE_RECORD, adapter.forceRecord());
+        ContextManager.setAttachment(ArexConstants.SCHEDULE_REPLAY, adapter.getAttachment(ArexConstants.SCHEDULE_REPLAY));
+    }
 }

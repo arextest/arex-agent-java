@@ -84,6 +84,15 @@ class MapUtilsTest {
         assertEquals("value", MapUtils.getString(map, "key", "default"));
         // key not exist return default value
         assertEquals("default", MapUtils.getString(map, "key1", "default"));
+    }
 
+    @Test
+    void putIfValueNotNull() {
+        Map<String, Object> map = new HashMap<>();
+        MapUtils.putIfValueNotNull(map, "key", "value");
+        assertEquals("value", map.get("key"));
+
+        MapUtils.putIfValueNotNull(map, "key", null);
+        assertNotNull(map.get("key"));
     }
 }
