@@ -26,7 +26,6 @@ public class DatabaseUtils {
         String[] sqls = StringUtil.split(sqlText, ';');
         List<String> operationNames = new ArrayList<>(sqls.length);
         for (String sql : sqls) {
-            System.out.println(sql.length());
             if (StringUtil.isEmpty(sql) || sql.length() > THRESHOLD) {
                 // if exceed the threshold, too large may be due parse stack overflow
                 continue;
