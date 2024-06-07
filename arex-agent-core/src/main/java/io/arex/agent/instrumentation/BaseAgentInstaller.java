@@ -6,6 +6,9 @@ import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.agent.bootstrap.util.FileUtils;
 import io.arex.foundation.config.ConfigManager;
 import io.arex.foundation.healthy.HealthManager;
+import io.arex.foundation.logger.AgentLoggerFactory;
+import io.arex.foundation.logger.AgentLogger;
+import io.arex.foundation.serializer.jackson.JacksonSerializer;
 import io.arex.foundation.services.ConfigService;
 import io.arex.foundation.services.DataCollectorService;
 import io.arex.foundation.services.TimerService;
@@ -23,11 +26,9 @@ import java.io.File;
 import java.lang.instrument.Instrumentation;
 
 import net.bytebuddy.dynamic.scaffold.TypeWriter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public abstract class BaseAgentInstaller implements AgentInstaller {
-    private static final Logger LOGGER = LoggerFactory.getLogger(BaseAgentInstaller.class);
+    private static final AgentLogger LOGGER = AgentLoggerFactory.getAgentLogger(BaseAgentInstaller.class);
     private static final String BYTECODE_DUMP_DIR = "/bytecode-dump";
     protected final Instrumentation instrumentation;
     protected final File agentFile;
