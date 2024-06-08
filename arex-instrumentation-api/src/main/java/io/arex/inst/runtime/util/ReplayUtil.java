@@ -5,6 +5,7 @@ import io.arex.agent.bootstrap.model.MockCategoryType;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.inst.runtime.context.ContextManager;
+import io.arex.inst.runtime.match.MatchKeyFactory;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.model.MergeDTO;
 import io.arex.inst.runtime.model.QueryAllMockerDTO;
@@ -16,14 +17,14 @@ import java.util.Map;
 import java.util.function.Predicate;
 
 /**
- * merge record and replay util
+ * ReplayUtil
  */
 public class ReplayUtil {
 
     /**
-     * init replay all mocker under case and cached replay result
+     * init replay all mockers under case and cached replay result at context
      */
-    public static void replayAllMocker() {
+    public static void queryMockers() {
         if (!ContextManager.needReplay()) {
             return;
         }
@@ -31,18 +32,15 @@ public class ReplayUtil {
         requestMocker.setRecordId(ContextManager.currentContext().getCaseId());
         requestMocker.setCategoryTypes(new String[]{MockCategoryType.DYNAMIC_CLASS.getName(), MockCategoryType.REDIS.getName()});
 
-        List<Mocker> allMockerList = MockUtils.replayAllMocker(requestMocker);
+        List<Mocker> allMockerList = MockUtils.queryMockers(requestMocker);
         if (CollectionUtil.isEmpty(allMockerList)) {
             return;
         }
 
         filterMergeMocker(allMockerList);
-
-        Map<Integer, List<Mocker>> cachedReplayResultMap = ContextManager.currentContext().getCachedReplayResultMap();
-
-        buildReplayResultMap(allMockerList, cachedReplayResultMap);
-
-        ascendingSortByCreationTime(cachedReplayResultMap);
+        Map<Integer, List<Mocker>> cachedReplayMap = ContextManager.currentContext().getCachedReplayResultMap();
+        buildReplayResultMap(allMockerList, cachedReplayMap);
+        ascendingSortByCreationTime(cachedReplayMap);
     }
 
     /**
@@ -76,8 +74,8 @@ public class ReplayUtil {
                 continue;
             }
             ArexMocker mocker = MockUtils.create(MockCategoryType.of(mergeDTO.getCategory()), mergeDTO.getOperationName());
-            mocker.setMethodRequestTypeHash(mergeDTO.getMethodRequestTypeHash());
-            mocker.setMethodSignatureHash(mergeDTO.getMethodSignatureHash());
+            mocker.setFuzzyMatchKey(mergeDTO.getMethodRequestTypeHash());
+            mocker.setAccurateMatchKey(mergeDTO.getMethodSignatureHash());
             mocker.setCreationTime(mergeDTO.getCreationTime());
             mocker.getTargetRequest().setBody(mergeDTO.getRequest());
             mocker.getTargetRequest().setAttributes(mergeDTO.getRequestAttributes());
@@ -89,19 +87,34 @@ public class ReplayUtil {
         return convertMockerList;
     }
 
+    /**
+     * <pre>
+     * format:
+     * {
+     *   fuzzyMatchKeyHash : [Mocker1, Mocker2, ...]
+     * }
+     * demo:
+     * {
+     *   1233213331 : [Mocker1],
+     *   4545626535 : [Mocker2, Mocker3]
+     *   8764987897 : [Mocker4, Mocker5, Mocker6]
+     *   ...
+     * }
+     * </pre>
+     */
     private static void buildReplayResultMap(List<Mocker> replayMockers, Map<Integer, List<Mocker>> cachedReplayResultMap) {
         for (Mocker replayMocker : replayMockers) {
             if (replayMocker == null) {
                 continue;
             }
             // replay match need methodRequestTypeHash and methodSignatureHash
-            if (replayMocker.getMethodRequestTypeHash() == 0) {
-                replayMocker.setMethodRequestTypeHash(MockUtils.methodRequestTypeHash(replayMocker));
+            if (replayMocker.getFuzzyMatchKey() == 0) {
+                replayMocker.setFuzzyMatchKey(MatchKeyFactory.INSTANCE.generateFuzzyMatchKey(replayMocker));
             }
-            if (replayMocker.getMethodSignatureHash() == 0) {
-                replayMocker.setMethodSignatureHash(MockUtils.methodSignatureHash(replayMocker));
+            if (replayMocker.getAccurateMatchKey() == 0) {
+                replayMocker.setAccurateMatchKey(MatchKeyFactory.INSTANCE.generateAccurateMatchKey(replayMocker));
             }
-            cachedReplayResultMap.computeIfAbsent(replayMocker.getMethodRequestTypeHash(), k -> new ArrayList<>()).add(replayMocker);
+            cachedReplayResultMap.computeIfAbsent(replayMocker.getFuzzyMatchKey(), k -> new ArrayList<>()).add(replayMocker);
         }
     }
 

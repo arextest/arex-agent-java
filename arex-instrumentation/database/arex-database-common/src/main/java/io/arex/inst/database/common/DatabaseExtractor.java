@@ -118,8 +118,8 @@ public class DatabaseExtractor {
     private Mocker makeMocker(Object response, String serializer) {
         Mocker mocker = MockUtils.createDatabase(this.methodName);
         mocker.getTargetRequest().setBody(this.sql);
-        mocker.getTargetRequest().setAttribute("dbName", this.dbName);
-        mocker.getTargetRequest().setAttribute("parameters", this.parameters);
+        mocker.getTargetRequest().setAttribute(ArexConstants.DB_NAME, this.dbName);
+        mocker.getTargetRequest().setAttribute(ArexConstants.DB_PARAMETERS, this.parameters);
         for (Map.Entry<String, String> entry : extendFields.entrySet()) {
             mocker.getTargetResponse().setAttribute(entry.getKey(), entry.getValue());
         }

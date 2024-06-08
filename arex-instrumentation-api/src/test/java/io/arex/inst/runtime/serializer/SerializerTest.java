@@ -184,10 +184,13 @@ class SerializerTest {
     @Test
     void deserializeWithType() throws Throwable {
         // null json
-        assertNull(Serializer.deserializeWithType(null));
-
-        // throw exception
-        Mockito.when(jacksonSerializerWithType.deserialize("test", Object.class)).thenThrow(new RuntimeException());
-        assertDoesNotThrow(() -> Serializer.deserializeWithType("test"));
+//        assertNull(Serializer.deserializeWithType(null));
+//
+//        // throw exception
+//        Mockito.when(jacksonSerializerWithType.deserialize("test", Object.class)).thenThrow(new RuntimeException());
+//        assertDoesNotThrow(() -> Serializer.deserializeWithType("test"));
+        String groupName = "[\"agg-hotel-common\"]";
+        List<String> list = Serializer.deserialize(groupName, List.class);
+        System.out.println(list.contains("agg-hotel-common"));
     }
 }

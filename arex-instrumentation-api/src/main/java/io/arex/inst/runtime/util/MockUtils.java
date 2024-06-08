@@ -133,11 +133,16 @@ public final class MockUtils {
             return null;
         }
 
-        if (requestMocker.isNeedMerge()) {
-            return ReplayMatcher.match(requestMocker, mockStrategy);
-        }
+        // TODO 主入口的回放需要匹配吗？看storage是不匹配的，但是如何计算回放的对比关系的（schedule调用应用接口后拿到结果和录制的对比吗？）
 
-        return executeReplay(requestMocker, mockStrategy);
+        // TODO qconfig, apollo, System.currentTimeMillis() also replay at RequestHandler
+//        if (requestMocker.isNeedMerge()) {
+            return ReplayMatcher.match(requestMocker, mockStrategy);
+//        }
+
+        // TODO there will be no such method in the future, after qconfig, apollo, System.currentTimeMillis() also replay at RequestHandler
+        // executeReplay called by ReplayHandler future
+//        return executeReplay(requestMocker, mockStrategy);
     }
 
     public static Mocker executeReplay(Mocker requestMocker, MockStrategyEnum mockStrategy) {
@@ -214,23 +219,10 @@ public final class MockUtils {
         return true;
     }
 
-    public static int methodSignatureHash(Mocker requestMocker) {
-        return StringUtil.encodeAndHash(String.format("%s_%s",
-                requestMocker.getOperationName(),
-                requestMocker.getTargetRequest().getBody()));
-    }
-
-    public static int methodRequestTypeHash(Mocker requestMocker) {
-        return StringUtil.encodeAndHash(String.format("%s_%s_%s",
-                requestMocker.getCategoryType().getName(),
-                requestMocker.getOperationName(),
-                requestMocker.getTargetRequest().getType()));
-    }
-
     /**
      * get all mockers under current one case
      */
-    public static List<Mocker> replayAllMocker(QueryAllMockerDTO requestMocker) {
+    public static List<Mocker> queryMockers(QueryAllMockerDTO requestMocker) {
         String postJson = Serializer.serialize(requestMocker);
         long startTime = System.currentTimeMillis();
         String data = DataService.INSTANCE.queryAll(postJson);

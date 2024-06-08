@@ -19,15 +19,13 @@ public class ArexMocker implements Mocker {
     private String operationName;
     private transient boolean matched;
     /**
-     * categoryType + operationName + requestType
      * replay match need
      */
-    private transient int methodRequestTypeHash;
+    private transient int fuzzyMatchKey;
     /**
-     * operationName + requestBody
      * replay match need
      */
-    private transient int methodSignatureHash;
+    private transient int accurateMatchKey;
 
     public ArexMocker() {
     }
@@ -145,19 +143,23 @@ public class ArexMocker implements Mocker {
         this.matched = matched;
     }
 
-    public int getMethodSignatureHash() {
-        return methodSignatureHash;
+    @Override
+    public int getAccurateMatchKey() {
+        return this.accurateMatchKey;
     }
 
-    public void setMethodSignatureHash(int methodSignatureHash) {
-        this.methodSignatureHash = methodSignatureHash;
+    @Override
+    public void setAccurateMatchKey(int accurateMatchKey) {
+        this.accurateMatchKey = accurateMatchKey;
     }
 
-    public int getMethodRequestTypeHash() {
-        return methodRequestTypeHash;
+    @Override
+    public int getFuzzyMatchKey() {
+        return this.fuzzyMatchKey;
     }
 
-    public void setMethodRequestTypeHash(int methodRequestTypeHash) {
-        this.methodRequestTypeHash = methodRequestTypeHash;
+    @Override
+    public void setFuzzyMatchKey(int fuzzyMatchKey) {
+        this.fuzzyMatchKey = fuzzyMatchKey;
     }
 }

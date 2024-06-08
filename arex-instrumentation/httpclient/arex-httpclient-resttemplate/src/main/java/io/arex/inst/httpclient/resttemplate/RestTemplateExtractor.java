@@ -7,6 +7,7 @@ import io.arex.agent.bootstrap.model.ArexMocker;
 import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.inst.runtime.log.LogManager;
+import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.util.IgnoreUtils;
 import io.arex.inst.runtime.util.MockUtils;
@@ -107,8 +108,8 @@ public class RestTemplateExtractor {
         Map<String, Object> attributes = new HashMap<>(2);
 
         mocker.getTargetRequest().setAttributes(attributes);
-        attributes.put("HttpMethod", httpMethod);
-        attributes.put("QueryString", uri.getQuery());
+        attributes.put(ArexConstants.HTTP_METHOD, httpMethod);
+        attributes.put(ArexConstants.HTTP_QUERY_STRING, uri.getQuery());
 
         mocker.getTargetRequest().setBody(request);
         return mocker;

@@ -1,6 +1,7 @@
-package io.arex.inst.runtime.match;
+package io.arex.inst.runtime.match.strategy;
 
 import io.arex.inst.runtime.log.LogManager;
+import io.arex.inst.runtime.match.MatchStrategyContext;
 
 public abstract class AbstractMatchStrategy {
     static final String MATCH_TITLE = "replay.match.fail";

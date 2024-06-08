@@ -17,6 +17,8 @@ import java.util.List;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
+
+import io.arex.inst.runtime.util.ReplayUtil;
 import org.slf4j.LoggerFactory;
 
 public class EventProcessor {
@@ -42,6 +44,7 @@ public class EventProcessor {
             return;
         }
         initContext(source);
+        initReplayData();
         initClock();
         addEnterLog();
     }
@@ -131,5 +134,10 @@ public class EventProcessor {
 
     public static boolean dependencyInitComplete() {
         return InitializeEnum.COMPLETE.equals(INIT_DEPENDENCY.get());
+    }
+
+    private static void initReplayData() {
+        // init replay and cached all mockers within case
+        ReplayUtil.queryMockers();
     }
 }

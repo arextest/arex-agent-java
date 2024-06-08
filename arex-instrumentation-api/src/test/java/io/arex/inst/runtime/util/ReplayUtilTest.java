@@ -8,10 +8,8 @@ import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.model.MergeDTO;
 import io.arex.inst.runtime.serializer.Serializer;
-import io.arex.inst.runtime.util.sizeof.AgentSizeOf;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -53,13 +51,13 @@ class ReplayUtilTest {
     }
 
     @ParameterizedTest
-    @MethodSource("replayAllMockerCase")
-    void replayAllMocker(Runnable mocker) {
+    @MethodSource("queryMockersCase")
+    void queryMockers(Runnable mocker) {
         mocker.run();
-        assertDoesNotThrow(ReplayUtil::replayAllMocker);
+        assertDoesNotThrow(ReplayUtil::queryMockers);
     }
 
-    static Stream<Arguments> replayAllMockerCase() {
+    static Stream<Arguments> queryMockersCase() {
         Runnable emptyMocker = () -> {};
         Runnable mocker1 = () -> {
             Mockito.when(ContextManager.needReplay()).thenReturn(true);

@@ -7,7 +7,7 @@ import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.log.LogManager;
-import io.arex.inst.runtime.util.MockUtils;
+import io.arex.inst.runtime.match.strategy.AbstractMatchStrategy;
 
 import java.util.*;
 
@@ -26,13 +26,17 @@ public class ReplayMatcher {
     public static Mocker match(Mocker requestMocker, MockStrategyEnum mockStrategy) {
         Map<Integer, List<Mocker>> cachedReplayResultMap = ContextManager.currentContext().getCachedReplayResultMap();
 
-        // first match methodRequestTypeHash: category + operationName + requestType, ensure the same method
-        List<Mocker> replayList = cachedReplayResultMap.get(MockUtils.methodRequestTypeHash(requestMocker));
+        // first fuzzy match, such as: category + operationName + requestType, ensure the same method
+        List<Mocker> replayList = cachedReplayResultMap.get(MatchKeyFactory.INSTANCE.generateFuzzyMatchKey(requestMocker));
         if (CollectionUtil.isEmpty(replayList)) {
+            if (!requestMocker.getCategoryType().isEntryPoint()) {
+                LogManager.warn(MATCH_TITLE, StringUtil.format("match no result, categoryType: %s, operationName: %s, requestBody: %s",
+                        requestMocker.getCategoryType().getName(), requestMocker.getOperationName(), requestMocker.getTargetRequest().getBody()));
+            }
             return null;
         }
 
-        List<AbstractMatchStrategy> matchStrategyList = MatchStrategyRegister.getMatchStrategies(requestMocker.getCategoryType());
+        List<AbstractMatchStrategy> matchStrategyList = MatchStrategyRegister.getMatchStrategies(requestMocker);
         MatchStrategyContext context = new MatchStrategyContext(requestMocker, replayList, mockStrategy);
         for (AbstractMatchStrategy matchStrategy : matchStrategyList) {
             matchStrategy.match(context);

@@ -3,7 +3,6 @@ package io.arex.inst.httpservlet.handler;
 import com.google.auto.service.AutoService;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.request.RequestHandler;
-import io.arex.inst.runtime.util.ReplayUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -22,8 +21,7 @@ public class ServletV5RequestHandler implements RequestHandler<HttpServletReques
 
     @Override
     public void handleAfterCreateContext(HttpServletRequest request) {
-        // init replay and cached dynamic class
-        ReplayUtil.replayAllMocker();
+        // no need implement
     }
 
     @Override

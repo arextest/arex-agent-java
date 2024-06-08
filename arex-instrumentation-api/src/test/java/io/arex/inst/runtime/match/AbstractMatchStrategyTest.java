@@ -2,7 +2,8 @@ package io.arex.inst.runtime.match;
 
 import io.arex.agent.bootstrap.model.ArexMocker;
 import io.arex.agent.bootstrap.model.Mocker;
-import io.arex.inst.runtime.model.MergeDTO;
+import io.arex.inst.runtime.match.strategy.AbstractMatchStrategy;
+import io.arex.inst.runtime.match.strategy.AccurateMatchStrategy;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;

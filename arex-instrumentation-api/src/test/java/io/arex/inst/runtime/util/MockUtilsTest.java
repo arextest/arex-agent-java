@@ -180,20 +180,4 @@ class MockUtilsTest {
         actualResult = MockUtils.createNettyProvider("query");
         assertEquals(MockCategoryType.NETTY_PROVIDER, actualResult.getCategoryType());
     }
-
-    @Test
-    void methodSignatureHash() {
-        ArexMocker mocker = new ArexMocker();
-        mocker.setTargetRequest(new Mocker.Target());
-        mocker.getTargetRequest().setBody("mock");
-        assertTrue(MockUtils.methodSignatureHash(mocker) > 0);
-    }
-
-    @Test
-    void methodRequestTypeHash() {
-        ArexMocker mocker = new ArexMocker(MockCategoryType.DYNAMIC_CLASS);
-        mocker.setTargetRequest(new Mocker.Target());
-        mocker.getTargetRequest().setBody("mock");
-        assertTrue(MockUtils.methodRequestTypeHash(mocker) > 0);
-    }
 }
