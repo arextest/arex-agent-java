@@ -383,20 +383,9 @@ public class TypeUtil {
         return builder.toString();
     }
 
-    public static String arrayObjectToString(Object[] objects) {
-        StringBuilder builder = new StringBuilder();
-        for (int i = 0; i < objects.length; i++) {
-            builder.append(objects[i].getClass().getName());
-            if (i != objects.length - 1) {
-                builder.append(",");
-            }
-        }
-        return builder.toString();
-    }
-
     public static String errorSerializeToString(Object object) {
         if (object instanceof Object[]) {
-            return arrayObjectToString((Object[]) object);
+            return ArrayUtils.toString((Object[]) object, o -> o.getClass().getTypeName());
         }
         return getName(object);
     }
@@ -466,15 +455,12 @@ public class TypeUtil {
         }
 
         for (Object innerCollection : collection) {
-            if (innerCollection == null) {
-                continue;
-            }
-            if (!(innerCollection instanceof Collection<?>)) {
-                return null;
+            if (innerCollection instanceof Collection<?>) {
+                return collection;
             }
         }
 
-        return collection;
+        return null;
     }
 
     public static boolean isProtobufClass(Class<?> clazz) {

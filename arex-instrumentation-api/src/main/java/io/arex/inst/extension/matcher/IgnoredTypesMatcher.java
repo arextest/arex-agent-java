@@ -1,5 +1,6 @@
 package io.arex.inst.extension.matcher;
 
+import io.arex.agent.bootstrap.cache.AdviceInjectorCache;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
 
@@ -29,6 +30,7 @@ public class IgnoredTypesMatcher extends ElementMatcher.Junction.AbstractBase<Ty
             }
         }
 
-        return false;
+        // check if the target is in the AdviceInjectorCache
+        return AdviceInjectorCache.contains(target.getName());
     }
 }

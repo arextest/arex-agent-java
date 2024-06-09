@@ -40,6 +40,15 @@ class CollectionUtilTest {
         assertInstanceOf(ArrayList.class, actualResult);
     }
 
+    @Test
+    void newHashSet() {
+        Set<String> actualResult = CollectionUtil.newHashSet(null);
+        assertInstanceOf(HashSet.class, actualResult);
+
+        actualResult = CollectionUtil.newHashSet("test");
+        assertInstanceOf(HashSet.class, actualResult);
+    }
+
     @ParameterizedTest
     @MethodSource("splitCase")
     void split(List<String> originalList, int splitCount, Predicate<List<List<String>>> predicate) {

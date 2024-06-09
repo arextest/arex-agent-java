@@ -71,7 +71,6 @@ public class EventProcessor {
             AdviceClassesCollector.INSTANCE.appendToClassLoaderSearch("jackson",
                     contextClassLoader);
         }
-        Serializer.initSerializerConfigMap();
         final List<StringSerializable> serializableList = ServiceLoader.load(StringSerializable.class, contextClassLoader);
         Serializer.builder(serializableList).build();
     }

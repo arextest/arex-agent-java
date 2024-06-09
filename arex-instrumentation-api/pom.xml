@@ -17,6 +17,10 @@
             <artifactId>arex-agent-bootstrap</artifactId>
         </dependency>
         <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>arex-compare</artifactId>
+        </dependency>
+        <dependency>
             <groupId>net.bytebuddy</groupId>
             <artifactId>byte-buddy</artifactId>
         </dependency>
@@ -32,7 +36,6 @@
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
             <version>${jackson.version}</version>
-<!--            <scope>test</scope>-->
         </dependency>
         <dependency>
             <groupId>com.google.code.gson</groupId>

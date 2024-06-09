@@ -54,10 +54,10 @@ class DubboCodecExtractorTest {
         Runnable emptyMocker = () -> {
         };
         Runnable mocker1 = () -> {
-            rpcResult.setAttachment(ArexConstants.REPLAY_ID, "mock");
+            rpcResult.setAttachment(ArexConstants.REPLAY_ID, "");
         };
         Runnable mocker2 = () -> {
-            rpcResult.setAttachment(ArexConstants.SCHEDULE_REPLAY_FLAG, Boolean.TRUE.toString());
+            rpcResult.setAttachment(ArexConstants.SCHEDULE_REPLAY, Boolean.TRUE.toString());
         };
         Runnable mocker3 = () -> {
             Mockito.when(url.getParameter("version", "")).thenReturn("2.0");

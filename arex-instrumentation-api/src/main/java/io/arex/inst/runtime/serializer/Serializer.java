@@ -38,10 +38,14 @@ public class Serializer {
     private final StringSerializable defaultSerializer;
     private final Map<String, StringSerializable> serializers;
 
+    static {
+        initSerializerConfigMap();
+    }
+
     /**
      * ex: DubboProvider:jackson,DubboConsumer:gson
      */
-    public static void initSerializerConfigMap() {
+    private static void initSerializerConfigMap() {
         try {
             String serializerConfig = Config.get().getString(ConfigConstants.SERIALIZER_CONFIG);
             if (StringUtil.isEmpty(serializerConfig)) {

@@ -179,13 +179,13 @@ class DynamicClassInstrumentationTest {
             Mockito.when(ContextManager.needRecordOrReplay()).thenReturn(true);
             Mockito.when(ContextManager.needRecord()).thenReturn(true);
             DynamicClassExtractor extractor = new DynamicClassExtractor(test1, new Object[]{"mock"}, "#val", null);
-            boolean actualResult = DynamicClassInstrumentation.MethodAdvice.onEnter(test1, new Object[]{ "name", 18 }, extractor, null);
+            boolean actualResult = DynamicClassInstrumentation.MethodAdvice.onEnter(test1, null, new Object[]{ "name", 18 }, extractor, null);
             assertFalse(actualResult);
 
             // replay
             Mockito.when(ContextManager.needRecord()).thenReturn(false);
             Mockito.when(ContextManager.needReplay()).thenReturn(true);
-            actualResult = DynamicClassInstrumentation.MethodAdvice.onEnter(test1, new Object[]{ "name", 18 }, extractor, null);
+            actualResult = DynamicClassInstrumentation.MethodAdvice.onEnter(test1, null, new Object[]{ "name", 18 }, extractor, null);
             assertTrue(actualResult);
         }
     }

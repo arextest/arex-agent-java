@@ -5,9 +5,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.arex.agent.bootstrap.model.MockCategoryType;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.CollectionUtil;
-import io.arex.agent.bootstrap.util.DatabaseUtils;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.model.ArexConstants;
+import io.arex.inst.runtime.util.DatabaseUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
