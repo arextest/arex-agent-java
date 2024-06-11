@@ -150,6 +150,17 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
             if (ContextManager.needRecord()) {
                 RepeatedCollectManager.enter();
             }
+
+            LogManager.info("dynamic", "methodName: " + method.getName() + "context: " + ContextManager.currentContext());
+            LogManager.info("dynamic_thread", "methodName: " + method.getName() + "thread: " + Thread.currentThread().getName());
+            LogManager.info("dynamic_thread", "Thread ID: " + Thread.currentThread().getId() + ", State: " + Thread.currentThread().getState());
+            LogManager.info("dynamic_thread", "Stack Trace: ");
+            StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
+
+            for (StackTraceElement element : stackTraceElements) {
+                LogManager.info("dynamic_thread", "element: "+ element.toString());
+            }
+
             if (ContextManager.needRecordOrReplay()) {
                 if (void.class.isAssignableFrom(method.getReturnType())) {
                     return ContextManager.needReplay();
