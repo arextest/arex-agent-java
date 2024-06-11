@@ -125,11 +125,11 @@ public interface Mocker extends Serializable {
 
     void setMatched(boolean matched);
 
-    int getMethodSignatureHash();
+    int getAccurateMatchKey();
 
-    void setMethodSignatureHash(int methodSignatureHash);
+    void setAccurateMatchKey(int accurateMatchKey);
 
-    int getMethodRequestTypeHash();
+    int getFuzzyMatchKey();
 
-    void setMethodRequestTypeHash(int methodRequestTypeHash);
+    void setFuzzyMatchKey(int fuzzyMatchKey);
 }
