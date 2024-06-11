@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AccurateMatchStrategy extends AbstractMatchStrategy{
-    private static final String ACCURATE_MATCH_TITLE = "replay.match.accurate";
     /**
      * search by operationName + requestBody
      * priority:
@@ -27,7 +26,7 @@ public class AccurateMatchStrategy extends AbstractMatchStrategy{
         int methodSignatureHash = MockUtils.methodSignatureHash(requestMocker);
         List<Mocker> matchedList = new ArrayList<>(replayList.size());
         for (Mocker mocker : replayList) {
-            if (methodSignatureHash == mocker.getMethodSignatureHash()) {
+            if (methodSignatureHash == mocker.getAccurateMatchKey()) {
                 matchedList.add(mocker);
             }
         }

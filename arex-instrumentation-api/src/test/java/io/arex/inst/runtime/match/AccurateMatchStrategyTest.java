@@ -68,7 +68,7 @@ class AccurateMatchStrategyTest {
         };
         Supplier<MatchStrategyContext> contextSupplier4 = () -> {
             MatchStrategyContext context = contextSupplier1.get();
-            context.getReplayList().get(0).setMethodSignatureHash(1);
+            context.getReplayList().get(0).setAccurateMatchKey(1);
             context.setMockStrategy(MockStrategyEnum.STRICT_MATCH);
             return context;
         };

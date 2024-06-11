@@ -134,7 +134,11 @@ public final class MockUtils {
         }
 
         if (requestMocker.isNeedMerge()) {
-            return ReplayMatcher.match(requestMocker, mockStrategy);
+            Mocker matchMocker = ReplayMatcher.match(requestMocker, mockStrategy);
+            // compatible with old version(fixed case without merge)
+            if (matchMocker != null) {
+                return matchMocker;
+            }
         }
 
         return executeReplay(requestMocker, mockStrategy);
@@ -230,7 +234,7 @@ public final class MockUtils {
     /**
      * get all mockers under current one case
      */
-    public static List<Mocker> replayAllMocker(QueryAllMockerDTO requestMocker) {
+    public static List<Mocker> queryMockers(QueryAllMockerDTO requestMocker) {
         String postJson = Serializer.serialize(requestMocker);
         long startTime = System.currentTimeMillis();
         String data = DataService.INSTANCE.queryAll(postJson);

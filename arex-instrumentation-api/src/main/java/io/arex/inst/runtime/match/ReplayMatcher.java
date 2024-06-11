@@ -29,6 +29,8 @@ public class ReplayMatcher {
         // first match methodRequestTypeHash: category + operationName + requestType, ensure the same method
         List<Mocker> replayList = cachedReplayResultMap.get(MockUtils.methodRequestTypeHash(requestMocker));
         if (CollectionUtil.isEmpty(replayList)) {
+            LogManager.warn(MATCH_TITLE, StringUtil.format("match no result, categoryType: %s, operationName: %s, requestBody: %s",
+                    requestMocker.getCategoryType().getName(), requestMocker.getOperationName(), requestMocker.getTargetRequest().getBody()));
             return null;
         }
 

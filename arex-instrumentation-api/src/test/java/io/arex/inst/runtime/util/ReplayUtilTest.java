@@ -56,7 +56,7 @@ class ReplayUtilTest {
     @MethodSource("replayAllMockerCase")
     void replayAllMocker(Runnable mocker) {
         mocker.run();
-        assertDoesNotThrow(ReplayUtil::replayAllMocker);
+        assertDoesNotThrow(ReplayUtil::queryMockers);
     }
 
     static Stream<Arguments> replayAllMockerCase() {

@@ -187,7 +187,7 @@ public class DataCollectorService implements DataCollector {
         queryApiUrl = String.format("http://%s/api/storage/record/query", storeServiceHost);
         saveApiUrl = String.format("http://%s/api/storage/record/batchSave", storeServiceHost);
         invalidCaseApiUrl = String.format("http://%s/api/storage/record/invalidCase", storeServiceHost);
-        queryAllApiUrl = String.format("http://%s/api/storage/record/queryAllMocker", storeServiceHost);
+        queryAllApiUrl = String.format("http://%s/api/storage/record/queryMockers", storeServiceHost);
     }
 
     @Override
