@@ -29,7 +29,7 @@ public class DubboProviderExtractor extends DubboExtractor {
         String excludeMockTemplate = adapter.getExcludeMockTemplate();
         RequestHandlerManager.preHandle(invocation.getAttachments(), MockCategoryType.DUBBO_PROVIDER.getName());
         CaseEventDispatcher.onEvent(CaseEvent.ofCreateEvent(EventSource.of(caseId, excludeMockTemplate)));
-        ContextManager.currentContext().setAttachment(ArexConstants.FORCE_RECORD, adapter.forceRecord());
+        addAttachmentsToContext(adapter);
         RequestHandlerManager.handleAfterCreateContext(invocation.getAttachments(), MockCategoryType.DUBBO_PROVIDER.getName());
         invocation.getAttachments().put(ArexConstants.ORIGINAL_REQUEST, Serializer.serialize(invocation.getArguments()));
     }
@@ -67,8 +67,7 @@ public class DubboProviderExtractor extends DubboExtractor {
              * the set result is used in DubboCodec#encodeResponseData (serialize)
              */
             result.getAttachments().put(key, value);
-            result.getAttachments().put(ArexConstants.SCHEDULE_REPLAY_FLAG,
-                    invocation.getAttachment(ArexConstants.SCHEDULE_REPLAY_FLAG, Boolean.FALSE.toString()));
+            result.getAttachments().put(ArexConstants.SCHEDULE_REPLAY, invocation.getAttachment(ArexConstants.SCHEDULE_REPLAY));
         }
     }
 }

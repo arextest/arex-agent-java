@@ -9,6 +9,7 @@ import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.listener.CaseEvent;
 import io.arex.inst.runtime.listener.CaseEventDispatcher;
+import io.arex.inst.runtime.listener.EventProcessor;
 import io.arex.inst.runtime.listener.EventSource;
 import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.model.ArexConstants;
@@ -95,6 +96,9 @@ public class RequestTracingHandler extends SimpleChannelUpstreamHandler {
     }
 
     private boolean shouldSkip(HttpRequest request, String caseId) {
+        if (!EventProcessor.dependencyInitComplete()) {
+            return true;
+        }
         // Replay scene
         if (StringUtil.isNotEmpty(caseId)) {
             return Config.get().getBoolean(ConfigConstants.DISABLE_REPLAY, false);

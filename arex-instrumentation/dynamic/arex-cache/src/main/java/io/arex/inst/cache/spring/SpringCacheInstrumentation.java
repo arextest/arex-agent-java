@@ -47,7 +47,7 @@ public class SpringCacheInstrumentation extends TypeInstrumentation {
                 return false;
             }
 
-            if (CacheLoaderUtil.needRecordOrReplay(method)) {
+            if (ContextManager.needRecordOrReplay() && CacheLoaderUtil.needRecordOrReplay(method)) {
                 Cacheable cacheable = method.getDeclaredAnnotation(Cacheable.class);
                 String keyExpression = cacheable != null ? cacheable.key() : null;
                 extractor = new DynamicClassExtractor(method, args, keyExpression, null);

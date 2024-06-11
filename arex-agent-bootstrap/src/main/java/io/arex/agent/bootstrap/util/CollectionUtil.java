@@ -39,6 +39,17 @@ public class CollectionUtil {
         return list;
     }
 
+    @SafeVarargs
+    public static <E> Set<E> newHashSet(E... elements) {
+        if (elements == null) {
+            return new HashSet<>();
+        }
+
+        Set<E> set = new HashSet<>(elements.length);
+        Collections.addAll(set, elements);
+        return set;
+    }
+
     /**
      * split to multiple list by split count
      */

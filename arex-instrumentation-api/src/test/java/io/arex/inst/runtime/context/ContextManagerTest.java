@@ -3,10 +3,12 @@ package io.arex.inst.runtime.context;
 import io.arex.agent.bootstrap.TraceContextManager;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -23,7 +25,6 @@ class ContextManagerTest {
 
     @BeforeAll
     static void setUp() {
-        Mockito.mockStatic(TraceContextManager.class);
     }
 
     @AfterAll
@@ -34,8 +35,10 @@ class ContextManagerTest {
     @ParameterizedTest
     @MethodSource("currentContextCase")
     void currentContext(boolean createIfAbsent, String caseId, Runnable mocker, Predicate<ArexContext> predicate) {
-        mocker.run();
-        assertTrue(predicate.test(ContextManager.currentContext(createIfAbsent, caseId)));
+        try (MockedStatic<TraceContextManager> traceContextManager = Mockito.mockStatic(TraceContextManager.class)) {
+            mocker.run();
+            assertTrue(predicate.test(ContextManager.currentContext(createIfAbsent, caseId)));
+        }
     }
 
     static Stream<Arguments> currentContextCase() {
@@ -53,7 +56,17 @@ class ContextManagerTest {
                 arguments(true, null, emptyMocker, predicate1),
                 arguments(true, null, mocker1, predicate2),
                 arguments(true, "mock", mocker2, predicate2),
-                arguments(false, null, emptyMocker, predicate2)
+                arguments(false, null, mocker2, predicate2)
         );
+    }
+
+    @Test
+    void setAttachment() {
+        try (MockedStatic<TraceContextManager> traceContextManager = Mockito.mockStatic(TraceContextManager.class)) {
+            Mockito.when(TraceContextManager.get(any(Boolean.class))).thenReturn("record-id");
+            ContextManager.currentContext(true, null);
+            ContextManager.setAttachment("attachment-key", "attachment-value");
+            assertEquals("attachment-value", ContextManager.currentContext().getAttachment("attachment-key"));
+        }
     }
 }

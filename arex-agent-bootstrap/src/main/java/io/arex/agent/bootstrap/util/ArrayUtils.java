@@ -40,7 +40,11 @@ public class ArrayUtils {
         StringBuilder builder = new StringBuilder();
         builder.append("[\"");
         for (int i = 0; ; i++) {
-            builder.append(parser != null ? parser.apply(array[i]) : array[i]);
+            if (array[i] == null) {
+                builder.append("null");
+            } else {
+                builder.append(parser != null ? parser.apply(array[i]) : array[i]);
+            }
             if (i == iMax) {
                 return builder.append("\"]").toString();
             }

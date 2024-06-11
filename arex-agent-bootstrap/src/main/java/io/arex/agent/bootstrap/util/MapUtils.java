@@ -79,4 +79,11 @@ public class MapUtils {
         }
         return null;
     }
+
+    public static void putIfValueNotNull(Map<String, Object> map, String key, Object value) {
+        if (value == null) {
+            return;
+        }
+        map.put(key, value);
+    }
 }

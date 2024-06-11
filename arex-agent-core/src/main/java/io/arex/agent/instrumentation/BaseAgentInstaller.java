@@ -143,12 +143,12 @@ public abstract class BaseAgentInstaller implements AgentInstaller {
             if (exists) {
                 FileUtils.cleanDirectory(bytecodeDumpPath);
             } else {
-                mkdir = bytecodeDumpPath.mkdir();
+                mkdir = bytecodeDumpPath.mkdirs();
             }
             LOGGER.info("[arex] bytecode dump path exists: {}, mkdir: {}, path: {}", exists, mkdir, bytecodeDumpPath.getPath());
             System.setProperty(TypeWriter.DUMP_PROPERTY, bytecodeDumpPath.getPath());
         } catch (Exception e) {
-            LOGGER.info("[arex] Failed to create directory to instrumented bytecode: {}", e.getMessage());
+            LOGGER.warn("[arex] Failed to create directory to instrumented bytecode: ", e);
         }
     }
 }

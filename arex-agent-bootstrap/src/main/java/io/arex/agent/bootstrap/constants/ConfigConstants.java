@@ -35,4 +35,5 @@ public class ConfigConstants {
     public static final String COVERAGE_PACKAGES = "arex.coverage.packages";
     public static final String APP_CLASSLOADER_NAME = "jdk.internal.loader.ClassLoaders$AppClassLoader";
     public static final String API_TOKEN = "arex.api.token";
+    public static final String MOCKER_TAGS = "arex.mocker.tags";
 }

@@ -21,6 +21,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
@@ -219,6 +220,26 @@ class InternalExecutorTest {
         target.record(extractor1, mappedStatement1, parameterObject, 1, null);
         Mockito.verify(extractor1, Mockito.times(1)).setKeyHolder("100120,java.lang.String;name,java.lang.String");
         Mockito.verify(extractor1, Mockito.times(1)).setKeyHolderName("id;name");
+
+        // parameterObject is ParamMap
+        MappedStatement mappedStatement2 = Mockito.mock(MappedStatement.class);
+        Mockito.when(mappedStatement2.getKeyProperties()).thenReturn(new String[]{"id"});
+        MapperMethod.ParamMap<Entity> paramMap = new MapperMethod.ParamMap<>();
+        parameterObject.setId("test1");
+        paramMap.put("id", parameterObject);
+        target.record(extractor1, mappedStatement2, paramMap, 1, null);
+        Mockito.verify(extractor1, Mockito.times(1)).setKeyHolder("test1,java.lang.String");
+
+        // parameterObject is List
+        MappedStatement mappedStatement3 = Mockito.mock(MappedStatement.class);
+        Mockito.when(mappedStatement3.getKeyProperties()).thenReturn(new String[]{"id"});
+        Entity parameterObject1 = new Entity();
+        parameterObject1.setId("testId1");
+        Entity parameterObject2 = new Entity();
+        parameterObject2.setId("testId2");
+        target.record(extractor1, mappedStatement3, Arrays.asList(parameterObject1, parameterObject2), 1, null);
+        Mockito.verify(extractor1, Mockito.times(1)).setKeyHolder("testId1,java.lang.String@testId2,java.lang.String");
+        Mockito.verify(extractor1, Mockito.times(1)).setKeyHolderName("id@id");
     }
 
     @Test
@@ -252,6 +273,19 @@ class InternalExecutorTest {
         target.replay(extractor1, mappedStatement1, mockEntity);
         Mockito.verify(mockEntity, Mockito.times(2)).setId("100120");
         Mockito.verify(mockEntity, Mockito.times(1)).setName("name");
+
+        // parameterObject is ParamMap and value is List
+        MapperMethod.ParamMap<List<Entity>> paramMap = new MapperMethod.ParamMap<>();
+        Entity parameterObject1 = new Entity();
+        Entity parameterObject2 = new Entity();
+        paramMap.put("id", Arrays.asList(parameterObject1, parameterObject2));
+        Mockito.when(extractor1.getKeyHolder()).thenReturn("testId1,java.lang.String@testId2,java.lang.String");
+        Mockito.when(extractor1.getKeyHolderName()).thenReturn("id@id");
+        Mockito.when(Serializer.deserialize("testId1", "java.lang.String")).thenReturn("testId1");
+        Mockito.when(Serializer.deserialize("testId2", "java.lang.String")).thenReturn("testId2");
+        target.replay(extractor1, mappedStatement1, paramMap);
+        assertEquals("testId1", parameterObject1.getId());
+        assertEquals("testId2", parameterObject2.getId());
     }
 
     static class Entity {
