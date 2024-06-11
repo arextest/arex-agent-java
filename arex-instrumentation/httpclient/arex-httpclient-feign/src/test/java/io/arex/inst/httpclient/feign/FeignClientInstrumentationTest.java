@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import feign.Request;
 import feign.Response;
 import io.arex.agent.bootstrap.model.MockResult;
-import io.arex.inst.httpclient.common.HttpClientAdapter;
 import io.arex.inst.httpclient.common.HttpClientExtractor;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.context.RepeatedCollectManager;
@@ -65,7 +64,7 @@ class FeignClientInstrumentationTest {
 
         // need replay and not exclude operation
         Mockito.when(ContextManager.needReplay()).thenReturn(true);
-        assertThrows(NullPointerException.class, () -> FeignClientInstrumentation.ExecuteAdvice.onEnter(request, null, null, null));
+        assertTrue(FeignClientInstrumentation.ExecuteAdvice.onEnter(request, null, null, null));
     }
 
     @Test

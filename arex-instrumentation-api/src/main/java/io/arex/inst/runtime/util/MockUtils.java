@@ -73,7 +73,7 @@ public final class MockUtils {
     }
 
     public static ArexMocker create(MockCategoryType categoryType, String operationName) {
-        ArexMocker mocker = new ArexMocker();
+        ArexMocker mocker = new ArexMocker(categoryType);
         long createTime = System.currentTimeMillis();
         ArexContext context = ContextManager.currentContext();
         if (context != null) {
@@ -82,12 +82,10 @@ public final class MockUtils {
             createTime += context.calculateSequence();
         }
         mocker.setCreationTime(createTime);
-        mocker.setAppId(System.getProperty("arex.service.name"));
         mocker.setCategoryType(categoryType);
         mocker.setOperationName(operationName);
         mocker.setTargetRequest(new Target());
         mocker.setTargetResponse(new Target());
-        mocker.setRecordVersion(Config.get().getRecordVersion());
         return mocker;
     }
 

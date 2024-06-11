@@ -1,10 +1,10 @@
 package io.arex.agent.bootstrap.model;
 
-import java.util.HashMap;
+import io.arex.agent.bootstrap.constants.ConfigConstants;
+import java.util.Collections;
 import java.util.Map;
 
 public class ArexMocker implements Mocker {
-    public static final Map<String, String> TAGS = new HashMap<>();
     private String id;
     private MockCategoryType categoryType;
     private String replayId;
@@ -17,16 +17,31 @@ public class ArexMocker implements Mocker {
     private Mocker.Target targetResponse;
     private boolean needMerge;
     private String operationName;
+    private Map<String, String> tags;
 
+    /**
+     * The default constructor is for deserialization
+     */
     public ArexMocker() {
     }
 
     public ArexMocker(MockCategoryType categoryType) {
         this.categoryType = categoryType;
+        this.appId = System.getProperty(ConfigConstants.SERVICE_NAME);
+        this.recordVersion = System.getProperty(ConfigConstants.AGENT_VERSION);
+        this.tags = (Map<String, String>) System.getProperties().getOrDefault(ConfigConstants.MOCKER_TAGS, Collections.emptyMap());
     }
 
+    /**
+     * Put tag into the tags map will throw {@link UnsupportedOperationException}.
+     * @return the tags map
+     */
     public Map<String, String> getTags() {
-        return TAGS;
+        return this.tags;
+    }
+
+    public void setTags(Map<String, String> tags) {
+        this.tags = tags;
     }
 
     public String getId() {
@@ -58,6 +73,7 @@ public class ArexMocker implements Mocker {
         return this.recordVersion;
     }
 
+    @Deprecated
     public void setRecordVersion(String recordVersion) {
         this.recordVersion = recordVersion;
     }
