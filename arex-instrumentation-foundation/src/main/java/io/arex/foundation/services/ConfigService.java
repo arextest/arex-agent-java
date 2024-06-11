@@ -2,7 +2,6 @@ package io.arex.foundation.services;
 
 import com.google.gson.Gson;
 import io.arex.agent.bootstrap.constants.ConfigConstants;
-import io.arex.agent.bootstrap.model.ArexMocker;
 import io.arex.agent.bootstrap.util.MapUtils;
 import io.arex.foundation.model.*;
 import io.arex.foundation.config.ConfigManager;
@@ -10,6 +9,7 @@ import io.arex.foundation.util.httpclient.AsyncHttpClientUtil;
 import io.arex.foundation.util.NetUtils;
 import io.arex.agent.bootstrap.util.StringUtil;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -130,22 +130,24 @@ public class ConfigService {
     public Map<String, String> getSystemProperties() {
         Properties properties = System.getProperties();
         Map<String, String> map = MapUtils.newHashMapWithExpectedSize(properties.size());
+        Map<String, String> mockerTags = new HashMap<>();
         for (Map.Entry<Object, Object> entry : properties.entrySet()) {
             String key = String.valueOf(entry.getKey());
             String value = String.valueOf(entry.getValue());
             map.put(key, value);
-            buildTags(key, value);
+            buildTags(mockerTags, key, value);
         }
+        properties.put(ConfigConstants.MOCKER_TAGS, Collections.unmodifiableMap(mockerTags));
         return map;
     }
 
     /**
      * ex: -Darex.tags.xxx=xxx
      */
-    private void buildTags(String key, String value) {
+    private void buildTags(Map<String, String> mockerTags, String key, String value) {
         if (StringUtil.startWith(key, TAGS_PREFIX)) {
             TAGS_PROPERTIES.put(key, value);
-            ArexMocker.TAGS.put(key.substring(TAGS_PREFIX.length()), value);
+            mockerTags.put(key.substring(TAGS_PREFIX.length()), value);
         }
     }
 
