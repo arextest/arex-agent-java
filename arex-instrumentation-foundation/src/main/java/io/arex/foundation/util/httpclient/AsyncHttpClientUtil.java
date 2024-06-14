@@ -113,6 +113,8 @@ public class AsyncHttpClientUtil {
         httpPost.addHeader(ClientConfig.HEADER_ACCEPT);
         httpPost.addHeader(ClientConfig.HEADER_USER_AGENT);
         httpPost.addHeader(ClientConfig.HEADER_API_TOKEN);
+        httpPost.addHeader(ClientConfig.HEADER_SERVICE_NAME);
+        httpPost.addHeader(ClientConfig.HEADER_AGENT_VERSION);
 
         return httpPost;
     }
@@ -151,5 +153,9 @@ public class AsyncHttpClientUtil {
             String.format("arex-async-http-client-%s", ConfigManager.INSTANCE.getAgentVersion()));
         private static final Header HEADER_API_TOKEN = new BasicHeader("arex-api-token",
             System.getProperty(ConfigConstants.API_TOKEN, StringUtil.EMPTY));
+        private static final Header HEADER_SERVICE_NAME = new BasicHeader("arex-service-name",
+            System.getProperty(ConfigConstants.SERVICE_NAME, StringUtil.EMPTY));
+        private static final Header HEADER_AGENT_VERSION = new BasicHeader("arex-agent-version",
+            System.getProperty(ConfigConstants.AGENT_VERSION, StringUtil.EMPTY));
     }
 }
