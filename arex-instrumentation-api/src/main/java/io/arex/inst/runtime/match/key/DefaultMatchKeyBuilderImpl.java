@@ -8,7 +8,7 @@ public class DefaultMatchKeyBuilderImpl implements MatchKeyBuilder {
 
     @Override
     public boolean isSupported(MockCategoryType categoryType) {
-        return !categoryType.isEntryPoint();
+        return true;
     }
 
     /**

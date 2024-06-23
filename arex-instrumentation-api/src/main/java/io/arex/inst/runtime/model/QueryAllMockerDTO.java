@@ -4,6 +4,7 @@ import java.util.Arrays;
 
 public class QueryAllMockerDTO {
     private String recordId;
+    private String replayId;
     private String[] fieldNames =new String[]{"id", "categoryType", "operationName", "targetRequest", "targetResponse", "creationTime"};
     private String[] categoryTypes;
 
@@ -13,6 +14,14 @@ public class QueryAllMockerDTO {
 
     public void setRecordId(String recordId) {
         this.recordId = recordId;
+    }
+
+    public String getReplayId() {
+        return replayId;
+    }
+
+    public void setReplayId(String replayId) {
+        this.replayId = replayId;
     }
 
     public String[] getFieldNames() {
@@ -39,6 +48,7 @@ public class QueryAllMockerDTO {
     public String toString() {
         return "{" +
                 "recordId='" + recordId + '\'' +
+                ", replayId='" + replayId + '\'' +
                 ", fieldNames=" + Arrays.toString(fieldNames) +
                 ", categoryTypes=" + Arrays.toString(categoryTypes) +
                 '}';

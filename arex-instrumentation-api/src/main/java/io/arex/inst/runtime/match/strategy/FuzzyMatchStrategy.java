@@ -16,30 +16,24 @@ public class FuzzyMatchStrategy extends AbstractMatchStrategy {
      */
     void process(MatchStrategyContext context) {
         context.setMatchStrategy(MatchStrategyEnum.FUZZY);
-        List<Mocker> replayList = context.getReplayList();
-        Mocker mocker = null;
-        int size = replayList.size();
+        List<Mocker> recordList = context.getRecordList();
+        Mocker resultMocker = null;
+        int size = recordList.size();
         for (int i = 0; i < size; i++) {
-            Mocker mockerDTO = replayList.get(i);
-            if (!mockerDTO.isMatched()) {
-                mocker = mockerDTO;
+            Mocker recordMocker = recordList.get(i);
+            if (!recordMocker.isMatched()) {
+                resultMocker = recordMocker;
                 break;
             }
         }
-        if (mocker == null && MockStrategyEnum.FIND_LAST == context.getMockStrategy()) {
-            mocker = replayList.get(size - 1);
+        if (resultMocker == null && MockStrategyEnum.FIND_LAST == context.getMockStrategy()) {
+            resultMocker = recordList.get(size - 1);
         }
-        if (mocker != null) {
-            mocker.setMatched(true);
-        } else {
-            context.setReason("fuzzy match no result, all matched before");
-        }
-
-        context.setMatchMocker(mocker);
+        setContextResult(context, resultMocker, "fuzzy match no result, all has been matched");
     }
 
     @Override
     boolean internalCheck(MatchStrategyContext context) {
-        return CollectionUtil.isNotEmpty(context.getReplayList());
+        return CollectionUtil.isNotEmpty(context.getRecordList());
     }
 }

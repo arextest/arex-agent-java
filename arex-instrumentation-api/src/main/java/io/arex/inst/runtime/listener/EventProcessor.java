@@ -44,7 +44,7 @@ public class EventProcessor {
             return;
         }
         initContext(source);
-        initReplayData();
+        initReplay();
         initClock();
         addEnterLog();
     }
@@ -102,6 +102,7 @@ public class EventProcessor {
     }
 
     public static void onExit(){
+        ReplayUtil.saveReplayCompareResult();
         ContextManager.remove();
     }
 
@@ -135,7 +136,7 @@ public class EventProcessor {
         return InitializeEnum.COMPLETE.equals(INIT_DEPENDENCY.get());
     }
 
-    private static void initReplayData() {
+    private static void initReplay() {
         // init replay and cached all mockers within case
         ReplayUtil.queryMockers();
     }

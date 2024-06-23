@@ -11,6 +11,6 @@ class MatchStrategyRegisterTest {
 
     @Test
     void getMatchStrategies() {
-        assertNotNull(MatchStrategyRegister.getMatchStrategies(new ArexMocker(MockCategoryType.DYNAMIC_CLASS)));
+        assertNotNull(MatchStrategyRegister.getMatchStrategies(new ArexMocker(MockCategoryType.DYNAMIC_CLASS), 1));
     }
 }

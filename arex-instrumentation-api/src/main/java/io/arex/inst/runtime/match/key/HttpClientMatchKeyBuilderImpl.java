@@ -7,15 +7,13 @@ import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.model.ArexConstants;
 
-import java.util.Objects;
-
 public class HttpClientMatchKeyBuilderImpl implements MatchKeyBuilder {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     @Override
     public boolean isSupported(MockCategoryType categoryType) {
-        return Objects.equals(categoryType, MockCategoryType.HTTP_CLIENT);
+        return MockCategoryType.HTTP_CLIENT.getName().equals(categoryType.getName());
     }
 
     /**

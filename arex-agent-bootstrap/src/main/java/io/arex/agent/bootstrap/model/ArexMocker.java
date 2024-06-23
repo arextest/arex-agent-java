@@ -2,6 +2,7 @@ package io.arex.agent.bootstrap.model;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ArexMocker implements Mocker {
     public static final Map<String, String> TAGS = new HashMap<>();
@@ -15,17 +16,12 @@ public class ArexMocker implements Mocker {
     private long creationTime;
     private Mocker.Target targetRequest;
     private Mocker.Target targetResponse;
-    private transient boolean needMerge;
     private String operationName;
-    private transient boolean matched;
-    /**
-     * replay match need
-     */
+    private transient boolean needMerge;
+    private final transient AtomicBoolean matched = new AtomicBoolean(false);
     private transient int fuzzyMatchKey;
-    /**
-     * replay match need
-     */
     private transient int accurateMatchKey;
+    private transient Map<Integer, Long> eigenMap;
 
     public ArexMocker() {
     }
@@ -87,6 +83,7 @@ public class ArexMocker implements Mocker {
         return this.operationName;
     }
 
+
     public void setId(String id) {
         this.id = id;
     }
@@ -136,11 +133,11 @@ public class ArexMocker implements Mocker {
     }
 
     public boolean isMatched() {
-        return matched;
+        return matched.get();
     }
 
     public void setMatched(boolean matched) {
-        this.matched = matched;
+        this.matched.compareAndSet(false, matched);
     }
 
     @Override
@@ -161,5 +158,15 @@ public class ArexMocker implements Mocker {
     @Override
     public void setFuzzyMatchKey(int fuzzyMatchKey) {
         this.fuzzyMatchKey = fuzzyMatchKey;
+    }
+
+    @Override
+    public Map<Integer, Long> getEigenMap() {
+        return eigenMap;
+    }
+
+    @Override
+    public void setEigenMap(Map<Integer, Long> eigenMap) {
+        this.eigenMap = eigenMap;
     }
 }

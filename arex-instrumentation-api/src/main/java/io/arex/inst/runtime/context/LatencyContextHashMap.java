@@ -14,7 +14,7 @@ final class LatencyContextHashMap extends ConcurrentHashMap<String, ArexContext>
     private static final int CLEANUP_THRESHOLD = 10;
     private static final long RECORD_TTL_MILLIS = TimeUnit.MINUTES.toMillis(1);
     private static final ReentrantLock CLEANUP_LOCK = new ReentrantLock();
-    private ConcurrentHashMap<String, ArexContext> latencyMap;
+    private ConcurrentHashMap<String, ArexContext> latencyMap = new ConcurrentHashMap<>();
 
     @Override
     public ArexContext get(Object key) {
@@ -34,7 +34,6 @@ final class LatencyContextHashMap extends ConcurrentHashMap<String, ArexContext>
         if (latencyMap != null && context != null) {
             latencyMap.put(String.valueOf(key), context);
         }
-        // todo: time put into ArexContext
         if (latencyMap == null) {
             TimeCache.remove(String.valueOf(key));
         }

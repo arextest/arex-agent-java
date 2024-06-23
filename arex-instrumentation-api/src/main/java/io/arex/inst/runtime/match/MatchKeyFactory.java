@@ -36,7 +36,7 @@ public class MatchKeyFactory {
         return null;
     }
 
-    public int generateFuzzyMatchKey(Mocker mocker) {
+    public int getFuzzyMatchKey(Mocker mocker) {
         MatchKeyBuilder matchKeyBuilder = find(mocker.getCategoryType());
         if (matchKeyBuilder == null) {
             return 0;
@@ -44,7 +44,7 @@ public class MatchKeyFactory {
         return matchKeyBuilder.getFuzzyMatchKey(mocker);
     }
 
-    public int generateAccurateMatchKey(Mocker mocker) {
+    public int getAccurateMatchKey(Mocker mocker) {
         MatchKeyBuilder matchKeyBuilder = find(mocker.getCategoryType());
         if (matchKeyBuilder == null) {
             return 0;
@@ -52,7 +52,7 @@ public class MatchKeyFactory {
         return matchKeyBuilder.getAccurateMatchKey(mocker);
     }
 
-    public String generateEigenBody(Mocker mocker) {
+    public String getEigenBody(Mocker mocker) {
         MatchKeyBuilder matchKeyBuilder = find(mocker.getCategoryType());
         if (matchKeyBuilder == null) {
             return null;

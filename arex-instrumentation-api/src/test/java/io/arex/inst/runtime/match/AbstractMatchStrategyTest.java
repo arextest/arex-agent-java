@@ -33,7 +33,7 @@ class AbstractMatchStrategyTest {
     @Test
     void match() {
         assertDoesNotThrow(() -> target.match(null));
-        MatchStrategyContext context = new MatchStrategyContext(mocker, new ArrayList<>(), null);
+        MatchStrategyContext context = new MatchStrategyContext(mocker, null);
         assertDoesNotThrow(() -> target.match(context));
     }
 }

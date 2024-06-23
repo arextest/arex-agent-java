@@ -7,6 +7,8 @@ import java.util.Map;
 
 public interface Mocker extends Serializable {
 
+    void setAppId(String appId);
+
     String getAppId();
 
     String getReplayId();
@@ -32,6 +34,8 @@ public interface Mocker extends Serializable {
     MockCategoryType getCategoryType();
 
     String getOperationName();
+
+    void setOperationName(String operationName);
 
     Target getTargetRequest();
 
@@ -132,4 +136,8 @@ public interface Mocker extends Serializable {
     int getFuzzyMatchKey();
 
     void setFuzzyMatchKey(int fuzzyMatchKey);
+
+    Map<Integer, Long> getEigenMap();
+
+    void setEigenMap(Map<Integer, Long> eigenMap);
 }

@@ -24,7 +24,10 @@ public class MatchStrategyRegister {
     private MatchStrategyRegister() {
     }
 
-    public static List<AbstractMatchStrategy> getMatchStrategies(Mocker mocker) {
+    public static List<AbstractMatchStrategy> getMatchStrategies(Mocker mocker, int fuzzyMatchResultCount) {
+        if (fuzzyMatchResultCount == 1) {
+            return ACCURATE_FUZZY_COMBINE;
+        }
         List<AbstractMatchStrategy> matchStrategies = MATCH_STRATEGIES.get(mocker.getCategoryType().getName());
         if (matchStrategies == null) {
             return DEFAULT_MATCH_COMBINE;

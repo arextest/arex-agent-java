@@ -12,7 +12,6 @@ import io.arex.inst.runtime.util.DatabaseUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 
 public class DatabaseMatchKeyBuilderImpl implements MatchKeyBuilder {
 
@@ -37,7 +36,7 @@ public class DatabaseMatchKeyBuilderImpl implements MatchKeyBuilder {
 
     @Override
     public boolean isSupported(MockCategoryType categoryType) {
-        return Objects.equals(categoryType, MockCategoryType.DATABASE);
+        return MockCategoryType.DATABASE.getName().equals(categoryType.getName());
     }
 
     /**
@@ -87,12 +86,14 @@ public class DatabaseMatchKeyBuilderImpl implements MatchKeyBuilder {
         if (CollectionUtil.isNotEmpty(tableNames)) {
             return String.join(",", tableNames);
         }
-        // TODO 确认该方法是否还需要, 如果还需要，部分优化到StringUtil中
         return findTableName(sqlText);
     }
 
     private String findTableName(String sqlText) {
         int sourceCount = sqlText.length();
+        if (sourceCount > ArexConstants.DB_SQL_MAX_LEN) {
+            return StringUtil.EMPTY;
+        }
         List<String> tableNames = new ArrayList<>();
         for (int i = 0; i < SQL_TABLE_KEYS.size(); i++) {
             String key = SQL_TABLE_KEYS.get(i);

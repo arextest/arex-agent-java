@@ -45,7 +45,7 @@ public class SqlParse {
                 successParse = false;
             }
         } catch (Throwable throwable) {
-            LogUtil.warn("arex sql parse error", throwable);
+            LogUtil.warn("arex sqlParse error", throwable);
             successParse = false;
         }
 

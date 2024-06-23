@@ -18,6 +18,7 @@ import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 
 class ReplayMatcherTest {
 
@@ -51,7 +52,7 @@ class ReplayMatcherTest {
         List<Mocker> mergeReplayList = new ArrayList<>();
         mergeReplayList.add(new ArexMocker());
         cachedReplayResultMap.put(1, mergeReplayList);
-        Mockito.when(MatchStrategyRegister.getMatchStrategies(any())).thenReturn(Collections.singletonList(new AccurateMatchStrategy()));
+        Mockito.when(MatchStrategyRegister.getMatchStrategies(any(), anyInt())).thenReturn(Collections.singletonList(new AccurateMatchStrategy()));
         Mockito.when(Config.get().isEnableDebug()).thenReturn(true);
         assertNull(ReplayMatcher.match(requestMocker, MockStrategyEnum.FIND_LAST));
     }

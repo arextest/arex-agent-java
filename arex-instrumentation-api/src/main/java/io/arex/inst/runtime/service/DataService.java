@@ -4,6 +4,7 @@ import io.arex.agent.bootstrap.model.MockStrategyEnum;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.model.ArexConstants;
+import io.arex.inst.runtime.model.ReplayCompareResultDTO;
 
 import java.util.List;
 
@@ -19,6 +20,10 @@ public class DataService {
 
     public void save(List<Mocker> mockerList) {
         saver.save(mockerList);
+    }
+
+    public void saveReplayCompareResult(String postData) {
+        saver.saveReplayCompareResult(postData);
     }
 
     public void invalidCase(String postData) {

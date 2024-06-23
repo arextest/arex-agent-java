@@ -4,16 +4,20 @@ import io.arex.agent.bootstrap.model.ArexMocker;
 import io.arex.agent.bootstrap.model.MockCategoryType;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.CollectionUtil;
+import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
+import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.match.MatchKeyFactory;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.model.MergeDTO;
 import io.arex.inst.runtime.model.QueryAllMockerDTO;
+import io.arex.inst.runtime.model.ReplayCompareResultDTO;
 import io.arex.inst.runtime.serializer.Serializer;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Predicate;
 
 /**
@@ -28,19 +32,23 @@ public class ReplayUtil {
         if (!ContextManager.needReplay()) {
             return;
         }
-        QueryAllMockerDTO requestMocker = new QueryAllMockerDTO();
-        requestMocker.setRecordId(ContextManager.currentContext().getCaseId());
-        requestMocker.setCategoryTypes(new String[]{MockCategoryType.DYNAMIC_CLASS.getName(), MockCategoryType.REDIS.getName()});
+        try {
+            QueryAllMockerDTO requestMocker = new QueryAllMockerDTO();
+            requestMocker.setRecordId(ContextManager.currentContext().getCaseId());
+            requestMocker.setReplayId(ContextManager.currentContext().getReplayId());
+            List<Mocker> recordMockerList = MockUtils.queryMockers(requestMocker);
+            if (CollectionUtil.isEmpty(recordMockerList)) {
+                return;
+            }
 
-        List<Mocker> allMockerList = MockUtils.queryMockers(requestMocker);
-        if (CollectionUtil.isEmpty(allMockerList)) {
-            return;
+            filterMergeMocker(recordMockerList);
+            Map<Integer, List<Mocker>> cachedReplayMap = ContextManager.currentContext().getCachedReplayResultMap();
+            cachedReplayMap.clear();
+            buildReplayResultMap(recordMockerList, cachedReplayMap);
+            ascendingSortByCreationTime(cachedReplayMap);
+        } catch (Exception e) {
+            LogManager.warn("replay.allMocker", e);
         }
-
-        filterMergeMocker(allMockerList);
-        Map<Integer, List<Mocker>> cachedReplayMap = ContextManager.currentContext().getCachedReplayResultMap();
-        buildReplayResultMap(allMockerList, cachedReplayMap);
-        ascendingSortByCreationTime(cachedReplayMap);
     }
 
     /**
@@ -91,30 +99,58 @@ public class ReplayUtil {
      * <pre>
      * format:
      * {
-     *   fuzzyMatchKeyHash : [Mocker1, Mocker2, ...]
+     *   fuzzyMatchKeyHash : [Mockers]
      * }
+     *
      * demo:
      * {
-     *   1233213331 : [Mocker1],
-     *   4545626535 : [Mocker2, Mocker3]
-     *   8764987897 : [Mocker4, Mocker5, Mocker6]
+     *   1233213331 : [
+     *                  {
+     *                  "categoryType": "Httpclient",
+     *                  "operationName": "/order/query",
+     *                  "accurateMatchKey": 3454562343,
+     *                  "targetRequest": "...",
+     *                  "targetResponse": "...",
+     *                  ...
+     *                  }
+     *               ]
+     *   4545626535 : [
+     *                  {
+     *                  "categoryType": "Database",
+     *                  "operationName": "query",
+     *                  "accurateMatchKey": 6534247741,
+     *                  "targetRequest": "...",
+     *                  "targetResponse": "...",
+     *                  ...
+     *                  },
+     *                  {
+     *                  "categoryType": "Database",
+     *                  "operationName": "update",
+     *                  "accurateMatchKey": 9866734220,
+     *                  "targetRequest": "...",
+     *                  "targetResponse": "...",
+     *                  ...
+     *                  }
+     *               ]
      *   ...
      * }
      * </pre>
      */
-    private static void buildReplayResultMap(List<Mocker> replayMockers, Map<Integer, List<Mocker>> cachedReplayResultMap) {
-        for (Mocker replayMocker : replayMockers) {
-            if (replayMocker == null) {
+    private static void buildReplayResultMap(List<Mocker> recordMockerList, Map<Integer, List<Mocker>> cachedReplayResultMap) {
+        for (Mocker recordMocker : recordMockerList) {
+            if (recordMocker == null) {
                 continue;
             }
             // replay match need methodRequestTypeHash and methodSignatureHash
-            if (replayMocker.getFuzzyMatchKey() == 0) {
-                replayMocker.setFuzzyMatchKey(MatchKeyFactory.INSTANCE.generateFuzzyMatchKey(replayMocker));
+            if (recordMocker.getFuzzyMatchKey() == 0) {
+                recordMocker.setFuzzyMatchKey(MatchKeyFactory.INSTANCE.getFuzzyMatchKey(recordMocker));
             }
-            if (replayMocker.getAccurateMatchKey() == 0) {
-                replayMocker.setAccurateMatchKey(MatchKeyFactory.INSTANCE.generateAccurateMatchKey(replayMocker));
+            if (recordMocker.getAccurateMatchKey() == 0) {
+                recordMocker.setAccurateMatchKey(MatchKeyFactory.INSTANCE.getAccurateMatchKey(recordMocker));
             }
-            cachedReplayResultMap.computeIfAbsent(replayMocker.getFuzzyMatchKey(), k -> new ArrayList<>()).add(replayMocker);
+            // eigen will be calculated in agent
+            recordMocker.setEigenMap(null);
+            cachedReplayResultMap.computeIfAbsent(recordMocker.getFuzzyMatchKey(), k -> new ArrayList<>()).add(recordMocker);
         }
     }
 
@@ -130,5 +166,69 @@ public class ReplayUtil {
                 return o1.getCreationTime() - o2.getCreationTime() > 0 ? 1 : -1;
             });
         }
+    }
+
+    public static void saveReplayCompareResult() {
+        ArexContext context = ContextManager.currentContext();
+        if (context == null || !context.isReplay()) {
+            return;
+        }
+        LinkedBlockingQueue<ReplayCompareResultDTO> replayCompareResultQueue = context.getReplayCompareResultQueue();
+        if (replayCompareResultQueue.isEmpty()) {
+            return;
+        }
+        List<ReplayCompareResultDTO> replayCompareList = new ArrayList<>();
+        replayCompareResultQueue.drainTo(replayCompareList);
+        MockUtils.saveReplayCompareResult(replayCompareList);
+    }
+
+    /**
+     * call missing 类型只能在最后统计一次，保证所有的回放匹配（包括异步的）都匹配结束，这样统计的call missing才是准确的
+     * 如果在主接口就统计call missing，可能会有异步接口还未匹配，导致call missing统计不准确，
+     * 虽然现在是未匹配过的状态，但等异步匹配之后可能变成了匹配中的状态了，所以要放到最后统计
+     */
+    public static void saveRemainCompareResult(ArexContext context) {
+        if (context == null) {
+            return;
+        }
+        LinkedBlockingQueue<ReplayCompareResultDTO> replayCompareResultQueue = context.getReplayCompareResultQueue();
+        // find unmatched mockers (call missing)
+        Map<Integer, List<Mocker>> cachedReplayResultMap = context.getCachedReplayResultMap();
+        for (List<Mocker> cachedReplayList : cachedReplayResultMap.values()) {
+            for (Mocker cachedMocker : cachedReplayList) {
+                if (cachedMocker.isMatched() || cachedMocker.getCategoryType().isSkipComparison()) {
+                    continue;
+                }
+                cachedMocker.setAppId(System.getProperty("arex.service.name"));
+                cachedMocker.setReplayId(context.getReplayId());
+                String recordMsg = cachedMocker.getCategoryType().isEntryPoint() ?
+                        cachedMocker.getTargetResponse().getBody() : cachedMocker.getTargetRequest().getBody();
+                ReplayCompareResultDTO callMissingDTO = convertCompareResult(cachedMocker, recordMsg,
+                        null, cachedMocker.getCreationTime(), Long.MAX_VALUE, false);
+                replayCompareResultQueue.offer(callMissingDTO);
+            }
+        }
+        if (replayCompareResultQueue.isEmpty()) {
+            return;
+        }
+        List<ReplayCompareResultDTO> replayCompareList = new ArrayList<>();
+        replayCompareResultQueue.drainTo(replayCompareList);
+        MockUtils.saveReplayCompareResult(replayCompareList);
+    }
+
+    public static ReplayCompareResultDTO convertCompareResult(Mocker replayMocker, String recordMsg, String replayMsg,
+                                                              long recordTime, long replayTime, boolean sameMsg) {
+        ReplayCompareResultDTO compareResult = new ReplayCompareResultDTO();
+        compareResult.setAppId(replayMocker.getAppId());
+        compareResult.setCategoryType(replayMocker.getCategoryType());
+        compareResult.setOperationName(replayMocker.getOperationName());
+        compareResult.setRecordId(replayMocker.getRecordId());
+        compareResult.setReplayId(replayMocker.getReplayId());
+        compareResult.setBaseMsg(recordMsg);
+        compareResult.setTestMsg(replayMsg);
+        compareResult.setRecordTime(recordTime);
+        compareResult.setReplayTime(replayTime);
+        compareResult.setSameMsg(sameMsg);
+        return compareResult;
     }
 }
