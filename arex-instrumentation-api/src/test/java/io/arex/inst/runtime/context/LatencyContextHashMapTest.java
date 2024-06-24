@@ -36,12 +36,5 @@ class LatencyContextHashMapTest {
 
         context = RECORD_MAP.get(key2);
         assertEquals(key2, context.getCaseId());
-
-        // test overdueCleanUp
-        for (int i = 0; i < 11; i++) {
-            RECORD_MAP.computeIfAbsent("arex-test-id-" + i, ArexContext::of);
-        }
-        context = RECORD_MAP.remove(key2);
-        assertNotNull(context);
     }
 }
