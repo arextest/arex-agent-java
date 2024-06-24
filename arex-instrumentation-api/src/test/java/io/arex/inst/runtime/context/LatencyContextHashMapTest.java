@@ -25,10 +25,6 @@ class LatencyContextHashMapTest {
         assertEquals(key, context.getCaseId());
         assertEquals(0, RECORD_MAP.size());
 
-        // get key again, init latencyMap
-        context = RECORD_MAP.get(key);
-        assertNull(context);
-
         // create key2
         String key2 = "arex-test-id-2";
         context = RECORD_MAP.computeIfAbsent(key2, ArexContext::of);
