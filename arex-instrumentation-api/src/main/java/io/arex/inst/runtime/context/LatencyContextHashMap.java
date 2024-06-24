@@ -11,7 +11,6 @@ import java.util.concurrent.locks.ReentrantLock;
  * Only used for ContextManager
  */
 final class LatencyContextHashMap extends ConcurrentHashMap<String, ArexContext> {
-    private static final int CLEANUP_THRESHOLD = 10;
     private static final long RECORD_TTL_MILLIS = TimeUnit.MINUTES.toMillis(1);
     private static final ReentrantLock CLEANUP_LOCK = new ReentrantLock();
 
@@ -34,7 +33,7 @@ final class LatencyContextHashMap extends ConcurrentHashMap<String, ArexContext>
     }
 
     private void overdueCleanUp() {
-        if (this.mappingCount() > CLEANUP_THRESHOLD && CLEANUP_LOCK.tryLock()) {
+        if (CLEANUP_LOCK.tryLock()) {
             try {
                 long now = System.currentTimeMillis();
                 for (Map.Entry<String, ArexContext> entry: super.entrySet()) {
