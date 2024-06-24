@@ -1,10 +1,9 @@
 package io.arex.inst.runtime.context;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class LatencyContextHashMapTest {
     private static final Map<String, ArexContext> RECORD_MAP = new LatencyContextHashMap();
@@ -23,7 +22,7 @@ class LatencyContextHashMapTest {
         // remove key
         context = RECORD_MAP.remove(key);
         assertEquals(key, context.getCaseId());
-        assertEquals(0, RECORD_MAP.size());
+        assertEquals(1, RECORD_MAP.size());
 
         // create key2
         String key2 = "arex-test-id-2";
@@ -33,9 +32,16 @@ class LatencyContextHashMapTest {
         // remove key2
         context = RECORD_MAP.remove(key2);
         assertEquals(key2, context.getCaseId());
-        assertEquals(0, RECORD_MAP.size());
+        assertEquals(2, RECORD_MAP.size());
 
         context = RECORD_MAP.get(key2);
         assertEquals(key2, context.getCaseId());
+
+        // test overdueCleanUp
+        for (int i = 0; i < 11; i++) {
+            RECORD_MAP.computeIfAbsent("arex-test-id-" + i, ArexContext::of);
+        }
+        context = RECORD_MAP.remove(key2);
+        assertNotNull(context);
     }
 }

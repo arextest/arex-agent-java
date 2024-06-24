@@ -14,15 +14,13 @@ final class LatencyContextHashMap extends ConcurrentHashMap<String, ArexContext>
     private static final int CLEANUP_THRESHOLD = 10;
     private static final long RECORD_TTL_MILLIS = TimeUnit.MINUTES.toMillis(1);
     private static final ReentrantLock CLEANUP_LOCK = new ReentrantLock();
-    private final ConcurrentHashMap<String, ArexContext> latencyMap = new ConcurrentHashMap<>();
 
     @Override
     public ArexContext get(Object key) {
         if (key == null) {
             return null;
         }
-        ArexContext context = super.get(key);
-        return context == null ? latencyMap.get(key) : context;
+        return super.get(key);
     }
 
     @Override
@@ -30,39 +28,20 @@ final class LatencyContextHashMap extends ConcurrentHashMap<String, ArexContext>
         if (key == null) {
             return null;
         }
-        ArexContext context = super.get(key);
-        if (context != null) {
-            latencyMap.put(String.valueOf(key), context);
-        }
-        super.remove(key);
         overdueCleanUp();
 
-        return context;
+        return super.get(key);
     }
 
     private void overdueCleanUp() {
-        if (CLEANUP_LOCK.tryLock()) {
-            try {
-                long now = System.currentTimeMillis();
-                for (Map.Entry<String, ArexContext> entry: latencyMap.entrySet()) {
-                    if (isExpired(entry.getValue().getCreateTime(), now)) {
-                        // clear context attachments
-                        entry.getValue().clear();
-                        latencyMap.remove(entry.getKey());
-                        TimeCache.remove(entry.getKey());
-                    }
-                }
-            } finally {
-                CLEANUP_LOCK.unlock();
-            }
-        }
-
-        // Compatible where map.remove() not called
         if (this.mappingCount() > CLEANUP_THRESHOLD && CLEANUP_LOCK.tryLock()) {
             try {
                 long now = System.currentTimeMillis();
                 for (Map.Entry<String, ArexContext> entry: super.entrySet()) {
                     if (isExpired(entry.getValue().getCreateTime(), now)) {
+                        // clear context attachments
+                        entry.getValue().clear();
+                        TimeCache.remove(entry.getKey());
                         super.remove(entry.getKey());
                     }
                 }
