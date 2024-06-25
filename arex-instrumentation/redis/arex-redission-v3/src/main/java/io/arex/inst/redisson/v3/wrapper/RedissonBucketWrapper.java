@@ -220,13 +220,13 @@ public class RedissonBucketWrapper<V> extends RedissonBucket<V> {
 
     @Override
     public RFuture<Long> remainTimeToLiveAsync() {
-        return RedissonWrapperCommon.delegateCall(redisUri, RedisCommands.PTTL.getName(), getRawName(),
+        return RedissonWrapperCommon.delegateCall(redisUri, RedisCommands.PTTL.getName(), this.name,
             () -> super.remainTimeToLiveAsync());
     }
 
     @Override
     public RFuture<Long> getExpireTimeAsync() {
-        return RedissonWrapperCommon.delegateCall(redisUri, RedisCommands.PEXPIRETIME.getName(), getRawName(),
+        return RedissonWrapperCommon.delegateCall(redisUri, RedisCommands.PEXPIRETIME.getName(), this.name,
             () -> super.getExpireTimeAsync());
     }
 
