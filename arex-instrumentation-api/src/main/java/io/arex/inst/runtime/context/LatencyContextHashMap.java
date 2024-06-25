@@ -8,7 +8,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * Only used for ContextManager
+ * Only used for ContextManager <br/>
+ * delayed clean context in asynchronous situations,
+ * the purpose is to ensure that the context can also be obtained during recording in async threads
  */
 final class LatencyContextHashMap extends ConcurrentHashMap<String, ArexContext> {
     private static final long RECORD_TTL_MILLIS = TimeUnit.MINUTES.toMillis(1);
