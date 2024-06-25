@@ -2,10 +2,8 @@ package io.arex.agent.bootstrap.util;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -318,6 +316,24 @@ class StringUtilTest {
 
         String s = "aaa,bb,c";
         Set<String> set = StringUtil.splitToSet(s, ',');
+        assertEquals(3, set.size());
+        assertTrue(set.contains("aaa"));
+        assertTrue(set.contains("bb"));
+        assertTrue(set.contains("c"));
+    }
+
+    @Test
+    void testSplitToList() {
+        // null string
+        List<String> nullSet = StringUtil.splitToList(null, ',');
+        assertEquals(0, nullSet.size());
+
+        // empty string
+        List<String> emptySet = StringUtil.splitToList("", ',');
+        assertEquals(0, emptySet.size());
+
+        String s = "aaa,bb,c";
+        List<String> set = StringUtil.splitToList(s, ',');
         assertEquals(3, set.size());
         assertTrue(set.contains("aaa"));
         assertTrue(set.contains("bb"));

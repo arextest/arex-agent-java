@@ -40,9 +40,11 @@ AREX utilizes the advanced Java technique, Instrument API, and is capable of ins
 #### Http Client
 - Apache HttpClient [4.0,)
 - OkHttp [3.0, 4.11]
-- Spring WebClient [5.0,)
-- Spring Template
 - Feign [9.0,)
+- Spring OpenFeign
+- Spring RestTemplate
+- Spring WebClient [5.0,)
+- [ning/async-http-client](https://github.com/ning/async-http-client)
 - Elasticsearch Client [7.x,)
 #### Redis Client
 - RedisTemplate
