@@ -265,7 +265,7 @@ public class ConfigManager {
         setAllowDayOfWeeks(Integer.parseInt(System.getProperty(ALLOW_DAY_WEEKS, "127")));
         setAllowTimeOfDayFrom(System.getProperty(ALLOW_TIME_FROM, "00:01"));
         setAllowTimeOfDayTo(System.getProperty(ALLOW_TIME_TO, "23:59"));
-        setIgnoredTypePrefixes(System.getProperty(IGNORED_TYPES));
+        setIgnoredTypePrefixes(System.getProperty(IGNORED_TYPE_PREFIXES));
         setIgnoredClassLoaders(System.getProperty(IGNORED_CLASS_LOADERS));
         setDisabledModules(System.getProperty(DISABLE_MODULE));
         setRetransformModules(System.getProperty(RETRANSFORM_MODULE, "dynamic-class"));
