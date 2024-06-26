@@ -63,7 +63,7 @@ public class ArexConstants {
     public static final String DB_NAME = "dbName";
     public static final String DB_PARAMETERS = "parameters";
     public static final String DB_SQL = "sql";
-    public static final int DB_SQL_MAX_LEN = 50000;
+    public static final int DB_SQL_MAX_LEN = 5000;
     public static final String INTEGRATED_MODE = "integrated";
     public static final String STANDALONE_MODE = "standalone";
     public static final String MERGE_MOCKER_TYPE = "java.util.ArrayList-io.arex.agent.bootstrap.model.ArexMocker";
@@ -72,4 +72,5 @@ public class ArexConstants {
     public static final String HTTP_METHOD = "HttpMethod";
     public static final String HTTP_BODY = "body";
     public static final String HTTP_CONTENT_TYPE = "ContentType";
+    public static final String DISABLE_SQL_PARSE = "arex.disable.sql.parse";
 }
