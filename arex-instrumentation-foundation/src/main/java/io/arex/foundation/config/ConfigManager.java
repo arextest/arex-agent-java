@@ -11,6 +11,7 @@ import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.config.ConfigBuilder;
 import io.arex.inst.runtime.config.listener.ConfigListener;
+import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.model.DynamicClassEntity;
 import io.arex.inst.runtime.model.DynamicClassStatusEnum;
 import io.arex.agent.bootstrap.util.ServiceLoader;
@@ -53,6 +54,7 @@ public class ConfigManager {
     private EnumSet<DayOfWeek> allowDayOfWeeks;
     private LocalTime allowTimeOfDayFrom;
     private LocalTime allowTimeOfDayTo;
+    private List<String> ignoredClassLoaders;
     private List<String> disabledModules;
     private List<String> retransformModules;
     private Set<String> excludeServiceOperations;
@@ -263,6 +265,7 @@ public class ConfigManager {
         setAllowDayOfWeeks(Integer.parseInt(System.getProperty(ALLOW_DAY_WEEKS, "127")));
         setAllowTimeOfDayFrom(System.getProperty(ALLOW_TIME_FROM, "00:01"));
         setAllowTimeOfDayTo(System.getProperty(ALLOW_TIME_TO, "23:59"));
+        setIgnoredClassLoaders(System.getProperty(IGNORED_CLASS_LOADERS));
         setDisabledModules(System.getProperty(DISABLE_MODULE));
         setRetransformModules(System.getProperty(RETRANSFORM_MODULE, "dynamic-class"));
         setExcludeServiceOperations(System.getProperty(EXCLUDE_SERVICE_OPERATION));
@@ -498,6 +501,26 @@ public class ConfigManager {
         }
         LocalDateTime nextTime = LocalDateTime.of(dateTime.toLocalDate(), allowTimeOfDayFrom);
         return Duration.between(LocalDateTime.now(), nextTime).toMillis();
+    }
+
+
+    public List<String> getIgnoredClassLoaders() {
+        return ignoredClassLoaders;
+    }
+
+    public void setIgnoredClassLoaders(String ignoredClassLoaders) {
+        if (StringUtil.isEmpty(ignoredClassLoaders)) {
+            if (this.ignoredClassLoaders == null) {
+                this.ignoredClassLoaders = Collections.singletonList(ArexConstants.OT_AGENT_CLASSLOADER);
+            }
+            return;
+        }
+
+        String[] ignoredClassLoaderArr = StringUtil.split(ignoredClassLoaders, ',');
+        this.ignoredClassLoaders = Arrays.asList(ignoredClassLoaderArr);
+        if (!this.ignoredClassLoaders.contains(ArexConstants.OT_AGENT_CLASSLOADER)) {
+            this.ignoredClassLoaders.add(ArexConstants.OT_AGENT_CLASSLOADER);
+        }
     }
 
     public List<String> getDisabledModules() {

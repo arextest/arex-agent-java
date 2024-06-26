@@ -16,6 +16,7 @@ public class ConfigConstants {
     public static final String ALLOW_TIME_FROM = "arex.allow.time.from";
     public static final String ALLOW_TIME_TO = "arex.allow.time.to";
 
+    public static final String IGNORED_CLASS_LOADERS = "arex.ignore.classloaders";
     public static final String DISABLE_MODULE = "arex.disable.instrumentation.module";
     public static final String RETRANSFORM_MODULE = "arex.retransform.instrumentation.module";
 
