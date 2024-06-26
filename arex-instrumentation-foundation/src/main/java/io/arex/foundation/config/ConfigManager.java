@@ -512,14 +512,11 @@ public class ConfigManager {
         if (StringUtil.isEmpty(ignoredClassLoaders)) {
             if (this.ignoredClassLoaders == null) {
                 this.ignoredClassLoaders = Collections.singletonList(ArexConstants.OT_AGENT_CLASSLOADER);
+            } else {
+                this.ignoredClassLoaders=Collections.emptyList();
             }
-            return;
-        }
-
-        String[] ignoredClassLoaderArr = StringUtil.split(ignoredClassLoaders, ',');
-        this.ignoredClassLoaders = Arrays.asList(ignoredClassLoaderArr);
-        if (!this.ignoredClassLoaders.contains(ArexConstants.OT_AGENT_CLASSLOADER)) {
-            this.ignoredClassLoaders.add(ArexConstants.OT_AGENT_CLASSLOADER);
+        } else {
+            this.ignoredClassLoaders = Arrays.asList(StringUtil.split(ignoredClassLoaders, ','));
         }
     }
 
