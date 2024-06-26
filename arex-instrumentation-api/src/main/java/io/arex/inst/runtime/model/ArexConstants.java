@@ -64,6 +64,4 @@ public class ArexConstants {
     public static final String DATABASE = "database";
     public static final String DB_NAME = "dbName";
     public static final String DB_PARAMETERS = "parameters";
-    public static final String OT_AGENT_CLASSLOADER = "io.opentelemetry.javaagent.bootstrap.AgentClassLoader";
-    public static final String OT_TYPE_PREFIX = "io.opentelemetry.";
 }

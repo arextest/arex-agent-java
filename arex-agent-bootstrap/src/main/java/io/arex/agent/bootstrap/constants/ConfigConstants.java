@@ -16,8 +16,14 @@ public class ConfigConstants {
     public static final String ALLOW_TIME_FROM = "arex.allow.time.from";
     public static final String ALLOW_TIME_TO = "arex.allow.time.to";
 
-    public static final String IGNORED_TYPE_PREFIXES = "arex.ignore.typePrefixes";
-    public static final String IGNORED_CLASS_LOADERS = "arex.ignore.classloaders";
+    /**
+     * Assign values via -Darex.ignore.type.prefixes=xxx.type, separate multiple values with commas.
+     */
+    public static final String IGNORED_TYPE_PREFIXES = "arex.ignore.type.prefixes";
+    /**
+     * Assign values via -Darex.ignore.classloader.prefixes=xxx.classloader, separate multiple values with commas.
+     */
+    public static final String IGNORED_CLASS_LOADER_PREFIXES = "arex.ignore.classloader.prefixes";
     public static final String DISABLE_MODULE = "arex.disable.instrumentation.module";
     public static final String RETRANSFORM_MODULE = "arex.retransform.instrumentation.module";
 

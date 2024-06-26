@@ -53,8 +53,8 @@ public class ConfigManager {
     private EnumSet<DayOfWeek> allowDayOfWeeks;
     private LocalTime allowTimeOfDayFrom;
     private LocalTime allowTimeOfDayTo;
-    private List<String> ignoredTypePrefixes;
-    private List<String> ignoredClassLoaders;
+    private List<String> ignoreTypePrefixes;
+    private List<String> ignoreClassLoaderPrefixes;
     private List<String> disabledModules;
     private List<String> retransformModules;
     private Set<String> excludeServiceOperations;
@@ -265,8 +265,8 @@ public class ConfigManager {
         setAllowDayOfWeeks(Integer.parseInt(System.getProperty(ALLOW_DAY_WEEKS, "127")));
         setAllowTimeOfDayFrom(System.getProperty(ALLOW_TIME_FROM, "00:01"));
         setAllowTimeOfDayTo(System.getProperty(ALLOW_TIME_TO, "23:59"));
-        setIgnoredTypePrefixes(System.getProperty(IGNORED_TYPE_PREFIXES));
-        setIgnoredClassLoaders(System.getProperty(IGNORED_CLASS_LOADERS));
+        setIgnoreTypePrefixes(System.getProperty(IGNORED_TYPE_PREFIXES));
+        setIgnoreClassLoaderPrefixes(System.getProperty(IGNORED_CLASS_LOADER_PREFIXES));
         setDisabledModules(System.getProperty(DISABLE_MODULE));
         setRetransformModules(System.getProperty(RETRANSFORM_MODULE, "dynamic-class"));
         setExcludeServiceOperations(System.getProperty(EXCLUDE_SERVICE_OPERATION));
@@ -504,28 +504,27 @@ public class ConfigManager {
         return Duration.between(LocalDateTime.now(), nextTime).toMillis();
     }
 
-    public List<String> getIgnoredTypePrefixes() {
-        return ignoredTypePrefixes;
+    public List<String> getIgnoreTypePrefixes() {
+        return ignoreTypePrefixes;
     }
 
-    public void setIgnoredTypePrefixes(String ignoredTypes) {
-        if (this.ignoredTypePrefixes == null && StringUtil.isEmpty(ignoredTypes)) {
-            this.ignoredTypePrefixes = Collections.emptyList();
+    private void setIgnoreTypePrefixes(String ignoredTypes) {
+        if (StringUtil.isEmpty(ignoredTypes)) {
+            this.ignoreTypePrefixes = Collections.emptyList();
         } else {
-            this.ignoredTypePrefixes = Arrays.asList(StringUtil.split(ignoredTypes, ','));
+            this.ignoreTypePrefixes = Arrays.asList(StringUtil.split(ignoredTypes, ','));
         }
     }
 
-
-    public List<String> getIgnoredClassLoaders() {
-        return ignoredClassLoaders;
+    public List<String> getIgnoreClassLoaderPrefixes() {
+        return ignoreClassLoaderPrefixes;
     }
 
-    public void setIgnoredClassLoaders(String ignoredClassLoaders) {
-        if (StringUtil.isEmpty(ignoredClassLoaders)) {
-            this.ignoredClassLoaders = Collections.emptyList();
+    private void setIgnoreClassLoaderPrefixes(String ignoreClassLoaderPrefixes) {
+        if (StringUtil.isEmpty(ignoreClassLoaderPrefixes)) {
+            this.ignoreClassLoaderPrefixes = Collections.emptyList();
         } else {
-            this.ignoredClassLoaders = Arrays.asList(StringUtil.split(ignoredClassLoaders, ','));
+            this.ignoreClassLoaderPrefixes = Arrays.asList(StringUtil.split(ignoreClassLoaderPrefixes, ','));
         }
     }
 
