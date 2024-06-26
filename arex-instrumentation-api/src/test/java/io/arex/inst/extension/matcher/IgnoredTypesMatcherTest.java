@@ -9,7 +9,7 @@ class IgnoredTypesMatcherTest {
 
     @Test
     void matches() {
-        IgnoredTypesMatcher matcher = new IgnoredTypesMatcher();
+        IgnoredTypesMatcher matcher = new IgnoredTypesMatcher(null);
         assertTrue(matcher.matches(new TypeDescription.ForLoadedType(IgnoredTypesMatcher.class)));
         assertFalse(matcher.matches(new TypeDescription.ForLoadedType(String.class)));
     }

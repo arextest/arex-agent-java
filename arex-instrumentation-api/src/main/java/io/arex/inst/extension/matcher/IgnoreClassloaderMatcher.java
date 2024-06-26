@@ -1,7 +1,10 @@
 package io.arex.inst.extension.matcher;
 
+import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.inst.runtime.model.ArexConstants;
 import net.bytebuddy.matcher.ElementMatcher;
+import net.bytebuddy.matcher.ElementMatchers;
 
 import java.util.List;
 
@@ -11,12 +14,16 @@ public class IgnoreClassloaderMatcher extends ElementMatcher.Junction.AbstractBa
     private final ElementMatcher<ClassLoader> matcher;
 
     public IgnoreClassloaderMatcher(List<String> ignoredClassLoaders) {
-        this.matcher = target -> {
-            if (target == null) {
-                return false;
-            }
-            return ignoredClassLoaders.contains(target.getClass().getName());
-        };
+        if (CollectionUtil.isEmpty(ignoredClassLoaders)) {
+            this.matcher = ElementMatchers.none();
+        } else {
+            this.matcher = target -> {
+                if (target == null) {
+                    return false;
+                }
+                return ignoredClassLoaders.contains(target.getClass().getName());
+            };
+        }
     }
 
     public IgnoreClassloaderMatcher(ElementMatcher<ClassLoader> matcher) {
@@ -30,6 +37,9 @@ public class IgnoreClassloaderMatcher extends ElementMatcher.Junction.AbstractBa
         }
 
         String loaderName = loader.getClass().getName();
+        if (ArexConstants.OT_AGENT_CLASSLOADER.equals(loaderName)) {
+            return true;
+        }
         if (loaderName.startsWith("sun.reflect") ||
             loaderName.startsWith("jdk.internal.reflect")  ||
             loaderName.startsWith(BYTE_BUDDY_PREFIX)) {

@@ -9,8 +9,6 @@ import io.arex.foundation.config.ConfigManager;
 import io.arex.agent.bootstrap.util.CollectionUtil;
 
 import io.arex.inst.extension.matcher.ArexIgnoredMatchers;
-import io.arex.inst.extension.matcher.IgnoreClassloaderMatcher;
-import io.arex.inst.extension.matcher.IgnoredTypesMatcher;
 import io.arex.inst.runtime.model.DynamicClassEntity;
 import io.arex.inst.runtime.model.DynamicClassStatusEnum;
 import io.arex.agent.bootstrap.util.ServiceLoader;
@@ -184,16 +182,11 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
         // config may use to add some classes to be ignored in future
         long buildBegin = System.currentTimeMillis();
 
-        // disjunction matcher: Ignores if any marcher matches
-        ArexIgnoredMatchers arexIgnoredMatchers = new ArexIgnoredMatchers(
-                new IgnoredTypesMatcher(),
-                new IgnoreClassloaderMatcher(ConfigManager.INSTANCE.getIgnoredClassLoaders()));
-
         return new AgentBuilder.Default(
                 new ByteBuddy().with(MethodGraph.Compiler.ForDeclaredMethods.INSTANCE))
             .enableNativeMethodPrefix("arex_")
             .disableClassFormatChanges()
-            .ignore(arexIgnoredMatchers)
+            .ignore(new ArexIgnoredMatchers(ConfigManager.INSTANCE.getIgnoredTypePrefixes(), ConfigManager.INSTANCE.getIgnoredClassLoaders()))
             .with(new TransformListener())
             .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
             .with(AgentBuilder.InitializationStrategy.NoOp.INSTANCE)

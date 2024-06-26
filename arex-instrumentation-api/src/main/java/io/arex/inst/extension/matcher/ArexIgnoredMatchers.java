@@ -7,16 +7,16 @@ import net.bytebuddy.matcher.NullMatcher;
 import net.bytebuddy.utility.JavaModule;
 import net.bytebuddy.utility.nullability.MaybeNull;
 
-import javax.annotation.Nonnull;
 import java.security.ProtectionDomain;
+import java.util.List;
 
 public class ArexIgnoredMatchers implements AgentBuilder.RawMatcher {
     private final ElementMatcher.Junction<TypeDescription> typeMatcher;
     private final ElementMatcher.Junction<ClassLoader> classLoaderMatcher;
 
-    public ArexIgnoredMatchers(@Nonnull ElementMatcher.Junction<TypeDescription> typeMatcher, @Nonnull ElementMatcher.Junction<ClassLoader> classLoaderMatcher) {
-        this.typeMatcher = typeMatcher;
-        this.classLoaderMatcher = classLoaderMatcher;
+    public ArexIgnoredMatchers(List<String> ignoredTypePrefixes, List<String> ignoredClassLoaders) {
+        this.typeMatcher = new IgnoredTypesMatcher(ignoredTypePrefixes);
+        this.classLoaderMatcher = new IgnoreClassloaderMatcher(ignoredClassLoaders);
     }
 
     @Override
