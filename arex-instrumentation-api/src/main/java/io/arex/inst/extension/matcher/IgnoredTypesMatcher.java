@@ -5,6 +5,7 @@ import io.arex.agent.bootstrap.util.CollectionUtil;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
 
+import javax.annotation.Nonnull;
 import java.util.List;
 
 public class IgnoredTypesMatcher extends ElementMatcher.Junction.AbstractBase<TypeDescription> {
@@ -14,10 +15,8 @@ public class IgnoredTypesMatcher extends ElementMatcher.Junction.AbstractBase<Ty
 
     private static final String[] IGNORED_CONTAINS_NAME = new String[]{"javassist.", ".asm.", ".reflectasm.", IgnoreClassloaderMatcher.BYTE_BUDDY_PREFIX};
 
-    public IgnoredTypesMatcher(List<String> ignoreTypePrefixes) {
-        if (ignoreTypePrefixes != null) {
-            IGNORED_TYPE_PREFIXES.addAll(ignoreTypePrefixes);
-        }
+    public IgnoredTypesMatcher(@Nonnull List<String> ignoreTypePrefixes) {
+        IGNORED_TYPE_PREFIXES.addAll(ignoreTypePrefixes);
     }
 
     @Override
