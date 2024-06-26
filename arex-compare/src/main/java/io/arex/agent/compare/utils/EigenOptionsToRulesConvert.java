@@ -1,7 +1,7 @@
 package io.arex.agent.compare.utils;
 
-import io.arex.agent.compare.model.eigen.EigenOptions;
 import io.arex.agent.compare.model.RulesConfig;
+import io.arex.agent.compare.model.eigen.EigenOptions;
 
 import java.util.ArrayList;
 

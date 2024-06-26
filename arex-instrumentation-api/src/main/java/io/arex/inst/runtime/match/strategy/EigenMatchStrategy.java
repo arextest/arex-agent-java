@@ -6,7 +6,7 @@ import io.arex.agent.bootstrap.util.MapUtils;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.agent.compare.model.eigen.EigenOptions;
 import io.arex.agent.compare.model.eigen.EigenResult;
-import io.arex.agent.compare.sdk.EigenSDK;
+import io.arex.agent.compare.sdk.EigenCalculateSDK;
 import io.arex.inst.runtime.match.MatchKeyFactory;
 import io.arex.inst.runtime.match.MatchStrategyContext;
 import io.arex.inst.runtime.model.MatchStrategyEnum;
@@ -15,7 +15,7 @@ import java.util.*;
 
 public class EigenMatchStrategy extends AbstractMatchStrategy{
 
-    private static final EigenSDK EIGEN_SDK = new EigenSDK();
+    private static final EigenCalculateSDK EIGEN_SDK = new EigenCalculateSDK();
 
     /**
      * search by eigen value of request

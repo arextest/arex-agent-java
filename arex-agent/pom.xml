@@ -36,7 +36,6 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>arex-compare</artifactId>
-            <version>${project.version}</version>
         </dependency>
 
         <!--Agent instrumentation start-->

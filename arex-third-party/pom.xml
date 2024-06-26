@@ -35,7 +35,7 @@
                             <relocations>
                                 <relocation>
                                     <pattern>net.sf.jsqlparser</pattern>
-                                    <shadedPattern>io.arex.net.sf.jsqlparser</shadedPattern>
+                                    <shadedPattern>io.arex.shaded.net.sf.jsqlparser</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>

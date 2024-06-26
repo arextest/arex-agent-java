@@ -11,8 +11,7 @@ import io.arex.agent.compare.model.eigen.EigenResult;
 
 import java.util.Objects;
 
-public class EigenHandler {
-
+public class EigenCalculateHandler {
     private static ObjectParse objectParse = new ObjectParse();
     private static JSONParse jsonParse = new JSONParse();
     private static SqlParse sqlParse = new SqlParse();
@@ -39,5 +38,4 @@ public class EigenHandler {
 
         return eigenMapCalculate.doCalculate(obj, rulesConfig);
     }
-
 }

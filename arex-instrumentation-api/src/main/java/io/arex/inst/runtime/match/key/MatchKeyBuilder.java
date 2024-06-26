@@ -1,6 +1,5 @@
 package io.arex.inst.runtime.match.key;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.arex.agent.bootstrap.model.MockCategoryType;
 import io.arex.agent.bootstrap.model.Mocker;
 

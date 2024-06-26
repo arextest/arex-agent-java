@@ -1,15 +1,15 @@
 package io.arex.inst.runtime.match.key;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.arex.agent.bootstrap.model.MockCategoryType;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.model.ArexConstants;
+import io.arex.inst.runtime.serializer.Serializer;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class HttpClientMatchKeyBuilderImpl implements MatchKeyBuilder {
-
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     @Override
     public boolean isSupported(MockCategoryType categoryType) {
@@ -47,11 +47,11 @@ public class HttpClientMatchKeyBuilderImpl implements MatchKeyBuilder {
     @Override
     public String getEigenBody(Mocker mocker) {
         String queryString = mocker.getTargetRequest().attributeAsString(ArexConstants.HTTP_QUERY_STRING);
-        ObjectNode objectNode = OBJECT_MAPPER.createObjectNode();
+        Map<String, String> objectNode = new HashMap<>();
         if (StringUtil.isNotEmpty(queryString)) {
             objectNode.put(ArexConstants.HTTP_QUERY_STRING, queryString);
         }
         objectNode.put(ArexConstants.HTTP_BODY, mocker.getTargetRequest().getBody());
-        return objectNode.toString();
+        return Serializer.serialize(objectNode);
     }
 }

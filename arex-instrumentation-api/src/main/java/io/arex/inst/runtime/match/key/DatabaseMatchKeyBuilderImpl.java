@@ -1,21 +1,16 @@
 package io.arex.inst.runtime.match.key;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.arex.agent.bootstrap.model.MockCategoryType;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.model.ArexConstants;
+import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.util.DatabaseUtils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 public class DatabaseMatchKeyBuilderImpl implements MatchKeyBuilder {
-
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private static final char SQL_BATCH_TERMINAL_CHAR = ';';
     private static final int INDEX_NOT_FOUND = -1;
@@ -73,12 +68,12 @@ public class DatabaseMatchKeyBuilderImpl implements MatchKeyBuilder {
     @Override
     public String getEigenBody(Mocker mocker) {
         String parameters = mocker.getTargetRequest().attributeAsString(ArexConstants.DB_PARAMETERS);
-        ObjectNode objectNode = OBJECT_MAPPER.createObjectNode();
+        Map<String, String> objectNode = new HashMap<>();
         objectNode.put(ArexConstants.DB_SQL, mocker.getTargetRequest().getBody());
         if (StringUtil.isNotEmpty(parameters)) {
             objectNode.put(ArexConstants.DB_PARAMETERS, parameters);
         }
-        return objectNode.toString();
+        return Serializer.serialize(objectNode);
     }
 
     private String getTableName(String operationName, String sqlText) {

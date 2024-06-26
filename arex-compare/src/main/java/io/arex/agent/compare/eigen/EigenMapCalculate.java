@@ -5,8 +5,8 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.arex.agent.compare.handler.log.filterrules.TimePrecisionFilter;
 import io.arex.agent.compare.model.RulesConfig;
-import io.arex.agent.compare.model.eigen.EigenResult;
 import io.arex.agent.compare.utils.IgnoreUtil;
+import io.arex.agent.compare.model.eigen.EigenResult;
 
 import java.time.Instant;
 import java.time.ZoneId;

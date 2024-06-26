@@ -82,10 +82,8 @@ public class ReplayMatcher {
                 context.getMockStrategy().name());
 
         if (Config.get().isEnableDebug()) {
-            String response = matchedMocker != null && matchedMocker.getTargetResponse() != null
-                    ? matchedMocker.getTargetResponse().getBody() : StringUtil.EMPTY;
             message += StringUtil.format("%nrequest: %s%nresponse: %s",
-                    Serializer.serialize(requestMocker), response);
+                    Serializer.serialize(requestMocker), Serializer.serialize(matchedMocker));
         }
         LogManager.info(MATCH_TITLE, message);
     }
