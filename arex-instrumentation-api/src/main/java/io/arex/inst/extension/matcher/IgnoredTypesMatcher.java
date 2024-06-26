@@ -7,7 +7,7 @@ import net.bytebuddy.matcher.ElementMatcher;
 public class IgnoredTypesMatcher extends ElementMatcher.Junction.AbstractBase<TypeDescription> {
     private static final String[] IGNORED_STARTS_WITH_NAME = new String[]{
         "io.arex.", "shaded.", IgnoreClassloaderMatcher.BYTE_BUDDY_PREFIX,
-        "sun.reflect.", "org.springframework.boot.autoconfigure", "com.intellij."};
+        "sun.reflect.", "org.springframework.boot.autoconfigure", "com.intellij.", "io.opentelemetry."};
 
     private static final String[] IGNORED_CONTAINS_NAME = new String[]{"javassist.", ".asm.", ".reflectasm."};
 
