@@ -4,6 +4,7 @@ import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.agent.bootstrap.util.StringUtil;
 import java.util.List;
 import net.bytebuddy.matcher.ElementMatcher;
+import javax.annotation.Nonnull;
 
 public class IgnoreClassloaderMatcher extends ElementMatcher.Junction.AbstractBase<ClassLoader> {
 
@@ -13,10 +14,8 @@ public class IgnoreClassloaderMatcher extends ElementMatcher.Junction.AbstractBa
         "sun.reflect.", "jdk.internal.reflect.", IgnoreClassloaderMatcher.BYTE_BUDDY_PREFIX);
     private ElementMatcher<ClassLoader> matcher;
 
-    public IgnoreClassloaderMatcher(List<String> ignoreClassLoaderPrefixes) {
-        if (ignoreClassLoaderPrefixes != null) {
-            IGNORED_CLASSLOADER_PREFIXES.addAll(ignoreClassLoaderPrefixes);
-        }
+    public IgnoreClassloaderMatcher(@Nonnull List<String> ignoreClassLoaderPrefixes) {
+        IGNORED_CLASSLOADER_PREFIXES.addAll(ignoreClassLoaderPrefixes);
     }
 
     public IgnoreClassloaderMatcher(ElementMatcher<ClassLoader> matcher) {
