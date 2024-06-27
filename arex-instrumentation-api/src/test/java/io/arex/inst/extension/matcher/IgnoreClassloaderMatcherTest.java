@@ -31,6 +31,7 @@ class IgnoreClassloaderMatcherTest {
         assertFalse(matcher.matches(URLClassLoader.class.getClassLoader()));
 
         // app class loader, not matches ignored class loaders
-        assertFalse(matcher.matches(Thread.currentThread().getContextClassLoader()));
+        ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+        assertFalse(matcher.matches(contextClassLoader), () -> "contextClassLoader: " + contextClassLoader.getClass().getName());
     }
 }
