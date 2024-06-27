@@ -3,8 +3,7 @@ package io.arex.inst.extension.matcher;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.net.URLClassLoader;
-import java.util.Arrays;
-import java.util.List;
+import java.util.Collections;
 
 import org.junit.jupiter.api.Test;
 
@@ -22,16 +21,18 @@ class IgnoreClassloaderMatcherTest {
 
     @Test
     void testMatchesIgnoredLoaders() {
-        List<String> ignoredClassLoaders = Arrays.asList("sun.reflect", "jdk.internal.reflect", "net.bytebuddy.");
-        IgnoreClassloaderMatcher matcher = new IgnoreClassloaderMatcher(ignoredClassLoaders);
+        ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+        IgnoreClassloaderMatcher matcher = new IgnoreClassloaderMatcher(Collections.singletonList(contextClassLoader.getClass().getName()));
 
         assertFalse(matcher.matches(null));
 
         // url class loader not matches ignored class loaders
         assertFalse(matcher.matches(URLClassLoader.class.getClassLoader()));
 
-        // app class loader, not matches ignored class loaders
-        ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
-        assertFalse(matcher.matches(contextClassLoader), () -> "contextClassLoader: " + contextClassLoader.getClass().getName());
+        // app class loader, matches ignored class loaders
+        assertTrue(matcher.matches(contextClassLoader), () -> "contextClassLoader: " + contextClassLoader.getClass().getName());
+
+        // matcher is null
+        assertFalse(matcher.matches(contextClassLoader.getParent()));
     }
 }

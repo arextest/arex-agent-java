@@ -4,7 +4,6 @@ import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.agent.bootstrap.util.StringUtil;
 import java.util.List;
 import net.bytebuddy.matcher.ElementMatcher;
-import javax.annotation.Nonnull;
 
 public class IgnoreClassloaderMatcher extends ElementMatcher.Junction.AbstractBase<ClassLoader> {
 

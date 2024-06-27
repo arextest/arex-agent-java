@@ -5,7 +5,6 @@ import io.arex.agent.bootstrap.util.CollectionUtil;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
 
-import javax.annotation.Nonnull;
 import java.util.List;
 
 public class IgnoredTypesMatcher extends ElementMatcher.Junction.AbstractBase<TypeDescription> {

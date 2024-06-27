@@ -43,7 +43,6 @@ class IgnoredRawMatcherTest {
         // case 3
         // ignore type: true
         // ignore classloader: true
-        matcher = new IgnoredRawMatcher(Collections.singletonList(typeDescription.getActualName()), Collections.singletonList(classLoader.getClass().getName()));
         assertTrue(matcher.matches(typeDescription, classLoader, null, null, protectionDomain));
     }
 }
