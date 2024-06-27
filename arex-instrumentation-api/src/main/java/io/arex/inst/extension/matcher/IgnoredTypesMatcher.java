@@ -15,7 +15,7 @@ public class IgnoredTypesMatcher extends ElementMatcher.Junction.AbstractBase<Ty
 
     private static final String[] IGNORED_CONTAINS_NAME = new String[]{"javassist.", ".asm.", ".reflectasm.", IgnoreClassloaderMatcher.BYTE_BUDDY_PREFIX};
 
-    public IgnoredTypesMatcher(@Nonnull List<String> ignoreTypePrefixes) {
+    public IgnoredTypesMatcher(List<String> ignoreTypePrefixes) {
         IGNORED_TYPE_PREFIXES.addAll(ignoreTypePrefixes);
     }
 

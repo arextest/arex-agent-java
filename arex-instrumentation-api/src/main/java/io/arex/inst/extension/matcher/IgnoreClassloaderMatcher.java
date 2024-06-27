@@ -14,7 +14,7 @@ public class IgnoreClassloaderMatcher extends ElementMatcher.Junction.AbstractBa
         "sun.reflect.", "jdk.internal.reflect.", IgnoreClassloaderMatcher.BYTE_BUDDY_PREFIX);
     private ElementMatcher<ClassLoader> matcher;
 
-    public IgnoreClassloaderMatcher(@Nonnull List<String> ignoreClassLoaderPrefixes) {
+    public IgnoreClassloaderMatcher(List<String> ignoreClassLoaderPrefixes) {
         IGNORED_CLASSLOADER_PREFIXES.addAll(ignoreClassLoaderPrefixes);
     }
 
