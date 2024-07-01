@@ -31,7 +31,7 @@ public class FuzzyMatchStrategy extends AbstractMatchStrategy {
         if (mocker != null) {
             mocker.setMatched(true);
         } else {
-            context.setReason("fuzzy match no result, all matched before");
+            context.setReason("fuzzy match no result, all has been matched");
         }
 
         context.setMatchMocker(mocker);

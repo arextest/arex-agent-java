@@ -69,32 +69,14 @@ public class MergeRecordUtil {
             return Collections.emptyList();
         }
         List<List<Mocker>> mergeTotalList = new ArrayList<>();
-        Map<String, List<Mocker>> mergeRecordGroupMap = group(mergeList);
-        for (Map.Entry<String, List<Mocker>> mergeRecordEntry : mergeRecordGroupMap.entrySet()) {
-            // check memory size
-            if (agentSizeOf.checkMemorySizeLimit(mergeRecordEntry.getValue(), ArexConstants.MEMORY_SIZE_5MB)) {
-                mergeTotalList.add(mergeRecordEntry.getValue());
-            } else {
-                // exceed size limit and split to multiple list
-                mergeTotalList.addAll(split(mergeRecordEntry.getValue()));
-            }
+        // check memory size
+        if (agentSizeOf.checkMemorySizeLimit(mergeList, ArexConstants.MEMORY_SIZE_5MB)) {
+            mergeTotalList.add(mergeList);
+        } else {
+            // exceed size limit and split to multiple list
+            mergeTotalList.addAll(split(mergeList));
         }
         return mergeTotalList;
-    }
-
-    /**
-     * group by category(such as: dynamicClass、redis)
-     */
-    private static Map<String, List<Mocker>> group(List<Mocker> mergeList) {
-        Map<String, List<Mocker>> mergeGroupMap = new HashMap<>();
-        for (Mocker mocker : mergeList) {
-            if (mocker == null) {
-                continue;
-            }
-            String category = mocker.getCategoryType().getName();
-            mergeGroupMap.computeIfAbsent(category, k -> new ArrayList<>()).add(mocker);
-        }
-        return mergeGroupMap;
     }
 
     /**

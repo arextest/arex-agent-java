@@ -3,6 +3,7 @@ package io.arex.agent.bootstrap.model;
 import io.arex.agent.bootstrap.constants.ConfigConstants;
 import java.util.Collections;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ArexMocker implements Mocker {
     private String id;
@@ -18,7 +19,7 @@ public class ArexMocker implements Mocker {
     private transient boolean needMerge;
     private String operationName;
     private Map<String, String> tags;
-    private transient boolean matched;
+    private final transient AtomicBoolean matched = new AtomicBoolean(false);
     /**
      * replay match need
      */
@@ -152,11 +153,11 @@ public class ArexMocker implements Mocker {
     }
 
     public boolean isMatched() {
-        return matched;
+        return matched.get();
     }
 
     public void setMatched(boolean matched) {
-        this.matched = matched;
+        this.matched.compareAndSet(false, matched);
     }
 
     @Override

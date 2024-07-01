@@ -32,7 +32,7 @@ public class ReplayUtil {
             QueryAllMockerDTO requestMocker = new QueryAllMockerDTO();
             requestMocker.setRecordId(ContextManager.currentContext().getCaseId());
             requestMocker.setCategoryTypes(new String[]{MockCategoryType.DYNAMIC_CLASS.getName(), MockCategoryType.REDIS.getName()});
-
+            requestMocker.setReplayId(ContextManager.currentContext().getReplayId());
             List<Mocker> allMockerList = MockUtils.queryMockers(requestMocker);
             if (CollectionUtil.isEmpty(allMockerList)) {
                 return;
@@ -41,7 +41,7 @@ public class ReplayUtil {
             filterMergeMocker(allMockerList);
 
             Map<Integer, List<Mocker>> cachedReplayResultMap = ContextManager.currentContext().getCachedReplayResultMap();
-
+            cachedReplayResultMap.clear();
             buildReplayResultMap(allMockerList, cachedReplayResultMap);
 
             ascendingSortByCreationTime(cachedReplayResultMap);

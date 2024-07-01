@@ -3,10 +3,12 @@ package io.arex.inst.runtime.match;
 import io.arex.agent.bootstrap.model.MockStrategyEnum;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.CollectionUtil;
+import io.arex.agent.bootstrap.util.MapUtils;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.log.LogManager;
+import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.util.MockUtils;
 
 import java.util.*;
@@ -25,11 +27,15 @@ public class ReplayMatcher {
      */
     public static Mocker match(Mocker requestMocker, MockStrategyEnum mockStrategy) {
         Map<Integer, List<Mocker>> cachedReplayResultMap = ContextManager.currentContext().getCachedReplayResultMap();
+        if (MapUtils.isEmpty(cachedReplayResultMap)) {
+            return null;
+        }
 
         // first match methodRequestTypeHash: category + operationName + requestType, ensure the same method
         List<Mocker> replayList = cachedReplayResultMap.get(MockUtils.methodRequestTypeHash(requestMocker));
         if (CollectionUtil.isEmpty(replayList)) {
-            LogManager.warn(MATCH_TITLE, StringUtil.format("match no result, categoryType: %s, operationName: %s, requestBody: %s",
+            LogManager.warn(MATCH_TITLE, StringUtil.format("match no result, not exist this method signature, " +
+                            "check if it has been recorded, categoryType: %s, operationName: %s, requestBody: %s",
                     requestMocker.getCategoryType().getName(), requestMocker.getOperationName(), requestMocker.getTargetRequest().getBody()));
             return null;
         }
@@ -40,22 +46,33 @@ public class ReplayMatcher {
             matchStrategy.match(context);
         }
 
-        Mocker matchedMocker = context.getMatchMocker();
-        String message = StringUtil.format("%s, match strategy: %s, mock strategy: %s",
-                requestMocker.logBuilder().toString(),
-                (context.getMatchStrategy() != null ? context.getMatchStrategy().name() : StringUtil.EMPTY),
-                mockStrategy.name());
-        if (StringUtil.isNotEmpty(context.getReason())) {
-            message += StringUtil.format(", reason: %s", context.getReason());
-        }
-        if (Config.get().isEnableDebug()) {
-            String response = matchedMocker != null && matchedMocker.getTargetResponse() != null
-                    ? matchedMocker.getTargetResponse().getBody() : StringUtil.EMPTY;
-            message += StringUtil.format("%nrequest: %s%nresponse: %s",
-                    requestMocker.getTargetRequest().getBody(), response);
-        }
-        LogManager.info(MATCH_TITLE, message);
-        return matchedMocker;
+        logMatchResult(context);
+
+        return context.getMatchMocker();
     }
 
+    private static void logMatchResult(MatchStrategyContext context) {
+        Mocker matchedMocker = context.getMatchMocker();
+        Mocker requestMocker = context.getRequestMocker();
+
+        String matchResult;
+        if (matchedMocker != null) {
+            matchResult = "match success";
+        } else {
+            matchResult = "match fail" + StringUtil.format(", reason: %s", context.getReason());
+        }
+
+        String message = StringUtil.format("%s %n%s, requestType: %s, match strategy: %s, mock strategy: %s",
+                matchResult,
+                requestMocker.logBuilder().toString(),
+                requestMocker.getTargetRequest().getType(),
+                (context.getMatchStrategy() != null ? context.getMatchStrategy().name() : StringUtil.EMPTY),
+                context.getMockStrategy().name());
+
+        if (Config.get().isEnableDebug()) {
+            message += StringUtil.format("%nrequest: %s%nresponse: %s",
+                    Serializer.serialize(requestMocker), Serializer.serialize(matchedMocker));
+        }
+        LogManager.info(MATCH_TITLE, message);
+    }
 }

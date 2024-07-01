@@ -34,7 +34,7 @@ public class AccurateMatchStrategy extends AbstractMatchStrategy{
 
         if (matchedCount == 1) {
             Mocker matchMocker = matchedList.get(0);
-            // unmatched or matched but find-last mode (like dynamicClass)
+            // unmatched or matched but find-last mode (eg: dynamicClass)
             if (!matchMocker.isMatched() || MockStrategyEnum.FIND_LAST == context.getMockStrategy()) {
                 matchMocker.setMatched(true);
                 context.setMatchMocker(matchMocker);

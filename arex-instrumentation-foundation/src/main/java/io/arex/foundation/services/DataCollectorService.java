@@ -16,6 +16,7 @@ import io.arex.foundation.model.HttpClientResponse;
 import io.arex.foundation.util.httpclient.async.ThreadFactoryImpl;
 import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.model.ArexConstants;
+import io.arex.inst.runtime.model.QueryAllMockerDTO;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.util.CaseManager;
 import io.arex.inst.runtime.service.DataCollector;
@@ -134,7 +135,7 @@ public class DataCollectorService implements DataCollector {
             return;
         }
         AsyncHttpClientUtil.postAsyncWithZstdJson(saveApiUrl, entity.getPostData(), null)
-            .whenComplete(saveMockDataConsumer(entity));
+                .whenComplete(saveMockDataConsumer(entity));
     }
 
     /**
@@ -185,7 +186,7 @@ public class DataCollectorService implements DataCollector {
     private static void initServiceHost() {
         String storeServiceHost = ConfigManager.INSTANCE.getStorageServiceHost();
         queryApiUrl = String.format("http://%s/api/storage/record/query", storeServiceHost);
-        saveApiUrl = String.format("http://%s/api/storage/record/batchSave", storeServiceHost);
+        saveApiUrl = String.format("http://%s/api/storage/record/batchSaveMockers", storeServiceHost);
         invalidCaseApiUrl = String.format("http://%s/api/storage/record/invalidCase", storeServiceHost);
         queryAllApiUrl = String.format("http://%s/api/storage/record/queryMockers", storeServiceHost);
     }
@@ -193,12 +194,27 @@ public class DataCollectorService implements DataCollector {
     @Override
     public String queryAll(String postData) {
         CompletableFuture<HttpClientResponse> responseCompletableFuture =
-                AsyncHttpClientUtil.postAsyncWithZstdJson(queryAllApiUrl, postData, null).handle(queryMockDataFunction(postData));
+                AsyncHttpClientUtil.postAsyncWithZstdJson(queryAllApiUrl, postData, null)
+                        .handle(queryAllMocksFunction(postData));
         HttpClientResponse clientResponse = responseCompletableFuture.join();
         if (clientResponse == null) {
             return null;
         }
         return clientResponse.getBody();
+    }
+
+    private BiFunction<HttpClientResponse, Throwable, HttpClientResponse> queryAllMocksFunction(String postData) {
+        return (response, throwable) -> {
+            if (Objects.nonNull(throwable)) {
+                QueryAllMockerDTO mocker = Serializer.deserialize(postData, QueryAllMockerDTO.class);
+                if (mocker != null) {
+                    CaseManager.invalid(mocker.getRecordId(), mocker.getReplayId(),
+                            "queryAllMockers", DecelerateReasonEnum.SERVICE_EXCEPTION.getValue());
+                }
+                return null;
+            }
+            return response;
+        };
     }
 
     @Override
