@@ -6,11 +6,13 @@ import io.arex.agent.bootstrap.util.ArrayUtils;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
+import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.database.common.DatabaseExtractor;
 
 import io.arex.inst.runtime.util.TypeUtil;
+import java.lang.reflect.Constructor;
 import org.apache.ibatis.binding.MapperMethod.ParamMap;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.reflection.Reflector;
@@ -133,7 +135,7 @@ public class InternalExecutor {
         try {
             Class<?> entityClass = insertEntity.getClass();
             Reflector reflector = REFLECTOR_MAP.computeIfAbsent(entityClass.getName(),
-                    className -> new Reflector(entityClass));
+                    className -> newReflector(entityClass));
             for (int i = 0; i < multiKeyHolder.length; i++) {
                 String[] valueType = StringUtil.split(multiKeyHolder[i], KEYHOLDER_TYPE_SEPARATOR);
                 Object keyHolderValue = Serializer.deserialize(valueType[0], valueType[1]);
@@ -179,7 +181,10 @@ public class InternalExecutor {
     private static void buildKeyHolderForEntity(Object insertEntity, String[] primaryKeyNames, StringBuilder builder, StringBuilder keyHolderNameBuilder) {
         Class<?> entityClass = insertEntity.getClass();
         Reflector reflector = REFLECTOR_MAP.computeIfAbsent(entityClass.getName(),
-                className -> new Reflector(entityClass));
+            className -> newReflector(entityClass));
+        if (reflector == null) {
+            return;
+        }
 
         for (int i = 0; i < primaryKeyNames.length; i++) {
             try {
@@ -254,5 +259,21 @@ public class InternalExecutor {
             originalSql = mappedStatement.getBoundSql(parameters).getSql();
         }
         return new DatabaseExtractor(originalSql, Serializer.serialize(parameters, ArexConstants.JACKSON_REQUEST_SERIALIZER), methodName);
+    }
+
+    private static Reflector newReflector(Class<?> clazz) {
+        try {
+            return new Reflector(clazz);
+        } catch (IllegalAccessError e) {
+            // compatible mybatis version < 3.3.0 , use private constructor
+            try {
+                Constructor<Reflector> constructor = Reflector.class.getDeclaredConstructor(Class.class);
+                constructor.setAccessible(true);
+                return constructor.newInstance(clazz);
+            } catch (Exception ex) {
+                LogManager.warn("mybatis.newReflector", ex);
+                return null;
+            }
+        }
     }
 }

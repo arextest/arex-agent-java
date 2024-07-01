@@ -15,7 +15,7 @@ import static java.util.Collections.singletonList;
 public class MyBatisModuleInstrumentation extends ModuleInstrumentation {
     public MyBatisModuleInstrumentation() {
         super("mybatis-v3", ModuleDescription.builder()
-                .name("mybatis").supportFrom(ComparableVersion.of("3.0")).build());
+                .name("mybatis","MyBatis").supportFrom(ComparableVersion.of("3.0")).build());
     }
 
     @Override

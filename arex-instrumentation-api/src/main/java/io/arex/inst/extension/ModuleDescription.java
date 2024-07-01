@@ -1,6 +1,10 @@
 package io.arex.inst.extension;
 
 import io.arex.agent.bootstrap.model.ComparableVersion;
+import io.arex.agent.bootstrap.util.CollectionUtil;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 public class ModuleDescription {
     public static Builder builder() {
@@ -10,17 +14,17 @@ public class ModuleDescription {
     private ComparableVersion from;
     private ComparableVersion to;
 
-    private String moduleName;
+    private Set<String> moduleNames;
 
-    private ModuleDescription(String moduleName,
+    private ModuleDescription(Set<String> moduleNames,
                               ComparableVersion supportFrom, ComparableVersion supportTo) {
-        this.moduleName = moduleName;
+        this.moduleNames = moduleNames;
         this.from = supportFrom;
         this.to = supportTo;
     }
 
-    public String getModuleName() {
-        return moduleName;
+    public Set<String> getModuleNames() {
+        return moduleNames;
     }
 
     public boolean isSupported(ComparableVersion current) {
@@ -32,12 +36,14 @@ public class ModuleDescription {
     }
 
     public static final class Builder {
-        private String name;
+        private final Set<String> names = new HashSet<>();
         private ComparableVersion from;
         private ComparableVersion to;
 
-        public Builder name(String moduleName) {
-            this.name = moduleName;
+        public Builder name(String... moduleName) {
+            if (moduleName != null && moduleName.length > 0) {
+                this.names.addAll(Arrays.asList(moduleName));
+            }
             return this;
         }
 
@@ -52,10 +58,10 @@ public class ModuleDescription {
         }
 
         public ModuleDescription build() {
-            if (name == null || from == null) {
+            if (CollectionUtil.isEmpty(names) || from == null) {
                 return null;
             }
-            return new ModuleDescription(name, from, to);
+            return new ModuleDescription(names, from, to);
         }
     }
 }
