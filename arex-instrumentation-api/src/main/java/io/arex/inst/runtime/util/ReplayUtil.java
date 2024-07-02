@@ -4,6 +4,8 @@ import io.arex.agent.bootstrap.model.ArexMocker;
 import io.arex.agent.bootstrap.model.MockCategoryType;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.CollectionUtil;
+import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.log.LogManager;
@@ -24,7 +26,6 @@ import java.util.function.Predicate;
  * ReplayUtil
  */
 public class ReplayUtil {
-
     /**
      * init replay all mockers under case and cached replay result at context
      */
@@ -206,6 +207,13 @@ public class ReplayUtil {
                 ReplayCompareResultDTO callMissingDTO = convertCompareResult(cachedMocker, recordMsg,
                         null, cachedMocker.getCreationTime(), Long.MAX_VALUE, false);
                 replayCompareResultQueue.offer(callMissingDTO);
+                // log
+                String message = StringUtil.format("%s %n%s",
+                        "match fail, reason: call missing", cachedMocker.logBuilder().toString());
+                if (Config.get().isEnableDebug()) {
+                    message += StringUtil.format("%ncall missing mocker: %s", Serializer.serialize(cachedMocker));
+                }
+                LogManager.info(ArexConstants.MATCH_LOG_TITLE, message);
             }
         }
         if (replayCompareResultQueue.isEmpty()) {

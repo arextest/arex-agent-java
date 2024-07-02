@@ -73,4 +73,5 @@ public class ArexConstants {
     public static final String HTTP_BODY = "body";
     public static final String HTTP_CONTENT_TYPE = "ContentType";
     public static final String DISABLE_SQL_PARSE = "arex.disable.sql.parse";
+    public static final String MATCH_LOG_TITLE = "replay.match";
 }

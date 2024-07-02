@@ -9,6 +9,7 @@ import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.match.strategy.AbstractMatchStrategy;
+import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.model.MatchStrategyEnum;
 import io.arex.inst.runtime.model.ReplayCompareResultDTO;
 import io.arex.inst.runtime.serializer.Serializer;
@@ -18,8 +19,6 @@ import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class ReplayMatcher {
-    private static final String MATCH_TITLE = "replay.match";
-
     private ReplayMatcher() {
     }
 
@@ -85,7 +84,7 @@ public class ReplayMatcher {
             message += StringUtil.format("%nrequest: %s%nresponse: %s",
                     Serializer.serialize(requestMocker), Serializer.serialize(matchedMocker));
         }
-        LogManager.info(MATCH_TITLE, message);
+        LogManager.info(ArexConstants.MATCH_LOG_TITLE, message);
     }
 
     /**
