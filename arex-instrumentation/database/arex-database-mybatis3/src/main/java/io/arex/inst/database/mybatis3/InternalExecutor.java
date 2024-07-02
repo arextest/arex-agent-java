@@ -3,21 +3,24 @@ package io.arex.inst.database.mybatis3;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.agent.bootstrap.util.ArrayUtils;
+import io.arex.agent.bootstrap.util.ReflectUtil;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
+import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.database.common.DatabaseExtractor;
 
 import io.arex.inst.runtime.util.TypeUtil;
+import java.lang.reflect.Constructor;
+import java.util.concurrent.ConcurrentHashMap;
 import org.apache.ibatis.binding.MapperMethod.ParamMap;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.reflection.Reflector;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class InternalExecutor {
     private static final Map<String, Reflector> REFLECTOR_MAP = new ConcurrentHashMap<>();
@@ -25,6 +28,8 @@ public class InternalExecutor {
     private static final char LIST_KEYHOLDER_SEPARATOR = '@';
     private static final char KEYHOLDER_TYPE_SEPARATOR = ',';
     private static boolean isIPageLoaded = false;
+    private static Constructor<Reflector> REFLECT_CONSTRUCTOR;
+
     static {
         try {
             // check if IPage is loaded, avoid ClassNotFoundException
@@ -133,7 +138,7 @@ public class InternalExecutor {
         try {
             Class<?> entityClass = insertEntity.getClass();
             Reflector reflector = REFLECTOR_MAP.computeIfAbsent(entityClass.getName(),
-                    className -> new Reflector(entityClass));
+                    className -> getReflectorInstance(entityClass));
             for (int i = 0; i < multiKeyHolder.length; i++) {
                 String[] valueType = StringUtil.split(multiKeyHolder[i], KEYHOLDER_TYPE_SEPARATOR);
                 Object keyHolderValue = Serializer.deserialize(valueType[0], valueType[1]);
@@ -179,7 +184,10 @@ public class InternalExecutor {
     private static void buildKeyHolderForEntity(Object insertEntity, String[] primaryKeyNames, StringBuilder builder, StringBuilder keyHolderNameBuilder) {
         Class<?> entityClass = insertEntity.getClass();
         Reflector reflector = REFLECTOR_MAP.computeIfAbsent(entityClass.getName(),
-                className -> new Reflector(entityClass));
+            className -> getReflectorInstance(entityClass));
+        if (reflector == null) {
+            return;
+        }
 
         for (int i = 0; i < primaryKeyNames.length; i++) {
             try {
@@ -254,5 +262,35 @@ public class InternalExecutor {
             originalSql = mappedStatement.getBoundSql(parameters).getSql();
         }
         return new DatabaseExtractor(originalSql, Serializer.serialize(parameters, ArexConstants.JACKSON_REQUEST_SERIALIZER), methodName);
+    }
+
+    private static Reflector getReflectorInstance(Class<?> clazz) {
+        try {
+            return new Reflector(clazz);
+        } catch (IllegalAccessError e) {
+            // compatible mybatis version < 3.3.0 , use private constructor
+            try {
+                if (REFLECT_CONSTRUCTOR == null) {
+                    REFLECT_CONSTRUCTOR = getReflector();
+                }
+                if (REFLECT_CONSTRUCTOR != null) {
+                    return REFLECT_CONSTRUCTOR.newInstance(clazz);
+                }
+            } catch (Exception ex) {
+                LogManager.warn("mybatis.newReflector", ex);
+            }
+            return null;
+        }
+    }
+
+    private static Constructor<Reflector> getReflector() {
+        try {
+            Constructor<Reflector> constructor = ReflectUtil.getConstructor(Reflector.class, Class.class);
+            constructor.setAccessible(true);
+            return constructor;
+        } catch (Exception e) {
+            LogManager.warn("mybatis.getReflector", e);
+            return null;
+        }
     }
 }
