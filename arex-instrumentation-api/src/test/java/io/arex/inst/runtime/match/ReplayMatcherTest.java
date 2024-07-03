@@ -53,5 +53,8 @@ class ReplayMatcherTest {
         Mockito.when(MatchStrategyRegister.getMatchStrategies(any())).thenReturn(Collections.singletonList(new AccurateMatchStrategy()));
         Mockito.when(Config.get().isEnableDebug()).thenReturn(true);
         assertNull(ReplayMatcher.match(requestMocker, MockStrategyEnum.FIND_LAST));
+        // match no result, not exist this method signature
+        Mockito.when(MockUtils.methodRequestTypeHash(requestMocker)).thenReturn(2);
+        assertNull(ReplayMatcher.match(requestMocker, MockStrategyEnum.FIND_LAST));
     }
 }

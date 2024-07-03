@@ -50,6 +50,10 @@ class FuzzyMatchStrategyTest {
         mergeDTO.setMatched(true);
         fuzzyMatchStrategy.process(context);
         assertNotNull(context.getMatchMocker());
+
+        // fuzzy match no result
+        MatchStrategyContext context1 =new MatchStrategyContext(mocker, mergeReplayList, MockStrategyEnum.OVER_BREAK);
+        fuzzyMatchStrategy.process(context1);
     }
 
     @Test

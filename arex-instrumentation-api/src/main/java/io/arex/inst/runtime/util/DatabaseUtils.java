@@ -5,7 +5,6 @@ import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.agent.thirdparty.util.sqlparser.JSqlParserUtil;
 import io.arex.agent.thirdparty.util.sqlparser.TableSchema;
 import io.arex.inst.runtime.config.Config;
-import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.model.ArexConstants;
 
@@ -48,26 +47,6 @@ public class DatabaseUtils {
         // ensure that the order of multiple SQL statements is the same
         operationNames.sort(String::compareTo);
         return StringUtil.join(operationNames, ";");
-    }
-
-    /**
-     * compatible with the old version, if the excludeMockTemplate config not contains '@', it means that not need generate
-     */
-    private static boolean needRegenerate(String dbName) {
-        Map<String, Set<String>> excludeMockTemplate = ContextManager.currentContext().getExcludeMockTemplate();
-        if (excludeMockTemplate == null) {
-            return false;
-        }
-        Set<String> operationSet = excludeMockTemplate.get(dbName);
-        if (CollectionUtil.isEmpty(operationSet)) {
-            return false;
-        }
-        for (String operation : operationSet) {
-            if (operation != null && operation.contains(DELIMITER)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private static String regenerateOperationName(TableSchema tableSchema, String originOperationName) {

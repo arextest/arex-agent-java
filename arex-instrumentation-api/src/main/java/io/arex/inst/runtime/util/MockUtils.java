@@ -18,7 +18,6 @@ import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.service.DataService;
 import io.arex.inst.runtime.util.sizeof.AgentSizeOf;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 

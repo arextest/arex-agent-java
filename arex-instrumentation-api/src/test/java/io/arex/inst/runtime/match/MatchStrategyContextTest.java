@@ -62,4 +62,24 @@ class MatchStrategyContextTest {
     void setMatchMocker() {
         assertDoesNotThrow(() -> context.setMatchMocker(null));
     }
+
+    @Test
+    void getMatchStrategy() {
+        assertNull(context.getMatchStrategy());
+    }
+
+    @Test
+    void setMatchStrategy() {
+        assertDoesNotThrow(() -> context.setMatchStrategy(null));
+    }
+
+    @Test
+    void getReason() {
+        assertNull(context.getReason());
+    }
+
+    @Test
+    void setReason() {
+        assertDoesNotThrow(() -> context.setReason(null));
+    }
 }
