@@ -17,7 +17,8 @@ import java.util.Map;
 import java.util.function.Predicate;
 
 /**
- * merge record and replay util
+ * Replay all mockers under case
+ * (called once after arexContext init)
  */
 public class ReplayUtil {
 
@@ -51,7 +52,7 @@ public class ReplayUtil {
     }
 
     /**
-     * compatible with merge record, after batchSave publish can be removed
+     * compatible with merge record, after batchSave published can be removed
      */
     private static void filterMergeMocker(List<Mocker> allMockerList) {
         List<Mocker> splitMockerList = new ArrayList<>();

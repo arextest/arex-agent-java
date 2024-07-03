@@ -27,10 +27,6 @@ public class ReplayMatcher {
      */
     public static Mocker match(Mocker requestMocker, MockStrategyEnum mockStrategy) {
         Map<Integer, List<Mocker>> cachedReplayResultMap = ContextManager.currentContext().getCachedReplayResultMap();
-        if (MapUtils.isEmpty(cachedReplayResultMap)) {
-            return null;
-        }
-
         // first match methodRequestTypeHash: category + operationName + requestType, ensure the same method
         List<Mocker> replayList = cachedReplayResultMap.get(MockUtils.methodRequestTypeHash(requestMocker));
         if (CollectionUtil.isEmpty(replayList)) {
@@ -59,7 +55,7 @@ public class ReplayMatcher {
         if (matchedMocker != null) {
             matchResult = "match success";
         } else {
-            matchResult = "match fail" + StringUtil.format(", reason: %s", context.getReason());
+            matchResult = StringUtil.format("match fail, reason: %s", context.getReason());
         }
 
         String message = StringUtil.format("%s %n%s, requestType: %s, match strategy: %s, mock strategy: %s",

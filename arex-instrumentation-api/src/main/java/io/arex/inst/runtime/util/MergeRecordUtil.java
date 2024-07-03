@@ -14,7 +14,7 @@ import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
- * merge record and replay util
+ * merge record
  */
 public class MergeRecordUtil {
     private static final AgentSizeOf agentSizeOf = AgentSizeOf.newInstance();
