@@ -71,7 +71,7 @@ public class SerializeSkipInfoListener implements ConfigListener {
                 // Set the value in the SerializerSkipInfo object
                 if (keyValue[0].contains("fullClassName")) {
                     className = keyValue[1];
-                } else if (keyValue[0].contains("fieldName")) {
+                } else if (keyValue[0].contains("fieldName") && keyValue.length > 1) {
                     fieldNameTemp = keyValue[1];
                 }
             }
