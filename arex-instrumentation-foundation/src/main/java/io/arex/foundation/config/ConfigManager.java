@@ -53,6 +53,8 @@ public class ConfigManager {
     private EnumSet<DayOfWeek> allowDayOfWeeks;
     private LocalTime allowTimeOfDayFrom;
     private LocalTime allowTimeOfDayTo;
+    private List<String> ignoreTypePrefixes;
+    private List<String> ignoreClassLoaderPrefixes;
     private List<String> disabledModules;
     private List<String> retransformModules;
     private Set<String> excludeServiceOperations;
@@ -263,6 +265,8 @@ public class ConfigManager {
         setAllowDayOfWeeks(Integer.parseInt(System.getProperty(ALLOW_DAY_WEEKS, "127")));
         setAllowTimeOfDayFrom(System.getProperty(ALLOW_TIME_FROM, "00:01"));
         setAllowTimeOfDayTo(System.getProperty(ALLOW_TIME_TO, "23:59"));
+        setIgnoreTypePrefixes(System.getProperty(IGNORED_TYPE_PREFIXES));
+        setIgnoreClassLoaderPrefixes(System.getProperty(IGNORED_CLASS_LOADER_PREFIXES));
         setDisabledModules(System.getProperty(DISABLE_MODULE));
         setRetransformModules(System.getProperty(RETRANSFORM_MODULE, "dynamic-class"));
         setExcludeServiceOperations(System.getProperty(EXCLUDE_SERVICE_OPERATION));
@@ -498,6 +502,30 @@ public class ConfigManager {
         }
         LocalDateTime nextTime = LocalDateTime.of(dateTime.toLocalDate(), allowTimeOfDayFrom);
         return Duration.between(LocalDateTime.now(), nextTime).toMillis();
+    }
+
+    public List<String> getIgnoreTypePrefixes() {
+        return ignoreTypePrefixes;
+    }
+
+    private void setIgnoreTypePrefixes(String ignoredTypes) {
+        if (StringUtil.isEmpty(ignoredTypes)) {
+            this.ignoreTypePrefixes = Collections.emptyList();
+        } else {
+            this.ignoreTypePrefixes = Arrays.asList(StringUtil.split(ignoredTypes, ','));
+        }
+    }
+
+    public List<String> getIgnoreClassLoaderPrefixes() {
+        return ignoreClassLoaderPrefixes;
+    }
+
+    private void setIgnoreClassLoaderPrefixes(String ignoreClassLoaderPrefixes) {
+        if (StringUtil.isEmpty(ignoreClassLoaderPrefixes)) {
+            this.ignoreClassLoaderPrefixes = Collections.emptyList();
+        } else {
+            this.ignoreClassLoaderPrefixes = Arrays.asList(StringUtil.split(ignoreClassLoaderPrefixes, ','));
+        }
     }
 
     public List<String> getDisabledModules() {

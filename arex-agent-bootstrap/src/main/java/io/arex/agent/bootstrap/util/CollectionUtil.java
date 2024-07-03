@@ -87,4 +87,21 @@ public class CollectionUtil {
         }
         return filterList;
     }
+
+    public static byte[] listToByteArray(List<byte[]> list) {
+        int totalLength = 0;
+        for (byte[] array : list) {
+            totalLength += array.length;
+        }
+
+        byte[] result = new byte[totalLength];
+
+        int currentPos = 0;
+        for (byte[] array : list) {
+            System.arraycopy(array, 0, result, currentPos, array.length);
+            currentPos += array.length;
+        }
+
+        return result;
+    }
 }

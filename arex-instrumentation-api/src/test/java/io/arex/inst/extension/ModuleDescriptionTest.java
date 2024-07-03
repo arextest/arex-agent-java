@@ -6,11 +6,20 @@ import io.arex.agent.bootstrap.model.ComparableVersion;
 import org.junit.jupiter.api.Test;
 
 class ModuleDescriptionTest {
+    private static final ModuleDescription MODULE_DESCRIPTION_EMPTYNAME = ModuleDescription.builder()
+        .name().supportFrom(ComparableVersion.of("0.9")).build();
+    private static final ModuleDescription MODULE_DESCRIPTION_NULL_FROM = ModuleDescription.builder()
+        .name("test").supportFrom(null).build();
     private static final ModuleDescription MODULE_DESCRIPTION_JUST_FORM = ModuleDescription.builder()
             .name("test1").supportFrom(ComparableVersion.of("0.9")).build();
     private static final ModuleDescription MODULE_DESCRIPTION_FROM_TO = ModuleDescription.builder()
             .name("test3").supportFrom(ComparableVersion.of("0.9")).supportTo(ComparableVersion.of("1.11")).build();
 
+    @Test
+    void getModuleNames() {
+        assertNull(MODULE_DESCRIPTION_EMPTYNAME);
+        assertNull(MODULE_DESCRIPTION_NULL_FROM);
+    }
     @Test
     void isSupported() {
         ComparableVersion current = ComparableVersion.of("0.9");
