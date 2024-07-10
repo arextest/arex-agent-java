@@ -237,7 +237,8 @@ public final class MockUtils {
         String data = DataService.INSTANCE.queryAll(postJson);
         String cost = String.valueOf(System.currentTimeMillis() - startTime);
         if (StringUtil.isEmpty(data) || EMPTY_JSON.equals(data)) {
-            LogManager.warn(requestMocker.replayLogTitle(), StringUtil.format("response is null. cost: %s ms, request: %s", cost, postJson));
+            LogManager.warn(requestMocker.replayLogTitle(),
+                    StringUtil.format("cost: %s ms%nrequest: %s%nresponse is null.", cost, postJson));
             return null;
         }
         String message = StringUtil.format("cost: %s ms%nrequest: %s", cost, postJson);

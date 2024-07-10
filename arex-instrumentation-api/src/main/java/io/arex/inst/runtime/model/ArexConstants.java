@@ -62,8 +62,6 @@ public class ArexConstants {
     public static final String DATABASE = "database";
     public static final String DB_NAME = "dbName";
     public static final String DB_PARAMETERS = "parameters";
-    public static final String INTEGRATED_MODE = "integrated";
-    public static final String STANDALONE_MODE = "standalone";
     public static final String MERGE_MOCKER_TYPE = "java.util.ArrayList-io.arex.agent.bootstrap.model.ArexMocker";
     public static final int DB_SQL_MAX_LEN = 5000;
     public static final String DISABLE_SQL_PARSE = "arex.disable.sql.parse";

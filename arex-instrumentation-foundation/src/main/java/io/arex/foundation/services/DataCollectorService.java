@@ -15,7 +15,6 @@ import io.arex.foundation.util.httpclient.AsyncHttpClientUtil;
 import io.arex.foundation.model.HttpClientResponse;
 import io.arex.foundation.util.httpclient.async.ThreadFactoryImpl;
 import io.arex.inst.runtime.log.LogManager;
-import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.model.QueryAllMockerDTO;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.util.CaseManager;
@@ -218,7 +217,7 @@ public class DataCollectorService implements DataCollector {
     }
 
     @Override
-    public String mode() {
-        return ArexConstants.INTEGRATED_MODE;
+    public int order() {
+        return 0;
     }
 }

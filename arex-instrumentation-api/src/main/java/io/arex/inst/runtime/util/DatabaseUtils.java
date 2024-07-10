@@ -19,7 +19,7 @@ public class DatabaseUtils {
      * eg: db1@table1,table2@select@operation1;db2@table3,table4@select@operation2;
      */
     public static String regenerateOperationName(String dbName, String operationName, String sqlText) {
-        if (StringUtil.isEmpty(sqlText) || operationName.contains(DELIMITER) || disableSqlParse()) {
+        if (disableSqlParse() || StringUtil.isEmpty(sqlText) || operationName.contains(DELIMITER)) {
             return operationName;
         }
 

@@ -15,7 +15,9 @@ public interface DataCollector {
     String query(String postData, MockStrategyEnum mockStrategy);
     String queryAll(String postData);
     /**
-     * @return integrated mode or standalone mode
+     * The higher the value, the higher the priority
+     * If you want to overwrite the default DataService, greater than this value
+     * default DataService order value is 0
      */
-    String mode();
+    int order();
 }

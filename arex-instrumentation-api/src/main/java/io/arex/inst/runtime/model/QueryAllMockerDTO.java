@@ -1,12 +1,14 @@
 package io.arex.inst.runtime.model;
 
+import io.arex.agent.bootstrap.model.MockCategoryType;
+
 import java.util.Arrays;
 
 public class QueryAllMockerDTO {
     private String recordId;
     private String replayId;
-    private String[] fieldNames =new String[]{"id", "categoryType", "operationName", "targetRequest", "targetResponse", "creationTime"};
-    private String[] categoryTypes;
+    private String[] fieldNames = new String[]{"id", "categoryType", "operationName", "targetRequest", "targetResponse", "creationTime"};
+    private String[] categoryTypes = new String[]{MockCategoryType.DYNAMIC_CLASS.getName(), MockCategoryType.REDIS.getName()};
 
     public String getRecordId() {
         return recordId;

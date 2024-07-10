@@ -3,8 +3,6 @@ package io.arex.inst.runtime.service;
 import io.arex.agent.bootstrap.model.MockStrategyEnum;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.CollectionUtil;
-import io.arex.inst.runtime.config.Config;
-import io.arex.inst.runtime.model.ArexConstants;
 
 import java.util.List;
 
@@ -38,14 +36,8 @@ public class DataService {
         if (CollectionUtil.isEmpty(collectors)) {
             return;
         }
+        collectors.sort((o1, o2) -> o2.order() - o1.order());
         DataCollector collector = collectors.get(0);
-        if (Config.get().isLocalStorage()) {
-            for (DataCollector dataCollector : collectors) {
-                if (ArexConstants.STANDALONE_MODE.equals(dataCollector.mode())) {
-                    collector = dataCollector;
-                }
-            }
-        }
         collector.start();
         INSTANCE = new DataService(collector);
     }

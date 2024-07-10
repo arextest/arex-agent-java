@@ -2,7 +2,10 @@ package io.arex.inst.runtime.listener;
 
 import io.arex.agent.bootstrap.cache.TimeCache;
 import io.arex.agent.bootstrap.model.Mocker;
-import io.arex.agent.bootstrap.util.*;
+import io.arex.agent.bootstrap.util.AdviceClassesCollector;
+import io.arex.agent.bootstrap.util.NumberUtil;
+import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.agent.bootstrap.util.ServiceLoader;
 import io.arex.inst.runtime.model.InitializeEnum;
 import io.arex.inst.runtime.request.RequestHandlerManager;
 import io.arex.inst.runtime.log.LogManager;
@@ -44,7 +47,7 @@ public class EventProcessor {
             return;
         }
         initContext(source);
-        initReplay();
+        loadReplayData();
         initClock();
         addEnterLog();
     }
@@ -135,8 +138,7 @@ public class EventProcessor {
         return InitializeEnum.COMPLETE.equals(INIT_DEPENDENCY.get());
     }
 
-    private static void initReplay() {
-        // init replay and cached all mockers within case
+    private static void loadReplayData() {
         ReplayUtil.queryMockers();
     }
 }

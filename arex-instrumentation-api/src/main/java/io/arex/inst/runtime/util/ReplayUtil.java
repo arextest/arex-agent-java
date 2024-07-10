@@ -22,6 +22,13 @@ import java.util.function.Predicate;
  */
 public class ReplayUtil {
 
+    private static final Predicate<Mocker> FILTER_MERGE_RECORD = mocker ->
+            ArexConstants.MERGE_RECORD_NAME.equals(mocker.getOperationName());
+
+    private static final Predicate<MergeDTO> FILTER_MERGE_TYPE = mergeDTO ->
+            !MockCategoryType.DYNAMIC_CLASS.getName().equals(mergeDTO.getCategory())
+            && !MockCategoryType.REDIS.getName().equals(mergeDTO.getCategory());
+
     /**
      * init replay all mocker under case and cached replay result
      */
@@ -32,7 +39,6 @@ public class ReplayUtil {
         try {
             QueryAllMockerDTO requestMocker = new QueryAllMockerDTO();
             requestMocker.setRecordId(ContextManager.currentContext().getCaseId());
-            requestMocker.setCategoryTypes(new String[]{MockCategoryType.DYNAMIC_CLASS.getName(), MockCategoryType.REDIS.getName()});
             requestMocker.setReplayId(ContextManager.currentContext().getReplayId());
             List<Mocker> allMockerList = MockUtils.queryMockers(requestMocker);
             if (CollectionUtil.isEmpty(allMockerList)) {
@@ -56,9 +62,8 @@ public class ReplayUtil {
      */
     private static void filterMergeMocker(List<Mocker> allMockerList) {
         List<Mocker> splitMockerList = new ArrayList<>();
-        Predicate<Mocker> filterMergeRecord = mocker -> ArexConstants.MERGE_RECORD_NAME.equals(mocker.getOperationName());
         for (Mocker mergeMocker : allMockerList) {
-            if (!filterMergeRecord.test(mergeMocker)) {
+            if (!FILTER_MERGE_RECORD.test(mergeMocker)) {
                 continue;
             }
             List<MergeDTO> mergeReplayList = Serializer.deserialize(mergeMocker.getTargetResponse().getBody(), ArexConstants.MERGE_TYPE);
@@ -70,15 +75,14 @@ public class ReplayUtil {
         if (CollectionUtil.isEmpty(splitMockerList)) {
             return;
         }
-        allMockerList.removeIf(filterMergeRecord);
+        allMockerList.removeIf(FILTER_MERGE_RECORD);
         allMockerList.addAll(splitMockerList);
     }
 
     private static List<Mocker> convertMergeMocker(List<MergeDTO> mergeReplayList) {
         List<Mocker> convertMockerList = new ArrayList<>();
         for (MergeDTO mergeDTO : mergeReplayList) {
-            if (mergeDTO == null || (!MockCategoryType.DYNAMIC_CLASS.getName().equals(mergeDTO.getCategory())
-                    && !MockCategoryType.REDIS.getName().equals(mergeDTO.getCategory()))) {
+            if (mergeDTO == null || FILTER_MERGE_TYPE.test(mergeDTO)) {
                 continue;
             }
             ArexMocker mocker = MockUtils.create(MockCategoryType.of(mergeDTO.getCategory()), mergeDTO.getOperationName());
