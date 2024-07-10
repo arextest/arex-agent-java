@@ -134,7 +134,7 @@ class DataCollectorServiceTest {
     }
 
     @Test
-    void mode() {
-        assertNotNull(DataCollectorService.INSTANCE.mode());
+    void order() {
+        assertEquals(0, DataCollectorService.INSTANCE.order());
     }
 }
