@@ -3,7 +3,6 @@ package io.arex.inst.runtime.service;
 import io.arex.agent.bootstrap.model.ArexMocker;
 import io.arex.agent.bootstrap.model.MockStrategyEnum;
 import io.arex.inst.runtime.config.Config;
-import io.arex.inst.runtime.model.ArexConstants;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -55,7 +54,7 @@ class DataServiceTest {
     @Test
     void setDataCollector() {
         DataCollector dataCollector = Mockito.mock(DataCollector.class);
-        Mockito.when(dataCollector.mode()).thenReturn(ArexConstants.STANDALONE_MODE);
+        Mockito.when(dataCollector.order()).thenReturn(1);
         DataService.setDataCollector(Collections.singletonList(dataCollector));
         assertNotNull(DataService.INSTANCE);
     }
