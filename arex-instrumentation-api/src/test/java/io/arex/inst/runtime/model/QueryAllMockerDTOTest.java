@@ -51,7 +51,7 @@ class QueryAllMockerDTOTest {
 
     @Test
     void getCategoryTypes() {
-        assertNull(queryAllMockerDTO.getCategoryTypes());
+        assertNotNull(queryAllMockerDTO.getCategoryTypes());
     }
 
     @Test
