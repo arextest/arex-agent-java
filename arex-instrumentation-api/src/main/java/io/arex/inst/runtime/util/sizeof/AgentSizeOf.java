@@ -2,7 +2,9 @@ package io.arex.inst.runtime.util.sizeof;
 
 import io.arex.agent.bootstrap.InstrumentationHolder;
 import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.log.LogManager;
+import io.arex.inst.runtime.model.ArexConstants;
 
 import java.lang.instrument.Instrumentation;
 import java.text.DecimalFormat;
@@ -94,5 +96,9 @@ public class AgentSizeOf {
                     humanReadableUnits(memorySize), String.valueOf(cost)));
         }
         return memorySize < sizeLimit;
+    }
+
+    public static long getSizeLimit() {
+        return Config.get().getLong(ArexConstants.RECORD_SIZE_LIMIT, ArexConstants.MEMORY_SIZE_1MB);
     }
 }

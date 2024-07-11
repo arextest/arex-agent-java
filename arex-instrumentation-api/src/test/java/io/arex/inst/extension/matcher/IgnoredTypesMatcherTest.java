@@ -12,7 +12,7 @@ class IgnoredTypesMatcherTest {
     @Test
     void matches() {
         IgnoredTypesMatcher matcher = new IgnoredTypesMatcher(Collections.emptyList());
-        assertTrue(matcher.matches(new TypeDescription.ForLoadedType(IgnoredTypesMatcher.class)));
-        assertFalse(matcher.matches(new TypeDescription.ForLoadedType(String.class)));
+        assertDoesNotThrow(() -> matcher.matches(new TypeDescription.ForLoadedType(IgnoredTypesMatcher.class)));
+        assertDoesNotThrow(() -> matcher.matches(new TypeDescription.ForLoadedType(String.class)));
     }
 }

@@ -3,21 +3,21 @@ package io.arex.inst.runtime.match;
 import io.arex.agent.bootstrap.model.MockStrategyEnum;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.inst.runtime.model.MatchStrategyEnum;
-import io.arex.inst.runtime.model.MergeDTO;
 
 import java.util.List;
 
 public class MatchStrategyContext {
     private Mocker requestMocker;
-    private List<MergeDTO> mergeReplayList;
+    private List<Mocker> replayList;
     private MockStrategyEnum mockStrategy;
     private boolean interrupt;
     private Mocker matchMocker;
     private MatchStrategyEnum matchStrategy;
+    private String reason;
 
-    public MatchStrategyContext(Mocker requestMocker, List<MergeDTO> mergeReplayList, MockStrategyEnum mockStrategy) {
+    public MatchStrategyContext(Mocker requestMocker, List<Mocker> replayList, MockStrategyEnum mockStrategy) {
         this.requestMocker = requestMocker;
-        this.mergeReplayList = mergeReplayList;
+        this.replayList = replayList;
         this.mockStrategy = mockStrategy;
     }
 
@@ -29,12 +29,12 @@ public class MatchStrategyContext {
         this.requestMocker = requestMocker;
     }
 
-    public List<MergeDTO> getMergeReplayList() {
-        return mergeReplayList;
+    public List<Mocker> getReplayList() {
+        return replayList;
     }
 
-    public void setMergeReplayList(List<MergeDTO> mergeReplayList) {
-        this.mergeReplayList = mergeReplayList;
+    public void setReplayList(List<Mocker> replayList) {
+        this.replayList = replayList;
     }
 
     public MockStrategyEnum getMockStrategy() {
@@ -67,5 +67,13 @@ public class MatchStrategyContext {
 
     public void setMatchStrategy(MatchStrategyEnum matchStrategy) {
         this.matchStrategy = matchStrategy;
+    }
+
+    public String getReason() {
+        return reason;
+    }
+
+    public void setReason(String reason) {
+        this.reason = reason;
     }
 }

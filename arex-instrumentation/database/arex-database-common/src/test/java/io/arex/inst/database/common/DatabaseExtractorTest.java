@@ -9,6 +9,7 @@ import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.agent.bootstrap.model.Mocker.Target;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.serializer.Serializer;
+import io.arex.inst.runtime.util.DatabaseUtils;
 import io.arex.inst.runtime.util.IgnoreUtils;
 import io.arex.inst.runtime.util.MockUtils;
 
@@ -61,6 +62,7 @@ class DatabaseExtractorTest {
             MockedStatic<IgnoreUtils> ignoreService = mockStatic(IgnoreUtils.class);
             MockedStatic<Serializer> serializer = mockStatic(Serializer.class)) {
             ignoreService.when(() -> IgnoreUtils.ignoreMockResult(any(), any())).thenReturn(true);
+            mockStatic(DatabaseUtils.class);
 
             ArexMocker mocker = new ArexMocker();
             mocker.setTargetRequest(new Target());

@@ -5,6 +5,7 @@ import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.AdviceClassesCollector;
 import io.arex.agent.bootstrap.util.NumberUtil;
 import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.agent.bootstrap.util.ServiceLoader;
 import io.arex.inst.runtime.model.InitializeEnum;
 import io.arex.inst.runtime.request.RequestHandlerManager;
 import io.arex.inst.runtime.log.LogManager;
@@ -14,12 +15,13 @@ import io.arex.inst.runtime.log.Logger;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.serializer.StringSerializable;
 import io.arex.inst.runtime.util.MockUtils;
-import io.arex.agent.bootstrap.util.ServiceLoader;
 
 import java.util.List;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
+
+import io.arex.inst.runtime.util.ReplayUtil;
 import org.slf4j.LoggerFactory;
 
 public class EventProcessor {
@@ -45,6 +47,7 @@ public class EventProcessor {
             return;
         }
         initContext(source);
+        loadReplayData();
         initClock();
         addEnterLog();
     }
@@ -133,5 +136,9 @@ public class EventProcessor {
 
     public static boolean dependencyInitComplete() {
         return InitializeEnum.COMPLETE.equals(INIT_DEPENDENCY.get());
+    }
+
+    private static void loadReplayData() {
+        ReplayUtil.queryMockers();
     }
 }
