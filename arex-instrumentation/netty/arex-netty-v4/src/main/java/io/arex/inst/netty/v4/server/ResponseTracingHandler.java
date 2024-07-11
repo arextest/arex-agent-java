@@ -2,11 +2,14 @@ package io.arex.inst.netty.v4.server;
 
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.inst.runtime.context.ContextManager;
+import io.arex.inst.runtime.listener.CaseEvent;
+import io.arex.inst.runtime.listener.CaseEventDispatcher;
 import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.netty.v4.common.AttributeKey;
 import io.arex.inst.netty.v4.common.NettyHelper;
 import io.arex.inst.runtime.serializer.Serializer;
+import io.arex.inst.runtime.util.MockUtils;
 import io.arex.inst.runtime.util.TypeUtil;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.FullHttpResponse;
@@ -18,9 +21,9 @@ import java.util.Map;
 public class ResponseTracingHandler extends ChannelOutboundHandlerAdapter {
 
     @Override
-    public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
+    public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
         if (!ContextManager.needRecordOrReplay()) {
-            super.write(ctx, msg, promise);
+            ctx.write(msg, promise);
             return;
         }
 
@@ -37,8 +40,20 @@ public class ResponseTracingHandler extends ChannelOutboundHandlerAdapter {
                 }
 
                 String body = NettyHelper.parseBody(((LastHttpContent) msg).content());
-                // record response and save record on RequestTracingHandler#channelReadComplete
-                invoke(ctx.channel(), body, prm.cause());
+                Mocker mocker = ctx.channel().attr(AttributeKey.TRACING_MOCKER).get();
+                Throwable throwable = prm.cause();
+                Object response = throwable != null ? throwable : body;
+                if (mocker == null || response == null) {
+                    return;
+                }
+                mocker.getTargetResponse().setBody(Serializer.serialize(response));
+                mocker.getTargetResponse().setType(TypeUtil.getName(response));
+                if (ContextManager.needReplay()) {
+                    MockUtils.replayMocker(mocker);
+                } else {
+                    MockUtils.recordMocker(mocker);
+                }
+                CaseEventDispatcher.onEvent(CaseEvent.ofExitEvent());
             } else {
                 if (msg instanceof HttpResponse) {
                     processHeaders(ctx.channel(), (HttpResponse) msg);
@@ -47,7 +62,7 @@ public class ResponseTracingHandler extends ChannelOutboundHandlerAdapter {
         } catch (Throwable e) {
             LogManager.warn("netty write error", e);
         } finally {
-            super.write(ctx, msg, promise);
+            ctx.write(msg, promise);
         }
     }
 
@@ -71,15 +86,5 @@ public class ResponseTracingHandler extends ChannelOutboundHandlerAdapter {
         if (ContextManager.needReplay()) {
             response.headers().set(ArexConstants.REPLAY_ID, ContextManager.currentContext().getReplayId());
         }
-    }
-
-    private void invoke(final Channel channel, final String content, Throwable throwable) {
-        Mocker mocker = channel.attr(AttributeKey.TRACING_MOCKER).get();
-        Object response = throwable != null ? throwable : content;
-        if (mocker == null || response == null) {
-            return;
-        }
-        mocker.getTargetResponse().setBody(Serializer.serialize(response));
-        mocker.getTargetResponse().setType(TypeUtil.getName(response));
     }
 }
