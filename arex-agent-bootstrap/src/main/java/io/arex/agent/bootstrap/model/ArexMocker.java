@@ -3,6 +3,7 @@ package io.arex.agent.bootstrap.model;
 import io.arex.agent.bootstrap.constants.ConfigConstants;
 import java.util.Collections;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ArexMocker implements Mocker {
     private String id;
@@ -15,9 +16,18 @@ public class ArexMocker implements Mocker {
     private long creationTime;
     private Mocker.Target targetRequest;
     private Mocker.Target targetResponse;
-    private boolean needMerge;
+    private transient boolean needMerge;
     private String operationName;
     private Map<String, String> tags;
+    private final transient AtomicBoolean matched = new AtomicBoolean(false);
+    /**
+     * replay match need
+     */
+    private transient int fuzzyMatchKey;
+    /**
+     * replay match need
+     */
+    private transient int accurateMatchKey;
 
     /**
      * The default constructor is for deserialization
@@ -140,5 +150,33 @@ public class ArexMocker implements Mocker {
 
     public void setNeedMerge(boolean needMerge) {
         this.needMerge = needMerge;
+    }
+
+    public boolean isMatched() {
+        return matched.get();
+    }
+
+    public void setMatched(boolean matched) {
+        this.matched.compareAndSet(false, matched);
+    }
+
+    @Override
+    public int getAccurateMatchKey() {
+        return this.accurateMatchKey;
+    }
+
+    @Override
+    public void setAccurateMatchKey(int accurateMatchKey) {
+        this.accurateMatchKey = accurateMatchKey;
+    }
+
+    @Override
+    public int getFuzzyMatchKey() {
+        return this.fuzzyMatchKey;
+    }
+
+    @Override
+    public void setFuzzyMatchKey(int fuzzyMatchKey) {
+        this.fuzzyMatchKey = fuzzyMatchKey;
     }
 }
