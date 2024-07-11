@@ -86,7 +86,7 @@ public class ConfigService {
             }
             ConfigManager.INSTANCE.updateConfigFromService(configResponse.getBody());
         } catch (Throwable e) {
-            LOGGER.warn("[AREX] Load agent config error, pause recording. exception message: {}", e.getMessage());
+            LOGGER.warn("[AREX] Load agent config error, pause recording. exception message: {}", e.getMessage(), e);
             ConfigManager.INSTANCE.setConfigInvalid();
         }
     }
