@@ -81,7 +81,7 @@ public class RedissonInstrumentation extends TypeInstrumentation {
         public static MethodInstrumentation getMethodInstrumentation() {
             ElementMatcher.Junction<MethodDescription> matcher =
                 isMethod().and(isPublic()).and(named("getBucket")).and(takesArgument(0, String.class))
-                    .and(takesArgument(0, named("org.redisson.client.codec.Codec")));
+                    .and(takesArgument(1, named("org.redisson.client.codec.Codec")));
 
             String advice = GetBucketWithCodecAdvice.class.getName();
 
