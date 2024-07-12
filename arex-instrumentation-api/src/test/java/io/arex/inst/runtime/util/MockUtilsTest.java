@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import io.arex.agent.bootstrap.model.ArexMocker;
 import io.arex.agent.bootstrap.model.MockCategoryType;
 import io.arex.agent.bootstrap.model.Mocker;
+import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.config.ConfigBuilder;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
@@ -14,11 +15,13 @@ import io.arex.inst.runtime.listener.EventProcessorTest.TestGsonSerializer;
 import io.arex.inst.runtime.listener.EventProcessorTest.TestJacksonSerializable;
 import io.arex.inst.runtime.match.ReplayMatcher;
 import io.arex.inst.runtime.model.ArexConstants;
+import io.arex.inst.runtime.model.QueryAllMockerDTO;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.serializer.StringSerializable;
 import io.arex.inst.runtime.service.DataCollector;
 import io.arex.inst.runtime.service.DataService;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
@@ -35,14 +38,20 @@ class MockUtilsTest {
         Mockito.mockStatic(CaseManager.class);
 
         configBuilder = ConfigBuilder.create("test");
+
+        Mockito.mockStatic(Config.class);
+        Config config = Mockito.mock(Config.class);
+        Mockito.when(Config.get()).thenReturn(config);
+        Mockito.when(config.isEnableDebug()).thenReturn(true);
+
         dataCollector = Mockito.mock(DataCollector.class);
-        DataService.builder().setDataCollector(dataCollector).build();
+        DataService.setDataCollector(Collections.singletonList(dataCollector));
 
         final List<StringSerializable> list = new ArrayList<>(2);
         list.add(new TestJacksonSerializable());
         list.add(new TestGsonSerializer());
         Serializer.builder(list).build();
-        Mockito.mockStatic(MergeRecordReplayUtil.class);
+        Mockito.mockStatic(MergeRecordUtil.class);
         Mockito.mockStatic(ReplayMatcher.class);
     }
 
@@ -194,5 +203,18 @@ class MockUtilsTest {
         mocker.setTargetRequest(new Mocker.Target());
         mocker.getTargetRequest().setBody("mock");
         assertTrue(MockUtils.methodRequestTypeHash(mocker) > 0);
+    }
+
+    @Test
+    void queryMockers() {
+        QueryAllMockerDTO requestMocker = new QueryAllMockerDTO();
+        requestMocker.setRecordId("mock");
+        requestMocker.setReplayId("mock");
+        MockUtils.queryMockers(requestMocker);
+
+        String responseJson = "{\"categoryType\":{\"name\":\"DynamicClass\"},\"recordId\":\"mock\"," +
+                "\"operationName\":\"java.lang.System.currentTimeMillis\"}";
+        Mockito.when(dataCollector.queryAll(any())).thenReturn(responseJson);
+        MockUtils.queryMockers(requestMocker);
     }
 }

@@ -2,12 +2,10 @@ package io.arex.agent.instrumentation;
 
 import io.arex.agent.bootstrap.AgentInstaller;
 import io.arex.agent.bootstrap.TraceContextManager;
-import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.agent.bootstrap.util.FileUtils;
 import io.arex.foundation.config.ConfigManager;
 import io.arex.foundation.healthy.HealthManager;
 import io.arex.foundation.services.ConfigService;
-import io.arex.foundation.services.DataCollectorService;
 import io.arex.foundation.services.TimerService;
 import io.arex.foundation.util.NetUtils;
 import io.arex.inst.runtime.context.RecordLimiter;
@@ -114,15 +112,8 @@ public abstract class BaseAgentInstaller implements AgentInstaller {
         initDataCollector();
     }
     private void initDataCollector() {
-        DataCollector collector = DataCollectorService.INSTANCE;
-        if (ConfigManager.INSTANCE.isLocalStorage()) {
-            List<DataCollector> extendCollectorList = ServiceLoader.load(DataCollector.class, getClassLoader());
-            if (CollectionUtil.isNotEmpty(extendCollectorList)) {
-                collector = extendCollectorList.get(0);
-            }
-        }
-        collector.start();
-        DataService.builder().setDataCollector(collector).build();
+        List<DataCollector> collectorList = ServiceLoader.load(DataCollector.class, getClassLoader());
+        DataService.setDataCollector(collectorList);
     }
 
     /**

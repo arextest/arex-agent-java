@@ -53,7 +53,7 @@ class ApolloDubboRequestHandlerTest {
     @Test
     void handleAfterCreateContext() {
         target.handleAfterCreateContext(new HashMap<>());
-        mockStaticHelper.verify(() -> ApolloConfigHelper.initAndRecord(any(), any()), atLeastOnce());
+        mockStaticHelper.verify(() -> ApolloConfigHelper.replayConfigs(any(), any()), atLeastOnce());
     }
 
     @ParameterizedTest

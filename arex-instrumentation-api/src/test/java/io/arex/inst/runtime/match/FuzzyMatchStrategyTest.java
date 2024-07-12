@@ -5,7 +5,6 @@ import io.arex.agent.bootstrap.model.MockCategoryType;
 import io.arex.agent.bootstrap.model.MockStrategyEnum;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.inst.runtime.config.Config;
-import io.arex.inst.runtime.model.MergeDTO;
 import io.arex.inst.runtime.util.MockUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -40,8 +39,8 @@ class FuzzyMatchStrategyTest {
         mocker.setTargetResponse(new Mocker.Target());
         mocker.setTargetRequest(new Mocker.Target());
         mocker.setCategoryType(MockCategoryType.DYNAMIC_CLASS);
-        List<MergeDTO> mergeReplayList = new ArrayList<>();
-        MergeDTO mergeDTO = new MergeDTO();
+        List<Mocker> mergeReplayList = new ArrayList<>();
+        Mocker mergeDTO = new ArexMocker();
         mergeReplayList.add(mergeDTO);
         MatchStrategyContext context =new MatchStrategyContext(mocker, mergeReplayList, MockStrategyEnum.FIND_LAST);
         Mockito.when(Config.get().isEnableDebug()).thenReturn(true);
@@ -51,6 +50,10 @@ class FuzzyMatchStrategyTest {
         mergeDTO.setMatched(true);
         fuzzyMatchStrategy.process(context);
         assertNotNull(context.getMatchMocker());
+
+        // fuzzy match no result
+        MatchStrategyContext context1 =new MatchStrategyContext(mocker, mergeReplayList, MockStrategyEnum.OVER_BREAK);
+        fuzzyMatchStrategy.process(context1);
     }
 
     @Test

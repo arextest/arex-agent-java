@@ -2,7 +2,6 @@ package io.arex.inst.runtime.match;
 
 import io.arex.agent.bootstrap.model.ArexMocker;
 import io.arex.agent.bootstrap.model.Mocker;
-import io.arex.inst.runtime.model.MergeDTO;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -34,13 +33,5 @@ class AbstractMatchStrategyTest {
         assertDoesNotThrow(() -> target.match(null));
         MatchStrategyContext context = new MatchStrategyContext(mocker, new ArrayList<>(), null);
         assertDoesNotThrow(() -> target.match(context));
-    }
-
-    @Test
-    void buildMatchedMocker() {
-        Mocker result = target.buildMatchedMocker(mocker, null);
-        assertNull(result);
-        result = target.buildMatchedMocker(mocker, new MergeDTO());
-        assertNotNull(result);
     }
 }

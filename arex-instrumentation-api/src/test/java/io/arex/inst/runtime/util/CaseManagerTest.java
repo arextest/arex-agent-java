@@ -1,5 +1,6 @@
 package io.arex.inst.runtime.util;
 
+import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.listener.EventProcessorTest.TestJacksonSerializable;
@@ -13,6 +14,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
+import java.util.Collections;
+
 class CaseManagerTest {
     static MockedStatic<ContextManager> contextManagerMocked;
     static DataCollector dataCollector;
@@ -21,15 +24,17 @@ class CaseManagerTest {
     static void setUp() {
         Serializer.builder(new TestJacksonSerializable()).build();
         contextManagerMocked = Mockito.mockStatic(ContextManager.class);
+        Mockito.mockStatic(Config.class);
+        Mockito.when(Config.get()).thenReturn(Mockito.mock(Config.class));
         dataCollector = Mockito.mock(DataCollector.class);
-        DataService.builder().setDataCollector(dataCollector).build();
+        DataService.setDataCollector(Collections.singletonList(dataCollector));
     }
 
     @AfterAll
     static void tearDown() {
         contextManagerMocked = null;
         dataCollector = null;
-        DataService.builder().setDataCollector(null).build();
+        DataService.setDataCollector(null);
         Mockito.clearAllCaches();
     }
 

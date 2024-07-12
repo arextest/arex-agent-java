@@ -1,10 +1,10 @@
 package io.arex.inst.runtime.context;
 
+import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.ConcurrentHashSet;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.model.ArexConstants;
-import io.arex.inst.runtime.model.MergeDTO;
-import io.arex.inst.runtime.util.MergeRecordReplayUtil;
+import io.arex.inst.runtime.util.MergeRecordUtil;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -18,12 +18,12 @@ public class ArexContext {
     private final long createTime;
     private volatile int sequence;
     private Set<Integer> methodSignatureHashList;
-    private Map<Integer, List<MergeDTO>> cachedReplayResultMap;
+    private Map<Integer, List<Mocker>> cachedReplayResultMap;
     private Map<String, Set<String>> excludeMockTemplate;
 
     private Map<String, Object> attachments = null;
 
-    private LinkedBlockingQueue<MergeDTO> mergeRecordQueue;
+    private LinkedBlockingQueue<Mocker> mergeRecordQueue;
 
     private boolean isRedirectRequest;
     private boolean isInvalidCase;
@@ -76,7 +76,7 @@ public class ArexContext {
         return methodSignatureHashList;
     }
 
-    public Map<Integer, List<MergeDTO>> getCachedReplayResultMap() {
+    public Map<Integer, List<Mocker>> getCachedReplayResultMap() {
         if (cachedReplayResultMap == null) {
             cachedReplayResultMap = new ConcurrentHashMap<>();
         }
@@ -154,7 +154,7 @@ public class ArexContext {
         return isRedirectRequest;
     }
 
-    public LinkedBlockingQueue<MergeDTO> getMergeRecordQueue() {
+    public LinkedBlockingQueue<Mocker> getMergeRecordQueue() {
         if (mergeRecordQueue == null) {
             mergeRecordQueue = new LinkedBlockingQueue<>(2048);
         }
@@ -176,7 +176,7 @@ public class ArexContext {
         }
         if (mergeRecordQueue != null) {
             // async thread merge record (main entry has ended)
-            MergeRecordReplayUtil.recordRemain(this);
+            MergeRecordUtil.recordRemain(this);
             mergeRecordQueue.clear();
         }
     }

@@ -51,7 +51,7 @@ class ApolloConfigHelperTest {
     @ParameterizedTest
     @MethodSource("initAndRecordCase")
     void initAndRecord(Supplier<String> recordIdSpl, Supplier<String> versionSpl, Assert asserts) {
-        ApolloConfigHelper.initAndRecord(recordIdSpl, versionSpl);
+        ApolloConfigHelper.replayConfigs(recordIdSpl, versionSpl);
         asserts.verity();
     }
 

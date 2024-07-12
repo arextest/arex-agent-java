@@ -7,7 +7,7 @@ import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.log.LogManager;
-import io.arex.inst.runtime.model.MergeDTO;
+import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.util.MockUtils;
 
 import java.util.*;
@@ -18,31 +18,56 @@ public class ReplayMatcher {
     private ReplayMatcher() {
     }
 
+    /**
+     * match rule:
+     * 1. methodRequestTypeHash: categoryType + operationName + requestType
+     * 2. accurate match: operationName + requestBody
+     * 3. fuzzy match/eigen match
+     */
     public static Mocker match(Mocker requestMocker, MockStrategyEnum mockStrategy) {
-        Map<Integer, List<MergeDTO>> cachedReplayResultMap = ContextManager.currentContext().getCachedReplayResultMap();
+        Map<Integer, List<Mocker>> cachedReplayResultMap = ContextManager.currentContext().getCachedReplayResultMap();
         // first match methodRequestTypeHash: category + operationName + requestType, ensure the same method
-        List<MergeDTO> mergeReplayList = cachedReplayResultMap.get(MockUtils.methodRequestTypeHash(requestMocker));
-        if (CollectionUtil.isEmpty(mergeReplayList)) {
+        List<Mocker> replayList = cachedReplayResultMap.get(MockUtils.methodRequestTypeHash(requestMocker));
+        if (CollectionUtil.isEmpty(replayList)) {
+            LogManager.warn(MATCH_TITLE, StringUtil.format("match no result, not exist this method signature, " +
+                            "check if it has been recorded, categoryType: %s, operationName: %s, requestBody: %s",
+                    requestMocker.getCategoryType().getName(), requestMocker.getOperationName(), requestMocker.getTargetRequest().getBody()));
             return null;
         }
 
         List<AbstractMatchStrategy> matchStrategyList = MatchStrategyRegister.getMatchStrategies(requestMocker.getCategoryType());
-        MatchStrategyContext context = new MatchStrategyContext(requestMocker, mergeReplayList, mockStrategy);
+        MatchStrategyContext context = new MatchStrategyContext(requestMocker, replayList, mockStrategy);
         for (AbstractMatchStrategy matchStrategy : matchStrategyList) {
             matchStrategy.match(context);
         }
 
-        Mocker matchedMocker = context.getMatchMocker();
-        String message = StringUtil.format("%s, match strategy: %s", requestMocker.logBuilder().toString(),
-                context.getMatchStrategy() != null ? context.getMatchStrategy().name() : StringUtil.EMPTY);
-        if (Config.get().isEnableDebug()) {
-            String response = matchedMocker != null && matchedMocker.getTargetResponse() != null
-                    ? matchedMocker.getTargetResponse().getBody() : StringUtil.EMPTY;
-            message += StringUtil.format("%nrequest: %s%nresponse: %s",
-                    requestMocker.getTargetRequest().getBody(), response);
-        }
-        LogManager.info(MATCH_TITLE, message);
-        return matchedMocker;
+        logMatchResult(context);
+
+        return context.getMatchMocker();
     }
 
+    private static void logMatchResult(MatchStrategyContext context) {
+        Mocker matchedMocker = context.getMatchMocker();
+        Mocker requestMocker = context.getRequestMocker();
+
+        String matchResult;
+        if (matchedMocker != null) {
+            matchResult = "match success";
+        } else {
+            matchResult = StringUtil.format("match fail, reason: %s", context.getReason());
+        }
+
+        String message = StringUtil.format("%s %n%s, requestType: %s, match strategy: %s, mock strategy: %s",
+                matchResult,
+                requestMocker.logBuilder().toString(),
+                requestMocker.getTargetRequest().getType(),
+                (context.getMatchStrategy() != null ? context.getMatchStrategy().name() : StringUtil.EMPTY),
+                context.getMockStrategy().name());
+
+        if (Config.get().isEnableDebug()) {
+            message += StringUtil.format("%nrequest: %s%nresponse: %s",
+                    Serializer.serialize(requestMocker), Serializer.serialize(matchedMocker));
+        }
+        LogManager.info(MATCH_TITLE, message);
+    }
 }
