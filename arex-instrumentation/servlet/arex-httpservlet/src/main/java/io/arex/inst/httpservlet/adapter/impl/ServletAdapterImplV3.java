@@ -2,6 +2,7 @@ package io.arex.inst.httpservlet.adapter.impl;
 
 import io.arex.agent.bootstrap.util.IOUtils;
 import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.inst.httpservlet.SpringUtil;
 import io.arex.inst.httpservlet.adapter.ServletAdapter;
 import io.arex.inst.httpservlet.wrapper.CachedBodyRequestWrapperV3;
 import io.arex.inst.httpservlet.wrapper.CachedBodyResponseWrapperV3;
@@ -138,16 +139,34 @@ public class ServletAdapterImplV3 implements ServletAdapter<HttpServletRequest, 
 
     @Override
     public String getPattern(HttpServletRequest httpServletRequest) {
+        // in org.springframework.web.servlet.DispatcherServlet#doService set pattern attribute
         Object pattern = httpServletRequest.getAttribute("org.springframework.web.servlet.HandlerMapping.bestMatchingPattern");
         if (pattern != null) {
             return String.valueOf(pattern);
         }
+        /*
+         * if not get pattern attribute from request, try to get pattern from request mapping
+         * maybe called in filter before DispatcherServlet#doService (filter -> service)
+         */
+        String patternStr = getPatternFromRequestMapping(httpServletRequest);
+        if (StringUtil.isNotEmpty(patternStr)) {
+            return patternStr;
+        }
         final String requestURI = httpServletRequest.getRequestURI();
         if (StringUtil.isNotEmpty(httpServletRequest.getContextPath()) && requestURI.contains(
-            httpServletRequest.getContextPath())) {
+                httpServletRequest.getContextPath())) {
             return requestURI.replace(httpServletRequest.getContextPath(), "");
         }
         return requestURI;
+    }
+
+    public String getPatternFromRequestMapping(HttpServletRequest httpServletRequest) {
+        try {
+            return SpringUtil.getPatternFromRequestMapping(httpServletRequest, httpServletRequest.getServletContext());
+        } catch (Throwable ignore) {
+            // ignore exception
+        }
+        return null;
     }
 
     @Override
