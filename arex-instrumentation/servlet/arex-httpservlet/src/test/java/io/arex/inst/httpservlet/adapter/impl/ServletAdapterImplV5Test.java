@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
+import io.arex.inst.httpservlet.SpringUtil;
 import io.arex.inst.httpservlet.wrapper.CachedBodyRequestWrapperV5;
 import io.arex.inst.httpservlet.wrapper.CachedBodyResponseWrapperV5;
 import io.arex.inst.runtime.model.ArexConstants;
@@ -159,6 +160,12 @@ class ServletAdapterImplV5Test {
         when(mockRequest.getRequestURI()).thenReturn("/commutity/httpClientTest/okHttp");
         assertEquals("/commutity/httpClientTest/okHttp", instance.getPattern(mockRequest));
 
+        // get pattern from request mapping in spring applicationContext
+        Mockito.mockStatic(SpringUtil.class);
+        when(SpringUtil.getPatternFromRequestMapping(any(), any())).thenReturn("/book/{id}");
+        assertEquals("/book/{id}", instance.getPattern(mockRequest));
+
+        when(SpringUtil.getPatternFromRequestMapping(any(), any())).thenReturn(null);
         when(mockRequest.getContextPath()).thenReturn("/commutity");
         assertEquals("/httpClientTest/okHttp", instance.getPattern(mockRequest));
     }

@@ -128,6 +128,9 @@ public class ReflectUtil {
     }
 
     public static Object invoke(Method method, Object instance, Object... args) {
+        if (method == null) {
+            return null;
+        }
         try {
             method.setAccessible(true);
             return method.invoke(instance, args);

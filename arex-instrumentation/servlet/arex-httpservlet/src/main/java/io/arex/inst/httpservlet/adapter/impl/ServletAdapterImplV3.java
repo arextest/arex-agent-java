@@ -145,7 +145,7 @@ public class ServletAdapterImplV3 implements ServletAdapter<HttpServletRequest, 
             return String.valueOf(pattern);
         }
         /*
-         * if not get pattern attribute from request, try to get pattern from request mapping
+         * if can't get pattern attribute from request, try to get pattern from request mapping in spring applicationContext
          * maybe called in filter before DispatcherServlet#doService (filter -> service)
          */
         String patternStr = getPatternFromRequestMapping(httpServletRequest);
