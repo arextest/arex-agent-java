@@ -10,7 +10,6 @@ import org.springframework.web.util.ServletRequestPathUtils;
 import org.springframework.web.util.pattern.PathPattern;
 
 import java.lang.reflect.Method;
-import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -23,9 +22,9 @@ public class SpringUtil {
 
     private static Method parseAndCacheMethod = null;
 
-    private static ApplicationContext springApplicationContext;
+    private static ApplicationContext springApplicationContext = null;
 
-    private static Set<RequestMappingInfo> springRequestMappings;
+    private static Set<RequestMappingInfo> springRequestMappings = null;
 
     public static ApplicationContext getApplicationContext(Object servletContext) {
         if (springApplicationContext != null) {
@@ -62,7 +61,7 @@ public class SpringUtil {
                     "getMatchingCondition", httpServletRequest.getClass().getInterfaces()[0].getName());
         }
 
-        Set<PathPattern> patterns = new HashSet<>();
+        Set<PathPattern> patterns = null;
         for (RequestMappingInfo mappingInfo : requestMappingInfos) {
             /*
              * execute RequestMappingInfo.getMatchingCondition to get matched pattern
