@@ -19,8 +19,9 @@ import javax.servlet.ReadListener;
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -32,12 +33,15 @@ class ServletAdapterImplV3Test {
     HttpServletResponse mockResponse = Mockito.mock(HttpServletResponse.class);
     ServletAdapterImplV3 instance = ServletAdapterImplV3.getInstance();
     NativeWebRequest nativeWebRequest = Mockito.mock(NativeWebRequest.class);
-    @BeforeEach
-    void setUp() {
+
+    @BeforeAll
+    static void setUp() {
+        Mockito.mockStatic(SpringUtil.class);
     }
 
-    @AfterEach
-    void tearDown() {
+    @AfterAll
+    static void tearDown() {
+        Mockito.clearAllCaches();
     }
 
     @Test
@@ -176,7 +180,6 @@ class ServletAdapterImplV3Test {
         assertEquals("/commutity/httpClientTest/okHttp", instance.getPattern(mockRequest));
 
         // get pattern from request mapping in spring applicationContext
-        Mockito.mockStatic(SpringUtil.class);
         when(SpringUtil.getPatternFromRequestMapping(any(), any())).thenReturn("/book/{id}");
         assertEquals("/book/{id}", instance.getPattern(mockRequest));
 
