@@ -50,22 +50,4 @@ class ArrayUtilsTest {
                 arguments(new Object[]{"paramString", null}, "[\"paramString\", \"null\"]")
         );
     }
-
-    @ParameterizedTest
-    @MethodSource("equalsCase")
-    void equals(String[] array1, String[] array2, Predicate<Boolean> asserts) {
-        asserts.test(ArrayUtils.equals(array1, array2));
-    }
-
-    static Stream<Arguments> equalsCase() {
-        Predicate<Boolean> assertTrue = bool -> bool;
-        Predicate<Boolean> assertFalse = bool -> !bool;
-        return Stream.of(
-                arguments(null, null, assertTrue),
-                arguments(new String[]{"mock"}, null, assertFalse),
-                arguments(new String[]{"mock"}, new String[]{}, assertFalse),
-                arguments(new String[]{"mock"}, new String[]{"mock1"}, assertFalse),
-                arguments(new String[]{"mock"}, new String[]{"mock"}, assertTrue)
-        );
-    }
 }

@@ -99,12 +99,12 @@ public class ReflectUtil {
     /**
      * The caller not need to consider the issue of dependency class and method version differences.
      */
-    public static Method getMethodWithoutClassType(String className, String methodName, String... argTypes) {
+    public static Method getMethodWithoutClassType(String className, String methodName, String... argTypeNames) {
         try {
             Class<?> clazz = Class.forName(className, false, Thread.currentThread().getContextClassLoader());
             Method[] methods = clazz.getDeclaredMethods();
             for (Method method : methods) {
-                if (methodName.equals(method.getName()) && sameParamType(argTypes, method.getParameterTypes())) {
+                if (methodName.equals(method.getName()) && sameParamType(argTypeNames, method.getParameterTypes())) {
                     return method;
                 }
             }
@@ -124,7 +124,7 @@ public class ReflectUtil {
                 parameterTypeList.add(parameterType.getName());
             }
         }
-        return ArrayUtils.equals(argTypeArray, parameterTypeList.toArray(StringUtil.EMPTY_STRING_ARRAY));
+        return Arrays.equals(argTypeArray, parameterTypeList.toArray(StringUtil.EMPTY_STRING_ARRAY));
     }
 
     public static Object invoke(Method method, Object instance, Object... args) {
