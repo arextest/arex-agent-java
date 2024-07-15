@@ -52,8 +52,10 @@ class NingHttpClientAdapterTest {
         assertArrayEquals("test".getBytes(), ningHttpClientAdapter.getRequestBytes());
 
         // stringData != null
-        when(request.getStringData()).thenReturn("test");
-        assertArrayEquals("test".getBytes(), ningHttpClientAdapter.getRequestBytes());
+        String json = "{\"accountId\":\"uat-account-866e34f7\"}";
+        when(request.getByteData()).thenReturn(null);
+        when(request.getStringData()).thenReturn(json);
+        assertArrayEquals(json.getBytes(StandardCharsets.UTF_8), ningHttpClientAdapter.getRequestBytes());
 
         // compositeByteData != null
         when(request.getByteData()).thenReturn(null);
