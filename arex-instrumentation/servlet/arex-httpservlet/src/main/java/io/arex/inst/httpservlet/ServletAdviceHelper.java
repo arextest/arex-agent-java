@@ -237,15 +237,15 @@ public class ServletAdviceHelper {
         if (StringUtil.isEmpty(requestURI)) {
             return false;
         }
-
+        String pattern = adapter.getPattern(httpServletRequest);
         // As long as one parameter is hit in includeServiceOperations, the operation will not be skipped
         if (CollectionUtil.isNotEmpty(Config.get().getIncludeServiceOperations()) &&
-            !(IgnoreUtils.includeOperation(adapter.getPattern(httpServletRequest)) ||
+            !(IgnoreUtils.includeOperation(pattern) ||
                 IgnoreUtils.includeOperation(requestURI))) {
             return true;
         }
         // As long as one parameter is hit in excludeServiceOperations, the operation will be skipped
-        if (IgnoreUtils.excludeOperation(adapter.getPattern(httpServletRequest)) ||
+        if (IgnoreUtils.excludeOperation(pattern) ||
             IgnoreUtils.excludeOperation(requestURI)) {
             return true;
         }
@@ -261,7 +261,7 @@ public class ServletAdviceHelper {
             return true;
         }
 
-        return Config.get().invalidRecord(requestURI);
+        return Config.get().invalidRecord(pattern);
     }
 
     private static <TRequest, TResponse> String getRedirectRecordId(ServletAdapter<TRequest, TResponse> adapter,

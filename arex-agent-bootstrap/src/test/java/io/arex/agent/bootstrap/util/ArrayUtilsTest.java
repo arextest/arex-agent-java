@@ -50,6 +50,4 @@ class ArrayUtilsTest {
                 arguments(new Object[]{"paramString", null}, "[\"paramString\", \"null\"]")
         );
     }
-
-
 }
