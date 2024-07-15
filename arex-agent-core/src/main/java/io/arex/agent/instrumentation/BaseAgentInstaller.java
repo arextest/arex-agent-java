@@ -145,7 +145,7 @@ public abstract class BaseAgentInstaller implements AgentInstaller {
             } else {
                 mkdir = bytecodeDumpPath.mkdirs();
             }
-            if (mkdir) {
+            if (exists || mkdir) {
                 System.setProperty(TypeWriter.DUMP_PROPERTY, bytecodeDumpPath.getPath());
             }
             LOGGER.info("[arex] bytecode dump path exists: {}, mkdir: {}, path: {}", exists, mkdir, bytecodeDumpPath.getPath());
