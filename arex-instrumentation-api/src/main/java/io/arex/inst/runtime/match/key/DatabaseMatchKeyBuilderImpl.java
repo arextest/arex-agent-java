@@ -35,7 +35,7 @@ public class DatabaseMatchKeyBuilderImpl implements MatchKeyBuilder {
     }
 
     /**
-     * dbName + tableName + operationName
+     * category + dbName + tableName + operationName
      */
     @Override
     public int getFuzzyMatchKey(Mocker mocker) {
@@ -43,6 +43,7 @@ public class DatabaseMatchKeyBuilderImpl implements MatchKeyBuilder {
         Mocker.Target request = mocker.getTargetRequest();
         String dbName = DatabaseUtils.parseDbName(operationName, request.attributeAsString(ArexConstants.DB_NAME));
         return StringUtil.encodeAndHash(
+                mocker.getCategoryType().getName(),
                 dbName,
                 getTableName(operationName, request.getBody()),
                 operationName);

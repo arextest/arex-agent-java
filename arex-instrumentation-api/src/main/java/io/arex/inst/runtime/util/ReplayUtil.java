@@ -107,9 +107,9 @@ public class ReplayUtil {
      * {
      *   1233213331 : [
      *                  {
+     *                  "accurateMatchKey": 3454562343,
      *                  "categoryType": "Httpclient",
      *                  "operationName": "/order/query",
-     *                  "accurateMatchKey": 3454562343,
      *                  "targetRequest": "...",
      *                  "targetResponse": "...",
      *                  ...
@@ -117,17 +117,17 @@ public class ReplayUtil {
      *               ]
      *   4545626535 : [
      *                  {
+     *                  "accurateMatchKey": 6534247741,
      *                  "categoryType": "Database",
      *                  "operationName": "query",
-     *                  "accurateMatchKey": 6534247741,
      *                  "targetRequest": "...",
      *                  "targetResponse": "...",
      *                  ...
      *                  },
      *                  {
+     *                  "accurateMatchKey": 9866734220,
      *                  "categoryType": "Database",
      *                  "operationName": "update",
-     *                  "accurateMatchKey": 9866734220,
      *                  "targetRequest": "...",
      *                  "targetResponse": "...",
      *                  ...

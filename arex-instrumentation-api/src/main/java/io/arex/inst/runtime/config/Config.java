@@ -5,6 +5,7 @@ import io.arex.agent.bootstrap.util.ConcurrentHashSet;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.context.RecordLimiter;
 import io.arex.inst.runtime.listener.EventProcessor;
+import io.arex.inst.runtime.model.CompareConfigurationEntity;
 import io.arex.inst.runtime.model.DynamicClassEntity;
 
 import java.util.ArrayList;
@@ -24,10 +25,10 @@ public class Config {
 
     static void update(boolean enableDebug, String serviceName, List<DynamicClassEntity> dynamicClassList,
         Map<String, String> properties, Set<String> excludeServiceOperations,
-        int dubboStreamReplayThreshold, int recordRate) {
+        int dubboStreamReplayThreshold, int recordRate, CompareConfigurationEntity compareConfigurationEntity) {
         INSTANCE = new Config(enableDebug, serviceName, dynamicClassList, properties,
             excludeServiceOperations,
-            dubboStreamReplayThreshold, recordRate);
+            dubboStreamReplayThreshold, recordRate, compareConfigurationEntity);
     }
 
     public static Config get() {
@@ -46,10 +47,11 @@ public class Config {
     private final String recordVersion;
     private final Set<String> includeServiceOperations;
     private final String[] coveragePackages;
+    private final CompareConfigurationEntity compareConfigurationEntity;
 
     Config(boolean enableDebug, String serviceName, List<DynamicClassEntity> dynamicClassList,
-        Map<String, String> properties,
-        Set<String> excludeServiceOperations, int dubboStreamReplayThreshold, int recordRate) {
+           Map<String, String> properties, Set<String> excludeServiceOperations, int dubboStreamReplayThreshold,
+           int recordRate, CompareConfigurationEntity compareConfigurationEntity) {
         this.enableDebug = enableDebug;
         this.serviceName = serviceName;
         this.dynamicClassList = dynamicClassList;
@@ -61,6 +63,7 @@ public class Config {
         this.includeServiceOperations = StringUtil.splitToSet(properties.get("includeServiceOperations"), ',');
         this.coveragePackages = StringUtil.split(properties.get(ConfigConstants.COVERAGE_PACKAGES), ',');
         buildDynamicClassInfo();
+        this.compareConfigurationEntity = compareConfigurationEntity;
     }
 
     private Set<String> buildExcludeServiceOperations(Set<String> excludeServiceOperations) {
@@ -185,6 +188,10 @@ public class Config {
 
     public boolean isLocalStorage() {
         return STORAGE_MODE.equalsIgnoreCase(getString(STORAGE_SERVICE_MODE));
+    }
+
+    public CompareConfigurationEntity getCompareConfiguration() {
+        return compareConfigurationEntity;
     }
 
     /**

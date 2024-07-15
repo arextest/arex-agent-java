@@ -17,13 +17,14 @@ public class HttpClientMatchKeyBuilderImpl implements MatchKeyBuilder {
     }
 
     /**
-     * operationName + httpMethod
+     * category + operationName + httpMethod
      */
     @Override
     public int getFuzzyMatchKey(Mocker mocker) {
         String operationName = mocker.getOperationName();
         String httpMethod = mocker.getTargetRequest().attributeAsString(ArexConstants.HTTP_METHOD);
         return StringUtil.encodeAndHash(
+                mocker.getCategoryType().getName(),
                 operationName,
                 httpMethod);
     }

@@ -29,7 +29,7 @@ public class FuzzyMatchStrategy extends AbstractMatchStrategy {
         if (resultMocker == null && MockStrategyEnum.FIND_LAST == context.getMockStrategy()) {
             resultMocker = recordList.get(size - 1);
         }
-        setContextResult(context, resultMocker, "fuzzy match no result, all has been matched");
+        setContextResult(context, resultMocker, "new call, fuzzy match no result, all has been used");
     }
 
     @Override

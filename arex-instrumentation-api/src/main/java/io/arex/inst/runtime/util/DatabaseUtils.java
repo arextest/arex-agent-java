@@ -78,7 +78,7 @@ public class DatabaseUtils {
                 operationNames.add(regenerateOperationName(tableSchema, operationName));
             } catch (Throwable e) {
                 // may be thrown error
-                LogManager.warn("parse sql error", StringUtil.format("sql: %s", sql), e);
+                LogManager.warn("parse sql error", StringUtil.format("cause: %s, sql: %s", e.toString(), sql));
             }
         }
         if (CollectionUtil.isEmpty(operationNames)) {
