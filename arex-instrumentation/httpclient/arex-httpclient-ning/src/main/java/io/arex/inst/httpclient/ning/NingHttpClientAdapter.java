@@ -14,7 +14,6 @@ import io.arex.inst.runtime.util.TypeUtil;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
@@ -37,7 +36,7 @@ public class NingHttpClientAdapter implements HttpClientAdapter<Request, Object>
         }
 
         if (request.getStringData() != null) {
-            return Base64.getDecoder().decode(request.getStringData());
+            return request.getStringData().getBytes(StandardCharsets.UTF_8);
         }
 
         if (request.getCompositeByteData() != null) {
