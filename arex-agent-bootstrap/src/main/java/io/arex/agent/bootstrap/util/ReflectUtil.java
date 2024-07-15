@@ -95,4 +95,49 @@ public class ReflectUtil {
             return null;
         }
     }
+
+    /**
+     * The caller not need to consider the issue of dependency class and method version differences.
+     */
+    public static Method getMethodWithoutClassType(String className, String methodName, String... argTypeNames) {
+        try {
+            Class<?> clazz = Class.forName(className, false, Thread.currentThread().getContextClassLoader());
+            Method[] methods = clazz.getDeclaredMethods();
+            for (Method method : methods) {
+                if (methodName.equals(method.getName()) && sameParamType(argTypeNames, method.getParameterTypes())) {
+                    return method;
+                }
+            }
+        } catch (Exception e) {
+            // ignore exception
+        }
+        return null;
+    }
+
+    private static boolean sameParamType(String[] argTypeArray, Class<?>[] parameterTypes) {
+        if (ArrayUtils.isEmpty(argTypeArray) && ArrayUtils.isEmpty(parameterTypes)) {
+            return true;
+        }
+        List<String> parameterTypeList = new ArrayList<>();
+        if (ArrayUtils.isNotEmpty(parameterTypes)) {
+            for (Class<?> parameterType : parameterTypes) {
+                parameterTypeList.add(parameterType.getName());
+            }
+        }
+        return Arrays.equals(argTypeArray, parameterTypeList.toArray(StringUtil.EMPTY_STRING_ARRAY));
+    }
+
+    public static Object invoke(Method method, Object instance, Object... args) {
+        if (method == null) {
+            return null;
+        }
+        try {
+            method.setAccessible(true);
+            return method.invoke(instance, args);
+        } catch (Exception e) {
+            return null;
+        } finally {
+            method.setAccessible(false);
+        }
+    }
 }

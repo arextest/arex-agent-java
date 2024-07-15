@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
+import io.arex.inst.httpservlet.SpringUtil;
 import io.arex.inst.httpservlet.wrapper.CachedBodyRequestWrapperV5;
 import io.arex.inst.httpservlet.wrapper.CachedBodyResponseWrapperV5;
 import io.arex.inst.runtime.model.ArexConstants;
@@ -18,8 +19,8 @@ import java.util.Enumeration;
 import jakarta.servlet.AsyncContext;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.web.context.request.NativeWebRequest;
@@ -31,12 +32,14 @@ class ServletAdapterImplV5Test {
     ServletAdapterImplV5 instance = ServletAdapterImplV5.getInstance();
     NativeWebRequest nativeWebRequest = Mockito.mock(NativeWebRequest.class);
 
-    @BeforeEach
-    void setUp() {
+    @BeforeAll
+    static void setUp() {
+        Mockito.mockStatic(SpringUtil.class);
     }
 
-    @AfterEach
-    void tearDown() {
+    @AfterAll
+    static void tearDown() {
+        Mockito.clearAllCaches();
     }
 
     @Test
@@ -159,6 +162,11 @@ class ServletAdapterImplV5Test {
         when(mockRequest.getRequestURI()).thenReturn("/commutity/httpClientTest/okHttp");
         assertEquals("/commutity/httpClientTest/okHttp", instance.getPattern(mockRequest));
 
+        // get pattern from request mapping in spring applicationContext
+        when(SpringUtil.getPatternFromRequestMapping(any(), any())).thenReturn("/book/{id}");
+        assertEquals("/book/{id}", instance.getPattern(mockRequest));
+
+        when(SpringUtil.getPatternFromRequestMapping(any(), any())).thenReturn(null);
         when(mockRequest.getContextPath()).thenReturn("/commutity");
         assertEquals("/httpClientTest/okHttp", instance.getPattern(mockRequest));
     }
