@@ -5,7 +5,6 @@ import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.netty.v3.common.NettyHelper;
 import io.arex.inst.runtime.config.Config;
-import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.listener.CaseEvent;
 import io.arex.inst.runtime.listener.CaseEventDispatcher;
@@ -16,8 +15,11 @@ import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.util.IgnoreUtils;
 import io.arex.inst.runtime.util.MockUtils;
 import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.channel.*;
-import org.jboss.netty.handler.codec.http.*;
+import org.jboss.netty.channel.ChannelHandlerContext;
+import org.jboss.netty.channel.MessageEvent;
+import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
+import org.jboss.netty.handler.codec.http.HttpChunk;
+import org.jboss.netty.handler.codec.http.HttpRequest;
 
 public class RequestTracingHandler extends SimpleChannelUpstreamHandler {
 
@@ -70,33 +72,6 @@ public class RequestTracingHandler extends SimpleChannelUpstreamHandler {
                 requestBody = content;
             }
             mocker.getTargetRequest().setBody(requestBody);
-        }
-    }
-
-    @Override
-    public void writeComplete(ChannelHandlerContext ctx, WriteCompletionEvent event) throws Exception {
-        try {
-            ArexContext context = ContextManager.currentContext();
-            if (context == null) {
-                return;
-            }
-            Object mockerObj = context.getAttachment("arex-netty-server-mocker");
-            if (mockerObj == null) {
-                return;
-            }
-            Mocker mocker = (Mocker) mockerObj;
-            if (ContextManager.needReplay()) {
-                MockUtils.replayBody(mocker);
-            } else if (ContextManager.needRecord()) {
-                MockUtils.recordMocker(mocker);
-            }
-            CaseEventDispatcher.onEvent(CaseEvent.ofExitEvent());
-            // clear mocker
-            context.setAttachment("arex-netty-server-mocker", null);
-        } catch (Throwable e) {
-            LogManager.warn("netty writeComplete error", e);
-        } finally {
-            super.writeComplete(ctx, event);
         }
     }
 
