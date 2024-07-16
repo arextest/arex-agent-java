@@ -210,8 +210,8 @@ public class ServletAdviceHelper {
         }
 
         // skip if pre-request http-method is HEAD or OPTIONS
-        if (HttpMethod.HEAD.matches(adapter.getMethod(httpServletRequest))
-                || HttpMethod.OPTIONS.matches(adapter.getMethod(httpServletRequest))) {
+        if (HttpMethod.HEAD.name().equals(adapter.getMethod(httpServletRequest))
+                || HttpMethod.OPTIONS.name().equals(adapter.getMethod(httpServletRequest))) {
             return true;
         }
 
@@ -240,13 +240,13 @@ public class ServletAdviceHelper {
         String pattern = adapter.getPattern(httpServletRequest);
         // As long as one parameter is hit in includeServiceOperations, the operation will not be skipped
         if (CollectionUtil.isNotEmpty(Config.get().getIncludeServiceOperations()) &&
-            !(IgnoreUtils.includeOperation(pattern) ||
-                IgnoreUtils.includeOperation(requestURI))) {
+                !(IgnoreUtils.includeOperation(pattern) ||
+                        IgnoreUtils.includeOperation(requestURI))) {
             return true;
         }
         // As long as one parameter is hit in excludeServiceOperations, the operation will be skipped
         if (IgnoreUtils.excludeOperation(pattern) ||
-            IgnoreUtils.excludeOperation(requestURI)) {
+                IgnoreUtils.excludeOperation(requestURI)) {
             return true;
         }
 
@@ -265,7 +265,7 @@ public class ServletAdviceHelper {
     }
 
     private static <TRequest, TResponse> String getRedirectRecordId(ServletAdapter<TRequest, TResponse> adapter,
-        TRequest httpServletRequest) {
+                                                                    TRequest httpServletRequest) {
         String redirectRecordId = adapter.getParameterFromQueryString(httpServletRequest, ArexConstants.RECORD_ID);
         if (StringUtil.isEmpty(redirectRecordId)) {
             return null;
