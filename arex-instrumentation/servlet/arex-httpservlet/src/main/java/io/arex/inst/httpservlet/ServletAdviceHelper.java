@@ -28,9 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.context.request.async.DeferredResult;
 import org.springframework.web.method.support.InvocableHandlerMethod;
-import sun.net.www.http.HttpClient;
 
-import javax.print.DocFlavor;
 
 /**
  * ServletAdviceHelper
@@ -244,7 +242,7 @@ public class ServletAdviceHelper {
         // As long as one parameter is hit in includeServiceOperations, the operation will not be skipped
         if (CollectionUtil.isNotEmpty(Config.get().getIncludeServiceOperations()) &&
             !(IgnoreUtils.includeOperation(pattern) ||
-                    IgnoreUtils.includeOperation(requestURI))) {
+                IgnoreUtils.includeOperation(requestURI))) {
             return true;
         }
         // As long as one parameter is hit in excludeServiceOperations, the operation will be skipped
@@ -268,7 +266,7 @@ public class ServletAdviceHelper {
     }
 
     private static <TRequest, TResponse> String getRedirectRecordId(ServletAdapter<TRequest, TResponse> adapter,
-                                                                    TRequest httpServletRequest) {
+        TRequest httpServletRequest) {
         String redirectRecordId = adapter.getParameterFromQueryString(httpServletRequest, ArexConstants.RECORD_ID);
         if (StringUtil.isEmpty(redirectRecordId)) {
             return null;
