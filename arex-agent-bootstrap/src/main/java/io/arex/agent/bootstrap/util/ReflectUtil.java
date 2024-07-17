@@ -111,7 +111,9 @@ public class ReflectUtil {
                     return method;
                 }
             }
-        } catch (Exception ignore) {}
+        } catch (Exception ignore) {
+            // ignore exception
+        }
         return null;
     }
 

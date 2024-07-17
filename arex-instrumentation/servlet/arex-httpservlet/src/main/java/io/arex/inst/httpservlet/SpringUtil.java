@@ -20,8 +20,6 @@ import java.util.Set;
  */
 public class SpringUtil {
 
-    private static Method getMatchMethod = null;
-
     private static Method parseAndCacheMethod = null;
 
     private static ApplicationContext springApplicationContext = null;
@@ -85,7 +83,7 @@ public class SpringUtil {
         setPathAttribute(httpServletRequest);
 
         if (getMatchMethodHolder == null) {
-            getMatchMethod = ReflectUtil.getMethodWithoutClassType(RequestMappingInfo.class.getName(),
+            Method getMatchMethod = ReflectUtil.getMethodWithoutClassType(RequestMappingInfo.class.getName(),
                     "getMatchingCondition", SERVLET_REQUEST_JAVAX);
             if (getMatchMethod == null) {
                 getMatchMethod = ReflectUtil.getMethodWithoutClassType(RequestMappingInfo.class.getName(),
