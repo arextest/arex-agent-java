@@ -1,6 +1,9 @@
 package io.arex.inst.httpservlet;
 
 import io.arex.agent.bootstrap.util.ReflectUtil;
+import io.arex.inst.runtime.util.fastreflect.LambdaMetadata;
+import io.arex.inst.runtime.util.fastreflect.MethodHolder;
+import io.arex.inst.runtime.util.fastreflect.MethodSignature;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -9,10 +12,9 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
 import org.springframework.context.ApplicationContext;
 import org.springframework.web.method.HandlerMethod;
-import org.springframework.web.servlet.mvc.condition.PathPatternsRequestCondition;
+import org.springframework.web.servlet.mvc.condition.PatternsRequestCondition;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfoHandlerMapping;
-import org.springframework.web.util.pattern.PathPattern;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
@@ -34,6 +36,11 @@ class SpringUtilTest {
     @BeforeAll
     static void setUp() {
         Mockito.mockStatic(ReflectUtil.class);
+        Mockito.mockStatic(MethodSignature.class);
+        Mockito.mockStatic(LambdaMetadata.class);
+        Mockito.mockStatic(MethodHolder.class);
+        Mockito.when(ReflectUtil.getClass("org.springframework.web.util.ServletRequestPathUtils"))
+                .thenReturn((Class) Class.class);
     }
 
     @AfterAll
@@ -56,7 +63,9 @@ class SpringUtilTest {
 
         Map<RequestMappingInfo, HandlerMethod> handlerMethods = new HashMap<>();
         RequestMappingInfo requestMappingInfo = Mockito.mock(RequestMappingInfo.class);
-        PathPatternsRequestCondition pathPatternsCondition = Mockito.mock(PathPatternsRequestCondition.class);
+
+        RequestMappingInfo matchMapping = Mockito.mock(RequestMappingInfo.class);
+        PatternsRequestCondition patternsCondition = Mockito.mock(PatternsRequestCondition.class);
 
         Runnable emptyMocker = () -> {};
         Runnable mockApplicationContextInvoke = () -> {
@@ -67,17 +76,16 @@ class SpringUtilTest {
             Mockito.when(handlerMapping.getHandlerMethods()).thenReturn(handlerMethods);
         };
         Runnable mockRequestMappingInfos = () -> {
+            MethodHolder methodHolder = Mockito.mock(MethodHolder.class);
+            Mockito.when(MethodHolder.build(any())).thenReturn(methodHolder);
             handlerMethods.put(requestMappingInfo, null);
-            RequestMappingInfo matchMapping = Mockito.mock(RequestMappingInfo.class);
-            Mockito.when(ReflectUtil.invoke(null, requestMappingInfo, httpServletRequest)).thenReturn(matchMapping);
-            Mockito.when(matchMapping.getPathPatternsCondition()).thenReturn(pathPatternsCondition);
+            Mockito.when(methodHolder.invoke(requestMappingInfo, httpServletRequest)).thenReturn(matchMapping);
+            Mockito.when(matchMapping.getPatternsCondition()).thenReturn(patternsCondition);
         };
         Runnable mockPatterns = () -> {
-            Set<PathPattern> patterns = new HashSet<>();
-            PathPattern pathPattern = Mockito.mock(PathPattern.class);
-            Mockito.when(pathPattern.getPatternString()).thenReturn(pattern);
-            patterns.add(pathPattern);
-            Mockito.when(pathPatternsCondition.getPatterns()).thenReturn(patterns);
+            Set<String> patterns = new HashSet<>();
+            patterns.add(pattern);
+            Mockito.when(patternsCondition.getPatterns()).thenReturn(patterns);
         };
 
         Predicate<String> isNull = Objects::isNull;

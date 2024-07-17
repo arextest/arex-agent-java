@@ -101,17 +101,26 @@ public class ReflectUtil {
      */
     public static Method getMethodWithoutClassType(String className, String methodName, String... argTypeNames) {
         try {
-            Class<?> clazz = Class.forName(className, false, Thread.currentThread().getContextClassLoader());
+            Class<?> clazz = getClass(className);
+            if (clazz == null) {
+                return null;
+            }
             Method[] methods = clazz.getDeclaredMethods();
             for (Method method : methods) {
                 if (methodName.equals(method.getName()) && sameParamType(argTypeNames, method.getParameterTypes())) {
                     return method;
                 }
             }
-        } catch (Exception e) {
-            // ignore exception
-        }
+        } catch (Exception ignore) {}
         return null;
+    }
+
+    public static Class<?> getClass(String className) {
+        try {
+            return Class.forName(className, false, Thread.currentThread().getContextClassLoader());
+        } catch (Exception ignore) {
+            return null;
+        }
     }
 
     private static boolean sameParamType(String[] argTypeArray, Class<?>[] parameterTypes) {

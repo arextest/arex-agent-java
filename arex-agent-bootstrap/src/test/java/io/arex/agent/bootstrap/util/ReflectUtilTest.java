@@ -66,7 +66,8 @@ class ReflectUtilTest {
     @CsvSource(value ={
             "java.lang.String, indexOf, int",
             "java.lang.String, hashCode, null",
-            "java.lang.String, noExistMethod, null"
+            "java.lang.String, noExistMethod, null",
+            "noExistClass, noExistMethod, null"
     }, nullValues={"null"})
     void getMethodWithoutClassType(String className, String methodName, String argTypes) {
         if (argTypes == null) {
