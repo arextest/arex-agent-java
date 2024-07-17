@@ -28,6 +28,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.context.request.async.DeferredResult;
 import org.springframework.web.method.support.InvocableHandlerMethod;
+import sun.net.www.http.HttpClient;
+
+import javax.print.DocFlavor;
 
 /**
  * ServletAdviceHelper
@@ -240,13 +243,13 @@ public class ServletAdviceHelper {
         String pattern = adapter.getPattern(httpServletRequest);
         // As long as one parameter is hit in includeServiceOperations, the operation will not be skipped
         if (CollectionUtil.isNotEmpty(Config.get().getIncludeServiceOperations()) &&
-                !(IgnoreUtils.includeOperation(pattern) ||
-                        IgnoreUtils.includeOperation(requestURI))) {
+            !(IgnoreUtils.includeOperation(pattern) ||
+                    IgnoreUtils.includeOperation(requestURI))) {
             return true;
         }
         // As long as one parameter is hit in excludeServiceOperations, the operation will be skipped
         if (IgnoreUtils.excludeOperation(pattern) ||
-                IgnoreUtils.excludeOperation(requestURI)) {
+            IgnoreUtils.excludeOperation(requestURI)) {
             return true;
         }
 
