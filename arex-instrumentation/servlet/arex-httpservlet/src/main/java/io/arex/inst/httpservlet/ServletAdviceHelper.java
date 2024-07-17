@@ -210,8 +210,8 @@ public class ServletAdviceHelper {
         }
 
         // skip if pre-request http-method is HEAD or OPTIONS
-        if (HttpMethod.HEAD.matches(adapter.getMethod(httpServletRequest))
-                || HttpMethod.OPTIONS.matches(adapter.getMethod(httpServletRequest))) {
+        if (HttpMethod.HEAD.name().equals(adapter.getMethod(httpServletRequest))
+                || HttpMethod.OPTIONS.name().equals(adapter.getMethod(httpServletRequest))) {
             return true;
         }
 
