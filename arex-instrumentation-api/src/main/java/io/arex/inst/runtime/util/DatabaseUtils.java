@@ -5,7 +5,6 @@ import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.agent.thirdparty.util.sqlparser.JSqlParserUtil;
 import io.arex.agent.thirdparty.util.sqlparser.TableSchema;
 import io.arex.inst.runtime.config.Config;
-import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.model.ArexConstants;
 
 import java.util.*;
@@ -69,16 +68,14 @@ public class DatabaseUtils {
             if (StringUtil.isEmpty(sql) || sql.length() > ArexConstants.DB_SQL_MAX_LEN
                     || StringUtil.startWith(sql.toLowerCase(), "exec sp")) {
                 // if exceed the threshold, too large may be due parse stack overflow
-                LogManager.warn("sql.parse.fail", "invalid sql, too large or sp");
                 continue;
             }
             try{
                 TableSchema tableSchema = JSqlParserUtil.parse(sql);
                 tableSchema.setDbName(dbName);
                 operationNames.add(regenerateOperationName(tableSchema, operationName));
-            } catch (Throwable e) {
-                // may be thrown error
-                LogManager.warn("parse sql error", StringUtil.format("cause: %s, sql: %s", e.toString(), sql));
+            } catch (Throwable ignore) {
+                // ignore error
             }
         }
         if (CollectionUtil.isEmpty(operationNames)) {
