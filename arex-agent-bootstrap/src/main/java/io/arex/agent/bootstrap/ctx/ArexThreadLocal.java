@@ -1,6 +1,5 @@
 package io.arex.agent.bootstrap.ctx;
 
-import io.arex.agent.bootstrap.internal.CallDepth;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -138,11 +137,7 @@ public class ArexThreadLocal<T> extends ThreadLocal<T> {
         public static void setTtlTo(HashMap<ArexThreadLocal<Object>, Object> ttlValues) {
             for (Map.Entry<ArexThreadLocal<Object>, Object> entry : ttlValues.entrySet()) {
                 ArexThreadLocal<Object> threadLocal = entry.getKey();
-                Object value = entry.getValue();
-                if (value instanceof CallDepth) {
-                    continue;
-                }
-                threadLocal.set(value);
+                threadLocal.set(entry.getValue());
             }
         }
 

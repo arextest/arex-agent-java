@@ -1,6 +1,5 @@
 package io.arex.inst.runtime.context;
 
-import io.arex.agent.bootstrap.ctx.ArexThreadLocal;
 import io.arex.agent.bootstrap.internal.CallDepth;
 
 /**
@@ -36,7 +35,7 @@ public class RepeatedCollectManager {
     }
 
     static class Context {
-        private static final ArexThreadLocal<CallDepth> SCOPE_TL = new ArexThreadLocal<>();
+        private static final ThreadLocal<CallDepth> SCOPE_TL = new ThreadLocal<>();
 
         private static CallDepth get() {
             return get(false);
