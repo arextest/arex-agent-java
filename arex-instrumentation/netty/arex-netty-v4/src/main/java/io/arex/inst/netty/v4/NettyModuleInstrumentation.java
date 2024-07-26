@@ -17,7 +17,7 @@ public class NettyModuleInstrumentation extends ModuleInstrumentation {
          * because of the differences in MANIFEST.MF files between different versions of Netty
          * so we can't set bundle-Name for compatibility
          */
-        super("netty-v4",hasClassNamed("io.netty.handler.codec.http.HttpRequestDecoder"));
+        super("netty-v4", hasClassNamed("io.netty.handler.codec.http.HttpRequestDecoder"));
     }
 
     @Override
