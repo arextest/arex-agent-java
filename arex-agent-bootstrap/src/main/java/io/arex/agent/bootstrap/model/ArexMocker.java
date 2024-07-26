@@ -29,6 +29,12 @@ public class ArexMocker implements Mocker {
      */
     private transient int accurateMatchKey;
 
+    private String traceId;
+    private String clientAppId;
+    private boolean multiAppCase;
+    private String dependRecordId;
+    private String dependAppId;
+
     /**
      * The default constructor is for deserialization
      */
@@ -178,5 +184,37 @@ public class ArexMocker implements Mocker {
     @Override
     public void setFuzzyMatchKey(int fuzzyMatchKey) {
         this.fuzzyMatchKey = fuzzyMatchKey;
+    }
+
+    public String getTraceId() {
+        return traceId;
+    }
+
+    public void setTraceId(String traceId) {
+        this.traceId = traceId;
+    }
+
+    public String getClientAppId() {
+        return clientAppId;
+    }
+
+    public void setClientAppId(String clientAppId) {
+        this.clientAppId = clientAppId;
+    }
+
+    public boolean isMultiAppCase() {
+        return multiAppCase;
+    }
+
+    public void setMultiAppCase(boolean multiAppCase) {
+        this.multiAppCase = multiAppCase;
+    }
+
+    public String getDependRecordId() {
+        return dependRecordId;
+    }
+
+    public void setDependRecordId(String dependRecordId) {
+        this.dependRecordId = dependRecordId;
     }
 }

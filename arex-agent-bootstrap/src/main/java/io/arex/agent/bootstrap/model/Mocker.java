@@ -132,4 +132,20 @@ public interface Mocker extends Serializable {
     int getFuzzyMatchKey();
 
     void setFuzzyMatchKey(int fuzzyMatchKey);
+
+    String getTraceId();
+
+    void setTraceId(String traceId);
+
+    String getClientAppId();
+
+    void setClientAppId(String clientAppId);
+
+    boolean isMultiAppCase();
+
+    void setMultiAppCase(boolean multiAppCase);
+
+    String getDependRecordId();
+
+    void setDependRecordId(String dependRecordId);
 }
