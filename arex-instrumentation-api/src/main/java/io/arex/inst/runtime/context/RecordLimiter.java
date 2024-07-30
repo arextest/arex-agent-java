@@ -16,6 +16,7 @@ public class RecordLimiter {
     }
 
     public static boolean acquire(String path) {
-        return INSTANCE.recordLimiter.apply(path);
+//        return INSTANCE.recordLimiter.apply(path);
+        return true;
     }
 }
