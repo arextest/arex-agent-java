@@ -22,7 +22,6 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 
-import org.springframework.http.HttpMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.NativeWebRequest;
@@ -210,8 +209,8 @@ public class ServletAdviceHelper {
         }
 
         // skip if pre-request http-method is HEAD or OPTIONS
-        if (HttpMethod.HEAD.name().equals(adapter.getMethod(httpServletRequest))
-                || HttpMethod.OPTIONS.name().equals(adapter.getMethod(httpServletRequest))) {
+        if (ArexConstants.HTTP_METHOD_HEAD.equals(adapter.getMethod(httpServletRequest))
+                || ArexConstants.HTTP_METHOD_OPTIONS.equals(adapter.getMethod(httpServletRequest))) {
             return true;
         }
 

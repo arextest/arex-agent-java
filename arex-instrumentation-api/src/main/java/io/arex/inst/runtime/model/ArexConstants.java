@@ -1,6 +1,12 @@
 package io.arex.inst.runtime.model;
 
 public class ArexConstants {
+    public static final String HTTP_METHOD_HEAD = "HEAD";
+    public static final String HTTP_METHOD_OPTIONS = "OPTIONS";
+    public static final String HTTP_METHOD_GET = "GET";
+    public static final String HTTP_METHOD_POST = "POST";
+    public static final String HTTP_METHOD_PUT = "PUT";
+
     private ArexConstants() {}
 
     /**
