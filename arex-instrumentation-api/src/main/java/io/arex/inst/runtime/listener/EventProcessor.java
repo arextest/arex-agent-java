@@ -31,9 +31,11 @@ public class EventProcessor {
     public static final String EXCLUDE_MOCK_TYPE = "java.util.HashMap-java.lang.String,java.util.HashSet";
     private static final AtomicReference<InitializeEnum> INIT_DEPENDENCY = new AtomicReference<>(InitializeEnum.START);
     private static boolean existJacksonDependency = true;
+    public static ClassLoader CONTEXT_CLASS_LOADER = null;
     static {
         try {
             Class.forName("com.fasterxml.jackson.databind.ObjectMapper",true, Thread.currentThread().getContextClassLoader());
+            CONTEXT_CLASS_LOADER = Thread.currentThread().getContextClassLoader();
         } catch (ClassNotFoundException e) {
             existJacksonDependency = false;
         }

@@ -4,6 +4,7 @@ import io.arex.agent.bootstrap.model.ParameterizedTypeImpl;
 import io.arex.agent.bootstrap.util.ArrayUtils;
 import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.inst.runtime.listener.EventProcessor;
 import io.arex.inst.runtime.log.LogManager;
 
 import java.lang.reflect.Field;
@@ -359,10 +360,10 @@ public class TypeUtil {
 
     private static Class<?> classForName(String type) {
         try {
-            if (Thread.currentThread().getContextClassLoader() == null) {
+            if (EventProcessor.CONTEXT_CLASS_LOADER == null) {
                 return Class.forName(type);
             }
-            return Class.forName(type, false, Thread.currentThread().getContextClassLoader());
+            return Class.forName(type, false, EventProcessor.CONTEXT_CLASS_LOADER);
         } catch (Throwable ex) {
             LogManager.warn("classForName", ex);
             return null;
