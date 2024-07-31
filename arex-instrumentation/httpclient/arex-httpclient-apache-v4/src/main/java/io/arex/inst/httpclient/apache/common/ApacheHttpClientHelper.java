@@ -1,5 +1,6 @@
 package io.arex.inst.httpclient.apache.common;
 
+import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.util.IgnoreUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpRequest;
@@ -11,6 +12,8 @@ import org.apache.http.message.BasicLineParser;
 import org.apache.http.message.ParserCursor;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.CharArrayBuffer;
+
+import java.net.URI;
 
 public class ApacheHttpClientHelper {
 
@@ -44,7 +47,12 @@ public class ApacheHttpClientHelper {
         if (!(httpRequest instanceof HttpUriRequest)) {
             return true;
         }
+        URI uri = ((HttpUriRequest) httpRequest).getURI();
+        String multiAppUrl = String.valueOf(ContextManager.getAttachment("arex-multi-app-url"));
+        if (multiAppUrl.contains(uri.getHost())) {
+            return true;
+        }
 
-        return IgnoreUtils.excludeOperation(((HttpUriRequest) httpRequest).getURI().getPath());
+        return IgnoreUtils.excludeOperation(uri.getPath());
     }
 }

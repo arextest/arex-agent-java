@@ -33,7 +33,6 @@ public class ArexMocker implements Mocker {
     private String clientAppId;
     private boolean multiAppCase;
     private String dependRecordId;
-    private String dependAppId;
 
     /**
      * The default constructor is for deserialization
