@@ -41,7 +41,7 @@ public class AsyncHttpClientUtil {
     private static final long RECORD_BODY_MAX_LIMIT_5MB = 5 * 1024L * 1024L;
     private static CloseableHttpAsyncClient asyncClient;
     private static final CompletableFuture<HttpClientResponse> EMPTY_RESPONSE = CompletableFuture.completedFuture(
-        HttpClientResponse.emptyResponse());
+            HttpClientResponse.emptyResponse());
 
     private AsyncHttpClientUtil() {
     }
@@ -56,7 +56,7 @@ public class AsyncHttpClientUtil {
     }
 
     public static CompletableFuture<HttpClientResponse> postAsyncWithJson(String uri, String postData,
-        Map<String, String> requestHeaders) {
+                                                                          Map<String, String> requestHeaders) {
         HttpEntity httpEntity = new ByteArrayEntity(postData.getBytes(StandardCharsets.UTF_8));
 
         if (requestHeaders == null) {
@@ -68,7 +68,7 @@ public class AsyncHttpClientUtil {
     }
 
     public static CompletableFuture<HttpClientResponse> postAsyncWithZstdJson(String uri, String postData,
-        Map<String, String> requestHeaders) {
+                                                                              Map<String, String> requestHeaders) {
         HttpEntity httpEntity = new ByteArrayEntity(CompressUtil.zstdCompress(postData, StandardCharsets.UTF_8));
 
         if (requestHeaders == null) {
@@ -80,7 +80,7 @@ public class AsyncHttpClientUtil {
     }
 
     public static CompletableFuture<HttpClientResponse> executeAsync(String uri, HttpEntity httpEntity,
-        Map<String, String> requestHeaders, HttpClientResponseHandler responseHandler) {
+                                                                     Map<String, String> requestHeaders, HttpClientResponseHandler responseHandler) {
         if (httpEntity.getContentLength() > RECORD_BODY_MAX_LIMIT_5MB || httpEntity.getContentLength() < 0) {
             LogManager.warn("executeAsync", "do not record, the size is larger than 5MB.");
             return EMPTY_RESPONSE;
@@ -95,7 +95,7 @@ public class AsyncHttpClientUtil {
 
     private static HttpUriRequest createHttpPost(String uri, HttpEntity httpEntity, Map<String, String> requestHeaders) {
         HttpPost httpPost = prepareHttpRequest(uri, ClientConfig.DEFAULT_CONNECT_TIMEOUT,
-            ClientConfig.DEFAULT_SOCKET_TIMEOUT);
+                ClientConfig.DEFAULT_SOCKET_TIMEOUT);
         httpPost.setEntity(httpEntity);
 
         if (MapUtils.isNotEmpty(requestHeaders)) {
@@ -113,29 +113,31 @@ public class AsyncHttpClientUtil {
         httpPost.addHeader(ClientConfig.HEADER_ACCEPT);
         httpPost.addHeader(ClientConfig.HEADER_USER_AGENT);
         httpPost.addHeader(ClientConfig.HEADER_API_TOKEN);
+        httpPost.addHeader(ClientConfig.HEADER_SERVICE_NAME);
+        httpPost.addHeader(ClientConfig.HEADER_AGENT_VERSION);
 
         return httpPost;
     }
 
     private static CloseableHttpAsyncClient createAsyncClient() {
         RequestConfig defaultRequestConfig =
-            createRequestConfig(ClientConfig.DEFAULT_CONNECT_TIMEOUT, ClientConfig.DEFAULT_SOCKET_TIMEOUT);
+                createRequestConfig(ClientConfig.DEFAULT_CONNECT_TIMEOUT, ClientConfig.DEFAULT_SOCKET_TIMEOUT);
 
         AutoCleanedPoolingNHttpClientConnectionManager connectionManager =
-            AutoCleanedPoolingNHttpClientConnectionManager.createDefault();
+                AutoCleanedPoolingNHttpClientConnectionManager.createDefault();
 
         asyncClient = HttpAsyncClients.custom()
-            .setThreadFactory(new ThreadFactoryImpl("arex-async-http-client"))
-            .setDefaultRequestConfig(defaultRequestConfig)
-            .setConnectionManager(connectionManager).build();
+                .setThreadFactory(new ThreadFactoryImpl("arex-async-http-client"))
+                .setDefaultRequestConfig(defaultRequestConfig)
+                .setConnectionManager(connectionManager).build();
         return asyncClient;
     }
 
     private static RequestConfig createRequestConfig(int connectTimeout, int socketTimeout) {
         return RequestConfig.custom()
-            .setConnectionRequestTimeout(ClientConfig.DEFAULT_CONNECTION_REQUEST_TIMEOUT)
-            .setConnectTimeout(connectTimeout)
-            .setSocketTimeout(socketTimeout).build();
+                .setConnectionRequestTimeout(ClientConfig.DEFAULT_CONNECTION_REQUEST_TIMEOUT)
+                .setConnectTimeout(connectTimeout)
+                .setSocketTimeout(socketTimeout).build();
     }
 
     static class ClientConfig {
@@ -148,8 +150,12 @@ public class AsyncHttpClientUtil {
 
         private static final Header HEADER_ACCEPT = new BasicHeader(HttpHeaders.ACCEPT, "*/*");
         private static final Header HEADER_USER_AGENT = new BasicHeader(HttpHeaders.USER_AGENT,
-            String.format("arex-async-http-client-%s", ConfigManager.INSTANCE.getAgentVersion()));
+                String.format("arex-async-http-client-%s", ConfigManager.INSTANCE.getAgentVersion()));
         private static final Header HEADER_API_TOKEN = new BasicHeader("arex-api-token",
-            System.getProperty(ConfigConstants.API_TOKEN, StringUtil.EMPTY));
+                System.getProperty(ConfigConstants.API_TOKEN, StringUtil.EMPTY));
+        private static final Header HEADER_SERVICE_NAME = new BasicHeader("arex-service-name",
+                System.getProperty(ConfigConstants.SERVICE_NAME, StringUtil.EMPTY));
+        private static final Header HEADER_AGENT_VERSION = new BasicHeader("arex-agent-version",
+                System.getProperty(ConfigConstants.AGENT_VERSION, StringUtil.EMPTY));
     }
 }
