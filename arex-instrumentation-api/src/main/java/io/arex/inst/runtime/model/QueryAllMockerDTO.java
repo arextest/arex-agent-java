@@ -5,7 +5,7 @@ import java.util.Arrays;
 public class QueryAllMockerDTO {
     private String recordId;
     private String replayId;
-    private String[] fieldNames =new String[]{"id", "categoryType", "operationName", "targetRequest", "targetResponse", "creationTime"};
+    private String[] fieldNames =new String[]{"id", "recordId", "categoryType", "operationName", "targetRequest", "targetResponse", "creationTime"};
     private String[] categoryTypes;
 
     public String getRecordId() {

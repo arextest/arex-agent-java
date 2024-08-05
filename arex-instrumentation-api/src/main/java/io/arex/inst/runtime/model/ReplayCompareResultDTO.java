@@ -3,23 +3,23 @@ package io.arex.inst.runtime.model;
 import io.arex.agent.bootstrap.model.MockCategoryType;
 
 public class ReplayCompareResultDTO {
-    private CategoryType categoryType;
+    private CategoryTypeDTO categoryType;
     private String operationName;
     private String recordId;
     private String replayId;
     private long recordTime;
     private long replayTime;
-    private String baseMsg;
-    private String testMsg;
+    private String recordMessage;
+    private String replayMessage;
     private String appId;
-    private boolean sameMsg;
+    private boolean sameMessage;
 
-    public CategoryType getCategoryType() {
+    public CategoryTypeDTO getCategoryType() {
         return categoryType;
     }
 
     public void setCategoryType(MockCategoryType categoryType) {
-        this.categoryType = new CategoryType(categoryType.getName(), categoryType.isEntryPoint(), categoryType.isSkipComparison());
+        this.categoryType = new CategoryTypeDTO(categoryType.getName(), categoryType.isEntryPoint(), categoryType.isSkipComparison());
     }
 
     public String getOperationName() {
@@ -62,22 +62,6 @@ public class ReplayCompareResultDTO {
         this.replayTime = replayTime;
     }
 
-    public String getBaseMsg() {
-        return baseMsg;
-    }
-
-    public void setBaseMsg(String baseMsg) {
-        this.baseMsg = baseMsg;
-    }
-
-    public String getTestMsg() {
-        return testMsg;
-    }
-
-    public void setTestMsg(String testMsg) {
-        this.testMsg = testMsg;
-    }
-
     public String getAppId() {
         return appId;
     }
@@ -86,20 +70,36 @@ public class ReplayCompareResultDTO {
         this.appId = appId;
     }
 
-    public boolean isSameMsg() {
-        return sameMsg;
+    public String getRecordMessage() {
+        return recordMessage;
     }
 
-    public void setSameMsg(boolean sameMsg) {
-        this.sameMsg = sameMsg;
+    public void setRecordMessage(String recordMessage) {
+        this.recordMessage = recordMessage;
     }
 
-    static class CategoryType {
+    public String getReplayMessage() {
+        return replayMessage;
+    }
+
+    public void setReplayMessage(String replayMessage) {
+        this.replayMessage = replayMessage;
+    }
+
+    public boolean isSameMessage() {
+        return sameMessage;
+    }
+
+    public void setSameMessage(boolean sameMessage) {
+        this.sameMessage = sameMessage;
+    }
+
+    static class CategoryTypeDTO {
         private String name;
         private boolean entryPoint;
         private boolean skipComparison;
 
-        CategoryType(String name, boolean entryPoint, boolean skipComparison) {
+        CategoryTypeDTO(String name, boolean entryPoint, boolean skipComparison) {
             this.name = name;
             this.entryPoint = entryPoint;
             this.skipComparison = skipComparison;

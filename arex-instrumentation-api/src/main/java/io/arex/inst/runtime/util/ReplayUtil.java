@@ -232,11 +232,11 @@ public class ReplayUtil {
         compareResult.setOperationName(replayMocker.getOperationName());
         compareResult.setRecordId(replayMocker.getRecordId());
         compareResult.setReplayId(replayMocker.getReplayId());
-        compareResult.setBaseMsg(recordMsg);
-        compareResult.setTestMsg(replayMsg);
+        compareResult.setRecordMessage(recordMsg);
+        compareResult.setReplayMessage(replayMsg);
         compareResult.setRecordTime(recordTime);
         compareResult.setReplayTime(replayTime);
-        compareResult.setSameMsg(sameMsg);
+        compareResult.setSameMessage(sameMsg);
         return compareResult;
     }
 }
