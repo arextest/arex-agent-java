@@ -90,7 +90,7 @@ public class ReplayMatcher {
     /**
      * compare type:
      * value diff
-     * new call
+     * new call (recordMocker is null)
      * (call missing after entry point)
      */
     private static void setCompareResult(MatchStrategyContext context) {
@@ -100,19 +100,13 @@ public class ReplayMatcher {
         }
 
         String recordMsg = StringUtil.EMPTY;
-        String replayMsg = replayMocker.getTargetRequest().getBody();
+        String replayMsg = ReplayUtil.getCompareMessage(replayMocker);
         long recordTime = Long.MAX_VALUE;
         long replayTime = replayMocker.getCreationTime();
         boolean sameMsg = false;
         Mocker recordMocker = context.getMatchMocker();
         if (recordMocker != null) {
-            if (replayMocker.getCategoryType().isEntryPoint()) {
-                recordMsg = recordMocker.getTargetResponse().getBody();
-                replayMsg = replayMocker.getTargetResponse().getBody();
-            } else {
-                recordMsg = recordMocker.getTargetRequest().getBody();
-                replayMsg = replayMocker.getTargetRequest().getBody();
-            }
+            recordMsg = ReplayUtil.getCompareMessage(recordMocker);
             recordTime = recordMocker.getCreationTime();
             if (MatchStrategyEnum.ACCURATE.equals(context.getMatchStrategy())) {
                 replayMsg = StringUtil.EMPTY;

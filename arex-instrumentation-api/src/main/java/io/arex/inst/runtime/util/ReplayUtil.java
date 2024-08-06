@@ -202,8 +202,7 @@ public class ReplayUtil {
                 }
                 cachedMocker.setAppId(System.getProperty("arex.service.name"));
                 cachedMocker.setReplayId(context.getReplayId());
-                String recordMsg = cachedMocker.getCategoryType().isEntryPoint() ?
-                        cachedMocker.getTargetResponse().getBody() : cachedMocker.getTargetRequest().getBody();
+                String recordMsg = getCompareMessage(cachedMocker);
                 ReplayCompareResultDTO callMissingDTO = convertCompareResult(cachedMocker, recordMsg,
                         null, cachedMocker.getCreationTime(), Long.MAX_VALUE, false);
                 replayCompareResultQueue.offer(callMissingDTO);
@@ -238,5 +237,15 @@ public class ReplayUtil {
         compareResult.setReplayTime(replayTime);
         compareResult.setSameMessage(sameMsg);
         return compareResult;
+    }
+
+    public static String getCompareMessage(Mocker mocker) {
+        String compareMessage = mocker.getTargetRequest().getBody();
+        if (mocker.getCategoryType().isEntryPoint()) {
+            compareMessage = mocker.getTargetResponse().getBody();
+        } else if (MockCategoryType.DATABASE.getName().equals(mocker.getCategoryType().getName())) {
+            compareMessage = Serializer.serialize(mocker.getTargetRequest());
+        }
+        return compareMessage;
     }
 }
