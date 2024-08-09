@@ -129,47 +129,4 @@ class RequestTracingHandlerTest {
                 arguments(mocker8, event)
         );
     }
-
-    @ParameterizedTest
-    @MethodSource("writeCompleteCase")
-    void writeComplete(Runnable mocker, Assert asserts) throws Exception {
-        mocker.run();
-        target.writeComplete(ctx, null);
-        asserts.verity();
-    }
-
-    static Stream<Arguments> writeCompleteCase() {
-        Runnable mocker1 = () -> {
-            Mockito.when(ContextManager.currentContext()).thenReturn(null);
-        };
-        ArexContext context = Mockito.mock(ArexContext.class);
-        Runnable mocker2 = () -> {
-            Mockito.when(ContextManager.currentContext()).thenReturn(context);
-        };
-        ArexMocker mocker = new ArexMocker();
-        Runnable mocker3 = () -> {
-            mocker.setTargetRequest(new Mocker.Target());
-            mocker.setTargetResponse(new Mocker.Target());
-            Mockito.when(context.getAttachment(any())).thenReturn(mocker);
-            Mockito.when(ContextManager.needReplay()).thenReturn(true);
-        };
-        Runnable mocker4 = () -> {
-            Mockito.when(ContextManager.needReplay()).thenReturn(false);
-            Mockito.when(ContextManager.needRecord()).thenReturn(true);
-        };
-        MockedStatic<CaseEventDispatcher> mockCaseEvent = Mockito.mockStatic(CaseEventDispatcher.class);
-        Assert asserts1 = () -> {
-            mockCaseEvent.verify(() -> CaseEventDispatcher.onEvent(any()), times(0));
-        };
-        Assert asserts2 = () -> {
-            mockCaseEvent.verify(() -> CaseEventDispatcher.onEvent(any()), atLeastOnce());
-        };
-
-        return Stream.of(
-                arguments(mocker1, asserts1),
-                arguments(mocker2, asserts1),
-                arguments(mocker3, asserts2),
-                arguments(mocker4, asserts2)
-        );
-    }
 }

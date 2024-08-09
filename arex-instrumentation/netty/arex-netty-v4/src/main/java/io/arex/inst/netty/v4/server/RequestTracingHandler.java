@@ -24,7 +24,7 @@ import io.netty.util.CharsetUtil;
 public class RequestTracingHandler extends ChannelInboundHandlerAdapter {
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+    public void channelRead(ChannelHandlerContext ctx, Object msg) {
         try {
             // init
             if (msg instanceof HttpRequest) {
@@ -54,7 +54,7 @@ public class RequestTracingHandler extends ChannelInboundHandlerAdapter {
         } catch (Throwable e) {
             LogManager.warn("netty read error", e);
         } finally {
-            super.channelRead(ctx, msg);
+            ctx.fireChannelRead(msg);
         }
     }
 
@@ -101,26 +101,5 @@ public class RequestTracingHandler extends ChannelInboundHandlerAdapter {
         }
 
         return Config.get().invalidRecord(request.getUri());
-    }
-
-    @Override
-    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
-        try {
-            Mocker mocker = ctx.channel().attr(AttributeKey.TRACING_MOCKER).getAndSet(null);
-            if (mocker == null) {
-                return;
-            }
-            if (ContextManager.needReplay()) {
-                MockUtils.replayBody(mocker);
-            } else if (ContextManager.needRecord()) {
-                MockUtils.recordMocker(mocker);
-            }
-
-            CaseEventDispatcher.onEvent(CaseEvent.ofExitEvent());
-        } catch (Throwable e) {
-            LogManager.warn("netty channelReadComplete error", e);
-        } finally {
-            super.channelReadComplete(ctx);
-        }
     }
 }
