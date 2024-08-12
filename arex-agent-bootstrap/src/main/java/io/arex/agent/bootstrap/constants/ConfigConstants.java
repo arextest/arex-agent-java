@@ -38,10 +38,12 @@ public class ConfigConstants {
     public static final String DECELERATE_CODE = "arex.decelerate.code";
     public static final String SERIALIZER_CONFIG = "arex.serializer.config";
     public static final String BUFFER_SIZE = "arex.buffer.size";
-    public static final String SHADED_LOGGER_SHOW_DATE_TIME = "shaded.org.slf4j.simpleLogger.showDateTime";
-    public static final String SHADED_LOGGER_DATE_TIME_FORMAT = "shaded.org.slf4j.simpleLogger.dateTimeFormat";
+    public static final String SIMPLE_LOGGER_SHOW_DATE_TIME = "shaded.org.slf4j.simpleLogger.showDateTime";
+    public static final String SIMPLE_LOGGER_DATE_TIME_FORMAT = "shaded.org.slf4j.simpleLogger.dateTimeFormat";
+    public static final String SIMPLE_LOGGER_FILE = "shaded.org.slf4j.simpleLogger.logFile";
     public static final String COVERAGE_PACKAGES = "arex.coverage.packages";
     public static final String APP_CLASSLOADER_NAME = "jdk.internal.loader.ClassLoaders$AppClassLoader";
     public static final String API_TOKEN = "arex.api.token";
     public static final String MOCKER_TAGS = "arex.mocker.tags";
+    public static final String LOG_PATH = "arex.log.path";
 }

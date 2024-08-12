@@ -96,7 +96,7 @@ class NingHttpClientAdapterTest {
     void wrap() throws IOException {
         Response response = mock(Response.class);
         when(response.getStatusText()).thenReturn("OK");
-        when(response.getResponseBodyAsBytes()).thenReturn("test".getBytes());
+        when(response.getResponseBody()).thenReturn("test");
         when(response.getStatusCode()).thenReturn(200);
         FluentCaseInsensitiveStringsMap map = new FluentCaseInsensitiveStringsMap();
         map.add("key", "value1");

@@ -77,20 +77,24 @@ public class NingHttpClientAdapter implements HttpClientAdapter<Request, Object>
             if (response instanceof Response) {
                 Response tempResponse = (Response) response;
                 httpResponseWrapper.setStatusLine(tempResponse.getStatusText());
-                httpResponseWrapper.setContent(tempResponse.getResponseBodyAsBytes());
+                httpResponseWrapper.setContent(getBytesFromString(tempResponse.getResponseBody()));
                 httpResponseWrapper.setHeaders(buildHeaders(tempResponse.getHeaders()));
                 httpResponseWrapper.setStatusCode(tempResponse.getStatusCode());
                 return httpResponseWrapper;
             }
             String responseString = Serializer.serialize(response);
-            httpResponseWrapper.setContent(StringUtil.isEmpty(responseString) ?
-                    ZERO_BYTE : responseString.getBytes(StandardCharsets.UTF_8));
+            httpResponseWrapper.setContent(getBytesFromString(responseString));
             httpResponseWrapper.setTypeName(TypeUtil.getName(response));
             return httpResponseWrapper;
         } catch (Exception e) {
             LogManager.warn("ning.wrap", e);
             return httpResponseWrapper;
         }
+    }
+
+    private byte[] getBytesFromString(String responseBody) {
+        return StringUtil.isEmpty(responseBody) ?
+                ZERO_BYTE : responseBody.getBytes(StandardCharsets.UTF_8);
     }
 
     private List<HttpResponseWrapper.StringTuple> buildHeaders(FluentCaseInsensitiveStringsMap headers) {

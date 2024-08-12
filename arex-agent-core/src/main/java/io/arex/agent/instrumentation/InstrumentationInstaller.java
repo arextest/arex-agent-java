@@ -1,5 +1,7 @@
 package io.arex.agent.instrumentation;
 
+import io.arex.foundation.logger.AgentLoggerFactory;
+import io.arex.foundation.logger.AgentLogger;
 import io.arex.inst.extension.ExtensionTransformer;
 import io.arex.inst.extension.ModuleInstrumentation;
 import io.arex.inst.extension.MethodInstrumentation;
@@ -23,8 +25,6 @@ import net.bytebuddy.dynamic.ClassFileLocator;
 import net.bytebuddy.dynamic.loading.ClassReloadingStrategy;
 import net.bytebuddy.dynamic.scaffold.MethodGraph;
 import net.bytebuddy.matcher.ElementMatcher;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.lang.instrument.Instrumentation;
@@ -32,7 +32,7 @@ import java.util.*;
 
 @SuppressWarnings("unused")
 public class InstrumentationInstaller extends BaseAgentInstaller {
-    private static final Logger LOGGER = LoggerFactory.getLogger(InstrumentationInstaller.class);
+    private static final AgentLogger LOGGER = AgentLoggerFactory.getAgentLogger(InstrumentationInstaller.class);
     private ModuleInstrumentation dynamicModule;
     private ResettableClassFileTransformer resettableClassFileTransformer;
 
