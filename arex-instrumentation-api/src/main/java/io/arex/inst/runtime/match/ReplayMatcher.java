@@ -99,7 +99,7 @@ public class ReplayMatcher {
             return;
         }
 
-        String recordMsg = StringUtil.EMPTY;
+        String recordMsg = null;
         String replayMsg = ReplayUtil.getCompareMessage(replayMocker);
         long recordTime = Long.MAX_VALUE;
         long replayTime = replayMocker.getCreationTime();
