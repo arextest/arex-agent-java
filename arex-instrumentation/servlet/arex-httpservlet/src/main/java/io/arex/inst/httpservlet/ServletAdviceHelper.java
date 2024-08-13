@@ -98,14 +98,14 @@ public class ServletAdviceHelper {
             return null;
         }
 
-        if (shouldSkip(adapter, httpServletRequest)) {
-            CaseEventDispatcher.onEvent(CaseEvent.ofEnterEvent());
-            return null;
-        }
-
         RequestHandlerManager.preHandle(httpServletRequest, adapter.getServletVersion());
         // skip servlet if attr with arex-skip-flag
         if (Boolean.TRUE.equals(adapter.getAttribute(httpServletRequest, ArexConstants.SKIP_FLAG))) {
+            return null;
+        }
+
+        if (shouldSkip(adapter, httpServletRequest)) {
+            CaseEventDispatcher.onEvent(CaseEvent.ofEnterEvent());
             return null;
         }
 
