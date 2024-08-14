@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
 
 public class JSqlParserUtil {
 
-    private static final Pattern PATTERN = Pattern.compile("(\\s+|\"\\?\")");
+    private static final Pattern PATTERN = Pattern.compile("(\\s+|\"\\?\"|\\[|\\])");
 
     /**
      * parse table and action from sql
