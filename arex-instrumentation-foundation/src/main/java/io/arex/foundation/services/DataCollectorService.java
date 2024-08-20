@@ -236,6 +236,8 @@ public class DataCollectorService implements DataCollector {
                             "saveReplayCompareResult", DecelerateReasonEnum.SERVICE_EXCEPTION.getValue());
                 }
                 LogManager.warn("saveReplayCompareResult", throwable);
+            } else {
+                LogManager.info("saveReplayCompareResult", StringUtil.format("response: %s", Serializer.serialize(response)));
             }
         };
     }
