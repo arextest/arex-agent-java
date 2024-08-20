@@ -66,6 +66,10 @@ public class ReplayMatcher {
         Mocker matchedMocker = context.getMatchMocker();
         Mocker requestMocker = context.getRequestMocker();
 
+        if (requestMocker.getCategoryType().isEntryPoint()) {
+            return;
+        }
+
         String matchResult;
         if (matchedMocker != null) {
             matchResult = "match success";
@@ -95,7 +99,8 @@ public class ReplayMatcher {
      */
     private static void setCompareResult(MatchStrategyContext context) {
         Mocker replayMocker = context.getRequestMocker();
-        if (replayMocker.getCategoryType().isSkipComparison()) {
+        boolean isEntryPoint = replayMocker.getCategoryType().isEntryPoint();
+        if (replayMocker.getCategoryType().isSkipComparison() && !isEntryPoint) {
             return;
         }
 
@@ -108,7 +113,7 @@ public class ReplayMatcher {
         if (recordMocker != null) {
             recordMsg = ReplayUtil.getCompareMessage(recordMocker);
             recordTime = recordMocker.getCreationTime();
-            if (MatchStrategyEnum.ACCURATE.equals(context.getMatchStrategy())) {
+            if (MatchStrategyEnum.ACCURATE.equals(context.getMatchStrategy()) && !isEntryPoint) {
                 replayMsg = StringUtil.EMPTY;
                 sameMsg = true;
             }
