@@ -239,9 +239,11 @@ public final class MockUtils {
 
     public static void saveReplayCompareResult(List<ReplayCompareResultDTO> replayCompareList) {
         String postData = Serializer.serialize(replayCompareList);
+        String message = StringUtil.format("compare count: %s", String.valueOf(replayCompareList.size()));
         if (Config.get().isEnableDebug()) {
-            LogManager.info("saveReplayCompareResult", postData);
+            message = StringUtil.format(message + "%ncompare message: %s", postData);
         }
+        LogManager.info("replay.compare.relation", message);
         DataService.INSTANCE.saveReplayCompareResult(postData);
     }
 
