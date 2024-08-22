@@ -19,7 +19,7 @@ import java.util.List;
 public class LettuceModuleInstrumentation extends ModuleInstrumentation {
     public LettuceModuleInstrumentation() {
         super("lettuce-v5", ModuleDescription.builder()
-                .name("lettuce.core").supportFrom(ComparableVersion.of("5.0")).supportTo(ComparableVersion.of("5.9")).build());
+                .name("lettuce.core").supportFrom(ComparableVersion.of("5.0")).supportTo(ComparableVersion.of("6.0.9.RELEASE")).build());
     }
 
     @Override

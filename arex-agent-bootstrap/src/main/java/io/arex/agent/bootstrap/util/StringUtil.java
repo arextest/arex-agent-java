@@ -593,6 +593,14 @@ public class StringUtil {
         return new HashSet<>(Arrays.asList(strs));
     }
 
+    public static List<String> splitToList(String str, char separatorChars) {
+        if (isEmpty(str)) {
+            return Collections.emptyList();
+        }
+        String[] strs = split(str, separatorChars);
+        return Arrays.asList(strs);
+    }
+
     public static boolean isNumeric(final String cs) {
         if (isEmpty(cs)) {
             return false;

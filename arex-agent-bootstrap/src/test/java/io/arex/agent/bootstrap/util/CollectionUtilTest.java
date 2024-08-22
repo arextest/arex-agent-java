@@ -77,4 +77,17 @@ class CollectionUtilTest {
         actualResult = CollectionUtil.filterNull(CollectionUtil.newArrayList("mock"));
         assertEquals(1, actualResult.size());
     }
+
+    @Test
+    void testListToByteArray() {
+        List<byte[]> list = new ArrayList<>();
+        list.add(new byte[]{1, 2, 3});
+        list.add(new byte[]{4, 5, 6});
+        list.add(new byte[]{7, 8, 9});
+
+        byte[] result = CollectionUtil.listToByteArray(list);
+
+        byte[] expected = new byte[]{1, 2, 3, 4, 5, 6, 7, 8, 9};
+        assertArrayEquals(expected, result);
+    }
 }

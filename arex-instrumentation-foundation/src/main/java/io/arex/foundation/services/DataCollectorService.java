@@ -243,7 +243,7 @@ public class DataCollectorService implements DataCollector {
     }
 
     @Override
-    public String mode() {
-        return ArexConstants.INTEGRATED_MODE;
+    public int order() {
+        return 0;
     }
 }
