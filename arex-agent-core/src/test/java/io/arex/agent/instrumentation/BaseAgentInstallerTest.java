@@ -22,6 +22,7 @@ import io.arex.foundation.util.NetUtils;
 import io.arex.foundation.util.httpclient.AsyncHttpClientUtil;
 import java.io.File;
 import java.lang.instrument.Instrumentation;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -39,6 +40,11 @@ class BaseAgentInstallerTest {
         Instrumentation inst = Mockito.mock(Instrumentation.class);
         File file = Mockito.mock(File.class);
         installer = new BaseAgentInstaller(inst, file, null) {
+            @Override
+            public void transform(String moduleName, Set<String> typeNames) {
+
+            }
+
             @Override
             protected void transform() {
             }

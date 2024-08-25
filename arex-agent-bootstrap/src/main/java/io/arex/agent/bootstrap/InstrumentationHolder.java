@@ -10,6 +10,8 @@ public class InstrumentationHolder {
 
     private static File agentFile;
 
+    private static AgentInstaller agentInstaller;
+
     public static Instrumentation getInstrumentation() {
         return instrumentation;
     }
@@ -32,5 +34,13 @@ public class InstrumentationHolder {
 
     public static void setAgentFile(File agentFile) {
         InstrumentationHolder.agentFile = agentFile;
+    }
+
+    public static AgentInstaller getAgentInstaller() {
+        return agentInstaller;
+    }
+
+    public static void setAgentInstaller(AgentInstaller agentInstaller) {
+        InstrumentationHolder.agentInstaller = agentInstaller;
     }
 }

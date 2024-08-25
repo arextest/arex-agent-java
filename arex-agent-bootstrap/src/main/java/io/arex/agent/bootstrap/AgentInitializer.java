@@ -37,6 +37,7 @@ public class AgentInitializer {
         AgentInstaller installer = createAgentInstaller(inst, agentFile, agentArgs);
         addJarToLoaderSearch(agentFile, extensionFiles);
         installer.install();
+        InstrumentationHolder.setAgentInstaller(installer);
     }
 
     private static void addJarToLoaderSearch(File agentFile, File[] extensionFiles) {

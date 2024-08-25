@@ -100,4 +100,12 @@ public class ContextManager {
             context.setAttachment(key, value);
         }
     }
+
+    public static Object getAttachment(String key) {
+        ArexContext context = currentContext();
+        if (context != null) {
+            return context.getAttachment(key);
+        }
+        return null;
+    }
 }

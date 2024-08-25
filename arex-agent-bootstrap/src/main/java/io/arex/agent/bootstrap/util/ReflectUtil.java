@@ -151,4 +151,23 @@ public class ReflectUtil {
             method.setAccessible(false);
         }
     }
+
+    public static Field getField(Class<?> clazz, String fieldName) {
+        try {
+            return clazz.getDeclaredField(fieldName);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public static Object newInstance(Constructor<?> constructor, Object ... args) {
+        try {
+            constructor.setAccessible(true);
+            return constructor.newInstance(args);
+        } catch (Exception ignore) {
+            return null;
+        } finally {
+            constructor.setAccessible(false);
+        }
+    }
 }

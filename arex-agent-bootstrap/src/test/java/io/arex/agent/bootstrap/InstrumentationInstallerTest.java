@@ -2,6 +2,7 @@ package io.arex.agent.bootstrap;
 
 import java.io.File;
 import java.lang.instrument.Instrumentation;
+import java.util.Set;
 
 public class InstrumentationInstallerTest implements AgentInstaller {
     protected final Instrumentation instrumentation;
@@ -21,6 +22,11 @@ public class InstrumentationInstallerTest implements AgentInstaller {
     @Override
     public ClassLoader getClassLoader() {
         return null;
+    }
+
+    @Override
+    public void transform(String moduleName, Set<String> typeNames) {
+
     }
 
 }

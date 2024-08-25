@@ -5,12 +5,14 @@ import net.bytebuddy.matcher.ElementMatcher;
 import net.bytebuddy.matcher.ElementMatchers;
 
 import java.util.List;
+import java.util.Set;
 
 
 public abstract class ModuleInstrumentation {
 
     private final String name;
     private final ElementMatcher<ClassLoader> moduleMatcher;
+    private Set<String> typeNames;
 
     protected ModuleInstrumentation(String name) {
         this(name, ElementMatchers.any());
@@ -34,4 +36,12 @@ public abstract class ModuleInstrumentation {
     }
 
     public abstract List<TypeInstrumentation> instrumentationTypes();
+
+    public Set<String> getTypeNames() {
+        return typeNames;
+    }
+
+    public void setTypeNames(Set<String> typeNames) {
+        this.typeNames = typeNames;
+    }
 }
