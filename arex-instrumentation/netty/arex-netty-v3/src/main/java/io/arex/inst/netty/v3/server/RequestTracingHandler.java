@@ -49,11 +49,6 @@ public class RequestTracingHandler extends SimpleChannelUpstreamHandler {
                     // cache mocker for writeComplete and writeRequested, not use ctx.setAttachment(mocker), because it maybe used by user handler
                     ContextManager.currentContext().setAttachment("arex-netty-server-mocker", mocker);
                 }
-            } else if (event.getMessage() instanceof HttpChunk) {
-                Mocker mocker = (Mocker) ContextManager.currentContext().getAttachment("arex-netty-server-mocker");
-                if (mocker != null) {
-                    setContent(((HttpChunk) event.getMessage()).getContent(), mocker);
-                }
             }
         } catch (Throwable e) {
             LogManager.warn("netty messageReceived error", e);
