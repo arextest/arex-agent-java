@@ -24,7 +24,7 @@ import io.netty.util.CharsetUtil;
 public class RequestTracingHandler extends ChannelInboundHandlerAdapter {
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) {
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         try {
             // init
             if (msg instanceof HttpRequest) {
@@ -54,7 +54,7 @@ public class RequestTracingHandler extends ChannelInboundHandlerAdapter {
         } catch (Throwable e) {
             LogManager.warn("netty read error", e);
         } finally {
-            ctx.fireChannelRead(msg);
+            super.channelRead(ctx, msg);
         }
     }
 
