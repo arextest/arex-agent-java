@@ -160,6 +160,15 @@ public class ReflectUtil {
         }
     }
 
+    public static Object getFieldValue(Field field, Object instance) {
+        try {
+            field.setAccessible(true);
+            return field.get(instance);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     public static Object newInstance(Constructor<?> constructor, Object ... args) {
         try {
             constructor.setAccessible(true);
