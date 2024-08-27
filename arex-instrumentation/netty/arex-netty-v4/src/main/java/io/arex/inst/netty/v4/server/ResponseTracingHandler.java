@@ -45,7 +45,7 @@ public class ResponseTracingHandler extends ChannelOutboundHandlerAdapter {
         }
     }
 
-    private void processHeaders(final Channel channel, final HttpResponse response) {
+    void processHeaders(final Channel channel, final HttpResponse response) {
         Mocker mocker = channel.attr(AttributeKey.TRACING_MOCKER).get();
         if (mocker == null) {
             return;
@@ -56,7 +56,7 @@ public class ResponseTracingHandler extends ChannelOutboundHandlerAdapter {
         appendHeader(response);
     }
 
-    private void appendHeader(HttpResponse response) {
+    void appendHeader(HttpResponse response) {
         if (ContextManager.needRecord()) {
             response.headers().set(ArexConstants.RECORD_ID, ContextManager.currentContext().getCaseId());
             return;
@@ -67,7 +67,7 @@ public class ResponseTracingHandler extends ChannelOutboundHandlerAdapter {
         }
     }
 
-    private void invoke(ChannelHandlerContext ctx, LastHttpContent msg, ChannelPromise prm) {
+    void invoke(ChannelHandlerContext ctx, LastHttpContent msg, ChannelPromise prm) {
         // compatible with VoidChannelPromise.java package not visible (< 4.1.0)
         if (prm.getClass().getName().contains("VoidChannelPromise")) {
             prm = ctx.newPromise();
