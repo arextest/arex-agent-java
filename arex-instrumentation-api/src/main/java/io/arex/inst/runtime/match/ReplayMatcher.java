@@ -1,5 +1,6 @@
 package io.arex.inst.runtime.match;
 
+import io.arex.agent.bootstrap.model.MockCategoryType;
 import io.arex.agent.bootstrap.model.MockStrategyEnum;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.CollectionUtil;
@@ -118,9 +119,17 @@ public class ReplayMatcher {
                 sameMsg = true;
             }
         }
+        String extendMessage = null;
+        // for expect-script assert use
+        if ("SOAConsumer".equalsIgnoreCase(replayMocker.getCategoryType().getName())) {
+            extendMessage = replayMocker.getTargetResponse().getBody();
+        }
 
-        LinkedBlockingQueue<ReplayCompareResultDTO> replayCompareResultQueue = ContextManager.currentContext().getReplayCompareResultQueue();
-        replayCompareResultQueue.offer(ReplayUtil.convertCompareResult(
-                replayMocker, recordMsg, replayMsg, recordTime, replayTime, sameMsg));
+        LinkedBlockingQueue<ReplayCompareResultDTO> replayCompareResultQueue =
+                ContextManager.currentContext().getReplayCompareResultQueue();
+        ReplayCompareResultDTO compareResultDTO = ReplayUtil.convertCompareResult(
+                replayMocker, recordMsg, replayMsg, recordTime, replayTime, sameMsg);
+        compareResultDTO.setExtendMessage(extendMessage);
+        replayCompareResultQueue.offer(compareResultDTO);
     }
 }

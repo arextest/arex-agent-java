@@ -13,6 +13,7 @@ public class ReplayCompareResultDTO {
     private String replayMessage;
     private String appId;
     private boolean sameMessage;
+    private String extendMessage;
 
     public CategoryTypeDTO getCategoryType() {
         return categoryType;
@@ -92,6 +93,14 @@ public class ReplayCompareResultDTO {
 
     public void setSameMessage(boolean sameMessage) {
         this.sameMessage = sameMessage;
+    }
+
+    public String getExtendMessage() {
+        return extendMessage;
+    }
+
+    public void setExtendMessage(String extendMessage) {
+        this.extendMessage = extendMessage;
     }
 
     static class CategoryTypeDTO {

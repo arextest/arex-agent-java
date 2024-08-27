@@ -243,7 +243,8 @@ public class ReplayUtil {
         String compareMessage = mocker.getTargetRequest().getBody();
         if (mocker.getCategoryType().isEntryPoint()) {
             compareMessage = mocker.getTargetResponse().getBody();
-        } else if (MockCategoryType.DATABASE.getName().equals(mocker.getCategoryType().getName())) {
+        } else if (MockCategoryType.DATABASE.getName().equals(mocker.getCategoryType().getName())
+                || MockCategoryType.MESSAGE_PRODUCER.getName().equals(mocker.getCategoryType().getName())) {
             compareMessage = Serializer.serialize(mocker.getTargetRequest());
         }
         return compareMessage;
