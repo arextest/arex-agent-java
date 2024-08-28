@@ -2,11 +2,14 @@ package io.arex.inst.netty.v4.server;
 
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.inst.runtime.context.ContextManager;
+import io.arex.inst.runtime.listener.CaseEvent;
+import io.arex.inst.runtime.listener.CaseEventDispatcher;
 import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.netty.v4.common.AttributeKey;
 import io.arex.inst.netty.v4.common.NettyHelper;
 import io.arex.inst.runtime.serializer.Serializer;
+import io.arex.inst.runtime.util.MockUtils;
 import io.arex.inst.runtime.util.TypeUtil;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.FullHttpResponse;
@@ -25,20 +28,11 @@ public class ResponseTracingHandler extends ChannelOutboundHandlerAdapter {
         }
 
         try {
-            ChannelPromise prm = promise;
             if (msg instanceof LastHttpContent) {
                 if (msg instanceof FullHttpResponse) {
                     processHeaders(ctx.channel(), (HttpResponse) msg);
                 }
-
-                // compatible with VoidChannelPromise.java package not visible (< 4.1.0)
-                if (prm.getClass().getName().contains("VoidChannelPromise")) {
-                    prm = ctx.newPromise();
-                }
-
-                String body = NettyHelper.parseBody(((LastHttpContent) msg).content());
-                // record response and save record on RequestTracingHandler#channelReadComplete
-                invoke(ctx.channel(), body, prm.cause());
+                invoke(ctx, (LastHttpContent) msg, promise);
             } else {
                 if (msg instanceof HttpResponse) {
                     processHeaders(ctx.channel(), (HttpResponse) msg);
@@ -51,7 +45,7 @@ public class ResponseTracingHandler extends ChannelOutboundHandlerAdapter {
         }
     }
 
-    private void processHeaders(final Channel channel, final HttpResponse response) {
+    void processHeaders(final Channel channel, final HttpResponse response) {
         Mocker mocker = channel.attr(AttributeKey.TRACING_MOCKER).get();
         if (mocker == null) {
             return;
@@ -62,7 +56,7 @@ public class ResponseTracingHandler extends ChannelOutboundHandlerAdapter {
         appendHeader(response);
     }
 
-    private void appendHeader(HttpResponse response) {
+    void appendHeader(HttpResponse response) {
         if (ContextManager.needRecord()) {
             response.headers().set(ArexConstants.RECORD_ID, ContextManager.currentContext().getCaseId());
             return;
@@ -73,13 +67,26 @@ public class ResponseTracingHandler extends ChannelOutboundHandlerAdapter {
         }
     }
 
-    private void invoke(final Channel channel, final String content, Throwable throwable) {
-        Mocker mocker = channel.attr(AttributeKey.TRACING_MOCKER).get();
-        Object response = throwable != null ? throwable : content;
+    void invoke(ChannelHandlerContext ctx, LastHttpContent msg, ChannelPromise prm) {
+        // compatible with VoidChannelPromise.java package not visible (< 4.1.0)
+        if (prm.getClass().getName().contains("VoidChannelPromise")) {
+            prm = ctx.newPromise();
+        }
+
+        String body = NettyHelper.parseBody(msg.content());
+        Mocker mocker = ctx.channel().attr(AttributeKey.TRACING_MOCKER).get();
+        Throwable throwable = prm.cause();
+        Object response = throwable != null ? throwable : body;
         if (mocker == null || response == null) {
             return;
         }
         mocker.getTargetResponse().setBody(Serializer.serialize(response));
         mocker.getTargetResponse().setType(TypeUtil.getName(response));
+        if (ContextManager.needReplay()) {
+            MockUtils.replayMocker(mocker);
+        } else {
+            MockUtils.recordMocker(mocker);
+        }
+        CaseEventDispatcher.onEvent(CaseEvent.ofExitEvent());
     }
 }
