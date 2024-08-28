@@ -102,25 +102,4 @@ public class RequestTracingHandler extends ChannelInboundHandlerAdapter {
 
         return Config.get().invalidRecord(request.getUri());
     }
-
-    @Override
-    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
-        try {
-            Mocker mocker = ctx.channel().attr(AttributeKey.TRACING_MOCKER).getAndSet(null);
-            if (mocker == null) {
-                return;
-            }
-            if (ContextManager.needReplay()) {
-                MockUtils.replayBody(mocker);
-            } else if (ContextManager.needRecord()) {
-                MockUtils.recordMocker(mocker);
-            }
-
-            CaseEventDispatcher.onEvent(CaseEvent.ofExitEvent());
-        } catch (Throwable e) {
-            LogManager.warn("netty channelReadComplete error", e);
-        } finally {
-            super.channelReadComplete(ctx);
-        }
-    }
 }
