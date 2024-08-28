@@ -85,12 +85,14 @@ class ResponseTracingHandlerTest {
         mockUtilsStatic.close();
     }
 
-    // mock:
-    // ContextManager.needRecordOrReplay() 为 false
-    //
-    // verify:
-    // 执行 super.write(ctx, msg, promise) 一次
-    // 不执行 replayMocker 和 recordMocker
+    /**
+     * mock:
+     * ContextManager.needRecordOrReplay() returns true
+     * <p>
+     * verify:
+     * super.write(ctx, msg, promise) is executed once
+     * replayMocker and recordMocker are not executed
+     */
     @Test
     void case1() throws Exception {
         Mockito.when(ContextManager.needRecordOrReplay()).thenReturn(false);
@@ -101,13 +103,15 @@ class ResponseTracingHandlerTest {
         mockUtilsStatic.verify(() -> MockUtils.recordMocker(mocker), times(0));
     }
 
-    // mock:
-    // ContextManager.needRecordOrReplay() 为 true
-    // msg 类型为 HttpContent
-    //
-    // verify:
-    // 执行 super.write(ctx, msg, promise) 一次
-    // 不执行 replayMocker 和 recordMocker
+    /**
+     * mock:
+     * ContextManager.needRecordOrReplay() returns true
+     * msg is of type HttpResponse
+     * <p>
+     * verify:
+     * super.write(ctx, msg, promise) is executed once
+     * replayMocker and recordMocker are not executed
+     */
     @Test
     void case2() throws Exception {
         Mockito.when(ContextManager.needRecordOrReplay()).thenReturn(true);
@@ -125,14 +129,16 @@ class ResponseTracingHandlerTest {
         mockUtilsStatic.verify(() -> MockUtils.recordMocker(mocker), times(0));
     }
 
-    // mock:
-    // ContextManager.needRecordOrReplay() 为 true
-    // needReplay 为 true
-    // needRecord 为 false
-    //
-    // verify:
-    // 执行 super.write(ctx, msg, promise) 一次
-    // 不执行 MockUtils.replayBody 和 MockUtils.recordMocker
+    /**
+     * mock:
+     * ContextManager.needRecordOrReplay() returns true
+     * needReplay is true
+     * needRecord is false
+     * <p>
+     * verify:
+     * super.write(ctx, msg, promise) is executed once
+     * MockUtils.replayBody and MockUtils.recordMocker are not executed
+     */
     @Test
     void case3() throws Exception {
         Mockito.when(ContextManager.needRecordOrReplay()).thenReturn(true);
@@ -151,14 +157,16 @@ class ResponseTracingHandlerTest {
         mockUtilsStatic.verify(() -> MockUtils.recordMocker(mocker), times(0));
     }
 
-    // mock:
-    // ContextManager.needRecordOrReplay() 为 true
-    // needReplay 为 false
-    // needRecord 为 true
-    //
-    // verify:
-    // 执行 super.write(ctx, msg, promise) 一次
-    // 执行 MockUtils.replayBody
+    /**
+     * mock:
+     * ContextManager.needRecordOrReplay() returns true
+     * needReplay is false
+     * needRecord is true
+     * <p>
+     * verify:
+     * super.write(ctx, msg, promise) is executed once
+     * MockUtils.replayBody is executed
+     */
     @Test
     void case4() throws Exception {
         Mockito.when(ContextManager.needRecordOrReplay()).thenReturn(true);
