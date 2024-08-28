@@ -17,6 +17,7 @@ import io.arex.inst.runtime.model.ReplayCompareResultDTO;
 import io.arex.inst.runtime.serializer.Serializer;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -220,7 +221,13 @@ public class ReplayUtil {
         }
         List<ReplayCompareResultDTO> replayCompareList = new ArrayList<>();
         replayCompareResultQueue.drainTo(replayCompareList);
+
+        Map<String, String> contextMap = new HashMap<>();
+        contextMap.put(ArexConstants.RECORD_ID, context.getCaseId());
+        contextMap.put(ArexConstants.REPLAY_ID, context.getReplayId());
+        LogManager.setContextMap(contextMap);
         MockUtils.saveReplayCompareResult(replayCompareList);
+        contextMap.clear();
     }
 
     public static ReplayCompareResultDTO convertCompareResult(Mocker replayMocker, String recordMsg, String replayMsg,
