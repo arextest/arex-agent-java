@@ -57,8 +57,10 @@ public class ReplayMatcher {
         context.setRecordList(recordList);
         int fuzzyMatchResultCount = recordList.size();
         List<AbstractMatchStrategy> matchStrategyList = MatchStrategyRegister.getMatchStrategies(requestMocker, fuzzyMatchResultCount);
-        for (AbstractMatchStrategy matchStrategy : matchStrategyList) {
-            matchStrategy.match(context);
+        synchronized (cachedReplayResultMap) {
+            for (AbstractMatchStrategy matchStrategy : matchStrategyList) {
+                matchStrategy.match(context);
+            }
         }
     }
 
