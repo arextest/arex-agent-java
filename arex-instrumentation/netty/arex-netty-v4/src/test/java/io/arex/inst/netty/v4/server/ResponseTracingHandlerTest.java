@@ -17,6 +17,7 @@ import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.util.Attribute;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,7 +39,7 @@ class ResponseTracingHandlerTest {
     ResponseTracingHandler target;
     ChannelHandlerContext ctx;
     HttpHeaders headers;
-    MockedStatic<CaseEventDispatcher> mockCaseEvent;
+    MockedStatic<CaseEventDispatcher> caseEventDispatcherMockStatic;
     ArexMocker mocker;
     HttpResponse httpResponse;
     Channel channel;
@@ -58,12 +59,17 @@ class ResponseTracingHandlerTest {
         Mockito.when(Config.get()).thenReturn(Mockito.mock(Config.class));
     }
 
+    @AfterAll
+    void afterAll() {
+        Mockito.clearAllCaches();
+    }
+
     @BeforeEach
     void setUp() {
         target = new ResponseTracingHandler();
         ctx = Mockito.mock(ChannelHandlerContext.class);
         headers = Mockito.mock(HttpHeaders.class);
-        mockCaseEvent = Mockito.mockStatic(CaseEventDispatcher.class);
+        caseEventDispatcherMockStatic = Mockito.mockStatic(CaseEventDispatcher.class);
         httpResponse = Mockito.mock(FullHttpResponse.class);
         channel = Mockito.mock(Channel.class);
         attribute = Mockito.mock(Attribute.class);
@@ -80,7 +86,7 @@ class ResponseTracingHandlerTest {
 
     @AfterEach
     void tearDown() {
-        mockCaseEvent.close();
+        caseEventDispatcherMockStatic.close();
         contextManagerMockedStatic.close();
         mockUtilsStatic.close();
     }
