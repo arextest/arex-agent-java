@@ -58,7 +58,7 @@ public class DatabaseUtils {
      * eg: db1@table1,table2@select@operation1;db2@table3,table4@select@operation2;
      */
     public static String regenerateOperationName(String dbName, String operationName, String sqlText) {
-        if (StringUtil.isEmpty(sqlText) || operationName.contains(DELIMITER) || disableSqlParse()) {
+        if (StringUtil.isEmpty(sqlText) || operationName.contains(DELIMITER)) {
             return operationName;
         }
 
@@ -70,19 +70,13 @@ public class DatabaseUtils {
                 // if exceed the threshold, too large may be due parse stack overflow
                 continue;
             }
-            try{
-                TableSchema tableSchema = JSqlParserUtil.parse(sql);
-                tableSchema.setDbName(dbName);
-                operationNames.add(regenerateOperationName(tableSchema, operationName));
-            } catch (Throwable ignore) {
-                // ignore error
-            }
+            TableSchema tableSchema = JSqlParserUtil.parse(sql);
+            tableSchema.setDbName(dbName);
+            operationNames.add(regenerateOperationName(tableSchema, operationName));
         }
         if (CollectionUtil.isEmpty(operationNames)) {
             return operationName;
         }
-        // ensure that the order of multiple SQL statements is the same
-        operationNames.sort(String::compareTo);
         return StringUtil.join(operationNames, ";");
     }
 

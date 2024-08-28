@@ -1,6 +1,5 @@
 package io.arex.inst.runtime.match;
 
-import io.arex.agent.bootstrap.model.MockCategoryType;
 import io.arex.agent.bootstrap.model.MockStrategyEnum;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.CollectionUtil;
@@ -111,6 +110,7 @@ public class ReplayMatcher {
         long replayTime = replayMocker.getCreationTime();
         boolean sameMsg = false;
         Mocker recordMocker = context.getMatchMocker();
+        String extendMessage = null;
         if (recordMocker != null) {
             recordMsg = ReplayUtil.getCompareMessage(recordMocker);
             recordTime = recordMocker.getCreationTime();
@@ -118,11 +118,10 @@ public class ReplayMatcher {
                 replayMsg = StringUtil.EMPTY;
                 sameMsg = true;
             }
-        }
-        String extendMessage = null;
-        // for expect-script assert use
-        if ("SOAConsumer".equalsIgnoreCase(replayMocker.getCategoryType().getName())) {
-            extendMessage = replayMocker.getTargetResponse().getBody();
+            // for expect-script assert use
+            if ("SOAConsumer".equalsIgnoreCase(recordMocker.getCategoryType().getName())) {
+                extendMessage = recordMocker.getTargetResponse().getBody();
+            }
         }
 
         LinkedBlockingQueue<ReplayCompareResultDTO> replayCompareResultQueue =
