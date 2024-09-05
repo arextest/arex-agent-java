@@ -14,6 +14,7 @@ import io.arex.foundation.model.AgentStatusEnum;
 import io.arex.foundation.model.AgentStatusRequest;
 import io.arex.foundation.model.ConfigQueryRequest;
 import io.arex.foundation.model.ConfigQueryResponse;
+import io.arex.foundation.model.ConfigQueryResponse.RecordUrlConfiguration;
 import io.arex.foundation.model.ConfigQueryResponse.ResponseBody;
 import io.arex.foundation.model.ConfigQueryResponse.ServiceCollectConfig;
 import io.arex.foundation.model.HttpClientResponse;
@@ -21,9 +22,7 @@ import io.arex.foundation.serializer.jackson.JacksonSerializer;
 import io.arex.foundation.util.NetUtils;
 import io.arex.foundation.util.httpclient.AsyncHttpClientUtil;
 import java.time.DayOfWeek;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -132,6 +131,18 @@ class ConfigServiceTest {
             assertEquals(DELAY_MINUTES, ConfigService.INSTANCE.loadAgentConfig(null));
             assertTrue(ConfigManager.INSTANCE.inWorkingTime() && ConfigManager.INSTANCE.getRecordRate() > 0);
             assertEquals(AgentStatusEnum.WORKING, ConfigService.INSTANCE.getAgentStatus());
+
+            // record rule size = 0
+            assertEquals(0, ConfigManager.INSTANCE.getRecordRuleList().size());
+            List<RecordUrlConfiguration> recordRuleConfigList = new ArrayList<>();
+            RecordUrlConfiguration recordUrlConfig = new RecordUrlConfiguration();
+            recordRuleConfigList.add(recordUrlConfig);
+            responseBody.setRecordUrlConfigurationList(recordRuleConfigList);
+            configQueryResponse.setBody(responseBody);
+            response = CompletableFuture.completedFuture(new HttpClientResponse(200, null, JacksonSerializer.INSTANCE.serialize(configQueryResponse)));
+            ahc.when(() -> AsyncHttpClientUtil.postAsyncWithJson(anyString(), anyString(), eq(null))).thenReturn(response);
+            assertEquals(DELAY_MINUTES, ConfigService.INSTANCE.loadAgentConfig(null));
+            assertEquals(1, ConfigManager.INSTANCE.getRecordRuleList().size());
         }
     }
 

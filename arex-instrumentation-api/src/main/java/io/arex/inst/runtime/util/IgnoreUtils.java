@@ -18,6 +18,9 @@ public class IgnoreUtils {
      */
     private static final Set<Integer> INVALID_OPERATION_HASH_CACHE = new ConcurrentHashSet<>();
 
+    public static final String PARAM_TYPE_QUERY_STRING = "QUERY_STRING";
+    public static final String PARAM_TYPE_JSON_BODY = "JSON_BODY";
+
     public static boolean ignoreMockResult(String serviceKey, String operationKey) {
         if (StringUtil.isEmpty(serviceKey)) {
             return false;

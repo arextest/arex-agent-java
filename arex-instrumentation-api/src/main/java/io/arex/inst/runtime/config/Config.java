@@ -6,6 +6,7 @@ import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.context.RecordLimiter;
 import io.arex.inst.runtime.listener.EventProcessor;
 import io.arex.inst.runtime.model.DynamicClassEntity;
+import io.arex.inst.runtime.model.RecordRuleEntity;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,10 +25,11 @@ public class Config {
 
     static void update(boolean enableDebug, String serviceName, List<DynamicClassEntity> dynamicClassList,
         Map<String, String> properties, Set<String> excludeServiceOperations,
-        int dubboStreamReplayThreshold, int recordRate) {
+        int dubboStreamReplayThreshold, int recordRate,
+        List<RecordRuleEntity> recordRuleList, boolean existUrlParamRule, boolean existBodyParamRule) {
         INSTANCE = new Config(enableDebug, serviceName, dynamicClassList, properties,
-            excludeServiceOperations,
-            dubboStreamReplayThreshold, recordRate);
+            excludeServiceOperations, dubboStreamReplayThreshold, recordRate,
+            recordRuleList, existUrlParamRule, existBodyParamRule);
     }
 
     public static Config get() {
@@ -46,10 +48,14 @@ public class Config {
     private final String recordVersion;
     private final Set<String> includeServiceOperations;
     private final String[] coveragePackages;
+    private final List<RecordRuleEntity> recordRuleList;
+    private final boolean existUrlParamRule;
+    private final boolean existBodyParamRule;
 
     Config(boolean enableDebug, String serviceName, List<DynamicClassEntity> dynamicClassList,
         Map<String, String> properties,
-        Set<String> excludeServiceOperations, int dubboStreamReplayThreshold, int recordRate) {
+        Set<String> excludeServiceOperations, int dubboStreamReplayThreshold, int recordRate,
+        List<RecordRuleEntity> recordRuleList, boolean existUrlParamRule, boolean existBodyParamRule) {
         this.enableDebug = enableDebug;
         this.serviceName = serviceName;
         this.dynamicClassList = dynamicClassList;
@@ -60,6 +66,9 @@ public class Config {
         this.recordVersion = properties.get("arex.agent.version");
         this.includeServiceOperations = StringUtil.splitToSet(properties.get("includeServiceOperations"), ',');
         this.coveragePackages = StringUtil.split(properties.get(ConfigConstants.COVERAGE_PACKAGES), ',');
+        this.recordRuleList = recordRuleList;
+        this.existUrlParamRule = existUrlParamRule;
+        this.existBodyParamRule = existBodyParamRule;
         buildDynamicClassInfo();
     }
 
@@ -185,6 +194,18 @@ public class Config {
 
     public boolean isLocalStorage() {
         return STORAGE_MODE.equalsIgnoreCase(getString(STORAGE_SERVICE_MODE));
+    }
+
+    public List<RecordRuleEntity> getRecordRuleList() {
+        return recordRuleList;
+    }
+
+    public boolean isExistUrlParamRule() {
+        return existUrlParamRule;
+    }
+
+    public boolean isExistBodyParamRule() {
+        return existBodyParamRule;
     }
 
     /**
