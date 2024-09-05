@@ -3,10 +3,18 @@ package io.arex.inst.runtime.model;
 import java.util.List;
 
 public class RecordRuleEntity {
+    private String id;
     private String appId;
-    private String urlRuleId;
     private String httpPath;
     private List<ParamRuleEntity> paramRuleEntityList;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 
     public String getAppId() {
         return appId;
@@ -14,14 +22,6 @@ public class RecordRuleEntity {
 
     public void setAppId(String appId) {
         this.appId = appId;
-    }
-
-    public String getUrlRuleId() {
-        return urlRuleId;
-    }
-
-    public void setUrlRuleId(String urlRuleId) {
-        this.urlRuleId = urlRuleId;
     }
 
     public String getHttpPath() {

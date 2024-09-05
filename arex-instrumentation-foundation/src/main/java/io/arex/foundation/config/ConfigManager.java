@@ -6,16 +6,15 @@ import io.arex.agent.bootstrap.util.MapUtils;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.foundation.logger.AgentLogger;
 import io.arex.foundation.logger.AgentLoggerFactory;
-import io.arex.foundation.model.ConfigQueryResponse.DynamicClassConfiguration;
-import io.arex.foundation.model.ConfigQueryResponse.ResponseBody;
-import io.arex.foundation.model.ConfigQueryResponse.ServiceCollectConfig;
+import io.arex.foundation.model.ConfigQueryResponse.*;
 import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.config.ConfigBuilder;
 import io.arex.inst.runtime.config.listener.ConfigListener;
-import io.arex.inst.runtime.model.DynamicClassEntity;
-import io.arex.inst.runtime.model.DynamicClassStatusEnum;
+import io.arex.inst.runtime.model.*;
 import io.arex.agent.bootstrap.util.ServiceLoader;
+import io.arex.inst.runtime.util.IgnoreUtils;
+
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -31,6 +30,7 @@ import java.util.*;
 import java.util.stream.Stream;
 
 import static io.arex.agent.bootstrap.constants.ConfigConstants.*;
+import static java.util.stream.Collectors.toList;
 
 public class ConfigManager {
 
@@ -64,6 +64,9 @@ public class ConfigManager {
     private List<ConfigListener> listeners = new ArrayList<>();
     private Map<String, String> extendField;
     private int bufferSize;
+    private List<RecordRuleEntity> recordRuleEntityList = new ArrayList<>();
+    private boolean existUrlParamRule = false;
+    private boolean existBodyParamRule = false;
 
     private ConfigManager() {
         init();
@@ -147,6 +150,77 @@ public class ConfigManager {
 
     public Set<String> getResetClassSet() {
         return resetClassSet;
+    }
+
+    public List<RecordRuleEntity> getRecordRuleList() {
+        return recordRuleEntityList;
+    }
+
+    public boolean isExistUrlParamRule() {
+        return existUrlParamRule;
+    }
+
+    public boolean isExistBodyParamRule() {
+        return existBodyParamRule;
+    }
+
+    public void setRecordRuleEntityList(List<RecordUrlConfiguration> configurationList) {
+        this.recordRuleEntityList = parseRecordRuleEntityList(configurationList);
+    }
+
+    private List<RecordRuleEntity> parseRecordRuleEntityList(List<RecordUrlConfiguration> configurationList) {
+        if (CollectionUtil.isEmpty(configurationList)) {
+            return new ArrayList<>();
+        }
+
+        return configurationList.stream()
+                .map(recordUrlConfiguration -> {
+                    RecordRuleEntity entity = new RecordRuleEntity();
+                    entity.setId(recordUrlConfiguration.getId());
+                    entity.setAppId(recordUrlConfiguration.getAppId());
+                    entity.setHttpPath(recordUrlConfiguration.getHttpPath());
+                    entity.setParamRuleEntityList(parseParamRuleEntityList(recordUrlConfiguration.getParamRuleList()));
+                    return entity;
+                })
+                .collect(toList());
+    }
+
+    private List<ParamRuleEntity> parseParamRuleEntityList(List<ParamRule> paramRuleList) {
+        if (CollectionUtil.isEmpty(paramRuleList)) {
+            return new ArrayList<>();
+        }
+
+        return paramRuleList.stream()
+                .map(paramRule -> {
+                    ParamRuleEntity entity = new ParamRuleEntity();
+                    entity.setId(paramRule.getId());
+                    entity.setAppId(paramRule.getAppId());
+                    entity.setUrlRuleId(paramRule.getUrlRuleId());
+                    entity.setParamType(paramRule.getParamType());
+                    if (IgnoreUtils.PARAM_TYPE_QUERY_STRING.equals(paramRule.getParamType())) {
+                        existUrlParamRule = true;
+                    }
+                    if (IgnoreUtils.PARAM_TYPE_JSON_BODY.equals(paramRule.getParamType())) {
+                        existBodyParamRule = true;
+                    }
+                    entity.setValueRuleEntityList(parseValueRuleEntityList(paramRule.getValueRuleList()));
+                    return entity;
+                })
+                .collect(toList());
+    }
+
+    private List<ValueRuleEntity> parseValueRuleEntityList(List<ValueRule> valueRuleList) {
+        if (CollectionUtil.isEmpty(valueRuleList)) {
+            return new ArrayList<>();
+        }
+        return valueRuleList.stream()
+                .map(valueRule -> {
+                    ValueRuleEntity entity = new ValueRuleEntity();
+                    entity.setKey(valueRule.getKey());
+                    entity.setValue(valueRule.getValue());
+                    return entity;
+                })
+                .collect(toList());
     }
 
     public List<DynamicClassEntity> getDynamicClassList() {
@@ -356,6 +430,7 @@ public class ConfigManager {
         setAgentEnabled(serviceConfig.isAgentEnabled());
         setExtendField(serviceConfig.getExtendField());
         setMessage(serviceConfig.getMessage());
+        setRecordRuleEntityList(serviceConfig.getRecordUrlConfigurationList());
 
         updateRuntimeConfig();
     }
@@ -385,6 +460,9 @@ public class ConfigManager {
             .excludeServiceOperations(getExcludeServiceOperations())
             .dubboStreamReplayThreshold(getDubboStreamReplayThreshold())
             .recordRate(getRecordRate())
+            .recordRuleList(getRecordRuleList())
+            .existUrlParamRule(isExistUrlParamRule())
+            .existBodyParamRule(isExistBodyParamRule())
             .build();
         publish(Config.get());
     }

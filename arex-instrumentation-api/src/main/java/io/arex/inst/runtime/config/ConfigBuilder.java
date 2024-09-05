@@ -1,6 +1,7 @@
 package io.arex.inst.runtime.config;
 
 import io.arex.inst.runtime.model.DynamicClassEntity;
+import io.arex.inst.runtime.model.RecordRuleEntity;
 
 import java.util.*;
 
@@ -12,6 +13,9 @@ public class ConfigBuilder {
     private Set<String> excludeServiceOperations;
     private int dubboStreamReplayThreshold;
     private int recordRate;
+    private List<RecordRuleEntity> recordRuleList;
+    private boolean existUrlParamRule;
+    private boolean existBodyParamRule;
 
     public static ConfigBuilder create(String serviceName) {
         return new ConfigBuilder(serviceName);
@@ -69,8 +73,23 @@ public class ConfigBuilder {
         return this;
     }
 
+    public ConfigBuilder recordRuleList(List<RecordRuleEntity> recordRuleList) {
+        this.recordRuleList = recordRuleList;
+        return this;
+    }
+
+    public ConfigBuilder existUrlParamRule(boolean existUrlParamRule) {
+        this.existUrlParamRule = existUrlParamRule;
+        return this;
+    }
+
+    public ConfigBuilder existBodyParamRule(boolean existBodyParamRule) {
+        this.existBodyParamRule = existBodyParamRule;
+        return this;
+    }
+
     public void build() {
         Config.update(enableDebug, serviceName, dynamicClassList, Collections.unmodifiableMap(new HashMap<>(properties)),
-            excludeServiceOperations, dubboStreamReplayThreshold, recordRate);
+                excludeServiceOperations, dubboStreamReplayThreshold, recordRate, recordRuleList, existUrlParamRule, existBodyParamRule);
     }
 }

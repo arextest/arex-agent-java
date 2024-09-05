@@ -63,6 +63,7 @@ public class ConfigQueryResponse {
         private List<DynamicClassConfiguration> dynamicClassConfigurationList;
         private boolean agentEnabled;
         private Map<String, String> extendField;
+        private List<RecordUrlConfiguration> recordUrlConfigurationList;
 
         public ServiceCollectConfig getServiceCollectConfiguration() {
             return serviceCollectConfiguration;
@@ -113,6 +114,15 @@ public class ConfigQueryResponse {
         public void setExtendField(Map<String, String> extendField) {
             this.extendField = extendField;
         }
+
+        public List<RecordUrlConfiguration> getRecordUrlConfigurationList() {
+            return recordUrlConfigurationList;
+        }
+
+        public void setRecordUrlConfigurationList(List<RecordUrlConfiguration> recordUrlConfigurationList) {
+            this.recordUrlConfigurationList = recordUrlConfigurationList;
+        }
+
     }
 
     public static class ServiceCollectConfig {
@@ -219,6 +229,119 @@ public class ConfigQueryResponse {
 
         public void setKeyFormula(String keyFormula) {
             this.keyFormula = keyFormula;
+        }
+    }
+
+    public static class RecordUrlConfiguration {
+        private String id;
+        private String appId;
+        private String httpPath;
+        private List<ParamRule> paramRuleList;
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public String getAppId() {
+            return appId;
+        }
+
+        public void setAppId(String appId) {
+            this.appId = appId;
+        }
+
+        public String getHttpPath() {
+            return httpPath;
+        }
+
+        public void setHttpPath(String httpPath) {
+            this.httpPath = httpPath;
+        }
+
+        public List<ParamRule> getParamRuleList() {
+            return paramRuleList;
+        }
+
+        public void setParamRuleList(List<ParamRule> paramRuleList) {
+            this.paramRuleList = paramRuleList;
+        }
+    }
+
+    public static class ParamRule {
+        private String id;
+        private String appId;
+        private String urlRuleId;
+        /**
+         * Parameter type enumeration:
+         *  QUERY_STRING: http request URL parameters
+         *  JSON_BODY: http request body parameters in JSON format
+         */
+        private String paramType;
+        private List<ValueRule> valueRuleList;
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public String getAppId() {
+            return appId;
+        }
+
+        public void setAppId(String appId) {
+            this.appId = appId;
+        }
+
+        public String getUrlRuleId() {
+            return urlRuleId;
+        }
+
+        public void setUrlRuleId(String urlRuleId) {
+            this.urlRuleId = urlRuleId;
+        }
+
+        public String getParamType() {
+            return paramType;
+        }
+
+        public void setParamType(String paramType) {
+            this.paramType = paramType;
+        }
+
+        public List<ValueRule> getValueRuleList() {
+            return valueRuleList;
+        }
+
+        public void setValueRuleList(List<ValueRule> valueRuleList) {
+            this.valueRuleList = valueRuleList;
+        }
+    }
+
+    public static class ValueRule {
+        private String key;
+        private String value;
+
+        public String getKey() {
+            return key;
+        }
+
+        public void setKey(String key) {
+            this.key = key;
+        }
+
+        public String getValue() {
+            return value;
+        }
+
+        public void setValue(String value) {
+            this.value = value;
         }
     }
 }

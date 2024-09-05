@@ -4,9 +4,13 @@ import io.arex.agent.bootstrap.constants.ConfigConstants;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.foundation.model.ConfigQueryResponse;
 import io.arex.foundation.model.ConfigQueryResponse.DynamicClassConfiguration;
+import io.arex.foundation.model.ConfigQueryResponse.ParamRule;
+import io.arex.foundation.model.ConfigQueryResponse.RecordUrlConfiguration;
+import io.arex.foundation.model.ConfigQueryResponse.ValueRule;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.model.DynamicClassEntity;
 import io.arex.inst.runtime.model.DynamicClassStatusEnum;
+import io.arex.inst.runtime.util.IgnoreUtils;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -90,6 +94,96 @@ class ConfigManagerTest {
         excludeOperations.add("mock");
         configManager.setExcludeServiceOperations(excludeOperations);
         assertFalse(configManager.getExcludeServiceOperations().isEmpty());
+    }
+
+    private RecordUrlConfiguration getRecordUrlConfig() {
+        RecordUrlConfiguration recordUrlConfig = new RecordUrlConfiguration();
+        recordUrlConfig.setId("mock-record-rule-id");
+        recordUrlConfig.setAppId("unit-test-service");
+        recordUrlConfig.setHttpPath("/unitTestHttpPath");
+        return recordUrlConfig;
+    }
+
+    @Test
+    void setRecordRule() {
+        // record rule size = 0
+        assertEquals(0, configManager.getRecordRuleList().size());
+        assertFalse(configManager.isExistUrlParamRule());
+        assertFalse(configManager.isExistBodyParamRule());
+
+        // record rule size = 1
+        List<RecordUrlConfiguration> recordRuleConfigList = new ArrayList<>();
+        RecordUrlConfiguration recordUrlConfig = getRecordUrlConfig();
+        recordRuleConfigList.add(recordUrlConfig);
+        configManager.setRecordRuleEntityList(recordRuleConfigList);
+        assertEquals(1, configManager.getRecordRuleList().size());
+        assertFalse(configManager.isExistUrlParamRule());
+        assertFalse(configManager.isExistBodyParamRule());
+    }
+
+    private ParamRule getUrlParamRule() {
+        ParamRule paramRule = new ParamRule();
+        paramRule.setId("mock-param-rule-id");
+        paramRule.setAppId("unit-test-service");
+        paramRule.setUrlRuleId("mock-record-rule-id");
+        paramRule.setParamType(IgnoreUtils.PARAM_TYPE_QUERY_STRING);
+        List<ValueRule> valueRuleList = new ArrayList<>();
+        valueRuleList.add(getValueRule());
+        paramRule.setValueRuleList(valueRuleList);
+        return paramRule;
+    }
+
+    private ParamRule getBodyParamRule() {
+        ParamRule paramRule = new ParamRule();
+        paramRule.setId("mock-param-rule-id");
+        paramRule.setAppId("unit-test-service");
+        paramRule.setUrlRuleId("mock-record-rule-id");
+        paramRule.setParamType(IgnoreUtils.PARAM_TYPE_JSON_BODY);
+        List<ValueRule> valueRuleList = new ArrayList<>();
+        valueRuleList.add(getValueRule());
+        paramRule.setValueRuleList(valueRuleList);
+        return paramRule;
+    }
+
+    private ValueRule getValueRule() {
+        ValueRule valueRule = new ValueRule();
+        valueRule.setKey("key");
+        valueRule.setValue("value");
+        return valueRule;
+    }
+
+    @Test
+    void setUrlParamRule() {
+        assertFalse(configManager.isExistUrlParamRule());
+        assertFalse(configManager.isExistBodyParamRule());
+
+        // url param rule size = 1
+        List<RecordUrlConfiguration> recordRuleConfigList = new ArrayList<>();
+        RecordUrlConfiguration recordUrlConfig = getRecordUrlConfig();
+        List<ParamRule> paramRuleList = new ArrayList<>();
+        paramRuleList.add(getUrlParamRule());
+        recordUrlConfig.setParamRuleList(paramRuleList);
+        recordRuleConfigList.add(recordUrlConfig);
+        configManager.setRecordRuleEntityList(recordRuleConfigList);
+        assertTrue(configManager.isExistUrlParamRule());
+        assertFalse(configManager.isExistBodyParamRule());
+    }
+
+    @Test
+    void setBodyParamRule() {
+        assertFalse(configManager.isExistUrlParamRule());
+        assertFalse(configManager.isExistBodyParamRule());
+
+        // url param rule size = 1
+        List<RecordUrlConfiguration> recordRuleConfigList = new ArrayList<>();
+        RecordUrlConfiguration recordUrlConfig = getRecordUrlConfig();
+        List<ParamRule> paramRuleList = new ArrayList<>();
+        paramRuleList.add(getBodyParamRule());
+        recordUrlConfig.setParamRuleList(paramRuleList);
+        recordRuleConfigList.add(recordUrlConfig);
+        configManager.setRecordRuleEntityList(recordRuleConfigList);
+        assertFalse(configManager.isExistUrlParamRule());
+        assertTrue(configManager.isExistBodyParamRule());
     }
 
     @Test
