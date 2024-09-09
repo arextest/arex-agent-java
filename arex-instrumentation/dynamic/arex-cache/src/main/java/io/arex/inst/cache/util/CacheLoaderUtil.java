@@ -1,6 +1,6 @@
 package io.arex.inst.cache.util;
 
-import io.arex.agent.bootstrap.util.ArrayUtils;
+import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.agent.bootstrap.util.MapUtils;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.config.Config;
@@ -9,6 +9,7 @@ import io.arex.inst.runtime.log.LogManager;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class CacheLoaderUtil {
@@ -113,8 +114,8 @@ public class CacheLoaderUtil {
         if (cacheLoader == null) {
             return false;
         }
-        String[] coveragePackages = Config.get().getCoveragePackages();
-        if (ArrayUtils.isEmpty(coveragePackages)){
+        Set<String> coveragePackages = Config.get().getCoveragePackages();
+        if (CollectionUtil.isEmpty(coveragePackages)){
             return false;
         }
         String loaderClassName = getClassName(cacheLoader);

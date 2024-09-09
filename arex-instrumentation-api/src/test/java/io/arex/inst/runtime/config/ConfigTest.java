@@ -135,8 +135,16 @@ class ConfigTest {
 
     @Test
     void buildCoveragePackages() {
-        ConfigBuilder.create("mock").addProperty(ConfigConstants.COVERAGE_PACKAGES, "io.arex.inst").build();
-        assertEquals(1, Config.get().getCoveragePackages().length);
-        assertEquals("io.arex.inst", Config.get().getCoveragePackages()[0]);
+        ConfigBuilder configBuilder = ConfigBuilder.create("mock").addProperty(ConfigConstants.COVERAGE_PACKAGES, "io.arex.inst");
+        configBuilder.build();
+        assertEquals(1, Config.get().getCoveragePackages().size());
+        assertEquals("io.arex.inst", Config.get().getCoveragePackages().iterator().next());
+        // no config coverage package
+        System.setProperty(ArexConstants.SPRING_SCAN_PACKAGES, "io.arex.inst.spring");
+        ConfigBuilder.create("mock").build();
+        assertEquals(1, Config.get().getCoveragePackages().size());
+        assertEquals("io.arex.inst.spring", Config.get().getCoveragePackages().iterator().next());
+        System.clearProperty(ArexConstants.SPRING_SCAN_PACKAGES);
+
     }
 }
