@@ -71,7 +71,7 @@ public class GuavaCacheInstrumentation extends TypeInstrumentation {
                 }
             }
 
-            if (ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate() && CacheLoaderUtil.needRecordOrReplay(loader)) {
+            if (ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate("guava cache repeat record") && CacheLoaderUtil.needRecordOrReplay(loader)) {
                 String className = CacheLoaderUtil.getLocatedClass(loader);
                 DynamicClassExtractor extractor = new DynamicClassExtractor(className, methodName, new Object[]{key}, methodReturnType);
                 extractor.recordResponse(throwable != null ? throwable : result);

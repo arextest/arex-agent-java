@@ -85,7 +85,7 @@ public class ArexMockInstrumentation extends TypeInstrumentation {
                 }
                 return;
             }
-            if (ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate() && extractor != null) {
+            if (ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate("dynamic repeat record") && extractor != null) {
                 result = extractor.recordResponse(throwable != null ? throwable : result);
             }
         }

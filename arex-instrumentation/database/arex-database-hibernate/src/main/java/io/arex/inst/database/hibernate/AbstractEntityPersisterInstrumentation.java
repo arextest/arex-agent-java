@@ -89,7 +89,7 @@ public class AbstractEntityPersisterInstrumentation extends TypeInstrumentation 
                 @Advice.Thrown(readOnly = false) Throwable throwable,
                 @Advice.Local("mockResult") MockResult mockResult,
                 @Advice.Local("extractor") DatabaseExtractor extractor) {
-            if (!RepeatedCollectManager.exitAndValidate()) {
+            if (!RepeatedCollectManager.exitAndValidate("db insert repeat record")) {
                 return;
             }
 
@@ -139,7 +139,7 @@ public class AbstractEntityPersisterInstrumentation extends TypeInstrumentation 
                 @Advice.Argument(8) String sql,
                 @Advice.Thrown(readOnly = false) Throwable throwable,
                 @Advice.Local("mockResult") MockResult mockResult)  {
-            if (!RepeatedCollectManager.exitAndValidate()) {
+            if (!RepeatedCollectManager.exitAndValidate("db update repeat record")) {
                 return;
             }
 
@@ -184,7 +184,7 @@ public class AbstractEntityPersisterInstrumentation extends TypeInstrumentation 
                 @Advice.Argument(4) String sql,
                 @Advice.Thrown(readOnly = false) Throwable throwable,
                 @Advice.Local("mockResult") MockResult mockResult) {
-            if (!RepeatedCollectManager.exitAndValidate()) {
+            if (!RepeatedCollectManager.exitAndValidate("db delete repeat record")) {
                 return;
             }
 

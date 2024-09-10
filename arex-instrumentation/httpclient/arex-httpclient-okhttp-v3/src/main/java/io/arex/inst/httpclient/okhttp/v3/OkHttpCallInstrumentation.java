@@ -70,7 +70,7 @@ public class OkHttpCallInstrumentation extends TypeInstrumentation {
                 @Advice.Thrown(readOnly = false) Exception throwable,
                 @Advice.Return(readOnly = false) Response response,
                 @Advice.Local("mockResult") MockResult mockResult) throws IOException {
-            if (extractor == null || !RepeatedCollectManager.exitAndValidate()) {
+            if (extractor == null || !RepeatedCollectManager.exitAndValidate("okhttp repeat record")) {
                 return;
             }
 

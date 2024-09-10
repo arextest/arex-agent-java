@@ -77,7 +77,7 @@ class DubboConsumerInstrumentationTest {
     static Stream<Arguments> onExitCase() {
         Runnable emptyMocker = () -> {};
         Runnable exitAndValidate = () -> {
-            Mockito.when(RepeatedCollectManager.exitAndValidate()).thenReturn(true);
+            Mockito.when(RepeatedCollectManager.exitAndValidate(Mockito.anyString())).thenReturn(true);
         };
         Runnable needRecord = () -> {
             Mockito.when(ContextManager.needRecord()).thenReturn(true);

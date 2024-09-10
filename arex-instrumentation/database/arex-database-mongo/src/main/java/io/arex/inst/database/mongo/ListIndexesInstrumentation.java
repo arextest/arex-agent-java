@@ -61,7 +61,7 @@ public class ListIndexesInstrumentation extends TypeInstrumentation {
                 }
                 return;
             }
-            if (ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate()) {
+            if (ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate("mongo listIndexes repeat record.")) {
                 MongoHelper.record("ListIndexes", namespace, null, result, throwable);
             }
         }

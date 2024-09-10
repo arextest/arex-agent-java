@@ -59,7 +59,7 @@ public class DubboConsumerInstrumentation extends TypeInstrumentation {
         public static void onExit(@Advice.Return(readOnly = false) Result result,
                                   @Advice.Local("extractor") DubboConsumerExtractor extractor,
                                   @Advice.Local("mockResult") MockResult mockResult) {
-            if (extractor == null || !RepeatedCollectManager.exitAndValidate()) {
+            if (extractor == null || !RepeatedCollectManager.exitAndValidate("dubbo consumer repeat record")) {
                 return;
             }
 
