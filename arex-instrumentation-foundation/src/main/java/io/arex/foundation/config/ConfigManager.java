@@ -156,8 +156,16 @@ public class ConfigManager {
         return recordRuleEntityList;
     }
 
+    public void setExistUrlParamRule(boolean existUrlParamRule) {
+        this.existUrlParamRule = existUrlParamRule;
+    }
+
     public boolean isExistUrlParamRule() {
         return existUrlParamRule;
+    }
+
+    public void setExistBodyParamRule(boolean existBodyParamRule) {
+        this.existBodyParamRule = existBodyParamRule;
     }
 
     public boolean isExistBodyParamRule() {

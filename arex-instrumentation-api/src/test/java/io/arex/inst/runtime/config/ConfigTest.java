@@ -6,10 +6,12 @@ import io.arex.inst.runtime.context.RecordLimiter;
 import io.arex.inst.runtime.listener.EventProcessor;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.model.DynamicClassEntity;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
 
+import java.util.*;
+
+import io.arex.inst.runtime.model.ParamRuleEntity;
+import io.arex.inst.runtime.model.RecordRuleEntity;
+import io.arex.inst.runtime.util.IgnoreUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -138,5 +140,41 @@ class ConfigTest {
         ConfigBuilder.create("mock").addProperty(ConfigConstants.COVERAGE_PACKAGES, "io.arex.inst").build();
         assertEquals(1, Config.get().getCoveragePackages().length);
         assertEquals("io.arex.inst", Config.get().getCoveragePackages()[0]);
+    }
+
+    @Test
+    void testBuildRecordRule() {
+        ConfigBuilder.create("mock").recordRuleList(null).build();
+        assertNull(Config.get().getRecordRuleList());
+
+        ConfigBuilder config = ConfigBuilder.create("mock");
+        List<RecordRuleEntity> recordRuleList = new ArrayList<>();
+        recordRuleList.add(getRecordRuleEntity());
+        config.recordRuleList(recordRuleList).build();
+        Assertions.assertEquals(1, Config.get().getRecordRuleList().size());
+    }
+
+    private RecordRuleEntity getRecordRuleEntity() {
+        RecordRuleEntity recordRule = new RecordRuleEntity();
+        recordRule.setId("mock-record-rule-id");
+        recordRule.setAppId("mock");
+        recordRule.setHttpPath("/unitTestHttpPath");
+        return recordRule;
+    }
+
+    @Test
+    void testBuildExistUrlParamRule() {
+        ConfigBuilder.create("mock").build();
+        assertFalse(Config.get().isExistUrlParamRule());
+        ConfigBuilder.create("mock").existUrlParamRule(true).build();
+        assertTrue(Config.get().isExistUrlParamRule());
+    }
+
+    @Test
+    void testBuildExistBodyParamRule() {
+        ConfigBuilder.create("mock").build();
+        assertFalse(Config.get().isExistBodyParamRule());
+        ConfigBuilder.create("mock").existBodyParamRule(true).build();
+        assertTrue(Config.get().isExistBodyParamRule());
     }
 }

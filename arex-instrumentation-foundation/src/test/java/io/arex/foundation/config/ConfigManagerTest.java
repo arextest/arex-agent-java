@@ -106,6 +106,10 @@ class ConfigManagerTest {
 
     @Test
     void setRecordRule() {
+        configManager.setExistUrlParamRule(false);
+        configManager.setExistBodyParamRule(false);
+        configManager.setRecordRuleEntityList(new ArrayList<>());
+
         // record rule size = 0
         assertEquals(0, configManager.getRecordRuleList().size());
         assertFalse(configManager.isExistUrlParamRule());
@@ -154,6 +158,10 @@ class ConfigManagerTest {
 
     @Test
     void setUrlParamRule() {
+        configManager.setExistUrlParamRule(false);
+        configManager.setExistBodyParamRule(false);
+        configManager.setRecordRuleEntityList(new ArrayList<>());
+
         assertFalse(configManager.isExistUrlParamRule());
         assertFalse(configManager.isExistBodyParamRule());
 
@@ -171,6 +179,10 @@ class ConfigManagerTest {
 
     @Test
     void setBodyParamRule() {
+        configManager.setExistUrlParamRule(false);
+        configManager.setExistBodyParamRule(false);
+        configManager.setRecordRuleEntityList(new ArrayList<>());
+
         assertFalse(configManager.isExistUrlParamRule());
         assertFalse(configManager.isExistBodyParamRule());
 
