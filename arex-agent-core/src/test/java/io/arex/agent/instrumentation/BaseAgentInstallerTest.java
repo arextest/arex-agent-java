@@ -18,11 +18,11 @@ import io.arex.foundation.model.ConfigQueryResponse.ResponseBody;
 import io.arex.foundation.model.ConfigQueryResponse.ServiceCollectConfig;
 import io.arex.foundation.model.HttpClientResponse;
 import io.arex.foundation.serializer.jackson.JacksonSerializer;
-import io.arex.foundation.util.NetUtils;
 import io.arex.foundation.util.httpclient.AsyncHttpClientUtil;
 import java.io.File;
 import java.lang.instrument.Instrumentation;
-import java.util.Set;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -41,8 +41,7 @@ class BaseAgentInstallerTest {
         File file = Mockito.mock(File.class);
         installer = new BaseAgentInstaller(inst, file, null) {
             @Override
-            public void transform(String moduleName, Set<String> typeNames) {
-
+            public void transform(String moduleName, Map<String, List<String>> instrumentTypeMap) {
             }
 
             @Override
@@ -51,7 +50,6 @@ class BaseAgentInstallerTest {
 
             @Override
             protected void retransform() {
-
             }
         };
     }

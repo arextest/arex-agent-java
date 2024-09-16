@@ -2,7 +2,8 @@ package io.arex.agent.bootstrap;
 
 import java.io.File;
 import java.lang.instrument.Instrumentation;
-import java.util.Set;
+import java.util.List;
+import java.util.Map;
 
 public class InstrumentationInstallerTest implements AgentInstaller {
     protected final Instrumentation instrumentation;
@@ -25,7 +26,7 @@ public class InstrumentationInstallerTest implements AgentInstaller {
     }
 
     @Override
-    public void transform(String moduleName, Set<String> typeNames) {
+    public void transform(String moduleName, Map<String, List<String>> instrumentTypeMap) {
 
     }
 

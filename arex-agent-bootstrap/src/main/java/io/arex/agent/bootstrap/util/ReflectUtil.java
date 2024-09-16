@@ -147,8 +147,6 @@ public class ReflectUtil {
             return method.invoke(instance, args);
         } catch (Exception e) {
             return null;
-        } finally {
-            method.setAccessible(false);
         }
     }
 
@@ -166,6 +164,15 @@ public class ReflectUtil {
             return field.get(instance);
         } catch (Exception e) {
             return null;
+        }
+    }
+
+    public static void setFieldValue(Field field, Object instance, Object value) {
+        try {
+            field.setAccessible(true);
+            field.set(instance, value);
+        } catch (Exception e) {
+            // ignore
         }
     }
 

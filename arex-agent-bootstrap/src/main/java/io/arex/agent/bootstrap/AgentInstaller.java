@@ -1,6 +1,7 @@
 package io.arex.agent.bootstrap;
 
-import java.util.Set;
+import java.util.List;
+import java.util.Map;
 
 public interface AgentInstaller {
 
@@ -8,5 +9,5 @@ public interface AgentInstaller {
 
     ClassLoader getClassLoader();
 
-    void transform(String moduleName, Set<String> typeNames);
+    void transform(String moduleName, Map<String, List<String>> instrumentTypeMap);
 }
