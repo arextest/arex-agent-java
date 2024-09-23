@@ -191,7 +191,7 @@ public class DataCollectorService implements DataCollector {
         queryApiUrl = String.format("http://%s/api/storage/record/query", storeServiceHost);
         saveApiUrl = String.format("http://%s/api/storage/record/batchSaveMockers", storeServiceHost);
         invalidCaseApiUrl = String.format("http://%s/api/storage/record/invalidCase", storeServiceHost);
-        queryAllApiUrl = String.format("http://%s/api/storage/record/queryMockers", storeServiceHost);
+        queryAllApiUrl = String.format("http://%s/api/storage/record/batchQueryMockers", storeServiceHost);
         batchSaveReplayResult = String.format("http://%s/api/storage/record/batchSaveReplayResult", storeServiceHost);
     }
 
@@ -213,7 +213,7 @@ public class DataCollectorService implements DataCollector {
                 QueryAllMockerDTO mocker = Serializer.deserialize(postData, QueryAllMockerDTO.class);
                 if (mocker != null) {
                     CaseManager.invalid(mocker.getRecordId(), mocker.getReplayId(),
-                            "queryAllMockers", DecelerateReasonEnum.SERVICE_EXCEPTION.getValue());
+                            "batchQueryMockers", DecelerateReasonEnum.SERVICE_EXCEPTION.getValue());
                 }
                 return null;
             }
@@ -223,6 +223,7 @@ public class DataCollectorService implements DataCollector {
 
     @Override
     public void saveReplayCompareResult(String postData) {
+        System.out.println("arex.saveReplayCompareResult: " + postData);
         AsyncHttpClientUtil.postAsyncWithZstdJson(batchSaveReplayResult, postData, null)
                 .whenComplete(saveReplayCompareConsumer(postData));
     }
@@ -237,7 +238,7 @@ public class DataCollectorService implements DataCollector {
                 }
                 LogManager.warn("saveReplayCompareResult", throwable);
             } else {
-                LogManager.info("saveReplayCompareResult", StringUtil.format("response: %s", Serializer.serialize(response)));
+                LogManager.info("saveReplayCompareResult.response", StringUtil.format("response: %s", Serializer.serialize(response)));
             }
         };
     }

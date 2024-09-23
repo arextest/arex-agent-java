@@ -70,9 +70,7 @@ public class ArexConstants {
     public static final String DB_PARAMETERS = "parameters";
     public static final String DB_SQL = "sql";
     public static final int DB_SQL_MAX_LEN = 5000;
-    public static final String INTEGRATED_MODE = "integrated";
-    public static final String STANDALONE_MODE = "standalone";
-    public static final String MERGE_MOCKER_TYPE = "java.util.ArrayList-io.arex.agent.bootstrap.model.ArexMocker";
+    public static final String MOCKER_TYPE = "java.util.ArrayList-io.arex.agent.bootstrap.model.ArexMocker";
     public static final String REPLAY_COMPARE_TYPE = "java.util.ArrayList-io.arex.inst.runtime.model.ReplayCompareResultDTO";
     public static final String HTTP_QUERY_STRING = "QueryString";
     public static final String HTTP_METHOD = "HttpMethod";
@@ -80,4 +78,5 @@ public class ArexConstants {
     public static final String HTTP_CONTENT_TYPE = "ContentType";
     public static final String DISABLE_SQL_PARSE = "arex.disable.sql.parse";
     public static final String MATCH_LOG_TITLE = "replay.match";
+    public static final String MOCKER_TARGET_TYPE = "io.arex.agent.bootstrap.model.Mocker$Target";
 }

@@ -24,6 +24,9 @@ public class ArexMocker implements Mocker {
     private transient Map<Integer, Long> eigenMap;
     private Map<String, String> tags;
 
+    private transient String request;
+    private transient String response;
+
     /**
      * The default constructor is for deserialization
      */
@@ -184,5 +187,21 @@ public class ArexMocker implements Mocker {
     @Override
     public void setEigenMap(Map<Integer, Long> eigenMap) {
         this.eigenMap = eigenMap;
+    }
+
+    public String getRequest() {
+        return request;
+    }
+
+    public void setRequest(String request) {
+        this.request = request;
+    }
+
+    public String getResponse() {
+        return response;
+    }
+
+    public void setResponse(String response) {
+        this.response = response;
     }
 }

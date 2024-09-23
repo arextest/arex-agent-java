@@ -41,6 +41,10 @@ public interface Mocker extends Serializable {
 
     Target getTargetResponse();
 
+    void setTargetRequest(Target targetRequest);
+
+    void setTargetResponse(Target targetResponse);
+
     public static class Target implements Serializable {
 
         private String body;
@@ -140,4 +144,12 @@ public interface Mocker extends Serializable {
     Map<Integer, Long> getEigenMap();
 
     void setEigenMap(Map<Integer, Long> eigenMap);
+
+    String getRequest();
+
+    void setRequest(String request);
+
+    String getResponse();
+
+    void setResponse(String response);
 }

@@ -5,6 +5,7 @@ import io.arex.agent.bootstrap.model.MockCategoryType;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.agent.thirdparty.util.CompressUtil;
 import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
@@ -15,9 +16,8 @@ import io.arex.inst.runtime.model.MergeDTO;
 import io.arex.inst.runtime.model.QueryAllMockerDTO;
 import io.arex.inst.runtime.model.ReplayCompareResultDTO;
 import io.arex.inst.runtime.serializer.Serializer;
-
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -43,7 +43,7 @@ public class ReplayUtil {
                 return;
             }
 
-            filterMergeMocker(recordMockerList);
+            filterMocker(recordMockerList);
             Map<Integer, List<Mocker>> cachedReplayMap = ContextManager.currentContext().getCachedReplayResultMap();
             cachedReplayMap.clear();
             buildReplayResultMap(recordMockerList, cachedReplayMap);
@@ -56,14 +56,17 @@ public class ReplayUtil {
     /**
      * compatible with merge record, after batchSave publish can be removed
      */
-    private static void filterMergeMocker(List<Mocker> allMockerList) {
+    private static void filterMocker(List<Mocker> allMockerList) {
         List<Mocker> splitMockerList = new ArrayList<>();
         Predicate<Mocker> filterMergeRecord = mocker -> ArexConstants.MERGE_RECORD_NAME.equals(mocker.getOperationName());
-        for (Mocker mergeMocker : allMockerList) {
-            if (!filterMergeRecord.test(mergeMocker)) {
+        for (Mocker mocker : allMockerList) {
+            // decompress zstd data
+            decompress(mocker);
+
+            if (!filterMergeRecord.test(mocker)) {
                 continue;
             }
-            List<MergeDTO> mergeReplayList = Serializer.deserialize(mergeMocker.getTargetResponse().getBody(), ArexConstants.MERGE_TYPE);
+            List<MergeDTO> mergeReplayList = Serializer.deserialize(mocker.getTargetResponse().getBody(), ArexConstants.MERGE_TYPE);
             if (CollectionUtil.isEmpty(mergeReplayList)) {
                 continue;
             }
@@ -74,6 +77,20 @@ public class ReplayUtil {
         }
         allMockerList.removeIf(filterMergeRecord);
         allMockerList.addAll(splitMockerList);
+    }
+
+    private static void decompress(Mocker mocker) {
+        // decompress zstd data
+        String originalRequest = mocker.getRequest();
+        if (StringUtil.isNotEmpty(originalRequest)) {
+            originalRequest = CompressUtil.zstdDecompress(Base64.getDecoder().decode(originalRequest));
+            mocker.setTargetRequest(Serializer.deserialize(originalRequest, ArexConstants.MOCKER_TARGET_TYPE));
+        }
+        String originalResponse = mocker.getResponse();
+        if (StringUtil.isNotEmpty(originalResponse)) {
+            originalResponse = CompressUtil.zstdDecompress(Base64.getDecoder().decode(originalResponse));
+            mocker.setTargetResponse(Serializer.deserialize(originalResponse, ArexConstants.MOCKER_TARGET_TYPE));
+        }
     }
 
     private static List<Mocker> convertMergeMocker(List<MergeDTO> mergeReplayList) {
@@ -181,7 +198,17 @@ public class ReplayUtil {
         }
         List<ReplayCompareResultDTO> replayCompareList = new ArrayList<>();
         replayCompareResultQueue.drainTo(replayCompareList);
-        MockUtils.saveReplayCompareResult(replayCompareList);
+        MockUtils.saveReplayCompareResult(context, replayCompareList);
+
+        Map<Integer, List<Mocker>> cachedReplayResultMap = context.getCachedReplayResultMap();
+        StringBuilder message = new StringBuilder();
+        for (List<Mocker> cachedReplayList : cachedReplayResultMap.values()) {
+            for (Mocker cachedMocker : cachedReplayList) {
+                message.append(StringUtil.format("matched: %s, detail: %s %n",
+                        String.valueOf(cachedMocker.isMatched()), cachedMocker.logBuilder().toString()));
+            }
+        }
+        LogManager.info("CachedReplayResultMap", message.toString());
     }
 
     /**
@@ -207,13 +234,13 @@ public class ReplayUtil {
                 ReplayCompareResultDTO callMissingDTO = convertCompareResult(cachedMocker, recordMsg,
                         null, cachedMocker.getCreationTime(), Long.MAX_VALUE, false);
                 replayCompareResultQueue.offer(callMissingDTO);
-                // log
+                // log call missing
                 String message = StringUtil.format("%s %n%s",
                         "match fail, reason: call missing", cachedMocker.logBuilder().toString());
                 if (Config.get().isEnableDebug()) {
                     message += StringUtil.format("%ncall missing mocker: %s", Serializer.serialize(cachedMocker));
                 }
-                LogManager.info(ArexConstants.MATCH_LOG_TITLE, message);
+                LogManager.info(context, ArexConstants.MATCH_LOG_TITLE, message);
             }
         }
         if (replayCompareResultQueue.isEmpty()) {
@@ -221,13 +248,7 @@ public class ReplayUtil {
         }
         List<ReplayCompareResultDTO> replayCompareList = new ArrayList<>();
         replayCompareResultQueue.drainTo(replayCompareList);
-
-        Map<String, String> contextMap = new HashMap<>();
-        contextMap.put(ArexConstants.RECORD_ID, context.getCaseId());
-        contextMap.put(ArexConstants.REPLAY_ID, context.getReplayId());
-        LogManager.setContextMap(contextMap);
-        MockUtils.saveReplayCompareResult(replayCompareList);
-        contextMap.clear();
+        MockUtils.saveReplayCompareResult(context, replayCompareList);
     }
 
     public static ReplayCompareResultDTO convertCompareResult(Mocker replayMocker, String recordMsg, String replayMsg,

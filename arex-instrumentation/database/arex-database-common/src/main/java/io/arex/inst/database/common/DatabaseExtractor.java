@@ -93,11 +93,13 @@ public class DatabaseExtractor {
     }
 
     public MockResult replay(String serializer) {
-        Mocker recordMocker = makeMocker(null, serializer);
+        String operationName = DatabaseUtils.regenerateOperationName(this.dbName, this.methodName, this.sql);
         String serviceKey = StringUtil.defaultIfEmpty(this.dbName, ArexConstants.DATABASE);
-        boolean ignoreMockResult = IgnoreUtils.ignoreMockResult(serviceKey, recordMocker.getOperationName());
-
-        Mocker replayMocker = MockUtils.replayMocker(recordMocker);
+        boolean ignoreMockResult = IgnoreUtils.ignoreMockResult(serviceKey, operationName);
+        Mocker mocker = makeMocker(null, serializer);
+        // only parse operationName on replay (record parse sql on storage service, avoid consuming application cpu during record)
+        mocker.setOperationName(operationName);
+        Mocker replayMocker = MockUtils.replayMocker(mocker);
         Object replayResult = null;
         if (MockUtils.checkResponseMocker(replayMocker)) {
             if (ArexConstants.JACKSON_SERIALIZER_WITH_TYPE.equals(replayMocker.getTargetResponse().getAttribute(ArexConstants.AREX_SERIALIZER))) {
@@ -119,8 +121,7 @@ public class DatabaseExtractor {
     }
 
     private Mocker makeMocker(Object response, String serializer) {
-        String operationName = DatabaseUtils.regenerateOperationName(this.dbName, this.methodName, this.sql);
-        Mocker mocker = MockUtils.createDatabase(operationName);
+        Mocker mocker = MockUtils.createDatabase(this.methodName);
         mocker.getTargetRequest().setBody(this.sql);
         mocker.getTargetRequest().setAttribute(ArexConstants.DB_NAME, this.dbName);
         mocker.getTargetRequest().setAttribute(ArexConstants.DB_PARAMETERS, this.parameters);

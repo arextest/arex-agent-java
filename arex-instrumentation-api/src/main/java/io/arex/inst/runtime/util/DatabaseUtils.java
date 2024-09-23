@@ -77,6 +77,8 @@ public class DatabaseUtils {
         if (CollectionUtil.isEmpty(operationNames)) {
             return operationName;
         }
+        // sort operation name
+        Collections.sort(operationNames);
         return StringUtil.join(operationNames, ";");
     }
 

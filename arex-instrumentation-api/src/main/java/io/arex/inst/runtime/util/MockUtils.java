@@ -234,16 +234,16 @@ public final class MockUtils {
         }
         LogManager.info(requestMocker.replayLogTitle(), message);
 
-        return Serializer.deserialize(data, ArexConstants.MERGE_MOCKER_TYPE);
+        return Serializer.deserialize(data, ArexConstants.MOCKER_TYPE);
     }
 
-    public static void saveReplayCompareResult(List<ReplayCompareResultDTO> replayCompareList) {
+    public static void saveReplayCompareResult(ArexContext context, List<ReplayCompareResultDTO> replayCompareList) {
         String postData = Serializer.serialize(replayCompareList);
         String message = StringUtil.format("compare count: %s", String.valueOf(replayCompareList.size()));
         if (Config.get().isEnableDebug()) {
             message = StringUtil.format(message + "%nrequest: %s", postData);
         }
-        LogManager.info("saveReplayCompareResult", message);
+        LogManager.info(context, "saveReplayCompareResult", message);
         DataService.INSTANCE.saveReplayCompareResult(postData);
     }
 

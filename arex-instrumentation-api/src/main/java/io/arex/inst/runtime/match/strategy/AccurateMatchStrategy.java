@@ -38,12 +38,9 @@ public class AccurateMatchStrategy extends AbstractMatchStrategy{
             if (!matchMocker.isMatched() || MockStrategyEnum.FIND_LAST == context.getMockStrategy()) {
                 matchMocker.setMatched(true);
                 context.setMatchMocker(matchMocker);
-            } else {
-                context.setReason("accurate match one result, but it has already been matched before, so cannot be used");
+                context.setInterrupt(true);
+                return;
             }
-            // other modes can only be matched once, so interrupt and not continue next match
-            context.setInterrupt(true);
-            return;
         }
         // matched multiple result(like as redis: incr、decr) only retain matched item for next match
         if (matchedCount > 1) {
