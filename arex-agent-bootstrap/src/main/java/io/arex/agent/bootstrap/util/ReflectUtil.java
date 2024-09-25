@@ -158,10 +158,10 @@ public class ReflectUtil {
         }
     }
 
-    public static Object getFieldValue(Field field, Object instance) {
+    public static <T> T getFieldValue(Field field, Object instance) {
         try {
             field.setAccessible(true);
-            return field.get(instance);
+            return (T) field.get(instance);
         } catch (Exception e) {
             return null;
         }

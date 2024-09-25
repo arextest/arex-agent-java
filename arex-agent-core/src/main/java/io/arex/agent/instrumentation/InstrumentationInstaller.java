@@ -246,8 +246,9 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
             for (Map.Entry<String, List<String>> instrumentTypeEntry : instrumentTypeMap.entrySet()) {
                 System.out.println(StringUtil.format("[arex] transform instrumentation module: %s, instrument type: %s, transform class: %s",
                         moduleName, instrumentTypeEntry.getKey(), String.join(",", instrumentTypeEntry.getValue())));
-                LOGGER.info("[arex] transform instrumentation module: {}, instrument type: {}, transform class: {}",
-                        moduleName, instrumentTypeEntry.getKey(), String.join(",", instrumentTypeEntry.getValue()));
+                LOGGER.info("[arex] transform instrumentation module: {}, instrument type: {}, count: {}, transform class: {}",
+                        moduleName, instrumentTypeEntry.getKey(), String.valueOf(instrumentTypeMap.size()),
+                        String.join(",", instrumentTypeEntry.getValue()));
             }
         }
     }
