@@ -50,15 +50,16 @@ public class ReplayMatcher {
         Mocker matchedMocker = context.getMatchMocker();
         Mocker requestMocker = context.getRequestMocker();
 
-        String matchResult;
+        StringBuilder matchResult = new StringBuilder(requestMocker.getCategoryType().getName());
+        matchResult.append(":").append(requestMocker.getOperationName());
         if (matchedMocker != null) {
-            matchResult = "match success";
+            matchResult.append(" match success");
         } else {
-            matchResult = StringUtil.format("match fail, reason: %s", context.getReason());
+            matchResult.append(StringUtil.format(" match fail, reason: %s", context.getReason()));
         }
 
         String message = StringUtil.format("%s %n%s, requestType: %s, match strategy: %s, mock strategy: %s",
-                matchResult,
+                matchResult.toString(),
                 requestMocker.logBuilder().toString(),
                 requestMocker.getTargetRequest().getType(),
                 (context.getMatchStrategy() != null ? context.getMatchStrategy().name() : StringUtil.EMPTY),
