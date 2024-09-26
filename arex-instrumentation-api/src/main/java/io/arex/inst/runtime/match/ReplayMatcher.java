@@ -55,7 +55,7 @@ public class ReplayMatcher {
         if (matchedMocker != null) {
             matchResult.append(" match success");
         } else {
-            matchResult.append(StringUtil.format(" match fail, reason: %s", context.getReason()));
+            matchResult.append(" match fail, reason: ").append(context.getReason());
         }
 
         String message = StringUtil.format("%s %n%s, requestType: %s, match strategy: %s, mock strategy: %s",
