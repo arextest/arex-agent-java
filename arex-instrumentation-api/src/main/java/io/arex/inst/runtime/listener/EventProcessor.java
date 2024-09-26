@@ -1,11 +1,13 @@
 package io.arex.inst.runtime.listener;
 
 import io.arex.agent.bootstrap.cache.TimeCache;
+import io.arex.agent.bootstrap.constants.ConfigConstants;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.AdviceClassesCollector;
 import io.arex.agent.bootstrap.util.NumberUtil;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.agent.bootstrap.util.ServiceLoader;
+import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.model.InitializeEnum;
 import io.arex.inst.runtime.request.RequestHandlerManager;
 import io.arex.inst.runtime.log.LogManager;
@@ -18,6 +20,7 @@ import io.arex.inst.runtime.util.MockUtils;
 
 import java.util.List;
 
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -119,6 +122,7 @@ public class EventProcessor {
             ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
             // https://bugs.openjdk.org/browse/JDK-8172726
             CompletableFuture.runAsync(() -> {
+                initClass(contextClassLoader);
                 initSerializer(contextClassLoader);
                 initLog(contextClassLoader);
                 RequestHandlerManager.init(contextClassLoader);
@@ -127,6 +131,42 @@ public class EventProcessor {
         }
         TimeCache.remove();
         ContextManager.remove();
+    }
+
+    /**
+     * To prevent class initialization failure during request replay,
+     * it is advisable to perform early initialization of classes that rely on external dependencies.
+     * This helps to avoid triggering the class initialization logic when replaying requests.
+     */
+    private static void initClass(ClassLoader contextClassLoader) {
+        boolean disableReplay = Config.get().getBoolean(ConfigConstants.DISABLE_REPLAY, false);
+        if (disableReplay) {
+            return;
+        }
+        String arexStaticClassInit = Config.get().getString(ConfigConstants.AREX_STATIC_CLASS_INIT);
+        if (StringUtil.isBlank(arexStaticClassInit)) {
+            return;
+        }
+        Set<String> initClassNameSet = StringUtil.splitToSet(arexStaticClassInit, ',');
+        for (String initClass : initClassNameSet) {
+            try {
+                if (isClassLoaded(initClass, contextClassLoader)) {
+                    continue;
+                }
+                Class.forName(initClass, true, contextClassLoader);
+            } catch (ClassNotFoundException e) {
+                LOGGER.warn(LogManager.buildTitle("init.class"), e);
+            }
+        }
+    }
+
+    private static boolean isClassLoaded(String className, ClassLoader classLoader) {
+        try {
+            Class<?> clazz = classLoader.loadClass(className);
+            return clazz != null;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
     }
 
     private static void initLog(ClassLoader contextClassLoader) {
