@@ -1,6 +1,5 @@
 package io.arex.agent.instrumentation;
 
-import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.foundation.logger.AgentLoggerFactory;
 import io.arex.foundation.logger.AgentLogger;
 import io.arex.inst.extension.ExtensionTransformer;
@@ -115,10 +114,7 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
             builder = installModule(builder, module, retransform);
         }
 
-        long start = System.currentTimeMillis();
-        ResettableClassFileTransformer transformer = builder.installOn(this.instrumentation);
-        System.out.println("arex qconfig transform cost1: " + (System.currentTimeMillis() - start) + " ms");
-        return transformer;
+        return builder.installOn(this.instrumentation);
     }
 
     private AgentBuilder installModule(AgentBuilder builder, ModuleInstrumentation module, boolean retransform) {
@@ -212,7 +208,7 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
     }
 
     @Override
-    public void transform(String moduleName, Map<String, List<String>> instrumentTypeMap) {
+    public void transform(String moduleName, Set<String> instrumentTypeSet) {
         AgentBuilder agentBuilder = new AgentBuilder.Default(
                 new ByteBuddy().with(MethodGraph.Compiler.ForDeclaredMethods.INSTANCE))
                 .disableClassFormatChanges()
@@ -221,7 +217,8 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
                 .with(new TransformListener())
                 .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
                 .with(AgentBuilder.InitializationStrategy.NoOp.INSTANCE)
-                .with(AgentBuilder.TypeStrategy.Default.REBASE)
+                // for advice anonymous class method\lambda method\method reference
+                .with(AgentBuilder.TypeStrategy.Default.DECORATE)
                 .with(AgentBuilder.LocationStrategy.ForClassLoader.STRONG
                         .withFallbackTo(ClassFileLocator.ForClassLoader.ofSystemLoader()));
 
@@ -233,23 +230,13 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
             }
         }
         if (transformModule != null) {
-            transformModule.setInstrumentTypeMap(instrumentTypeMap);
+            transformModule.setInstrumentTypeSet(instrumentTypeSet);
             agentBuilder = installTypes(agentBuilder, transformModule, transformModule.instrumentationTypes());
 
             long start = System.currentTimeMillis();
             resettableClassFileTransformer = agentBuilder.installOn(this.instrumentation);
             long end = (System.currentTimeMillis() - start);
-            System.out.println("arex qconfig transform cost2: " +end + " ms");
-            LOGGER.info("[arex] transform instrumentation module: {}, cost: {} ms",
-                    moduleName, String.valueOf(end));
-
-            for (Map.Entry<String, List<String>> instrumentTypeEntry : instrumentTypeMap.entrySet()) {
-                System.out.println(StringUtil.format("[arex] transform instrumentation module: %s, instrument type: %s, transform class: %s",
-                        moduleName, instrumentTypeEntry.getKey(), String.join(",", instrumentTypeEntry.getValue())));
-                LOGGER.info("[arex] transform instrumentation module: {}, instrument type: {}, count: {}, transform class: {}",
-                        moduleName, instrumentTypeEntry.getKey(), String.valueOf(instrumentTypeMap.size()),
-                        String.join(",", instrumentTypeEntry.getValue()));
-            }
+            LOGGER.info("[arex] transform instrumentation module: {}, cost: {} ms", moduleName, String.valueOf(end));
         }
     }
 }

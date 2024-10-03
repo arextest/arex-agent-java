@@ -47,7 +47,6 @@ public class LogManager {
 
     public static void info(String title, String message) {
         String logMessage = buildMessage(buildTitle(title), message);
-//        System.out.println(logMessage);
         if (useExtensionLog()) {
             for (Logger extensionLogger : EXTENSION_LOGGER_LIST) {
                 extensionLogger.info(logMessage);
@@ -68,7 +67,6 @@ public class LogManager {
 
     public static void warn(String title, String message, Throwable exception) {
         String logMessage = buildMessage(buildTitle(title), message);
-//        System.out.println(logMessage);
         if (useExtensionLog()) {
             for (Logger logger : EXTENSION_LOGGER_LIST) {
                 logger.warn(logMessage, exception);
