@@ -12,7 +12,7 @@ public class RedisTemplateProvider {
 
     public static void methodOnExit(String redisUri, String methodName, Object key, Object result,
         Throwable throwable) {
-        if (ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate()) {
+        if (ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate("redis repeat record")) {
             RedisExtractor extractor = new RedisExtractor(redisUri, methodName, key, null);
             if (throwable != null) {
                 extractor.record(throwable);

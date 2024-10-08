@@ -67,7 +67,7 @@ public class CaffeineSyncInstrumentation extends TypeInstrumentation {
                 }
                 return;
             }
-            if (ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate() && CacheLoaderUtil.needRecordOrReplay(cacheLoader)) {
+            if (ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate("caffeine sync repeat record") && CacheLoaderUtil.needRecordOrReplay(cacheLoader)) {
                 String className = CacheLoaderUtil.getLocatedClass(cacheLoader);
                 DynamicClassExtractor extractor = new DynamicClassExtractor(className, methodName, new Object[]{key}, methodReturnType);
                 extractor.recordResponse(throwable != null ? throwable : result);

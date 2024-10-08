@@ -25,6 +25,7 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.isA;
 
 @ExtendWith(MockitoExtension.class)
@@ -77,10 +78,10 @@ class AbstractEntityPersisterInstrumentationTest {
 
     static Stream<Arguments> onInsertExitCase() {
         Runnable emptyMocker = () -> {
-            Mockito.when(RepeatedCollectManager.exitAndValidate()).thenReturn(false);
+            Mockito.when(RepeatedCollectManager.exitAndValidate(anyString())).thenReturn(false);
         };
         Runnable exitAndValidate = () -> {
-            Mockito.when(RepeatedCollectManager.exitAndValidate()).thenReturn(true);
+            Mockito.when(RepeatedCollectManager.exitAndValidate(anyString())).thenReturn(true);
         };
         Runnable needRecord = () -> {
             Mockito.when(ContextManager.needRecord()).thenReturn(true);
@@ -126,7 +127,7 @@ class AbstractEntityPersisterInstrumentationTest {
     @MethodSource("onUpdateOrInsertExitCase")
     void onUpdateOrInsertExit(Runnable recordType, Object mockResult) {
         AtomicReference<DatabaseExtractor> mo = new AtomicReference<>();
-        Mockito.when(RepeatedCollectManager.exitAndValidate()).thenReturn(true);
+        Mockito.when(RepeatedCollectManager.exitAndValidate(anyString())).thenReturn(true);
         Mockito.when(ContextManager.needRecord()).thenReturn(true);
         try (MockedConstruction<DatabaseExtractor> mocked = Mockito.mockConstruction(DatabaseExtractor.class, (mock, context) -> {
             mo.set(mock);
@@ -149,7 +150,7 @@ class AbstractEntityPersisterInstrumentationTest {
     void updateOrInsertExitReplayThrowable() {
         MockResult mock = Mockito.mock(MockResult.class);
         Mockito.when(ContextManager.needReplay()).thenReturn(true);
-        Mockito.when(RepeatedCollectManager.exitAndValidate()).thenReturn(true);
+        Mockito.when(RepeatedCollectManager.exitAndValidate(anyString())).thenReturn(true);
         Throwable throwable = new Throwable();
         Mockito.doReturn(true).when(mock).notIgnoreMockResult();
         Mockito.doReturn(throwable).when(mock).getThrowable();
@@ -184,7 +185,7 @@ class AbstractEntityPersisterInstrumentationTest {
     @MethodSource("onDeleteExitCase")
     void onDeleteExit(Runnable recordType, Object mockResult) {
         AtomicReference<DatabaseExtractor> mo = new AtomicReference<>();
-        Mockito.when(RepeatedCollectManager.exitAndValidate()).thenReturn(true);
+        Mockito.when(RepeatedCollectManager.exitAndValidate(anyString())).thenReturn(true);
         Mockito.when(ContextManager.needRecord()).thenReturn(true);
         try (MockedConstruction<DatabaseExtractor> mocked = Mockito.mockConstruction(DatabaseExtractor.class, (mock, context) -> {
             mo.set(mock);
@@ -207,7 +208,7 @@ class AbstractEntityPersisterInstrumentationTest {
     void deleteExitReplayThrowable() {
         MockResult mock = Mockito.mock(MockResult.class);
         Mockito.when(ContextManager.needReplay()).thenReturn(true);
-        Mockito.when(RepeatedCollectManager.exitAndValidate()).thenReturn(true);
+        Mockito.when(RepeatedCollectManager.exitAndValidate(anyString())).thenReturn(true);
         Throwable throwable = new Throwable();
         Mockito.doReturn(true).when(mock).notIgnoreMockResult();
         Mockito.doReturn(throwable).when(mock).getThrowable();
