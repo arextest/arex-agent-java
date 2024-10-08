@@ -47,9 +47,10 @@ public class ApacheHttpClientHelper {
         if (!(httpRequest instanceof HttpUriRequest)) {
             return true;
         }
+        // multi app replay request should real call
         URI uri = ((HttpUriRequest) httpRequest).getURI();
-        String multiAppUrl = String.valueOf(ContextManager.getAttachment("arex-multi-app-url"));
-        if (multiAppUrl.contains(uri.getHost())) {
+        String multiAppUrl = ContextManager.getAttachment("arex-multi-app-url");
+        if (multiAppUrl != null && multiAppUrl.contains(uri.getHost())) {
             return true;
         }
 

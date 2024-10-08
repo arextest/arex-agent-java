@@ -101,10 +101,11 @@ public class ContextManager {
         }
     }
 
-    public static Object getAttachment(String key) {
+    @SuppressWarnings("unchecked")
+    public static <T> T getAttachment(String key) {
         ArexContext context = currentContext();
         if (context != null) {
-            return context.getAttachment(key);
+            return (T) context.getAttachment(key);
         }
         return null;
     }
