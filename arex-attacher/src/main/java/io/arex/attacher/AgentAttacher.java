@@ -1,7 +1,7 @@
 package io.arex.attacher;
 
-import com.sun.tools.attach.AgentLoadException;
-import com.sun.tools.attach.VirtualMachine;
+//import com.sun.tools.attach.AgentLoadException;
+//import com.sun.tools.attach.VirtualMachine;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -30,27 +30,27 @@ public class AgentAttacher {
         }
 
         try {
-            VirtualMachine virtualMachine = VirtualMachine.attach(pid);
-            try {
-                virtualMachine.loadAgent(agentPathAndOptions, additionalParam);
-            } catch (IOException e) {
-                if (e.getMessage() != null && e.getMessage().contains("Non-numeric value found")) {
-                    // expected behavior, it will be returned as error stream to the caller, if any
-                    System.out.println("It seems to use the lower version of JDK to attach " +
-                            "the higher version of JDK, but attach may still success");
-                } else {
-                    throw e;
-                }
-            } catch (AgentLoadException e) {
-                if ("0".equals(e.getMessage())) {
-                    // https://stackoverflow.com/a/54454418
-                    System.out.println("It seems to use the higher version of JDK to attach " +
-                            "the lower version of JDK, but attach may still success");
-                } else {
-                    throw e;
-                }
-            }
-            virtualMachine.detach();
+//            VirtualMachine virtualMachine = VirtualMachine.attach(pid);
+//            try {
+//                virtualMachine.loadAgent(agentPathAndOptions, additionalParam);
+//            } catch (IOException e) {
+//                if (e.getMessage() != null && e.getMessage().contains("Non-numeric value found")) {
+//                    // expected behavior, it will be returned as error stream to the caller, if any
+//                    System.out.println("It seems to use the lower version of JDK to attach " +
+//                            "the higher version of JDK, but attach may still success");
+//                } else {
+//                    throw e;
+//                }
+//            } catch (AgentLoadException e) {
+//                if ("0".equals(e.getMessage())) {
+//                    // https://stackoverflow.com/a/54454418
+//                    System.out.println("It seems to use the higher version of JDK to attach " +
+//                            "the lower version of JDK, but attach may still success");
+//                } else {
+//                    throw e;
+//                }
+//            }
+//            virtualMachine.detach();
         } catch (Throwable e) {
             // expected behavior, it will be returned as error stream to the caller, if any
             System.err.printf("agent attach failed, pid: %s, args: %s, error: %s%n",

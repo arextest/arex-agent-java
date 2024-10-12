@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
+import io.arex.agent.bootstrap.util.ReflectUtil;
 import io.arex.inst.httpservlet.SpringUtil;
 import io.arex.inst.httpservlet.wrapper.CachedBodyRequestWrapperV3;
 import io.arex.inst.httpservlet.wrapper.CachedBodyResponseWrapperV3;
@@ -36,6 +37,7 @@ class ServletAdapterImplV3Test {
 
     @BeforeAll
     static void setUp() {
+        Mockito.mockStatic(ReflectUtil.class);
         Mockito.mockStatic(SpringUtil.class);
     }
 

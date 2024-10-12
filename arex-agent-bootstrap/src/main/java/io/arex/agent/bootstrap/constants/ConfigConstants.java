@@ -46,4 +46,5 @@ public class ConfigConstants {
     public static final String API_TOKEN = "arex.api.token";
     public static final String MOCKER_TAGS = "arex.mocker.tags";
     public static final String LOG_PATH = "arex.log.path";
+    public static final String AREX_STATIC_CLASS_INIT = "arex.static.class.init";
 }

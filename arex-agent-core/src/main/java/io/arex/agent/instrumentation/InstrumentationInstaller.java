@@ -72,7 +72,21 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
             return;
         }
         IgnoreUtils.clearInvalidOperation();
-        resetClass(resetClassSet);
+        if (resettableClassFileTransformer != null) {
+            // The transformer must be removed before reset will take effect.
+            instrumentation.removeTransformer(resettableClassFileTransformer);
+        }
+        // TODO: optimize reset abstract class
+        for (Class<?> clazz : this.instrumentation.getAllLoadedClasses()) {
+            if (resetClassSet.contains(clazz.getName())) {
+                try {
+                    ClassReloadingStrategy.of(this.instrumentation).reset(clazz);
+                    LOGGER.info("[arex] retransform reset class successfully, name: {}", clazz.getName());
+                } catch (Exception e) {
+                    LOGGER.warn("[arex] retransform reset class failed, name: {}", clazz.getName(), e);
+                }
+            }
+        }
     }
 
     private void extensionTransform() {
@@ -193,24 +207,6 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
         return ConfigManager.INSTANCE.getRetransformModules().contains(moduleName);
     }
 
-    private void resetClass(Set<String> resetClassSet) {
-        if (resettableClassFileTransformer != null) {
-            // The transformer must be removed before reset will take effect.
-            instrumentation.removeTransformer(resettableClassFileTransformer);
-        }
-        // TODO: optimize reset abstract class
-        for (Class<?> clazz : this.instrumentation.getAllLoadedClasses()) {
-            if (resetClassSet.contains(clazz.getName())) {
-                try {
-                    ClassReloadingStrategy.of(this.instrumentation).reset(clazz);
-                    LOGGER.info("[arex] retransform reset class successfully, name: {}", clazz.getName());
-                } catch (Exception e) {
-                    LOGGER.warn("[arex] retransform reset class failed, name: {}", clazz.getName(), e);
-                }
-            }
-        }
-    }
-
     @Override
     public void transform(String moduleName, Set<String> instrumentTypeSet) {
         long start = System.currentTimeMillis();
@@ -235,7 +231,6 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
             }
         }
         if (transformModule != null) {
-            resetClass(instrumentTypeSet);
             transformModule.setInstrumentTypeSet(instrumentTypeSet);
             agentBuilder = installTypes(agentBuilder, transformModule, transformModule.instrumentationTypes());
             resettableClassFileTransformer = agentBuilder.installOn(this.instrumentation);

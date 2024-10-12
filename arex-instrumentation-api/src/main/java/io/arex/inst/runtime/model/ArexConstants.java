@@ -71,5 +71,6 @@ public class ArexConstants {
     public static final String MERGE_MOCKER_TYPE = "java.util.ArrayList-io.arex.agent.bootstrap.model.ArexMocker";
     public static final int DB_SQL_MAX_LEN = 5000;
     public static final String DISABLE_SQL_PARSE = "arex.disable.sql.parse";
+    public static final String SPRING_SCAN_PACKAGES = "arex.spring.scan.packages";
     public static final String REPLAY_FAIL_CONFIG_VERSION = "arex-replay-fail-config-version";
 }
