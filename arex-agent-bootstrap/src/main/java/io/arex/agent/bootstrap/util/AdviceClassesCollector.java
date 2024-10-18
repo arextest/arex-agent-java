@@ -121,6 +121,9 @@ public class AdviceClassesCollector {
         return locator.locate(name).resolve();
     }
 
+    public void appendToSystemClassLoaderSearch(String jarPackageName) {
+        appendToClassLoaderSearch(jarPackageName, null);
+    }
     public void appendToClassLoaderSearch(String jarPackageName, ClassLoader loader) {
         List<String> filePathList = THIRD_PARTY_NESTED_JARS_PATH_MAP.get(jarPackageName);
         if (CollectionUtil.isEmpty(filePathList)) {
@@ -130,7 +133,11 @@ public class AdviceClassesCollector {
             for (String filePath : filePathList) {
                 JarEntry jarEntry = agentJarFile.getJarEntry(filePath);
                 File extractNestedJar = JarUtils.extractNestedJar(agentJarFile, jarEntry, filePath);
-                JarUtils.appendToClassLoaderSearch(loader, extractNestedJar);
+                if (loader == null) {
+                    JarUtils.appendToSystemClassLoaderSearch(extractNestedJar);
+                }else{
+                    JarUtils.appendToClassLoaderSearch(loader, extractNestedJar);
+                }
             }
         } catch (Exception ex) {
             System.err.printf("appendToClassLoaderSearch failed, jarPackageName: %s%n", jarPackageName);
