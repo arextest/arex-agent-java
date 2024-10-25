@@ -47,6 +47,7 @@ public class Config {
     private final String recordVersion;
     private final Set<String> includeServiceOperations;
     private final Set<String> coveragePackages = new ConcurrentHashSet<>();
+    private final Map<String, String> mockerTags;
 
     Config(boolean enableDebug, String serviceName, List<DynamicClassEntity> dynamicClassList,
         Map<String, String> properties,
@@ -60,6 +61,7 @@ public class Config {
         this.recordRate = recordRate;
         this.recordVersion = properties.get("arex.agent.version");
         this.includeServiceOperations = StringUtil.splitToSet(properties.get("includeServiceOperations"), SEPARATOR);
+        this.mockerTags = StringUtil.asMap(System.getProperty(ConfigConstants.MOCKER_TAGS));
         buildCoveragePackages(properties);
         buildDynamicClassInfo();
     }
@@ -105,6 +107,10 @@ public class Config {
         }
         this.dynamicClassSignatureMap = map;
         this.dynamicAbstractClassList = list.toArray(StringUtil.EMPTY_STRING_ARRAY);
+    }
+
+    public Map<String, String> getMockerTags() {
+        return mockerTags;
     }
 
     public Set<String> getCoveragePackages() {

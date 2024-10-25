@@ -39,7 +39,6 @@ public class ArexMocker implements Mocker {
         this.categoryType = categoryType;
         this.appId = System.getProperty(ConfigConstants.SERVICE_NAME);
         this.recordVersion = System.getProperty(ConfigConstants.AGENT_VERSION);
-        this.tags = (Map<String, String>) System.getProperties().getOrDefault(ConfigConstants.MOCKER_TAGS, Collections.emptyMap());
     }
 
     /**
