@@ -11,7 +11,6 @@ import io.arex.foundation.util.httpclient.AsyncHttpClientUtil;
 import io.arex.foundation.util.NetUtils;
 import io.arex.agent.bootstrap.util.StringUtil;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -136,7 +135,7 @@ public class ConfigService {
             map.put(key, value);
             buildTags(mockerTags, key, value);
         }
-        properties.put(ConfigConstants.MOCKER_TAGS, Collections.unmodifiableMap(mockerTags));
+        System.setProperty(ConfigConstants.MOCKER_TAGS, StringUtil.mapToString(mockerTags));
         return map;
     }
 

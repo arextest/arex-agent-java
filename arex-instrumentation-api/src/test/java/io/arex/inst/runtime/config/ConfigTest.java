@@ -2,11 +2,14 @@ package io.arex.inst.runtime.config;
 
 import io.arex.agent.bootstrap.constants.ConfigConstants;
 import io.arex.agent.bootstrap.util.ConcurrentHashSet;
+import io.arex.agent.bootstrap.util.MapUtils;
+import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.context.RecordLimiter;
 import io.arex.inst.runtime.listener.EventProcessor;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.model.DynamicClassEntity;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
@@ -17,9 +20,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
+import java.util.Map;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -146,5 +149,19 @@ class ConfigTest {
         assertEquals("io.arex.inst.spring", Config.get().getCoveragePackages().iterator().next());
         System.clearProperty(ArexConstants.SPRING_SCAN_PACKAGES);
 
+    }
+
+    @Test
+    void arexMockerTags() {
+        ConfigBuilder configBuilder = ConfigBuilder.create("mock");
+        configBuilder.build();
+        assertTrue(MapUtils.isEmpty(Config.get().getMockerTags()));
+        Map<String, String> tags = new HashMap<>();
+        tags.put("key1", "value1");
+        tags.put("key2", "value2");
+        System.setProperty(ConfigConstants.MOCKER_TAGS, StringUtil.mapToString(tags));
+        configBuilder.build();
+        assertEquals("value1", Config.get().getMockerTags().get("key1"));
+        assertEquals("value2", Config.get().getMockerTags().get("key2"));
     }
 }
