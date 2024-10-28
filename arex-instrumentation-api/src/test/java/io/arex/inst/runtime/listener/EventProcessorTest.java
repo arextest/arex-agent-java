@@ -17,6 +17,7 @@ import io.arex.inst.runtime.log.Logger;
 import io.arex.inst.runtime.serializer.StringSerializable;
 import io.arex.agent.bootstrap.util.ServiceLoader;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 

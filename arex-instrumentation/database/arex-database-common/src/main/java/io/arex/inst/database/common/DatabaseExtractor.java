@@ -94,7 +94,7 @@ public class DatabaseExtractor {
 
     public MockResult replay(String serializer) {
         String serviceKey = StringUtil.defaultIfEmpty(this.dbName, ArexConstants.DATABASE);
-        String operationKey = DatabaseUtils.regenerateOperationName(serviceKey, this.methodName, this.sql);
+        String operationKey = DatabaseUtils.regenerateOperationName(this.dbName, this.methodName, this.sql);
         boolean ignoreMockResult = IgnoreUtils.ignoreMockResult(serviceKey, operationKey);
 
         Mocker replayMocker = MockUtils.replayMocker(makeMocker(null, serializer));
