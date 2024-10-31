@@ -1,5 +1,7 @@
 package io.arex.agent.bootstrap.ctx;
 
+import io.arex.agent.bootstrap.internal.CallDepth;
+
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -45,7 +47,11 @@ public class ArexThreadLocal<T> extends ThreadLocal<T> {
     }
 
     public T copyValue() {
-        return get();
+        T value = get();
+        if (value instanceof CallDepth) {
+            return (T) ((CallDepth) value).copy();
+        }
+        return value;
     }
 
     private static final ThreadLocal<WeakHashMap<ArexThreadLocal<Object>, ?>> holder =
@@ -76,7 +82,7 @@ public class ArexThreadLocal<T> extends ThreadLocal<T> {
 
         public static Object capture() {
             HashMap<ArexThreadLocal<Object>, Object> values = captureValues();
-            return values == null ? null : new Snapshot(captureValues());
+            return values == null ? null : new Snapshot(values);
         }
 
         private static HashMap<ArexThreadLocal<Object>, Object> captureValues() {

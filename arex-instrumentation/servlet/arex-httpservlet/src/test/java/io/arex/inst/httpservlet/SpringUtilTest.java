@@ -66,7 +66,6 @@ class SpringUtilTest {
 
         RequestMappingInfo matchMapping = Mockito.mock(RequestMappingInfo.class);
         PatternsRequestCondition patternsCondition = Mockito.mock(PatternsRequestCondition.class);
-
         Runnable emptyMocker = () -> {};
         Runnable mockApplicationContextInvoke = () -> {
             ApplicationContext applicationContext = Mockito.mock(ApplicationContext.class);

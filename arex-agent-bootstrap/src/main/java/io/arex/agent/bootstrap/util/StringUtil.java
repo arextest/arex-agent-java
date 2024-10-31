@@ -106,6 +106,20 @@ public class StringUtil {
         }
     }
 
+    public static String mapToString(Map<String, String> map) {
+        if (MapUtils.isEmpty(map)) {
+            return StringUtil.EMPTY;
+        }
+        StringBuilder stringBuilder = new StringBuilder();
+        for (Map.Entry<String, String> entry : map.entrySet()) {
+            stringBuilder.append(entry.getKey())
+                    .append("=")
+                    .append(entry.getValue())
+                    .append(";");
+        }
+        return stringBuilder.toString();
+    }
+
     public static Map<String, String> asMap(String content) {
         if (isEmpty(content)) {
             return Collections.emptyMap();

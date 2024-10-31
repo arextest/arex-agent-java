@@ -55,7 +55,7 @@
 
     <properties>
         <!-- Maven CI Friendly Versions https://maven.apache.org/maven-ci-friendly.html -->
-        <revision>0.5.1</revision>
+        <revision>0.4.8</revision>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 

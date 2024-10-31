@@ -79,4 +79,5 @@ public class ArexConstants {
     public static final String DISABLE_SQL_PARSE = "arex.disable.sql.parse";
     public static final String MATCH_LOG_TITLE = "replay.match";
     public static final String MOCKER_TARGET_TYPE = "io.arex.agent.bootstrap.model.Mocker$Target";
+    public static final String SPRING_SCAN_PACKAGES = "arex.spring.scan.packages";
 }
