@@ -66,20 +66,20 @@ class RedisTemplateProviderTest {
         Runnable mocker1 = () -> {
             Mockito.when(ContextManager.needRecord()).thenReturn(false);
             Mockito.when(ContextManager.needReplay()).thenReturn(true);
-            Mockito.when(RepeatedCollectManager.exitAndValidate()).thenReturn(false);
+            Mockito.when(RepeatedCollectManager.exitAndValidate(Mockito.anyString())).thenReturn(false);
         };
 
         // needRecord & not repeatEnter
         Runnable mocker2 = () -> {
             Mockito.mock(ContextManager.class);
-            Mockito.when(RepeatedCollectManager.exitAndValidate()).thenReturn(true);
+            Mockito.when(RepeatedCollectManager.exitAndValidate(Mockito.anyString())).thenReturn(true);
             Mockito.when(ContextManager.needReplay()).thenReturn(false);
             Mockito.when(ContextManager.needRecord()).thenReturn(true);
         };
 
         // needRecord & repeatEnter
         Runnable mocker3 = () -> {
-            Mockito.when(RepeatedCollectManager.exitAndValidate()).thenReturn(false);
+            Mockito.when(RepeatedCollectManager.exitAndValidate(Mockito.anyString())).thenReturn(false);
         };
 
         return Stream.of(arguments(mocker), arguments(mocker1), arguments(mocker2), arguments(mocker3));

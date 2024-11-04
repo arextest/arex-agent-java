@@ -72,7 +72,7 @@ public class ReadOperationInstrumentation extends TypeInstrumentation {
                 }
                 return;
             }
-            if (ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate()) {
+            if (ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate("mongo read operation repeat record.")) {
                 MongoHelper.record(thiz.getClass().getSimpleName(), namespace, filter, result, throwable);
             }
         }

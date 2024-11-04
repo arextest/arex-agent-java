@@ -82,7 +82,7 @@ public class InternalHttpClientInstrumentation extends TypeInstrumentation {
                 return;
             }
 
-            if (ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate()) {
+            if (ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate("apache httpclient repeat record")) {
                 if (throwable != null) {
                     extractor.record(throwable);
                 } else {

@@ -105,7 +105,7 @@ public class ExecutorInstrumentation extends TypeInstrumentation {
                 return;
             }
 
-            if (ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate()) {
+            if (ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate("mybatis query repeat record")) {
                 InternalExecutor.record(extractor, var2, result, throwable);
             }
         }
@@ -162,7 +162,7 @@ public class ExecutorInstrumentation extends TypeInstrumentation {
                 return;
             }
 
-            if (ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate()) {
+            if (ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate("mybatis update repeat record")) {
                 InternalExecutor.record(extractor, var1, var2, result, throwable);
             }
         }

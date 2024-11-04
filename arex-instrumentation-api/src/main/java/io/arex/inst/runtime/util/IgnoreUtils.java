@@ -66,7 +66,7 @@ public class IgnoreUtils {
         Set<String> excludeServiceOperations = Config.get().excludeServiceOperations();
         boolean isOperationMatched = operationMatched(targetName, excludeServiceOperations);
         if (isOperationMatched && ContextManager.needReplay()) {
-            LogManager.warn("replay.hitBlockList", StringUtil.format("Hit block list, target name: %s", targetName));
+            LogManager.info("replay.hitBlockList", StringUtil.format("Hit block list, target name: %s", targetName));
         }
         return isOperationMatched;
     }

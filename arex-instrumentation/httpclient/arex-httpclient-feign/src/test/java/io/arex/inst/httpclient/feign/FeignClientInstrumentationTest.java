@@ -94,7 +94,7 @@ class FeignClientInstrumentationTest {
 
         // record exception
         Mockito.when(ContextManager.needRecord()).thenReturn(true);
-        Mockito.when(RepeatedCollectManager.exitAndValidate()).thenReturn(true);
+        Mockito.when(RepeatedCollectManager.exitAndValidate(Mockito.anyString())).thenReturn(true);
         final FeignClientAdapter clientAdapter = Mockito.mock(FeignClientAdapter.class);
         final RuntimeException exception = new RuntimeException();
         FeignClientInstrumentation.ExecuteAdvice.onExit(clientAdapter, clientExtractor, null, null, exception);
