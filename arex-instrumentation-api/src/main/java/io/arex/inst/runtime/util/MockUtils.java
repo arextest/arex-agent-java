@@ -7,6 +7,9 @@ import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.model.Mocker.Target;
 import io.arex.agent.bootstrap.util.MapUtils;
 import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.inst.runtime.listener.CaseEvent;
+import io.arex.inst.runtime.listener.CaseEventDispatcher;
+import io.arex.inst.runtime.listener.EventSource;
 import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.ArexContext;
@@ -112,8 +115,9 @@ public final class MockUtils {
     }
 
     public static void executeRecord(List<Mocker> mockerList) {
-        if (Config.get().isEnableDebug()) {
-            for (Mocker mocker : mockerList) {
+        for (Mocker mocker : mockerList) {
+            CaseEventDispatcher.onEvent(CaseEvent.ofRecordEvent(EventSource.of(mocker)));
+            if (Config.get().isEnableDebug()) {
                 LogManager.info(mocker.recordLogTitle(), StringUtil.format("%s%nrequest: %s",
                         mocker.logBuilder().toString(), Serializer.serialize(mocker)));
             }
@@ -131,15 +135,19 @@ public final class MockUtils {
             return null;
         }
 
+        Mocker matchMocker;
         if (requestMocker.isNeedMerge()) {
-            Mocker matchMocker = ReplayMatcher.match(requestMocker, mockStrategy);
+            matchMocker = ReplayMatcher.match(requestMocker, mockStrategy);
             // compatible with old version(fixed case without merge)
             if (matchMocker != null) {
+                CaseEventDispatcher.onEvent(CaseEvent.ofReplayEvent(EventSource.of(matchMocker)));
                 return matchMocker;
             }
         }
 
-        return executeReplay(requestMocker, mockStrategy);
+        matchMocker = executeReplay(requestMocker, mockStrategy);
+        CaseEventDispatcher.onEvent(CaseEvent.ofReplayEvent(EventSource.of(matchMocker)));
+        return matchMocker;
     }
 
     public static Mocker executeReplay(Mocker requestMocker, MockStrategyEnum mockStrategy) {

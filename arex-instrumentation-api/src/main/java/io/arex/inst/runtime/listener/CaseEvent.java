@@ -13,6 +13,14 @@ public class CaseEvent extends EventObject {
          */
         CREATE,
         /*
+         * record a case
+         */
+        RECORD,
+        /*
+         * replay a case
+         */
+        REPLAY,
+        /*
          * Mainly used to clean up the trace of the current case on service exit
          */
         EXIT
@@ -39,5 +47,13 @@ public class CaseEvent extends EventObject {
 
     public CaseEvent.Action getAction() {
         return action;
+    }
+
+    public static CaseEvent ofRecordEvent(EventSource source) {
+        return new CaseEvent(source, Action.RECORD);
+    }
+
+    public static CaseEvent ofReplayEvent(EventSource source) {
+        return new CaseEvent(source, Action.REPLAY);
     }
 }

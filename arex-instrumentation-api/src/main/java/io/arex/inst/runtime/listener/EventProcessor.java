@@ -180,4 +180,12 @@ public class EventProcessor {
     private static void loadReplayData() {
         ReplayUtil.queryMockers();
     }
+
+    public static void onRecord(EventSource source){
+        EventListener.trigger((Mocker) source.getSource());
+    }
+
+    public static void onReplay(EventSource source){
+        EventListener.trigger((Mocker) source.getSource());
+    }
 }

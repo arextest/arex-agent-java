@@ -10,6 +10,12 @@ public class CaseEventDispatcher {
             case CREATE:
                 EventProcessor.onCreate((EventSource) event.getSource());
                 break;
+            case RECORD:
+                EventProcessor.onRecord((EventSource) event.getSource());
+                break;
+            case REPLAY:
+                EventProcessor.onReplay((EventSource) event.getSource());
+                break;
             case EXIT:
                 EventProcessor.onExit();
                 break;
