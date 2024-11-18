@@ -36,9 +36,8 @@ public class DatabaseUtils {
                 TableSchema tableSchema = JSqlParserUtil.parse(sql);
                 tableSchema.setDbName(dbName);
                 operationNames.add(regenerateOperationName(tableSchema, operationName));
-            } catch (Throwable e) {
-                // may be thrown error
-                LogManager.warn("parse sql error", StringUtil.format("sql: %s", sql), e);
+            } catch (Throwable ignore) {
+                // ignore parse failure
             }
         }
         if (CollectionUtil.isEmpty(operationNames)) {

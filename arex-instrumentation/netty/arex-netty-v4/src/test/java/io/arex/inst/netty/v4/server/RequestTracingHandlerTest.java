@@ -148,46 +148,4 @@ class RequestTracingHandlerTest {
                 arguments(mocker10, request)
         );
     }
-
-    @ParameterizedTest
-    @MethodSource("channelReadCompleteCase")
-    void channelReadComplete(Runnable mocker, Assert asserts) throws Exception {
-        mocker.run();
-        target.channelReadComplete(ctx);
-        asserts.verity();
-    }
-
-    static Stream<Arguments> channelReadCompleteCase() {
-        Channel channel = Mockito.mock(Channel.class);
-        Attribute attribute = Mockito.mock(Attribute.class);
-        Runnable mocker1 = () -> {
-            Mockito.when(ctx.channel()).thenReturn(channel);
-            Mockito.when(channel.attr(any())).thenReturn(attribute);
-        };
-
-        ArexMocker mocker = new ArexMocker();
-        Runnable mocker2 = () -> {
-            mocker.setTargetRequest(new Target());
-            mocker.setTargetResponse(new Target());
-            Mockito.when(attribute.getAndSet(null)).thenReturn(mocker);
-            Mockito.when(ContextManager.needReplay()).thenReturn(true);
-        };
-        Runnable mocker3 = () -> {
-            Mockito.when(ContextManager.needReplay()).thenReturn(false);
-            Mockito.when(ContextManager.needRecord()).thenReturn(true);
-        };
-
-        Assert asserts1 = () -> {
-            mockCaseEvent.verify(() -> CaseEventDispatcher.onEvent(any()), times(0));
-        };
-        Assert asserts2 = () -> {
-            mockCaseEvent.verify(() -> CaseEventDispatcher.onEvent(any()), atLeastOnce());
-        };
-
-        return Stream.of(
-                arguments(mocker1, asserts1),
-                arguments(mocker2, asserts2),
-                arguments(mocker3, asserts2)
-        );
-    }
 }

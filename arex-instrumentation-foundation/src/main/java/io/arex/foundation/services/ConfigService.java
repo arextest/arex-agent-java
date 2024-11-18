@@ -3,21 +3,19 @@ package io.arex.foundation.services;
 import com.google.gson.Gson;
 import io.arex.agent.bootstrap.constants.ConfigConstants;
 import io.arex.agent.bootstrap.util.MapUtils;
+import io.arex.foundation.logger.AgentLogger;
+import io.arex.foundation.logger.AgentLoggerFactory;
 import io.arex.foundation.model.*;
 import io.arex.foundation.config.ConfigManager;
 import io.arex.foundation.util.httpclient.AsyncHttpClientUtil;
 import io.arex.foundation.util.NetUtils;
 import io.arex.agent.bootstrap.util.StringUtil;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * ConfigService
@@ -27,7 +25,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ConfigService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ConfigService.class);
+    private static final AgentLogger LOGGER = AgentLoggerFactory.getAgentLogger(ConfigService.class);
     private static final Map<String, String> TAGS_PROPERTIES = new HashMap<>();
 
     public static final ConfigService INSTANCE = new ConfigService();
@@ -137,7 +135,7 @@ public class ConfigService {
             map.put(key, value);
             buildTags(mockerTags, key, value);
         }
-        properties.put(ConfigConstants.MOCKER_TAGS, Collections.unmodifiableMap(mockerTags));
+        System.setProperty(ConfigConstants.MOCKER_TAGS, StringUtil.mapToString(mockerTags));
         return map;
     }
 

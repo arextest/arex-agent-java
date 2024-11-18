@@ -1,6 +1,12 @@
 package io.arex.inst.runtime.model;
 
 public class ArexConstants {
+    public static final String HTTP_METHOD_HEAD = "HEAD";
+    public static final String HTTP_METHOD_OPTIONS = "OPTIONS";
+    public static final String HTTP_METHOD_GET = "GET";
+    public static final String HTTP_METHOD_POST = "POST";
+    public static final String HTTP_METHOD_PUT = "PUT";
+
     private ArexConstants() {}
 
     /**
@@ -65,6 +71,7 @@ public class ArexConstants {
     public static final String MERGE_MOCKER_TYPE = "java.util.ArrayList-io.arex.agent.bootstrap.model.ArexMocker";
     public static final int DB_SQL_MAX_LEN = 5000;
     public static final String DISABLE_SQL_PARSE = "arex.disable.sql.parse";
+    public static final String SPRING_SCAN_PACKAGES = "arex.spring.scan.packages";
     public static final String SERVER_APP_ID_PREFIX = "arex-server-app-id-";
     public static final String TRACE_ID = "arex-trace-id";
     public static final String CLIENT_APP_ID = "arex-client-app-id";

@@ -5,6 +5,7 @@ import io.arex.agent.bootstrap.util.ConcurrentHashSet;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.context.RecordLimiter;
 import io.arex.inst.runtime.listener.EventProcessor;
+import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.model.DynamicClassEntity;
 
 import java.util.ArrayList;
@@ -19,7 +20,7 @@ import static io.arex.agent.bootstrap.constants.ConfigConstants.STORAGE_MODE;
 import static io.arex.agent.bootstrap.constants.ConfigConstants.STORAGE_SERVICE_MODE;
 
 public class Config {
-
+    private static final char SEPARATOR = ',';
     private static Config INSTANCE = null;
 
     static void update(boolean enableDebug, String serviceName, List<DynamicClassEntity> dynamicClassList,
@@ -45,7 +46,8 @@ public class Config {
     private final int recordRate;
     private final String recordVersion;
     private final Set<String> includeServiceOperations;
-    private final String[] coveragePackages;
+    private final Set<String> coveragePackages = new ConcurrentHashSet<>();
+    private final Map<String, String> mockerTags;
 
     Config(boolean enableDebug, String serviceName, List<DynamicClassEntity> dynamicClassList,
         Map<String, String> properties,
@@ -58,9 +60,25 @@ public class Config {
         this.dubboStreamReplayThreshold = dubboStreamReplayThreshold;
         this.recordRate = recordRate;
         this.recordVersion = properties.get("arex.agent.version");
-        this.includeServiceOperations = StringUtil.splitToSet(properties.get("includeServiceOperations"), ',');
-        this.coveragePackages = StringUtil.split(properties.get(ConfigConstants.COVERAGE_PACKAGES), ',');
+        this.includeServiceOperations = StringUtil.splitToSet(properties.get("includeServiceOperations"), SEPARATOR);
+        this.mockerTags = StringUtil.asMap(System.getProperty(ConfigConstants.MOCKER_TAGS));
+        buildCoveragePackages(properties);
         buildDynamicClassInfo();
+    }
+
+    /**
+     * only no config coverage package, the coverage package is set to spring scan base packages
+     */
+    private void buildCoveragePackages(Map<String, String> properties) {
+        String configCoveragePackages = properties.get(ConfigConstants.COVERAGE_PACKAGES);
+        if (StringUtil.isNotEmpty(configCoveragePackages)) {
+            this.coveragePackages.addAll(StringUtil.splitToSet(configCoveragePackages, SEPARATOR));
+            return;
+        }
+        String scanBasePackages = System.getProperty(ArexConstants.SPRING_SCAN_PACKAGES);
+        if (StringUtil.isNotEmpty(scanBasePackages)) {
+            this.coveragePackages.addAll(StringUtil.splitToSet(scanBasePackages, SEPARATOR));
+        }
     }
 
     private Set<String> buildExcludeServiceOperations(Set<String> excludeServiceOperations) {
@@ -91,9 +109,14 @@ public class Config {
         this.dynamicAbstractClassList = list.toArray(StringUtil.EMPTY_STRING_ARRAY);
     }
 
-    public String[] getCoveragePackages() {
+    public Map<String, String> getMockerTags() {
+        return mockerTags;
+    }
+
+    public Set<String> getCoveragePackages() {
         return coveragePackages;
     }
+
     public String getRecordVersion() {
         return recordVersion;
     }

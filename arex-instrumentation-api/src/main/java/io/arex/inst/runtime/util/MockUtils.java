@@ -78,6 +78,7 @@ public final class MockUtils {
 
     public static ArexMocker create(MockCategoryType categoryType, String operationName) {
         ArexMocker mocker = new ArexMocker(categoryType);
+        mocker.setTags(Config.get().getMockerTags());
         long createTime = System.currentTimeMillis();
         ArexContext context = ContextManager.currentContext();
         if (context != null) {

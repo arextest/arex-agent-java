@@ -39,4 +39,10 @@ public class CallDepth {
     public int decrementAndGet() {
         return --this.depth;
     }
+
+    public CallDepth copy() {
+        CallDepth copy = new CallDepth();
+        copy.depth = this.depth;
+        return copy;
+    }
 }
