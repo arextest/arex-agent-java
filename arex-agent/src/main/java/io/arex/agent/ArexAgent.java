@@ -41,7 +41,6 @@ public class ArexAgent {
             installBootstrapJar(inst);
             AgentInitializer.initialize(inst, getJarFile(ArexAgent.class), agentArgs, ArexAgent.class.getClassLoader());
         } catch (Exception ex) {
-            ex.printStackTrace();
             System.out.printf("%s [AREX] Agent initialize error, stacktrace: %s%n", getCurrentTime(), ex);
         }
     }
