@@ -148,4 +148,8 @@ public interface Mocker extends Serializable {
     String getDependRecordId();
 
     void setDependRecordId(String dependRecordId);
+
+    String getMultiRecordApps();
+
+    void setMultiRecordApps(String multiRecordApps);
 }

@@ -65,4 +65,8 @@ public class ArexConstants {
     public static final String MERGE_MOCKER_TYPE = "java.util.ArrayList-io.arex.agent.bootstrap.model.ArexMocker";
     public static final int DB_SQL_MAX_LEN = 5000;
     public static final String DISABLE_SQL_PARSE = "arex.disable.sql.parse";
+    public static final String SERVER_APP_ID_PREFIX = "arex-server-app-id-";
+    public static final String TRACE_ID = "arex-trace-id";
+    public static final String CLIENT_APP_ID = "arex-client-app-id";
+    public static final String MULTI_APP_CASE = "arex-multi-app-case";
 }

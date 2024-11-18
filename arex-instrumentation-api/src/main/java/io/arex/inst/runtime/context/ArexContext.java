@@ -180,4 +180,8 @@ public class ArexContext {
             mergeRecordQueue.clear();
         }
     }
+
+    public Map<String, Object> getAttachments() {
+        return attachments;
+    }
 }

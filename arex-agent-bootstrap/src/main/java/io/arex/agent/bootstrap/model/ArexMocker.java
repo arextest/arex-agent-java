@@ -33,6 +33,7 @@ public class ArexMocker implements Mocker {
     private String clientAppId;
     private boolean multiAppCase;
     private String dependRecordId;
+    private String multiRecordApps;
 
     /**
      * The default constructor is for deserialization
@@ -215,5 +216,13 @@ public class ArexMocker implements Mocker {
 
     public void setDependRecordId(String dependRecordId) {
         this.dependRecordId = dependRecordId;
+    }
+
+    public String getMultiRecordApps() {
+        return multiRecordApps;
+    }
+
+    public void setMultiRecordApps(String multiRecordApps) {
+        this.multiRecordApps = multiRecordApps;
     }
 }

@@ -109,4 +109,12 @@ public class ContextManager {
         }
         return null;
     }
+
+    public static Map<String, Object> getAttachments() {
+        ArexContext context = currentContext();
+        if (context != null) {
+            return context.getAttachments();
+        }
+        return null;
+    }
 }
