@@ -694,4 +694,15 @@ public class StringUtil {
         }
         return str.substring(pos + separator.length());
     }
+
+    public static int ordinalIndexOf(String source, char target, int n) {
+        int index = -1;
+        for (int i = 0; i < n; i++) {
+            index = source.indexOf(target, index + 1);
+            if (index == -1) {
+                break;
+            }
+        }
+        return index;
+    }
 }

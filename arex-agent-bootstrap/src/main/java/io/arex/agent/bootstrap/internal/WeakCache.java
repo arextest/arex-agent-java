@@ -50,6 +50,11 @@ public class WeakCache<K, V> extends ReferenceQueue<K> implements Cache<K, V> {
         return target.containsKey(new WeakReferenceKey<>(key));
     }
 
+    public V remove(K key) {
+        check();
+        return target.remove(new WeakReferenceKey<>(key, this));
+    }
+
     void check() {
         Reference<?> reference;
         while ((reference = poll()) != null) {

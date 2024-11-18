@@ -35,6 +35,7 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
     private static final AgentLogger LOGGER = AgentLoggerFactory.getAgentLogger(InstrumentationInstaller.class);
     private ModuleInstrumentation dynamicModule;
     private ResettableClassFileTransformer resettableClassFileTransformer;
+    private static List<ModuleInstrumentation> moduleInstrumentationlist;
 
     public InstrumentationInstaller(Instrumentation inst, File agentFile, String agentArgs) {
         super(inst, agentFile, agentArgs);
@@ -107,9 +108,9 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
     }
 
     private ResettableClassFileTransformer install(AgentBuilder builder, boolean retransform) {
-        List<ModuleInstrumentation> list = ServiceLoader.load(ModuleInstrumentation.class);
+        moduleInstrumentationlist = ServiceLoader.load(ModuleInstrumentation.class);
 
-        for (ModuleInstrumentation module : list) {
+        for (ModuleInstrumentation module : moduleInstrumentationlist) {
             builder = installModule(builder, module, retransform);
         }
 
@@ -204,5 +205,37 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
 
     private boolean retranformModule(String moduleName) {
         return ConfigManager.INSTANCE.getRetransformModules().contains(moduleName);
+    }
+
+    @Override
+    public void transform(String moduleName, Set<String> instrumentTypeSet) {
+        long start = System.currentTimeMillis();
+        AgentBuilder agentBuilder = new AgentBuilder.Default(
+                new ByteBuddy().with(MethodGraph.Compiler.ForDeclaredMethods.INSTANCE))
+                .disableClassFormatChanges()
+                .ignore(new IgnoredRawMatcher(ConfigManager.INSTANCE.getIgnoreTypePrefixes(),
+                        ConfigManager.INSTANCE.getIgnoreClassLoaderPrefixes()))
+                .with(new TransformListener())
+                .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
+                .with(AgentBuilder.InitializationStrategy.NoOp.INSTANCE)
+                // for advice anonymous class method\lambda method\method reference
+                .with(AgentBuilder.TypeStrategy.Default.DECORATE)
+                .with(AgentBuilder.LocationStrategy.ForClassLoader.STRONG
+                        .withFallbackTo(ClassFileLocator.ForClassLoader.ofSystemLoader()));
+
+        ModuleInstrumentation transformModule = null;
+        for (ModuleInstrumentation module : moduleInstrumentationlist) {
+            if (moduleName.equals(module.getName())) {
+                transformModule = module;
+                break;
+            }
+        }
+        if (transformModule != null) {
+            transformModule.setInstrumentTypeSet(instrumentTypeSet);
+            agentBuilder = installTypes(agentBuilder, transformModule, transformModule.instrumentationTypes());
+            resettableClassFileTransformer = agentBuilder.installOn(this.instrumentation);
+            long end = (System.currentTimeMillis() - start);
+            LOGGER.info("[arex] transform instrumentation module: {}, cost: {} ms", moduleName, String.valueOf(end));
+        }
     }
 }

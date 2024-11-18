@@ -85,6 +85,8 @@ public class ServletExtractor<HttpServletRequest, HttpServletResponse> {
         if (ContextManager.needReplay()) {
             adapter.setResponseHeader(httpServletResponse, ArexConstants.REPLAY_ID,
                     ContextManager.currentContext().getReplayId());
+            adapter.setResponseHeader(httpServletResponse, ArexConstants.REPLAY_FAIL_CONFIG_VERSION,
+                    String.valueOf(ContextManager.getAttachment(ArexConstants.REPLAY_FAIL_CONFIG_VERSION)));
         }
     }
 

@@ -147,8 +147,43 @@ public class ReflectUtil {
             return method.invoke(instance, args);
         } catch (Exception e) {
             return null;
+        }
+    }
+
+    public static Field getField(Class<?> clazz, String fieldName) {
+        try {
+            return clazz.getDeclaredField(fieldName);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public static <T> T getFieldValue(Field field, Object instance) {
+        try {
+            field.setAccessible(true);
+            return (T) field.get(instance);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public static void setFieldValue(Field field, Object instance, Object value) {
+        try {
+            field.setAccessible(true);
+            field.set(instance, value);
+        } catch (Exception e) {
+            // ignore
+        }
+    }
+
+    public static Object newInstance(Constructor<?> constructor, Object ... args) {
+        try {
+            constructor.setAccessible(true);
+            return constructor.newInstance(args);
+        } catch (Exception ignore) {
+            return null;
         } finally {
-            method.setAccessible(false);
+            constructor.setAccessible(false);
         }
     }
 }

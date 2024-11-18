@@ -72,6 +72,8 @@ public class ArexConstants {
     public static final int DB_SQL_MAX_LEN = 5000;
     public static final String DISABLE_SQL_PARSE = "arex.disable.sql.parse";
     public static final String SPRING_SCAN_PACKAGES = "arex.spring.scan.packages";
+    public static final String REPLAY_FAIL_CONFIG_VERSION = "arex-replay-fail-config-version";
+    public static final String SERVLET_CONTEXT = "arex-servlet-context";
     public static final String SERVER_APP_ID_PREFIX = "arex-server-app-id-";
     public static final String TRACE_ID = "arex-trace-id";
     public static final String CLIENT_APP_ID = "arex-client-app-id";

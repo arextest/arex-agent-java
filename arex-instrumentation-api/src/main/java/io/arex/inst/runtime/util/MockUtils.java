@@ -25,6 +25,8 @@ public final class MockUtils {
 
     private static final String EMPTY_JSON = "{}";
 
+    private static final String EMPTY_ARRAY = "[]";
+
     private MockUtils() {
     }
 
@@ -237,7 +239,7 @@ public final class MockUtils {
         long startTime = System.currentTimeMillis();
         String data = DataService.INSTANCE.queryAll(postJson);
         String cost = String.valueOf(System.currentTimeMillis() - startTime);
-        if (StringUtil.isEmpty(data) || EMPTY_JSON.equals(data)) {
+        if (StringUtil.isEmpty(data) || EMPTY_JSON.equals(data) || EMPTY_ARRAY.equals(data)) {
             LogManager.warn(requestMocker.replayLogTitle(),
                     StringUtil.format("cost: %s ms%nrequest: %s%nresponse is null.", cost, postJson));
             return null;
