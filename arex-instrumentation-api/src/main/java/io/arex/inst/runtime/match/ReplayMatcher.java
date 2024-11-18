@@ -1,5 +1,6 @@
 package io.arex.inst.runtime.match;
 
+import io.arex.agent.bootstrap.model.MockCategoryType;
 import io.arex.agent.bootstrap.model.MockStrategyEnum;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.CollectionUtil;
@@ -47,21 +48,44 @@ public class ReplayMatcher {
     private static void doMatch(MatchStrategyContext context) {
         Mocker requestMocker = context.getRequestMocker();
         Map<Integer, List<Mocker>> cachedReplayResultMap = ContextManager.currentContext().getCachedReplayResultMap();
-        // first fuzzy match, such as: category + operationName + requestType, ensure the same method
-        requestMocker.setFuzzyMatchKey(MatchKeyFactory.INSTANCE.getFuzzyMatchKey(requestMocker));
-        List<Mocker> recordList = cachedReplayResultMap.get(requestMocker.getFuzzyMatchKey());
+        // pre match for all mocker category type
+        List<Mocker> recordList = preMatch(context, requestMocker, cachedReplayResultMap);
         if (CollectionUtil.isEmpty(recordList)) {
-            context.setReason("match no result, not exist this method signature, check if it has been recorded");
             return;
         }
         context.setRecordList(recordList);
         int fuzzyMatchResultCount = recordList.size();
         List<AbstractMatchStrategy> matchStrategyList = MatchStrategyRegister.getMatchStrategies(requestMocker, fuzzyMatchResultCount);
+        // multi thread match safe
         synchronized (cachedReplayResultMap) {
             for (AbstractMatchStrategy matchStrategy : matchStrategyList) {
                 matchStrategy.match(context);
             }
         }
+    }
+
+    private static List<Mocker> preMatch(MatchStrategyContext context, Mocker requestMocker, Map<Integer, List<Mocker>> cachedReplayResultMap) {
+        // first match, such as: category + operationName + requestType, ensure the same method
+        requestMocker.setFuzzyMatchKey(MatchKeyFactory.INSTANCE.getFuzzyMatchKey(requestMocker));
+        List<Mocker> recordList = cachedReplayResultMap.get(requestMocker.getFuzzyMatchKey());
+        recordList = compatibleNoRequestType(recordList, cachedReplayResultMap, requestMocker);
+        if (CollectionUtil.isEmpty(recordList)) {
+            context.setReason("match no result, not exist this method signature, check if it has been recorded or request type is empty");
+        }
+        return recordList;
+    }
+
+    private static List<Mocker> compatibleNoRequestType(List<Mocker> recordList, Map<Integer, List<Mocker>> cachedReplayResultMap, Mocker requestMocker) {
+        if (CollectionUtil.isEmpty(recordList)) {
+            String categoryType = requestMocker.getCategoryType().getName();
+            if (MockCategoryType.DYNAMIC_CLASS.getName().equals(categoryType) || MockCategoryType.REDIS.getName().equals(categoryType)) {
+                // dynamic class or redis may not record requestType on old version
+                requestMocker.getTargetRequest().setType(null);
+                requestMocker.setFuzzyMatchKey(MatchKeyFactory.INSTANCE.getFuzzyMatchKey(requestMocker));
+                return cachedReplayResultMap.get(requestMocker.getFuzzyMatchKey());
+            }
+        }
+        return recordList;
     }
 
     private static void logMatchResult(MatchStrategyContext context) {

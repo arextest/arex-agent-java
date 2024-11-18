@@ -160,16 +160,32 @@ public class ReplayUtil {
             if (recordMocker == null) {
                 continue;
             }
+            // compatible with fixed case, set operationName for database mocker
+            compatibleFixedCase(recordMocker);
+
             // replay match need methodRequestTypeHash and methodSignatureHash
             if (recordMocker.getFuzzyMatchKey() == 0) {
                 recordMocker.setFuzzyMatchKey(MatchKeyFactory.INSTANCE.getFuzzyMatchKey(recordMocker));
             }
+            // fuzzyMatchKey and accurateMatchKey maybe not 0 on old merge record(methodRequestTypeHash、methodSignatureHash)
             if (recordMocker.getAccurateMatchKey() == 0) {
                 recordMocker.setAccurateMatchKey(MatchKeyFactory.INSTANCE.getAccurateMatchKey(recordMocker));
             }
+
             // eigen will be calculated in agent
             recordMocker.setEigenMap(null);
             cachedReplayResultMap.computeIfAbsent(recordMocker.getFuzzyMatchKey(), k -> new ArrayList<>()).add(recordMocker);
+        }
+    }
+
+    private static void compatibleFixedCase(Mocker mocker) {
+        String categoryType = mocker.getCategoryType().getName();
+        if (MockCategoryType.DATABASE.getName().equals(categoryType)) {
+            String dbName = mocker.getTargetRequest().attributeAsString(ArexConstants.DB_NAME);
+            String sql = mocker.getTargetRequest().getBody();
+            // if operationName contains '@' then not need to regenerate
+            String operationName = DatabaseUtils.regenerateOperationName(StringUtil.defaultString(dbName), mocker.getOperationName(), sql);
+            mocker.setOperationName(operationName);
         }
     }
 
