@@ -14,10 +14,12 @@ import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.match.ReplayMatcher;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.model.QueryAllMockerDTO;
+import io.arex.inst.runtime.model.ReplayCompareResultDTO;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.service.DataService;
 import io.arex.inst.runtime.util.sizeof.AgentSizeOf;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -133,14 +135,11 @@ public final class MockUtils {
             return null;
         }
 
-        if (requestMocker.isNeedMerge()) {
-            Mocker matchMocker = ReplayMatcher.match(requestMocker, mockStrategy);
-            // compatible with old version(fixed case without merge)
-            if (matchMocker != null) {
-                return matchMocker;
-            }
+        if (isNotConfigFile(requestMocker.getCategoryType())) {
+            return ReplayMatcher.match(requestMocker, mockStrategy);
         }
 
+        // direct replay not depends on cache(ContextManager.currentContext().cachedReplayResultMap), eg:config file
         return executeReplay(requestMocker, mockStrategy);
     }
 
@@ -218,19 +217,6 @@ public final class MockUtils {
         return true;
     }
 
-    public static int methodSignatureHash(Mocker requestMocker) {
-        return StringUtil.encodeAndHash(String.format("%s_%s",
-                requestMocker.getOperationName(),
-                requestMocker.getTargetRequest().getBody()));
-    }
-
-    public static int methodRequestTypeHash(Mocker requestMocker) {
-        return StringUtil.encodeAndHash(String.format("%s_%s_%s",
-                requestMocker.getCategoryType().getName(),
-                requestMocker.getOperationName(),
-                requestMocker.getTargetRequest().getType()));
-    }
-
     /**
      * get all mockers under current one case
      */
@@ -240,8 +226,7 @@ public final class MockUtils {
         String data = DataService.INSTANCE.queryAll(postJson);
         String cost = String.valueOf(System.currentTimeMillis() - startTime);
         if (StringUtil.isEmpty(data) || EMPTY_JSON.equals(data) || EMPTY_ARRAY.equals(data)) {
-            LogManager.warn(requestMocker.replayLogTitle(),
-                    StringUtil.format("cost: %s ms%nrequest: %s%nresponse is null.", cost, postJson));
+            LogManager.warn(requestMocker.replayLogTitle(), StringUtil.format("response is null. cost: %s ms, request: %s", cost, postJson));
             return null;
         }
         String message = StringUtil.format("cost: %s ms%nrequest: %s", cost, postJson);
@@ -250,7 +235,17 @@ public final class MockUtils {
         }
         LogManager.info(requestMocker.replayLogTitle(), message);
 
-        return Serializer.deserialize(data, ArexConstants.MERGE_MOCKER_TYPE);
+        return Serializer.deserialize(data, ArexConstants.MOCKER_TYPE);
+    }
+
+    public static void saveReplayCompareResult(ArexContext context, List<ReplayCompareResultDTO> replayCompareList) {
+        String postData = Serializer.serialize(replayCompareList);
+        String message = StringUtil.format("compare count: %s", String.valueOf(replayCompareList.size()));
+        if (Config.get().isEnableDebug()) {
+            message = StringUtil.format(message + "%nrequest: %s", postData);
+        }
+        LogManager.info(context, "saveReplayCompareResult", message);
+        DataService.INSTANCE.saveReplayCompareResult(postData);
     }
 
     private static boolean enableMergeRecord() {

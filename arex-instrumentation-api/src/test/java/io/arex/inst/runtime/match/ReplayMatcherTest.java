@@ -7,6 +7,7 @@ import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
+import io.arex.inst.runtime.match.strategy.AccurateMatchStrategy;
 import io.arex.inst.runtime.util.MockUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -17,6 +18,7 @@ import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 
 class ReplayMatcherTest {
 
@@ -46,15 +48,12 @@ class ReplayMatcherTest {
         Mockito.when(context.getCachedReplayResultMap()).thenReturn(cachedReplayResultMap);
         assertNull(ReplayMatcher.match(requestMocker, MockStrategyEnum.FIND_LAST));
 
-        Mockito.when(MockUtils.methodRequestTypeHash(requestMocker)).thenReturn(1);
+//        Mockito.when(MockUtils.methodRequestTypeHash(requestMocker)).thenReturn(1);
         List<Mocker> mergeReplayList = new ArrayList<>();
         mergeReplayList.add(new ArexMocker());
         cachedReplayResultMap.put(1, mergeReplayList);
-        Mockito.when(MatchStrategyRegister.getMatchStrategies(any())).thenReturn(Collections.singletonList(new AccurateMatchStrategy()));
+        Mockito.when(MatchStrategyRegister.getMatchStrategies(any(), anyInt())).thenReturn(Collections.singletonList(new AccurateMatchStrategy()));
         Mockito.when(Config.get().isEnableDebug()).thenReturn(true);
-        assertNull(ReplayMatcher.match(requestMocker, MockStrategyEnum.FIND_LAST));
-        // match no result, not exist this method signature
-        Mockito.when(MockUtils.methodRequestTypeHash(requestMocker)).thenReturn(2);
         assertNull(ReplayMatcher.match(requestMocker, MockStrategyEnum.FIND_LAST));
     }
 }

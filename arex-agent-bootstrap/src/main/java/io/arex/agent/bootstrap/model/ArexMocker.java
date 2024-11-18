@@ -16,18 +16,16 @@ public class ArexMocker implements Mocker {
     private long creationTime;
     private Mocker.Target targetRequest;
     private Mocker.Target targetResponse;
-    private transient boolean needMerge;
     private String operationName;
-    private Map<String, String> tags;
+    private transient boolean needMerge;
     private final transient AtomicBoolean matched = new AtomicBoolean(false);
-    /**
-     * replay match need
-     */
     private transient int fuzzyMatchKey;
-    /**
-     * replay match need
-     */
     private transient int accurateMatchKey;
+    private transient Map<Integer, Long> eigenMap;
+    private Map<String, String> tags;
+
+    private transient String request;
+    private transient String response;
 
     private String traceId;
     private String clientAppId;
@@ -109,6 +107,7 @@ public class ArexMocker implements Mocker {
         return this.operationName;
     }
 
+
     public void setId(String id) {
         this.id = id;
     }
@@ -183,6 +182,32 @@ public class ArexMocker implements Mocker {
     @Override
     public void setFuzzyMatchKey(int fuzzyMatchKey) {
         this.fuzzyMatchKey = fuzzyMatchKey;
+    }
+
+    @Override
+    public Map<Integer, Long> getEigenMap() {
+        return eigenMap;
+    }
+
+    @Override
+    public void setEigenMap(Map<Integer, Long> eigenMap) {
+        this.eigenMap = eigenMap;
+    }
+
+    public String getRequest() {
+        return request;
+    }
+
+    public void setRequest(String request) {
+        this.request = request;
+    }
+
+    public String getResponse() {
+        return response;
+    }
+
+    public void setResponse(String response) {
+        this.response = response;
     }
 
     public String getTraceId() {

@@ -7,7 +7,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import io.arex.agent.bootstrap.model.ArexMocker;
 import io.arex.agent.bootstrap.model.MockCategoryType;
 import io.arex.agent.bootstrap.model.Mocker;
-import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.config.ConfigBuilder;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
@@ -15,7 +14,6 @@ import io.arex.inst.runtime.listener.EventProcessorTest.TestGsonSerializer;
 import io.arex.inst.runtime.listener.EventProcessorTest.TestJacksonSerializable;
 import io.arex.inst.runtime.match.ReplayMatcher;
 import io.arex.inst.runtime.model.ArexConstants;
-import io.arex.inst.runtime.model.QueryAllMockerDTO;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.serializer.StringSerializable;
 import io.arex.inst.runtime.service.DataCollector;
@@ -38,12 +36,6 @@ class MockUtilsTest {
         Mockito.mockStatic(CaseManager.class);
 
         configBuilder = ConfigBuilder.create("test");
-
-        Mockito.mockStatic(Config.class);
-        Config config = Mockito.mock(Config.class);
-        Mockito.when(Config.get()).thenReturn(config);
-        Mockito.when(config.isEnableDebug()).thenReturn(true);
-
         dataCollector = Mockito.mock(DataCollector.class);
         DataService.setDataCollector(Collections.singletonList(dataCollector));
 
@@ -187,34 +179,5 @@ class MockUtilsTest {
 
         actualResult = MockUtils.createNettyProvider("query");
         assertEquals(MockCategoryType.NETTY_PROVIDER, actualResult.getCategoryType());
-    }
-
-    @Test
-    void methodSignatureHash() {
-        ArexMocker mocker = new ArexMocker();
-        mocker.setTargetRequest(new Mocker.Target());
-        mocker.getTargetRequest().setBody("mock");
-        assertTrue(MockUtils.methodSignatureHash(mocker) > 0);
-    }
-
-    @Test
-    void methodRequestTypeHash() {
-        ArexMocker mocker = new ArexMocker(MockCategoryType.DYNAMIC_CLASS);
-        mocker.setTargetRequest(new Mocker.Target());
-        mocker.getTargetRequest().setBody("mock");
-        assertTrue(MockUtils.methodRequestTypeHash(mocker) > 0);
-    }
-
-    @Test
-    void queryMockers() {
-        QueryAllMockerDTO requestMocker = new QueryAllMockerDTO();
-        requestMocker.setRecordId("mock");
-        requestMocker.setReplayId("mock");
-        MockUtils.queryMockers(requestMocker);
-
-        String responseJson = "{\"categoryType\":{\"name\":\"DynamicClass\"},\"recordId\":\"mock\"," +
-                "\"operationName\":\"java.lang.System.currentTimeMillis\"}";
-        Mockito.when(dataCollector.queryAll(any())).thenReturn(responseJson);
-        MockUtils.queryMockers(requestMocker);
     }
 }

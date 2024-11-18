@@ -1,10 +1,8 @@
 package io.arex.inst.runtime.match;
 
+import io.arex.inst.runtime.match.strategy.EigenMatchStrategy;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class EigenMatchStrategyTest {
     static EigenMatchStrategy eigenMatchStrategy;

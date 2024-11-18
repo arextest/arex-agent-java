@@ -4,6 +4,7 @@ import com.google.auto.service.AutoService;
 import io.arex.agent.bootstrap.model.ArexMocker;
 import io.arex.agent.bootstrap.model.MockStrategyEnum;
 import io.arex.agent.bootstrap.model.Mocker;
+import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.agent.bootstrap.util.MapUtils;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.foundation.config.ConfigManager;
@@ -15,7 +16,9 @@ import io.arex.foundation.util.httpclient.AsyncHttpClientUtil;
 import io.arex.foundation.model.HttpClientResponse;
 import io.arex.foundation.util.httpclient.async.ThreadFactoryImpl;
 import io.arex.inst.runtime.log.LogManager;
+import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.model.QueryAllMockerDTO;
+import io.arex.inst.runtime.model.ReplayCompareResultDTO;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.util.CaseManager;
 import io.arex.inst.runtime.service.DataCollector;
@@ -47,6 +50,7 @@ public class DataCollectorService implements DataCollector {
     private static String saveApiUrl;
     private static String invalidCaseApiUrl;
     private static String queryAllApiUrl;
+    private static String batchSaveReplayResult;
 
     static {
         initServiceHost();
@@ -134,7 +138,7 @@ public class DataCollectorService implements DataCollector {
             return;
         }
         AsyncHttpClientUtil.postAsyncWithZstdJson(saveApiUrl, entity.getPostData(), null)
-                .whenComplete(saveMockDataConsumer(entity));
+            .whenComplete(saveMockDataConsumer(entity));
     }
 
     /**
@@ -187,7 +191,8 @@ public class DataCollectorService implements DataCollector {
         queryApiUrl = String.format("http://%s/api/storage/record/query", storeServiceHost);
         saveApiUrl = String.format("http://%s/api/storage/record/batchSaveMockers", storeServiceHost);
         invalidCaseApiUrl = String.format("http://%s/api/storage/record/invalidCase", storeServiceHost);
-        queryAllApiUrl = String.format("http://%s/api/storage/record/queryMockers", storeServiceHost);
+        queryAllApiUrl = String.format("http://%s/api/storage/record/batchQueryMockers", storeServiceHost);
+        batchSaveReplayResult = String.format("http://%s/api/storage/record/batchSaveReplayResult", storeServiceHost);
     }
 
     @Override
@@ -208,11 +213,33 @@ public class DataCollectorService implements DataCollector {
                 QueryAllMockerDTO mocker = Serializer.deserialize(postData, QueryAllMockerDTO.class);
                 if (mocker != null) {
                     CaseManager.invalid(mocker.getRecordId(), mocker.getReplayId(),
-                            "queryAllMockers", DecelerateReasonEnum.SERVICE_EXCEPTION.getValue());
+                            "batchQueryMockers", DecelerateReasonEnum.SERVICE_EXCEPTION.getValue());
                 }
                 return null;
             }
             return response;
+        };
+    }
+
+    @Override
+    public void saveReplayCompareResult(String postData) {
+        System.out.println("arex.saveReplayCompareResult: " + postData);
+        AsyncHttpClientUtil.postAsyncWithZstdJson(batchSaveReplayResult, postData, null)
+                .whenComplete(saveReplayCompareConsumer(postData));
+    }
+
+    private <T> BiConsumer<T, Throwable> saveReplayCompareConsumer(String postData) {
+        return (response, throwable) -> {
+            if (Objects.nonNull(throwable)) {
+                List<ReplayCompareResultDTO> replayCompareList = Serializer.deserialize(postData, ArexConstants.REPLAY_COMPARE_TYPE);
+                if (CollectionUtil.isNotEmpty(replayCompareList)) {
+                    CaseManager.invalid(replayCompareList.get(0).getRecordId(), replayCompareList.get(0).getReplayId(),
+                            "saveReplayCompareResult", DecelerateReasonEnum.SERVICE_EXCEPTION.getValue());
+                }
+                LogManager.warn("saveReplayCompareResult", throwable);
+            } else {
+                LogManager.info("saveReplayCompareResult.response", StringUtil.format("response: %s", Serializer.serialize(response)));
+            }
         };
     }
 

@@ -5,7 +5,6 @@ import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.agent.thirdparty.util.sqlparser.JSqlParserUtil;
 import io.arex.agent.thirdparty.util.sqlparser.TableSchema;
 import io.arex.inst.runtime.config.Config;
-import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.model.ArexConstants;
 
 import java.util.*;
@@ -14,12 +13,52 @@ public class DatabaseUtils {
 
     private static final String DELIMITER = "@";
 
+    public static String parseDbName(String operationName, String dbName) {
+        if (StringUtil.isNotEmpty(dbName)) {
+            return dbName;
+        }
+
+        if (StringUtil.isEmpty(operationName)) {
+            return operationName;
+        }
+        int index = operationName.indexOf('@');
+        if (index == -1) {
+            return operationName;
+        }
+        return operationName.substring(0, index);
+    }
+
+    /**
+     * @param operationName eg: db1@table1,table2@select@operation1;db2@table3,table4@select@operation2;
+     * @return tableNames eg: ["table1,table2", "table3,table4"]
+     */
+    public static List<String> parseTableNames(String operationName) {
+        if (StringUtil.isEmpty(operationName)) {
+            return Collections.emptyList();
+        }
+        int countMatches = StringUtil.countMatches(operationName, "@");
+        if (countMatches < 2) {
+            return Collections.emptyList();
+        }
+
+        String[] operations = StringUtil.split(operationName, ';');
+        List<String> tableList = new ArrayList<>(operations.length);
+        for (String operation : operations) {
+            String[] subOperation = StringUtil.split(operation, '@', true);
+            if (subOperation.length < 2 || StringUtil.isEmpty(subOperation[1])) {
+                continue;
+            }
+            tableList.add(subOperation[1]);
+        }
+        return tableList;
+    }
+
     /**
      * format: dbName@tableNames@action@operationName
      * eg: db1@table1,table2@select@operation1;db2@table3,table4@select@operation2;
      */
     public static String regenerateOperationName(String dbName, String operationName, String sqlText) {
-        if (disableSqlParse() || StringUtil.isEmpty(sqlText) || operationName.contains(DELIMITER)) {
+        if (StringUtil.isEmpty(sqlText) || operationName.contains(DELIMITER)) {
             return operationName;
         }
 
@@ -29,22 +68,17 @@ public class DatabaseUtils {
             if (StringUtil.isEmpty(sql) || sql.length() > ArexConstants.DB_SQL_MAX_LEN
                     || StringUtil.startWith(sql.toLowerCase(), "exec sp")) {
                 // if exceed the threshold, too large may be due parse stack overflow
-                LogManager.warn("sql.parse.fail", "invalid sql, too large or sp");
                 continue;
             }
-            try{
-                TableSchema tableSchema = JSqlParserUtil.parse(sql);
-                tableSchema.setDbName(dbName);
-                operationNames.add(regenerateOperationName(tableSchema, operationName));
-            } catch (Throwable ignore) {
-                // ignore parse failure
-            }
+            TableSchema tableSchema = JSqlParserUtil.parse(sql);
+            tableSchema.setDbName(dbName);
+            operationNames.add(regenerateOperationName(tableSchema, operationName));
         }
         if (CollectionUtil.isEmpty(operationNames)) {
             return operationName;
         }
-        // ensure that the order of multiple SQL statements is the same
-        operationNames.sort(String::compareTo);
+        // sort operation name
+        Collections.sort(operationNames);
         return StringUtil.join(operationNames, ";");
     }
 

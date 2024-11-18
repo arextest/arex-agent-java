@@ -101,6 +101,10 @@ public class ContextManager {
         }
     }
 
+    public static void clear() {
+        RECORD_MAP.clear();
+    }
+
     @SuppressWarnings("unchecked")
     public static <T> T getAttachment(String key) {
         ArexContext context = currentContext();
