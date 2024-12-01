@@ -1,6 +1,7 @@
 package io.arex.inst.httpclient.apache.common;
 
 import io.arex.inst.runtime.context.ContextManager;
+import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.util.IgnoreUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpRequest;
@@ -14,6 +15,7 @@ import org.apache.http.protocol.HTTP;
 import org.apache.http.util.CharArrayBuffer;
 
 import java.net.URI;
+import java.util.Set;
 
 public class ApacheHttpClientHelper {
 
@@ -47,13 +49,21 @@ public class ApacheHttpClientHelper {
         if (!(httpRequest instanceof HttpUriRequest)) {
             return true;
         }
-        // multi app replay request should real call
-        URI uri = ((HttpUriRequest) httpRequest).getURI();
-        String multiAppUrl = ContextManager.getAttachment("arex-multi-app-url");
-        if (multiAppUrl != null && multiAppUrl.contains(uri.getHost())) {
+        try {
+            // multi app replay request should real call
+            URI uri = ((HttpUriRequest) httpRequest).getURI();
+            Object multiAppReplayUrlObj = ContextManager.getAttachment(ArexConstants.MULTI_APP_URL);
+            if (multiAppReplayUrlObj != null) {
+                for (String multiAppUrl : ((Set<String>) multiAppReplayUrlObj)) {
+                    if (multiAppUrl != null && multiAppUrl.contains(uri.getHost())) {
+                        return true;
+                    }
+                }
+            }
+
+            return IgnoreUtils.excludeOperation(uri.getPath());
+        } catch (Throwable e) {
             return true;
         }
-
-        return IgnoreUtils.excludeOperation(uri.getPath());
     }
 }

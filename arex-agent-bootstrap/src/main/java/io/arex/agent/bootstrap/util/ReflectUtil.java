@@ -71,6 +71,9 @@ public class ReflectUtil {
     }
 
     public static Method getMethod(Class<?> clazz, String methodName, Class<?>... argTypes) {
+        if (clazz == null) {
+            return null;
+        }
         try {
             return clazz.getDeclaredMethod(methodName, argTypes);
         } catch (Exception e) {
@@ -89,6 +92,9 @@ public class ReflectUtil {
     }
 
     public static <T> Constructor<T> getConstructor(Class<T> clazz, Class<?>... argTypes) {
+        if (clazz == null) {
+            return null;
+        }
         try {
             return clazz.getDeclaredConstructor(argTypes);
         } catch (Exception e) {
@@ -138,19 +144,22 @@ public class ReflectUtil {
         return Arrays.equals(argTypeArray, parameterTypeList.toArray(StringUtil.EMPTY_STRING_ARRAY));
     }
 
-    public static Object invoke(Method method, Object instance, Object... args) {
+    public static <T> T invoke(Method method, Object instance, Object... args) {
         if (method == null) {
             return null;
         }
         try {
             method.setAccessible(true);
-            return method.invoke(instance, args);
+            return (T) method.invoke(instance, args);
         } catch (Exception e) {
             return null;
         }
     }
 
     public static Field getField(Class<?> clazz, String fieldName) {
+        if (clazz == null) {
+            return null;
+        }
         try {
             return clazz.getDeclaredField(fieldName);
         } catch (Exception e) {
@@ -159,6 +168,9 @@ public class ReflectUtil {
     }
 
     public static <T> T getFieldValue(Field field, Object instance) {
+        if (field == null) {
+            return null;
+        }
         try {
             field.setAccessible(true);
             return (T) field.get(instance);
@@ -168,6 +180,9 @@ public class ReflectUtil {
     }
 
     public static void setFieldValue(Field field, Object instance, Object value) {
+        if (field == null) {
+            return;
+        }
         try {
             field.setAccessible(true);
             field.set(instance, value);

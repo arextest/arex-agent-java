@@ -86,4 +86,6 @@ public class ArexConstants {
     public static final String TRACE_ID = "arex-trace-id";
     public static final String CLIENT_APP_ID = "arex-client-app-id";
     public static final String MULTI_APP_CASE = "arex-multi-app-case";
+    public static final String MULTI_APP_ENV = "arex-multi-app-env";
+    public static final String MULTI_APP_URL = "arex-multi-app-url";
 }

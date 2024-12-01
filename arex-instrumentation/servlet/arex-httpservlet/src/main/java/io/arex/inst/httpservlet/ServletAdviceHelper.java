@@ -19,6 +19,7 @@ import io.arex.inst.runtime.util.IgnoreUtils;
 import io.arex.inst.runtime.log.LogManager;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 
@@ -287,5 +288,18 @@ public class ServletAdviceHelper {
     private static <TRequest, TResponse> void addAttachmentsToContext(ServletAdapter<TRequest, TResponse> adapter, TRequest request) {
         ContextManager.setAttachment(ArexConstants.FORCE_RECORD, adapter.getRequestHeader(request, ArexConstants.FORCE_RECORD, ArexConstants.HEADER_X_PREFIX));
         ContextManager.setAttachment(ArexConstants.SCHEDULE_REPLAY, adapter.getRequestHeader(request, ArexConstants.SCHEDULE_REPLAY));
+
+        // init multi app record and replay data
+        String traceId = adapter.getRequestHeader(request, ArexConstants.TRACE_ID);
+        if (StringUtil.isEmpty(traceId)) {
+            traceId = UUID.randomUUID().toString();
+        }
+        ContextManager.setAttachment(ArexConstants.TRACE_ID, traceId);
+        // caller app id
+        ContextManager.setAttachment(ArexConstants.CLIENT_APP_ID, adapter.getRequestHeader(request, ArexConstants.CLIENT_APP_ID));
+        // specify request url for multi-app
+        ContextManager.setAttachment(ArexConstants.MULTI_APP_ENV, adapter.getRequestHeader(request, ArexConstants.MULTI_APP_ENV));
+        // mark this request is a multi-app replay request(true/false)
+//        ContextManager.setAttachment("arex-multi-app-replay", adapter.getRequestHeader(request, "arex-multi-app-replay"));
     }
 }
