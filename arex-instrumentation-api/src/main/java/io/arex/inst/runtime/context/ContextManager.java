@@ -57,7 +57,7 @@ public class ContextManager {
 
     public static boolean needRecord() {
         ArexContext context = currentContext();
-        return context != null && !context.isReplay();
+        return context != null && context.isRecord();
     }
 
     public static boolean needReplay() {

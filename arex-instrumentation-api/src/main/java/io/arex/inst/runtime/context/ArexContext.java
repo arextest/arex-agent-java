@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 public class ArexContext {
 
-    private final String caseId;
+    private String caseId;
     private String replayId;
     private final long createTime;
     private volatile int sequence;
@@ -58,7 +58,7 @@ public class ArexContext {
     }
 
     public boolean isRecord() {
-        return !isReplay();
+        return StringUtil.isNotEmpty(this.caseId) && !isReplay();
     }
 
     public boolean isReplay() {
@@ -179,6 +179,10 @@ public class ArexContext {
             MergeRecordUtil.recordRemain(this);
             mergeRecordQueue.clear();
         }
+    }
+
+    public void setCaseId(String caseId) {
+        this.caseId = caseId;
     }
 
     public void setReplayId(String replayId) {

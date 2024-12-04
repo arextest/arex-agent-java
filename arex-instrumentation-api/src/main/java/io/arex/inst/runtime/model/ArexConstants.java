@@ -74,4 +74,5 @@ public class ArexConstants {
     public static final String SPRING_SCAN_PACKAGES = "arex.spring.scan.packages";
     public static final String REPLAY_FAIL_CONFIG_VERSION = "arex-replay-fail-config-version";
     public static final String SERVLET_CONTEXT = "arex-servlet-context";
+    public static final String PRE_WARMUP_FLAG = "arex-pre-warmup-flag";
 }
