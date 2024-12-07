@@ -24,7 +24,7 @@ public class EigenMatchStrategy extends AbstractMatchStrategy{
     /**
      * search by eigen value of request
      */
-    void process(MatchStrategyContext context) {
+    public void process(MatchStrategyContext context) {
         context.setMatchStrategy(MatchStrategyEnum.EIGEN);
         Mocker replayMocker = context.getRequestMocker();
         List<Mocker> recordList = context.getRecordList();

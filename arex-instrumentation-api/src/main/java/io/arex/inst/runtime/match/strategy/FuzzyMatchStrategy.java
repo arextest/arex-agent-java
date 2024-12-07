@@ -14,7 +14,7 @@ public class FuzzyMatchStrategy extends AbstractMatchStrategy {
      * replayList is arranged in ascending order by creationTime
      * @return not matched before or last one
      */
-    void process(MatchStrategyContext context) {
+    public void process(MatchStrategyContext context) {
         context.setMatchStrategy(MatchStrategyEnum.FUZZY);
         List<Mocker> recordList = context.getRecordList();
         Mocker resultMocker = null;
@@ -33,7 +33,7 @@ public class FuzzyMatchStrategy extends AbstractMatchStrategy {
     }
 
     @Override
-    boolean internalCheck(MatchStrategyContext context) {
+    public boolean internalCheck(MatchStrategyContext context) {
         return CollectionUtil.isNotEmpty(context.getRecordList());
     }
 }

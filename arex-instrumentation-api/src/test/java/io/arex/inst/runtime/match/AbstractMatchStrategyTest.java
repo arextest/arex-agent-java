@@ -1,6 +1,7 @@
 package io.arex.inst.runtime.match;
 
 import io.arex.agent.bootstrap.model.ArexMocker;
+import io.arex.agent.bootstrap.model.MockCategoryType;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.inst.runtime.match.strategy.AbstractMatchStrategy;
 import io.arex.inst.runtime.match.strategy.AccurateMatchStrategy;
@@ -19,7 +20,7 @@ class AbstractMatchStrategyTest {
     @BeforeAll
     static void setUp() {
         target = new AccurateMatchStrategy();
-        mocker = new ArexMocker();
+        mocker = new ArexMocker(MockCategoryType.DYNAMIC_CLASS);
         mocker.setTargetResponse(new Mocker.Target());
         mocker.setTargetRequest(new Mocker.Target());
         mocker.getTargetRequest().setBody("mock");
@@ -34,6 +35,13 @@ class AbstractMatchStrategyTest {
     void match() {
         assertDoesNotThrow(() -> target.match(null));
         MatchStrategyContext context = new MatchStrategyContext(mocker, null);
+        context.setRecordList(new ArrayList<>());
         assertDoesNotThrow(() -> target.match(context));
+    }
+
+    @Test
+    void setContextResult() {
+        assertDoesNotThrow(() -> target.setContextResult(new MatchStrategyContext(mocker, null), mocker, null));
+        assertDoesNotThrow(() -> target.setContextResult(new MatchStrategyContext(mocker, null), null, null));
     }
 }

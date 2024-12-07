@@ -6,7 +6,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 
 import io.arex.agent.bootstrap.model.ArexMocker;
 import io.arex.agent.bootstrap.model.MockCategoryType;
-import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.inst.runtime.config.ConfigBuilder;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
@@ -14,6 +13,7 @@ import io.arex.inst.runtime.listener.EventProcessorTest.TestGsonSerializer;
 import io.arex.inst.runtime.listener.EventProcessorTest.TestJacksonSerializable;
 import io.arex.inst.runtime.match.ReplayMatcher;
 import io.arex.inst.runtime.model.ArexConstants;
+import io.arex.inst.runtime.model.QueryAllMockerDTO;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.serializer.StringSerializable;
 import io.arex.inst.runtime.service.DataCollector;
@@ -91,8 +91,7 @@ class MockUtilsTest {
         Mockito.when(CaseManager.isInvalidCase("mock-replay-id")).thenReturn(false);
         Mockito.when(ContextManager.currentContext()).thenReturn(ArexContext.of("mock-trace-id", "mock-replay-id"));
         dynamicClass = MockUtils.createDynamicClass("test", "test");
-        Object actualResult = MockUtils.replayBody(dynamicClass);
-        assertEquals(1693194255518L, actualResult);
+        assertNull(MockUtils.replayBody(dynamicClass));
 
         // invalid case
         Mockito.when(CaseManager.isInvalidCase("mock-replay-id")).thenReturn(true);
@@ -103,13 +102,25 @@ class MockUtilsTest {
         Mockito.when(ContextManager.currentContext()).thenReturn(ArexContext.of("mock-trace-id", null));
         assertNull(MockUtils.replayBody(dynamicClass));
 
+        configBuilder.enableDebug(true);
+        configBuilder.build();
+
         // null replayId and is config file
         ArexMocker configFile = MockUtils.createConfigFile("test");
-        assertNotNull(MockUtils.replayBody(configFile));
+        assertNull(MockUtils.replayBody(configFile));
 
         // merge case
         configFile.setNeedMerge(true);
         Mockito.when(ReplayMatcher.match(any(), any())).thenReturn(configFile);
+        assertNull(MockUtils.replayBody(configFile));
+
+        Mockito.when(dataCollector.query(anyString(), any())).thenReturn("");
+        assertNull(MockUtils.replayBody(configFile));
+
+        configBuilder.enableDebug(false);
+        configBuilder.build();
+
+        Mockito.when(dataCollector.query(anyString(), any())).thenReturn(responseJson);
         assertNull(MockUtils.replayBody(configFile));
     }
 
@@ -179,5 +190,24 @@ class MockUtilsTest {
 
         actualResult = MockUtils.createNettyProvider("query");
         assertEquals(MockCategoryType.NETTY_PROVIDER, actualResult.getCategoryType());
+    }
+
+    @Test
+    void queryMockers() {
+        Mockito.mockStatic(Serializer.class);
+        QueryAllMockerDTO requestMocker = new QueryAllMockerDTO();
+        assertNull(MockUtils.queryMockers(requestMocker));
+
+        configBuilder.enableDebug(true);
+        configBuilder.build();
+        Mockito.when(dataCollector.queryAll(any())).thenReturn("mock");
+        assertNull(MockUtils.queryMockers(requestMocker));
+    }
+
+    @Test
+    void saveReplayCompareResult() {
+        configBuilder.enableDebug(true);
+        configBuilder.build();
+        assertDoesNotThrow(() -> MockUtils.saveReplayCompareResult(null, new ArrayList<>()));
     }
 }

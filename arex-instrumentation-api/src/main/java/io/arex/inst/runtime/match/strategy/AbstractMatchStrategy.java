@@ -24,12 +24,13 @@ public abstract class AbstractMatchStrategy {
         return internalCheck(context);
     }
 
-    boolean internalCheck(MatchStrategyContext context) {
+    public boolean internalCheck(MatchStrategyContext context) {
         return true;
     }
-    abstract void process(MatchStrategyContext context) throws Exception;
 
-    void setContextResult(MatchStrategyContext context, Mocker resultMocker, String failReason) {
+    public abstract void process(MatchStrategyContext context) throws Exception;
+
+    public void setContextResult(MatchStrategyContext context, Mocker resultMocker, String failReason) {
         if (resultMocker != null) {
             resultMocker.setMatched(true);
         } else {

@@ -19,7 +19,7 @@ public class AccurateMatchStrategy extends AbstractMatchStrategy{
      * 3. if matched multiple result, give next match
      * 4. if strict match mode and not matched, interrupt
      */
-    void process(MatchStrategyContext context) {
+    public void process(MatchStrategyContext context) {
         context.setMatchStrategy(MatchStrategyEnum.ACCURATE);
         Mocker requestMocker = context.getRequestMocker();
         List<Mocker> recordList = context.getRecordList();
@@ -54,7 +54,7 @@ public class AccurateMatchStrategy extends AbstractMatchStrategy{
     }
 
     @Override
-    boolean internalCheck(MatchStrategyContext context) {
+    public boolean internalCheck(MatchStrategyContext context) {
         // if no request params, do next match directly
         return StringUtil.isNotEmpty(context.getRequestMocker().getTargetRequest().getBody());
     }
