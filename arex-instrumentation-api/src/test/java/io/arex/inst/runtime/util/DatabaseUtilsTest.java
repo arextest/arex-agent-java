@@ -7,6 +7,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
 
@@ -83,5 +84,26 @@ class DatabaseUtilsTest {
                 arguments("database1", "query", normalSql, needRegenerateMocker, predicate3),
                 arguments("database1", "@", "wrong sql", needRegenerateMocker, predicate1)
         );
+    }
+
+    @ParameterizedTest
+    @CsvSource(value ={
+            "query, database, database",
+            "'', null, ''",
+            "query, null, query",
+            "database@table, null, database",
+    }, nullValues={"null"})
+    void parseDbName(String source, String strip, String expect) {
+        assertEquals(expect, DatabaseUtils.parseDbName(source, strip));
+    }
+
+    @ParameterizedTest
+    @CsvSource(value ={
+            "''",
+            "query",
+            "table2@select@operation1;db2@table3",
+    }, nullValues={"null"})
+    void parseDbName(String source) {
+        assertNotNull(DatabaseUtils.parseTableNames(source));
     }
 }

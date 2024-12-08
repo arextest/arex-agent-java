@@ -11,8 +11,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Base64;
 
 /**
  * Compress/decompress util
@@ -81,17 +79,5 @@ public class CompressUtil {
 
     public static String zstdDecompress(byte[] bytes) {
         return zstdDecompress(new ByteArrayInputStream(bytes), StandardCharsets.UTF_8);
-    }
-
-    public static void main(String[] args) {
-//        String original = "hello world";
-//        byte[] compressed = zstdCompress(original, StandardCharsets.UTF_8);
-//        System.out.println("compressed: " + new String(compressed, StandardCharsets.UTF_8));
-
-        String compressStr = "KLUv/QBY7QcAVlA0IkBpnQPJ3kIW0P5pC12ZhU4ZJcQ2QFhQmFrViUQV4qooalwpACsALAAKKTwIvkn5ic95ruc+CgkePN1zIzVoSZmhHZefK3FP5z0bCHenHJh4I4cGgCAH0w4lacnrjopYhaRPo61OgHsuwyY+V1vYgrjnNo8Xz3VwT4eA4RQLqr+qhnvcZiQed+vXE6qngVkWaSNe5dBYSxjeCSKe+AYMq3omDMKUxSmKC9Uj2CxDugWM6tfSso7brKVVKFs87oZFsDk6PgSlzAIMes1gOunC3TcQAFgOsQXAyYAsgLsApMBmBZIAnMC4UgY6UHeTkYEKGUDmaJ534xYTCg==";
-        byte[] compressBytes = Base64.getDecoder().decode(compressStr);
-        String decompressed = zstdDecompress(compressBytes);
-//        String decompressed = zstdDecompress(compressStr.getBytes(StandardCharsets.ISO_8859_1));
-        System.out.println("decompressed: " + decompressed);
     }
 }

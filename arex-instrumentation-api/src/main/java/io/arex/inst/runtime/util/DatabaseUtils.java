@@ -4,7 +4,6 @@ import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.agent.thirdparty.util.sqlparser.JSqlParserUtil;
 import io.arex.agent.thirdparty.util.sqlparser.TableSchema;
-import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.model.ArexConstants;
 
 import java.util.*;
@@ -88,10 +87,6 @@ public class DatabaseUtils {
                 .append(StringUtil.defaultString(tableSchema.getAction())).append(DELIMITER)
                 .append(originOperationName)
                 .toString();
-    }
-
-    public static boolean disableSqlParse() {
-        return Config.get().getBoolean(ArexConstants.DISABLE_SQL_PARSE, Boolean.getBoolean(ArexConstants.DISABLE_SQL_PARSE));
     }
 }
 

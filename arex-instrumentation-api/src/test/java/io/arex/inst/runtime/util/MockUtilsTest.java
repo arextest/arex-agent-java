@@ -11,6 +11,7 @@ import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.listener.EventProcessorTest.TestGsonSerializer;
 import io.arex.inst.runtime.listener.EventProcessorTest.TestJacksonSerializable;
+import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.match.ReplayMatcher;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.model.QueryAllMockerDTO;
@@ -206,6 +207,7 @@ class MockUtilsTest {
 
     @Test
     void saveReplayCompareResult() {
+        Mockito.mockStatic(LogManager.class);
         configBuilder.enableDebug(true);
         configBuilder.build();
         assertDoesNotThrow(() -> MockUtils.saveReplayCompareResult(null, new ArrayList<>()));

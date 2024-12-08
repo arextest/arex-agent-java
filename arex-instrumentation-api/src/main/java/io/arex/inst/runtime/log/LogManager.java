@@ -95,7 +95,7 @@ public class LogManager {
 
     public static void info(ArexContext currentContext, String title, String message) {
         String logMessage = buildMessage(buildTitle(title), message);
-        if (useExtensionLog()) {
+        if (useExtensionLog() && currentContext != null) {
             for (Logger extensionLogger : EXTENSION_LOGGER_LIST) {
                 extensionLogger.addTag(currentContext.getCaseId(), currentContext.getReplayId());
                 extensionLogger.info(logMessage);

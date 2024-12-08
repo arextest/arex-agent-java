@@ -223,7 +223,6 @@ public class DataCollectorService implements DataCollector {
 
     @Override
     public void saveReplayCompareResult(String postData) {
-        System.out.println("arex.saveReplayCompareResult: " + postData);
         AsyncHttpClientUtil.postAsyncWithZstdJson(batchSaveReplayResult, postData, null)
                 .whenComplete(saveReplayCompareConsumer(postData));
     }
