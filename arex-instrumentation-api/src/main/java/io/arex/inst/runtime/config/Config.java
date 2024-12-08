@@ -24,12 +24,10 @@ public class Config {
     private static final char SEPARATOR = ',';
     private static Config INSTANCE = null;
 
-    static void update(boolean enableDebug, String serviceName, List<DynamicClassEntity> dynamicClassList,
-        Map<String, String> properties, Set<String> excludeServiceOperations,
-        int dubboStreamReplayThreshold, int recordRate, CompareConfigurationEntity compareConfigurationEntity) {
-        INSTANCE = new Config(enableDebug, serviceName, dynamicClassList, properties,
-            excludeServiceOperations,
-            dubboStreamReplayThreshold, recordRate, compareConfigurationEntity);
+    static void update(boolean enableDebug, String serviceName,
+        int dubboStreamReplayThreshold, int recordRate, ConfigExtendEntity extendEntity) {
+        INSTANCE = new Config(enableDebug, serviceName,
+            dubboStreamReplayThreshold, recordRate, extendEntity);
     }
 
     public static Config get() {
@@ -51,14 +49,13 @@ public class Config {
     private final Map<String, String> mockerTags;
     private final CompareConfigurationEntity compareConfigurationEntity;
 
-    Config(boolean enableDebug, String serviceName, List<DynamicClassEntity> dynamicClassList,
-           Map<String, String> properties, Set<String> excludeServiceOperations, int dubboStreamReplayThreshold,
-           int recordRate, CompareConfigurationEntity compareConfigurationEntity) {
+    Config(boolean enableDebug, String serviceName, int dubboStreamReplayThreshold,
+           int recordRate, ConfigExtendEntity extendEntity) {
         this.enableDebug = enableDebug;
         this.serviceName = serviceName;
-        this.dynamicClassList = dynamicClassList;
-        this.properties = properties;
-        this.excludeServiceOperations = buildExcludeServiceOperations(excludeServiceOperations);
+        this.dynamicClassList = extendEntity.getDynamicClassList();
+        this.properties = extendEntity.getProperties();
+        this.excludeServiceOperations = buildExcludeServiceOperations(extendEntity.getExcludeServiceOperations());
         this.dubboStreamReplayThreshold = dubboStreamReplayThreshold;
         this.recordRate = recordRate;
         this.recordVersion = properties.get("arex.agent.version");
@@ -66,7 +63,7 @@ public class Config {
         this.mockerTags = StringUtil.asMap(System.getProperty(ConfigConstants.MOCKER_TAGS));
         buildCoveragePackages(properties);
         buildDynamicClassInfo();
-        this.compareConfigurationEntity = compareConfigurationEntity;
+        this.compareConfigurationEntity = extendEntity.getCompareConfigurationEntity();
     }
 
     /**

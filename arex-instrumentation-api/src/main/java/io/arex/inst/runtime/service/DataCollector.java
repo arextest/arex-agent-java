@@ -2,7 +2,6 @@ package io.arex.inst.runtime.service;
 
 import io.arex.agent.bootstrap.model.MockStrategyEnum;
 import io.arex.agent.bootstrap.model.Mocker;
-import io.arex.inst.runtime.model.ReplayCompareResultDTO;
 
 import java.util.List;
 

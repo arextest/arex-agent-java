@@ -24,7 +24,7 @@ public class MergeRecordUtil {
     public static void mergeRecord(Mocker requestMocker) {
         List<List<Mocker>> mergeList = merge(requestMocker);
         for (List<Mocker> mergeRecords : mergeList) {
-            MockUtils.executeRecord(mergeRecords);
+            MockManager.executeRecord(mergeRecords);
         }
     }
 
@@ -128,7 +128,7 @@ public class MergeRecordUtil {
             mergeRecordQueue.drainTo(mergeRecordList);
             List<List<Mocker>> splitList = checkAndSplit(mergeRecordList);
             for (List<Mocker> mergeRecords : splitList) {
-                MockUtils.executeRecord(mergeRecords);
+                MockManager.executeRecord(mergeRecords);
             }
         } catch (Exception e) {
             LogManager.warn("merge.record.remain.error", e);

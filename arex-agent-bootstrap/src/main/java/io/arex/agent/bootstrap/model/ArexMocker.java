@@ -24,7 +24,9 @@ public class ArexMocker implements Mocker {
     private transient Map<Integer, Long> eigenMap;
     private Map<String, String> tags;
 
+    // original compressed text for request
     private transient String request;
+    // original compressed text for response
     private transient String response;
 
     /**

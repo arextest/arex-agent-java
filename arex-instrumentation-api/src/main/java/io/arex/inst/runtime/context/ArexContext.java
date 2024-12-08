@@ -5,8 +5,7 @@ import io.arex.agent.bootstrap.util.ConcurrentHashSet;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.model.ReplayCompareResultDTO;
-import io.arex.inst.runtime.util.MergeRecordUtil;
-import io.arex.inst.runtime.util.ReplayUtil;
+import io.arex.inst.runtime.util.MockManager;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -177,7 +176,7 @@ public class ArexContext {
             methodSignatureHashList.clear();
         }
         if (cachedReplayResultMap != null) {
-            ReplayUtil.saveRemainCompareResult(this);
+            MockManager.saveReplayRemainCompareRelation(this);
             cachedReplayResultMap.clear();
         }
         if (excludeMockTemplate != null) {
@@ -188,7 +187,7 @@ public class ArexContext {
         }
         if (mergeRecordQueue != null) {
             // async thread merge record (main entry has ended)
-            MergeRecordUtil.recordRemain(this);
+            MockManager.recordRemain(this);
             mergeRecordQueue.clear();
         }
         if (replayCompareResultQueue != null) {

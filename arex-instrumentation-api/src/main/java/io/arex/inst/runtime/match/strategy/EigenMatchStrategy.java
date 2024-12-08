@@ -75,9 +75,9 @@ public class EigenMatchStrategy extends AbstractMatchStrategy{
             return row;
         }
 
-        for (Integer key : recordEigenMap.keySet()) {
-            Long recordPathValue = recordEigenMap.get(key);
-            Long replayPathValue = replayEigenMap.get(key);
+        for (Map.Entry<Integer, Long> recordEigenEntry : recordEigenMap.entrySet()) {
+            Long recordPathValue = recordEigenEntry.getValue();
+            Long replayPathValue = replayEigenMap.get(recordEigenEntry.getKey());
             if (Objects.equals(recordPathValue, replayPathValue)) {
                 row ++;
             }

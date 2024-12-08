@@ -77,7 +77,8 @@ public class ConfigBuilder {
     }
 
     public void build() {
-        Config.update(enableDebug, serviceName, dynamicClassList, Collections.unmodifiableMap(new HashMap<>(properties)),
-            excludeServiceOperations, dubboStreamReplayThreshold, recordRate, compareConfigurationEntity);
+        Config.update(enableDebug, serviceName, dubboStreamReplayThreshold, recordRate,
+                ConfigExtendEntity.of(dynamicClassList, Collections.unmodifiableMap(new HashMap<>(properties)),
+                        excludeServiceOperations, compareConfigurationEntity));
     }
 }

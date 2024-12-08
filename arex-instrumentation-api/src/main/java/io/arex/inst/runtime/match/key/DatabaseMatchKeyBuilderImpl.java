@@ -133,17 +133,24 @@ public class DatabaseMatchKeyBuilderImpl implements MatchKeyBuilder {
                 while (++i <= max && firstCharacterWordBoundaryNotMatch(source, first, i)) {}
             }
             //  Found first character, now look at the rest of target
-            if (i <= max) {
-                int j = i + 1;
-                int end = j + targetCount - 1;
-                for (int k = 1; j < end && equalsIgnoreCase(source.charAt(j), target.charAt(k)); j++, k++) {}
-                if (j == end && isWordBoundary(source, j)) {
-                    // Found whole string
-                    return i;
-                }
+            if (findFirstChar(i, max, targetCount, source, target)) {
+                return i;
             }
         }
         return INDEX_NOT_FOUND;
+    }
+
+    private static boolean findFirstChar(int i, int max, int targetCount, String source, String target) {
+        if (i <= max) {
+            int j = i + 1;
+            int end = j + targetCount - 1;
+            for (int k = 1; j < end && equalsIgnoreCase(source.charAt(j), target.charAt(k)); j++, k++) {}
+            if (j == end && isWordBoundary(source, j)) {
+                // Found whole string
+                return true;
+            }
+        }
+        return false;
     }
 
     private static boolean readShouldTerminal(char src) {

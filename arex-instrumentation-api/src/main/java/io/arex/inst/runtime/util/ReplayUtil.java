@@ -224,13 +224,16 @@ public class ReplayUtil {
                         String.valueOf(cachedMocker.isMatched()), cachedMocker.logBuilder().toString()));
             }
         }
-        LogManager.info("CachedReplayResultMap", message.toString());
+        LogManager.info("saveReplayCompareResult", message.toString());
     }
 
     /**
-     * call missing 类型只能在最后统计一次，保证所有的回放匹配（包括异步的）都匹配结束，这样统计的call missing才是准确的
-     * 如果在主接口就统计call missing，可能会有异步接口还未匹配，导致call missing统计不准确，
-     * 虽然现在是未匹配过的状态，但等异步匹配之后可能变成了匹配中的状态了，所以要放到最后统计
+     * Record the compare relationship again when delaying the context cleaning to ensure
+     * that all replay matches (including asynchronous ones) match correctly.
+     * And this time we counted call missing, because if call missing is counted on the main interface,
+     * there may be asynchronous interfaces that have not been matched yet,
+     * Although it is currently in an unmatched state, it may become a matching state after asynchronous matching,
+     * so it needs to be counted call missing last.
      */
     public static void saveRemainCompareResult(ArexContext context) {
         if (context == null) {
@@ -265,6 +268,7 @@ public class ReplayUtil {
         List<ReplayCompareResultDTO> replayCompareList = new ArrayList<>();
         replayCompareResultQueue.drainTo(replayCompareList);
         MockUtils.saveReplayCompareResult(context, replayCompareList);
+        LogManager.info("saveRemainCompareResult", "remain size: " + replayCompareList.size());
     }
 
     public static ReplayCompareResultDTO convertCompareResult(Mocker replayMocker, String recordMsg, String replayMsg,

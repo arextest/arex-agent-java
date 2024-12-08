@@ -19,7 +19,6 @@ import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.service.DataService;
 import io.arex.inst.runtime.util.sizeof.AgentSizeOf;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -101,7 +100,7 @@ public final class MockUtils {
             return;
         }
         if (requestMocker.isNeedMerge() && enableMergeRecord()) {
-            MergeRecordUtil.mergeRecord(requestMocker);
+            MockManager.mergeRecord(requestMocker);
             return;
         }
 
@@ -109,7 +108,7 @@ public final class MockUtils {
 
         if (requestMocker.getCategoryType().isEntryPoint()) {
             // after main entry record finished, record remain merge mocker that have not reached the merge threshold once(such as dynamicClass)
-            MergeRecordUtil.recordRemain(ContextManager.currentContext());
+            MockManager.recordRemain(ContextManager.currentContext());
         }
     }
 

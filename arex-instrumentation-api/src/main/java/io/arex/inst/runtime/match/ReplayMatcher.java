@@ -40,7 +40,7 @@ public class ReplayMatcher {
 
         logMatchResult(context);
 
-        setCompareResult(context);
+        saveCompareResult(context);
 
         return context.getMatchMocker();
     }
@@ -123,11 +123,11 @@ public class ReplayMatcher {
      * new call (recordMocker is null)
      * (call missing after entry point)
      */
-    private static void setCompareResult(MatchStrategyContext context) {
+    private static boolean saveCompareResult(MatchStrategyContext context) {
         Mocker replayMocker = context.getRequestMocker();
         boolean isEntryPoint = replayMocker.getCategoryType().isEntryPoint();
         if (replayMocker.getCategoryType().isSkipComparison() && !isEntryPoint) {
-            return;
+            return false;
         }
 
         String recordMsg = null;
@@ -155,6 +155,6 @@ public class ReplayMatcher {
         ReplayCompareResultDTO compareResultDTO = ReplayUtil.convertCompareResult(
                 replayMocker, recordMsg, replayMsg, recordTime, replayTime, sameMsg);
         compareResultDTO.setExtendMessage(extendMessage);
-        replayCompareResultQueue.offer(compareResultDTO);
+        return replayCompareResultQueue.offer(compareResultDTO);
     }
 }
