@@ -252,11 +252,11 @@ public class ReplayUtil {
                 String recordMsg = getCompareMessage(cachedMocker);
                 ReplayCompareResultDTO callMissingDTO = convertCompareResult(cachedMocker, recordMsg,
                         null, cachedMocker.getCreationTime(), Long.MAX_VALUE, false);
-                replayCompareResultQueue.offer(callMissingDTO);
+                boolean success = replayCompareResultQueue.offer(callMissingDTO);
                 // log call missing
                 String message = StringUtil.format("%s %n%s",
                         "match fail, reason: call missing", cachedMocker.logBuilder().toString());
-                if (Config.get().isEnableDebug()) {
+                if (success && Config.get().isEnableDebug()) {
                     message += StringUtil.format("%ncall missing mocker: %s", Serializer.serialize(cachedMocker));
                 }
                 LogManager.info(context, ArexConstants.MATCH_LOG_TITLE, message);
