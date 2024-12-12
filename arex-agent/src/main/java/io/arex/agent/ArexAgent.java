@@ -40,6 +40,13 @@ public class ArexAgent {
              */
             installBootstrapJar(inst);
             AgentInitializer.initialize(inst, getJarFile(ArexAgent.class), agentArgs, ArexAgent.class.getClassLoader());
+            io.arex.agent.bootstrap.util.JarUtils.addJarToSystemClassLoader = file -> {
+                try {
+                    inst.appendToSystemClassLoaderSearch(new JarFile(file, false));
+                } catch (Exception e) {
+                    System.out.printf("%s [AREX] Agent add jar to system classloader error, stacktrace: %s%n", getCurrentTime(), e);
+                }
+            };
         } catch (Exception ex) {
             System.out.printf("%s [AREX] Agent initialize error, stacktrace: %s%n", getCurrentTime(), ex);
         }
