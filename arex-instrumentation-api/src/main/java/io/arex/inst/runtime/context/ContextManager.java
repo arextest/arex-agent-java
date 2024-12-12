@@ -100,4 +100,8 @@ public class ContextManager {
             context.setAttachment(key, value);
         }
     }
+
+    public static void clear() {
+        RECORD_MAP.clear();
+    }
 }

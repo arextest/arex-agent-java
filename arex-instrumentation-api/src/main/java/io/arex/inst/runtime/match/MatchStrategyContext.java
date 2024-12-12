@@ -8,16 +8,15 @@ import java.util.List;
 
 public class MatchStrategyContext {
     private Mocker requestMocker;
-    private List<Mocker> replayList;
+    private List<Mocker> recordList;
     private MockStrategyEnum mockStrategy;
     private boolean interrupt;
     private Mocker matchMocker;
     private MatchStrategyEnum matchStrategy;
     private String reason;
 
-    public MatchStrategyContext(Mocker requestMocker, List<Mocker> replayList, MockStrategyEnum mockStrategy) {
+    public MatchStrategyContext(Mocker requestMocker, MockStrategyEnum mockStrategy) {
         this.requestMocker = requestMocker;
-        this.replayList = replayList;
         this.mockStrategy = mockStrategy;
     }
 
@@ -29,12 +28,12 @@ public class MatchStrategyContext {
         this.requestMocker = requestMocker;
     }
 
-    public List<Mocker> getReplayList() {
-        return replayList;
+    public List<Mocker> getRecordList() {
+        return recordList;
     }
 
-    public void setReplayList(List<Mocker> replayList) {
-        this.replayList = replayList;
+    public void setRecordList(List<Mocker> recordList) {
+        this.recordList = recordList;
     }
 
     public MockStrategyEnum getMockStrategy() {

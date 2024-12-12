@@ -61,5 +61,6 @@ public class DubboExtractor {
     protected static void addAttachmentsToContext(AbstractAdapter adapter) {
         ContextManager.setAttachment(ArexConstants.FORCE_RECORD, adapter.forceRecord());
         ContextManager.setAttachment(ArexConstants.SCHEDULE_REPLAY, adapter.getAttachment(ArexConstants.SCHEDULE_REPLAY));
+        ContextManager.setAttachment(ArexConstants.REPLAY_END_FLAG, adapter.getAttachment(ArexConstants.REPLAY_END_FLAG));
     }
 }
