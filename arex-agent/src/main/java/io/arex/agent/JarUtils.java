@@ -4,8 +4,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -16,9 +14,6 @@ public class JarUtils {
     private static final String JAR_SUFFIX = ".jar";
     private static final String DELIMITER = ";";
     private static final String NESTED_BOOTSTRAP_JARS_PATH = "Nested-BootStrap-Jars-Path";
-
-    private static final File TMP_FILE = new File(AccessController.doPrivileged((PrivilegedAction<String>) () -> System.getProperty("java.io.tmpdir")));
-    private static final String TEMP_DIR_BOOTSTRAP = TMP_FILE.getAbsolutePath() + File.separator + "arex" + File.separator + "bootstrap";
 
     /**
      * ex:
@@ -41,7 +36,7 @@ public class JarUtils {
             for (String jarPath : jarPaths) {
                 JarEntry jarEntry = jarFile.getJarEntry(jarPath);
                 if (jarEntry.getName().endsWith(JAR_SUFFIX)) {
-                    jarFiles.add(extractNestedBootStrapJar(jarFile, jarEntry, jarEntry.getName()));
+                    jarFiles.add(extractNestedBootStrapJar(jarFile, jarEntry, jarEntry.getName(), file.getParentFile()));
                 }
             }
             return jarFiles;
@@ -51,9 +46,9 @@ public class JarUtils {
         }
     }
 
-    private static File extractNestedBootStrapJar(JarFile file, JarEntry entry, String entryName) throws IOException {
+    private static File extractNestedBootStrapJar(JarFile file, JarEntry entry, String entryName, File parentDir) throws IOException {
         String fileName = new File(entryName).getName();
-        File outputFile = createFile(TEMP_DIR_BOOTSTRAP + File.separator + fileName);
+        File outputFile = createFile(parentDir.getAbsolutePath() + File.separator + "bootstrap" + File.separator + fileName);
         try(InputStream inputStream = file.getInputStream(entry);
             FileOutputStream outputStream = new FileOutputStream(outputFile)) {
             byte[] buffer = new byte[1024];
