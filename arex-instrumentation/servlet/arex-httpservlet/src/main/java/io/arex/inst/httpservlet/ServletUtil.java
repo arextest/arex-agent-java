@@ -4,7 +4,6 @@ import io.arex.agent.bootstrap.util.MapUtils;
 import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.agent.bootstrap.util.StringUtil;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
