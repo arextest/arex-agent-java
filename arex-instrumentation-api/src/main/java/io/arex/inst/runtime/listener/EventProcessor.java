@@ -9,6 +9,7 @@ import io.arex.agent.bootstrap.util.ReflectUtil;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.agent.bootstrap.util.ServiceLoader;
 import io.arex.inst.runtime.config.Config;
+import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.model.InitializeEnum;
 import io.arex.inst.runtime.request.RequestHandlerManager;
 import io.arex.inst.runtime.log.LogManager;
@@ -24,6 +25,8 @@ import java.util.List;
 
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.arex.inst.runtime.util.ReplayUtil;
@@ -37,6 +40,8 @@ public class EventProcessor {
     private static final AtomicReference<InitializeEnum> INIT_DEPENDENCY = new AtomicReference<>(InitializeEnum.START);
     private static final Method FIND_LOADED_METHOD = ReflectUtil.getMethod(ClassLoader.class, "findLoadedClass", String.class);
     private static boolean existJacksonDependency = true;
+    private static final ScheduledThreadPoolExecutor SCHEDULER =
+            new ScheduledThreadPoolExecutor(1, r -> new Thread(r, "arex-replay-manager-thread"));
     static {
         try {
             Class.forName("com.fasterxml.jackson.databind.ObjectMapper",true, Thread.currentThread().getContextClassLoader());
@@ -111,6 +116,13 @@ public class EventProcessor {
     }
 
     public static void onExit(){
+        // if replay plan complete end(the last replay case), delay clear context (include async thread context)
+        ArexContext context = ContextManager.currentContext();
+        if (context.getAttachment(ArexConstants.REPLAY_END_FLAG) != null
+                && Boolean.parseBoolean(String.valueOf(context.getAttachment(ArexConstants.REPLAY_END_FLAG)))) {
+            // must contain LatencyContextHashMap#overdueCleanUp time(1 minutes)
+            SCHEDULER.schedule(ContextManager::clear, 1, TimeUnit.MINUTES);
+        }
         ContextManager.remove();
     }
 

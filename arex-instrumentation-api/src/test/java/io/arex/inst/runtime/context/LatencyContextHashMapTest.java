@@ -1,12 +1,13 @@
 package io.arex.inst.runtime.context;
 
+import java.util.Collections;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class LatencyContextHashMapTest {
-    private static final Map<String, ArexContext> RECORD_MAP = new LatencyContextHashMap();
+    private static final Map<String, ArexContext> RECORD_MAP = new LatencyContextHashMap(Collections.emptyList());
 
     @Test
     void test() {
@@ -36,5 +37,7 @@ class LatencyContextHashMapTest {
 
         context = RECORD_MAP.get(key2);
         assertEquals(key2, context.getCaseId());
+
+        assertDoesNotThrow(RECORD_MAP::clear);
     }
 }

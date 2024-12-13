@@ -10,8 +10,8 @@ import java.util.List;
 import java.util.Map;
 
 public class ContextManager {
-    private static final Map<String, ArexContext> RECORD_MAP = new LatencyContextHashMap();
     private static final List<ContextListener> LISTENERS = new ArrayList<>();
+    private static final Map<String, ArexContext> RECORD_MAP = new LatencyContextHashMap(LISTENERS);
 
     /**
      * agent call this method
@@ -99,5 +99,9 @@ public class ContextManager {
         if (context != null) {
             context.setAttachment(key, value);
         }
+    }
+
+    public static void clear() {
+        RECORD_MAP.clear();
     }
 }
