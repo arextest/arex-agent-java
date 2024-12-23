@@ -7,12 +7,14 @@ import com.mongodb.MongoNamespace;
 import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.inst.database.common.DatabaseExtractor;
 import io.arex.inst.database.mongo.wrapper.ResultWrapper;
+import io.arex.inst.runtime.context.ArexContext;
+import io.arex.inst.runtime.context.ContextManager;
+import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.serializer.Serializer.Builder;
 import io.arex.inst.runtime.serializer.StringSerializable;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import io.arex.inst.runtime.util.TypeUtil;
 import org.bson.Document;
@@ -32,6 +34,7 @@ class MongoHelperTest {
         final Builder builder = Serializer.builder(serializable);
         builder.addSerializer("gson", serializable);
         builder.build();
+        Mockito.mockStatic(ContextManager.class);
     }
 
     @AfterAll
@@ -41,6 +44,7 @@ class MongoHelperTest {
         instance.setAccessible(true);
         instance.set(null, null);
         serializable = null;
+        Mockito.clearAllCaches();
     }
 
     @Test
@@ -105,7 +109,76 @@ class MongoHelperTest {
             // no Document
             MongoHelper.record("executeInsertMany", Mockito.mock(MongoNamespace.class), "notDocument", "test", null);
             Mockito.verify(construction.constructed().get(3), Mockito.never()).setKeyHolder(anyString());
+            // find operation
+            ArexContext testFind = ArexContext.of("testFind");
+            Mockito.when(ContextManager.currentContext()).thenReturn(testFind);
+            MongoHelper.record("FindOperation", Mockito.mock(MongoNamespace.class), null, "findResult", null);
+            String resultHashCode = String.valueOf("findResult".hashCode());
+            Object attachment = testFind.getAttachment("mongoCursor_" + resultHashCode);
+            assertTrue(attachment instanceof Map);
+            assertEquals("findResult", ((Map<?, ?>) attachment).get("result"));
         }
+    }
 
+    @Test
+    void recordFindOperation() throws ClassNotFoundException {
+        int queryCursorHashCode = 123;
+        DatabaseExtractor mockExtractor = Mockito.mock(DatabaseExtractor.class);
+        Class queryBatchCursor = Class.forName("com.mongodb.internal.operation.QueryBatchCursor");
+        Object queryBatchCursorInstance = Mockito.mock(queryBatchCursor);
+        List<String> nextBatchList = Arrays.asList("item1", "item2", "item3");
+        Map<String, Object> map = new HashMap<>();
+        List<Object> list = new ArrayList<>();
+
+        ArexContext context = ArexContext.of("test");
+        Mockito.when(ContextManager.currentContext()).thenReturn(context);
+        // map is null
+        MongoHelper.recordFindOperation(queryCursorHashCode);
+        Mockito.verify(mockExtractor, Mockito.never()).recordDb(nextBatchList, ArexConstants.GSON_SERIALIZER);
+
+        // error
+        map.put("nextBatchList", nextBatchList);
+        map.put("databaseExtractor", mockExtractor);
+        context.setAttachment("mongoCursor_" + queryCursorHashCode, map);
+        assertDoesNotThrow(() -> MongoHelper.recordFindOperation(queryCursorHashCode));
+        // normal
+        map.put("result", queryBatchCursorInstance);
+        context.setAttachment("mongoCursor_" + queryCursorHashCode, map);
+        MongoHelper.recordFindOperation(queryCursorHashCode);
+        Mockito.verify(mockExtractor, Mockito.times(1)).recordDb(queryBatchCursorInstance, ArexConstants.GSON_SERIALIZER);
+    }
+
+    @Test
+    void addNextBatchList() {
+        // Prepare
+        int queryCursorHashCode = 123;
+        List<String> nextBatchList = Arrays.asList("item1", "item2", "item3");
+        Map<String, Object> map = new HashMap<>();
+        List<Object> list = new ArrayList<>();
+
+        ArexContext context = ArexContext.of("test");
+        Mockito.when(ContextManager.currentContext()).thenReturn(context);
+
+        // map is empty
+        context.setAttachment(String.valueOf(queryCursorHashCode), map);
+        assertDoesNotThrow(() -> MongoHelper.addNextBatchList(queryCursorHashCode, nextBatchList));
+
+        // map is not empty
+        map.put("nextBatchList", list);
+        context.setAttachment("mongoCursor_" + queryCursorHashCode, map);
+        // Execute
+        MongoHelper.addNextBatchList(queryCursorHashCode, nextBatchList);
+
+        // Verify
+        assertEquals(nextBatchList, list);
+
+        // Mock
+        context.setAttachment("mongoCursor_" + queryCursorHashCode, "invalid");
+
+        // Execute
+        assertDoesNotThrow(() -> MongoHelper.addNextBatchList(queryCursorHashCode, nextBatchList));
+
+        // Clean up
+        context.removeAttachment(String.valueOf(queryCursorHashCode));
     }
 }

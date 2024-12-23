@@ -1,10 +1,11 @@
 package io.arex.agent.bootstrap.model;
 
-import java.util.HashMap;
+import io.arex.agent.bootstrap.constants.ConfigConstants;
+import java.util.Collections;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ArexMocker implements Mocker {
-    public static final Map<String, String> TAGS = new HashMap<>();
     private String id;
     private MockCategoryType categoryType;
     private String replayId;
@@ -15,18 +16,41 @@ public class ArexMocker implements Mocker {
     private long creationTime;
     private Mocker.Target targetRequest;
     private Mocker.Target targetResponse;
-    private boolean needMerge;
+    private transient boolean needMerge;
     private String operationName;
+    private Map<String, String> tags;
+    private final transient AtomicBoolean matched = new AtomicBoolean(false);
+    /**
+     * replay match need
+     */
+    private transient int fuzzyMatchKey;
+    /**
+     * replay match need
+     */
+    private transient int accurateMatchKey;
 
+    /**
+     * The default constructor is for deserialization
+     */
     public ArexMocker() {
     }
 
     public ArexMocker(MockCategoryType categoryType) {
         this.categoryType = categoryType;
+        this.appId = System.getProperty(ConfigConstants.SERVICE_NAME);
+        this.recordVersion = System.getProperty(ConfigConstants.AGENT_VERSION);
     }
 
+    /**
+     * Put tag into the tags map will throw {@link UnsupportedOperationException}.
+     * @return the tags map
+     */
     public Map<String, String> getTags() {
-        return TAGS;
+        return this.tags;
+    }
+
+    public void setTags(Map<String, String> tags) {
+        this.tags = tags;
     }
 
     public String getId() {
@@ -58,6 +82,7 @@ public class ArexMocker implements Mocker {
         return this.recordVersion;
     }
 
+    @Deprecated
     public void setRecordVersion(String recordVersion) {
         this.recordVersion = recordVersion;
     }
@@ -124,5 +149,33 @@ public class ArexMocker implements Mocker {
 
     public void setNeedMerge(boolean needMerge) {
         this.needMerge = needMerge;
+    }
+
+    public boolean isMatched() {
+        return matched.get();
+    }
+
+    public void setMatched(boolean matched) {
+        this.matched.compareAndSet(false, matched);
+    }
+
+    @Override
+    public int getAccurateMatchKey() {
+        return this.accurateMatchKey;
+    }
+
+    @Override
+    public void setAccurateMatchKey(int accurateMatchKey) {
+        this.accurateMatchKey = accurateMatchKey;
+    }
+
+    @Override
+    public int getFuzzyMatchKey() {
+        return this.fuzzyMatchKey;
+    }
+
+    @Override
+    public void setFuzzyMatchKey(int fuzzyMatchKey) {
+        this.fuzzyMatchKey = fuzzyMatchKey;
     }
 }

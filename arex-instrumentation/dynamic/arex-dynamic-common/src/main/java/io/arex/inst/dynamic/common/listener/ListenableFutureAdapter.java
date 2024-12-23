@@ -5,6 +5,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 
 import io.arex.inst.dynamic.common.DynamicClassExtractor;
+import io.arex.inst.runtime.listener.DirectExecutor;
 
 
 public class ListenableFutureAdapter {

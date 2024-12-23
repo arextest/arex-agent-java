@@ -45,6 +45,7 @@
         <module>httpclient/arex-httpclient-webclient-v5</module>
         <module>httpclient/arex-httpclient-resttemplate</module>
         <module>httpclient/arex-httpclient-feign</module>
+        <module>httpclient/arex-httpclient-ning</module>
         <module>netty/arex-netty-v3</module>
         <module>netty/arex-netty-v4</module>
         <module>dubbo/arex-dubbo-apache-v2</module>
@@ -56,6 +57,7 @@
         <module>authentication/arex-shiro</module>
         <module>authentication/arex-jcasbin</module>
         <module>config/arex-apollo</module>
+        <module>spring/arex-component-scan</module>
     </modules>
     <dependencies>
         <dependency>

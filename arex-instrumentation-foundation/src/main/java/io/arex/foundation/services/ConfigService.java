@@ -2,8 +2,9 @@ package io.arex.foundation.services;
 
 import com.google.gson.Gson;
 import io.arex.agent.bootstrap.constants.ConfigConstants;
-import io.arex.agent.bootstrap.model.ArexMocker;
 import io.arex.agent.bootstrap.util.MapUtils;
+import io.arex.foundation.logger.AgentLogger;
+import io.arex.foundation.logger.AgentLoggerFactory;
 import io.arex.foundation.model.*;
 import io.arex.foundation.config.ConfigManager;
 import io.arex.foundation.util.httpclient.AsyncHttpClientUtil;
@@ -16,9 +17,6 @@ import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * ConfigService
  * todo: config file, run backend
@@ -27,7 +25,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ConfigService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ConfigService.class);
+    private static final AgentLogger LOGGER = AgentLoggerFactory.getAgentLogger(ConfigService.class);
     private static final Map<String, String> TAGS_PROPERTIES = new HashMap<>();
 
     public static final ConfigService INSTANCE = new ConfigService();
@@ -86,7 +84,7 @@ public class ConfigService {
             }
             ConfigManager.INSTANCE.updateConfigFromService(configResponse.getBody());
         } catch (Throwable e) {
-            LOGGER.warn("[AREX] Load agent config error, pause recording. exception message: {}", e.getMessage());
+            LOGGER.warn("[AREX] Load agent config error, pause recording. exception message: {}", e.getMessage(), e);
             ConfigManager.INSTANCE.setConfigInvalid();
         }
     }
@@ -130,22 +128,24 @@ public class ConfigService {
     public Map<String, String> getSystemProperties() {
         Properties properties = System.getProperties();
         Map<String, String> map = MapUtils.newHashMapWithExpectedSize(properties.size());
+        Map<String, String> mockerTags = new HashMap<>();
         for (Map.Entry<Object, Object> entry : properties.entrySet()) {
             String key = String.valueOf(entry.getKey());
             String value = String.valueOf(entry.getValue());
             map.put(key, value);
-            buildTags(key, value);
+            buildTags(mockerTags, key, value);
         }
+        System.setProperty(ConfigConstants.MOCKER_TAGS, StringUtil.mapToString(mockerTags));
         return map;
     }
 
     /**
      * ex: -Darex.tags.xxx=xxx
      */
-    private void buildTags(String key, String value) {
+    private void buildTags(Map<String, String> mockerTags, String key, String value) {
         if (StringUtil.startWith(key, TAGS_PREFIX)) {
             TAGS_PROPERTIES.put(key, value);
-            ArexMocker.TAGS.put(key.substring(TAGS_PREFIX.length()), value);
+            mockerTags.put(key.substring(TAGS_PREFIX.length()), value);
         }
     }
 

@@ -1,5 +1,7 @@
 package io.arex.agent.instrumentation;
 
+import io.arex.foundation.logger.AgentLoggerFactory;
+import io.arex.foundation.logger.AgentLogger;
 import io.arex.inst.extension.ExtensionTransformer;
 import io.arex.inst.extension.ModuleInstrumentation;
 import io.arex.inst.extension.MethodInstrumentation;
@@ -8,7 +10,7 @@ import io.arex.agent.bootstrap.InstrumentationHolder;
 import io.arex.foundation.config.ConfigManager;
 import io.arex.agent.bootstrap.util.CollectionUtil;
 
-import io.arex.inst.extension.matcher.IgnoredTypesMatcher;
+import io.arex.inst.extension.matcher.IgnoredRawMatcher;
 import io.arex.inst.runtime.model.DynamicClassEntity;
 import io.arex.inst.runtime.model.DynamicClassStatusEnum;
 import io.arex.agent.bootstrap.util.ServiceLoader;
@@ -23,8 +25,6 @@ import net.bytebuddy.dynamic.ClassFileLocator;
 import net.bytebuddy.dynamic.loading.ClassReloadingStrategy;
 import net.bytebuddy.dynamic.scaffold.MethodGraph;
 import net.bytebuddy.matcher.ElementMatcher;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.lang.instrument.Instrumentation;
@@ -32,7 +32,7 @@ import java.util.*;
 
 @SuppressWarnings("unused")
 public class InstrumentationInstaller extends BaseAgentInstaller {
-    private static final Logger LOGGER = LoggerFactory.getLogger(InstrumentationInstaller.class);
+    private static final AgentLogger LOGGER = AgentLoggerFactory.getAgentLogger(InstrumentationInstaller.class);
     private ModuleInstrumentation dynamicModule;
     private ResettableClassFileTransformer resettableClassFileTransformer;
 
@@ -181,11 +181,13 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
     private AgentBuilder getAgentBuilder() {
         // config may use to add some classes to be ignored in future
         long buildBegin = System.currentTimeMillis();
-        AgentBuilder builder = new AgentBuilder.Default(
+
+        return new AgentBuilder.Default(
                 new ByteBuddy().with(MethodGraph.Compiler.ForDeclaredMethods.INSTANCE))
             .enableNativeMethodPrefix("arex_")
             .disableClassFormatChanges()
-            .ignore(new IgnoredTypesMatcher())
+            .ignore(new IgnoredRawMatcher(ConfigManager.INSTANCE.getIgnoreTypePrefixes(),
+                ConfigManager.INSTANCE.getIgnoreClassLoaderPrefixes()))
             .with(new TransformListener())
             .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
             .with(AgentBuilder.InitializationStrategy.NoOp.INSTANCE)
@@ -194,8 +196,6 @@ public class InstrumentationInstaller extends BaseAgentInstaller {
             .with(AgentBuilder.DescriptionStrategy.Default.POOL_FIRST)
             .with(AgentBuilder.LocationStrategy.ForClassLoader.STRONG
                 .withFallbackTo(ClassFileLocator.ForClassLoader.ofSystemLoader()));
-
-        return builder;
     }
 
     private boolean disabledModule(String moduleName) {

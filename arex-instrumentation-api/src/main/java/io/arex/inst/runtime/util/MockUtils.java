@@ -13,9 +13,13 @@ import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.match.ReplayMatcher;
 import io.arex.inst.runtime.model.ArexConstants;
+import io.arex.inst.runtime.model.QueryAllMockerDTO;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.service.DataService;
 import io.arex.inst.runtime.util.sizeof.AgentSizeOf;
+
+import java.util.Collections;
+import java.util.List;
 
 public final class MockUtils {
 
@@ -73,7 +77,8 @@ public final class MockUtils {
     }
 
     public static ArexMocker create(MockCategoryType categoryType, String operationName) {
-        ArexMocker mocker = new ArexMocker();
+        ArexMocker mocker = new ArexMocker(categoryType);
+        mocker.setTags(Config.get().getMockerTags());
         long createTime = System.currentTimeMillis();
         ArexContext context = ContextManager.currentContext();
         if (context != null) {
@@ -82,12 +87,10 @@ public final class MockUtils {
             createTime += context.calculateSequence();
         }
         mocker.setCreationTime(createTime);
-        mocker.setAppId(System.getProperty("arex.service.name"));
         mocker.setCategoryType(categoryType);
         mocker.setOperationName(operationName);
         mocker.setTargetRequest(new Target());
         mocker.setTargetResponse(new Target());
-        mocker.setRecordVersion(Config.get().getRecordVersion());
         return mocker;
     }
 
@@ -95,26 +98,27 @@ public final class MockUtils {
         if (CaseManager.isInvalidCase(requestMocker.getRecordId())) {
             return;
         }
-        if (requestMocker.isNeedMerge()) {
-            MergeRecordReplayUtil.mergeRecord(requestMocker);
+        if (requestMocker.isNeedMerge() && enableMergeRecord()) {
+            MergeRecordUtil.mergeRecord(requestMocker);
             return;
         }
 
-        executeRecord(requestMocker);
+        executeRecord(Collections.singletonList(requestMocker));
 
         if (requestMocker.getCategoryType().isEntryPoint()) {
             // after main entry record finished, record remain merge mocker that have not reached the merge threshold once(such as dynamicClass)
-            MergeRecordReplayUtil.recordRemain(ContextManager.currentContext());
+            MergeRecordUtil.recordRemain(ContextManager.currentContext());
         }
     }
 
-    public static void executeRecord(Mocker requestMocker) {
+    public static void executeRecord(List<Mocker> mockerList) {
         if (Config.get().isEnableDebug()) {
-            LogManager.info(requestMocker.recordLogTitle(), StringUtil.format("%s%nrequest: %s",
-                    requestMocker.logBuilder().toString(), Serializer.serialize(requestMocker)));
+            for (Mocker mocker : mockerList) {
+                LogManager.info(mocker.recordLogTitle(), StringUtil.format("%s%nrequest: %s",
+                        mocker.logBuilder().toString(), Serializer.serialize(mocker)));
+            }
         }
-
-        DataService.INSTANCE.save(requestMocker);
+        DataService.INSTANCE.save(mockerList);
     }
 
     public static Mocker replayMocker(Mocker requestMocker) {
@@ -198,7 +202,7 @@ public final class MockUtils {
             if (MapUtils.getBoolean(targetResponse.getAttributes(), ArexConstants.EXCEED_MAX_SIZE_FLAG)) {
                 exceedSizeLog = StringUtil.format(
                         ", because exceed memory max limit:%s, please check method return size, suggest replace it",
-                        AgentSizeOf.humanReadableUnits(getSizeLimit()));
+                        AgentSizeOf.humanReadableUnits(AgentSizeOf.getSizeLimit()));
             }
             LogManager.info(logTitle, StringUtil.format("operation: %s body of targetResponse is empty%s", operationName, exceedSizeLog));
             return false;
@@ -225,7 +229,29 @@ public final class MockUtils {
                 requestMocker.getTargetRequest().getType()));
     }
 
-    public static long getSizeLimit() {
-        return Config.get().getLong(ArexConstants.RECORD_SIZE_LIMIT, ArexConstants.MEMORY_SIZE_1MB);
+    /**
+     * get all mockers under current one case
+     */
+    public static List<Mocker> queryMockers(QueryAllMockerDTO requestMocker) {
+        String postJson = Serializer.serialize(requestMocker);
+        long startTime = System.currentTimeMillis();
+        String data = DataService.INSTANCE.queryAll(postJson);
+        String cost = String.valueOf(System.currentTimeMillis() - startTime);
+        if (StringUtil.isEmpty(data) || EMPTY_JSON.equals(data)) {
+            LogManager.warn(requestMocker.replayLogTitle(),
+                    StringUtil.format("cost: %s ms%nrequest: %s%nresponse is null.", cost, postJson));
+            return null;
+        }
+        String message = StringUtil.format("cost: %s ms%nrequest: %s", cost, postJson);
+        if (Config.get().isEnableDebug()) {
+            message = StringUtil.format(message + "%nresponse: %s", data);
+        }
+        LogManager.info(requestMocker.replayLogTitle(), message);
+
+        return Serializer.deserialize(data, ArexConstants.MERGE_MOCKER_TYPE);
+    }
+
+    private static boolean enableMergeRecord() {
+        return !Boolean.getBoolean(ArexConstants.DISABLE_MERGE_RECORD);
     }
 }

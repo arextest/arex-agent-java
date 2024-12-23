@@ -22,7 +22,6 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 
-import org.springframework.http.HttpMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.NativeWebRequest;
@@ -119,8 +118,7 @@ public class ServletAdviceHelper {
             String caseId = adapter.getRequestHeader(httpServletRequest, ArexConstants.RECORD_ID);
             String excludeMockTemplate = adapter.getRequestHeader(httpServletRequest, ArexConstants.HEADER_EXCLUDE_MOCK);
             CaseEventDispatcher.onEvent(CaseEvent.ofCreateEvent(EventSource.of(caseId, excludeMockTemplate)));
-            ContextManager.currentContext().setAttachment(ArexConstants.FORCE_RECORD,
-                adapter.getRequestHeader(httpServletRequest, ArexConstants.FORCE_RECORD, ArexConstants.HEADER_X_PREFIX));
+            addAttachmentsToContext(adapter, httpServletRequest);
             RequestHandlerManager.handleAfterCreateContext(httpServletRequest, adapter.getServletVersion());
         }
 
@@ -211,8 +209,8 @@ public class ServletAdviceHelper {
         }
 
         // skip if pre-request http-method is HEAD or OPTIONS
-        if (HttpMethod.HEAD.matches(adapter.getMethod(httpServletRequest))
-                || HttpMethod.OPTIONS.matches(adapter.getMethod(httpServletRequest))) {
+        if (ArexConstants.HTTP_METHOD_HEAD.equals(adapter.getMethod(httpServletRequest))
+                || ArexConstants.HTTP_METHOD_OPTIONS.equals(adapter.getMethod(httpServletRequest))) {
             return true;
         }
 
@@ -238,15 +236,15 @@ public class ServletAdviceHelper {
         if (StringUtil.isEmpty(requestURI)) {
             return false;
         }
-
+        String pattern = adapter.getPattern(httpServletRequest);
         // As long as one parameter is hit in includeServiceOperations, the operation will not be skipped
         if (CollectionUtil.isNotEmpty(Config.get().getIncludeServiceOperations()) &&
-            !(IgnoreUtils.includeOperation(adapter.getPattern(httpServletRequest)) ||
+            !(IgnoreUtils.includeOperation(pattern) ||
                 IgnoreUtils.includeOperation(requestURI))) {
             return true;
         }
         // As long as one parameter is hit in excludeServiceOperations, the operation will be skipped
-        if (IgnoreUtils.excludeOperation(adapter.getPattern(httpServletRequest)) ||
+        if (IgnoreUtils.excludeOperation(pattern) ||
             IgnoreUtils.excludeOperation(requestURI)) {
             return true;
         }
@@ -262,7 +260,7 @@ public class ServletAdviceHelper {
             return true;
         }
 
-        return Config.get().invalidRecord(requestURI);
+        return Config.get().invalidRecord(pattern);
     }
 
     private static <TRequest, TResponse> String getRedirectRecordId(ServletAdapter<TRequest, TResponse> adapter,
@@ -284,5 +282,10 @@ public class ServletAdviceHelper {
         }
 
         return null;
+    }
+
+    private static <TRequest, TResponse> void addAttachmentsToContext(ServletAdapter<TRequest, TResponse> adapter, TRequest request) {
+        ContextManager.setAttachment(ArexConstants.FORCE_RECORD, adapter.getRequestHeader(request, ArexConstants.FORCE_RECORD, ArexConstants.HEADER_X_PREFIX));
+        ContextManager.setAttachment(ArexConstants.SCHEDULE_REPLAY, adapter.getRequestHeader(request, ArexConstants.SCHEDULE_REPLAY));
     }
 }

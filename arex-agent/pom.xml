@@ -148,6 +148,11 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
+            <artifactId>arex-httpclient-ning</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
             <artifactId>arex-netty-v3</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -209,6 +214,11 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>arex-httpclient-resttemplate</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>arex-component-scan</artifactId>
             <version>${project.version}</version>
         </dependency>
         <!--Agent instrumentation end-->

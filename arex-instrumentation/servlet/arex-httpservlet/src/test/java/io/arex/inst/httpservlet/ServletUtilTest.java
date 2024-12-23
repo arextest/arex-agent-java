@@ -22,6 +22,9 @@ class ServletUtilTest {
 
         assertEquals("http://arextest.com?email=arex.test.com@gmail.com&name=mark#fragment",
             ServletUtil.appendUri("http://arextest.com?email=arex.test.com@gmail.com#fragment", "name", "mark"));
+
+        assertEquals("http://arextest.com?Signature=HJeNHsZ7%2BDMj0JsTK3zd3nzBDQE%3D&name=mark",
+            ServletUtil.appendUri("http://arextest.com?Signature=HJeNHsZ7%2BDMj0JsTK3zd3nzBDQE%3D", "name", "mark"));
     }
 
     @Test

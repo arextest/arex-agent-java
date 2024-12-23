@@ -14,8 +14,10 @@ import static java.util.Collections.singletonList;
 @AutoService(ModuleInstrumentation.class)
 public class MyBatisModuleInstrumentation extends ModuleInstrumentation {
     public MyBatisModuleInstrumentation() {
+        // version <  3.3.0, moduleName = "MyBatis",
+        // version >=  3.3.0, moduleName = "mybatis",
         super("mybatis-v3", ModuleDescription.builder()
-                .name("mybatis").supportFrom(ComparableVersion.of("3.0")).build());
+                .name("mybatis","MyBatis").supportFrom(ComparableVersion.of("3.0")).build());
     }
 
     @Override

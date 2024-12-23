@@ -29,15 +29,15 @@ public class DubboProviderExtractor extends DubboExtractor {
         String excludeMockTemplate = adapter.getExcludeMockTemplate();
         RequestHandlerManager.preHandle(invocation.getAttachments(), MockCategoryType.DUBBO_PROVIDER.getName());
         CaseEventDispatcher.onEvent(CaseEvent.ofCreateEvent(EventSource.of(caseId, excludeMockTemplate)));
-        ContextManager.currentContext().setAttachment(ArexConstants.FORCE_RECORD, adapter.forceRecord());
+        addAttachmentsToContext(adapter);
         RequestHandlerManager.handleAfterCreateContext(invocation.getAttachments(), MockCategoryType.DUBBO_PROVIDER.getName());
         invocation.getAttributes().put(ArexConstants.ORIGINAL_REQUEST, Serializer.serialize(invocation.getArguments()));
+        setResponseHeader((k, v) -> RpcContext.getServerContext().setAttachment(k, v));
     }
     public static void onServiceExit(Invoker<?> invoker, Invocation invocation, Result result) {
         if (!ContextManager.needRecordOrReplay()) {
             return;
         }
-        setResponseHeader((k, v) -> setAttachment(invocation, k, v));
         DubboAdapter adapter = DubboAdapter.of(invoker, invocation);
         RequestHandlerManager.postHandle(invocation.getAttachments(), RpcContext.getServerContext().getAttachments(),
                 MockCategoryType.DUBBO_PROVIDER.getName());
@@ -53,13 +53,5 @@ public class DubboProviderExtractor extends DubboExtractor {
         Map<String, Object> responseAttributes = new HashMap<>();
         responseAttributes.put(KEY_HEADERS, RpcContext.getServerContext().getObjectAttachments());
         return buildMocker(mocker, adapter, requestAttributes, responseAttributes);
-    }
-
-    private static void setAttachment(Invocation invocation, String key, String value) {
-        RpcContext.getServerContext().setAttachment(key, value);
-        if (invocation instanceof RpcInvocation) {
-            RpcInvocation rpcInvocation = (RpcInvocation) invocation;
-            rpcInvocation.setAttachment(key, value);
-        }
     }
 }

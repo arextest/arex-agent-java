@@ -35,7 +35,7 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.times;
 
 @ExtendWith(MockitoExtension.class)
-class MergeRecordReplayUtilTest {
+class MergeRecordUtilTest {
     static MockedStatic<MockUtils> mockUtils;
     static AgentSizeOf agentSizeOf;
     static ArexMocker requestMocker;
@@ -69,16 +69,16 @@ class MergeRecordReplayUtilTest {
     @MethodSource("mergeRecordCase")
     void mergeRecord(Runnable mocker, Mocker requestMocker, Assert asserts) {
         mocker.run();
-        MergeRecordReplayUtil.mergeRecord(requestMocker);
+        MergeRecordUtil.mergeRecord(requestMocker);
         assertDoesNotThrow(asserts::verity);
     }
 
     static Stream<Arguments> mergeRecordCase() {
         Runnable emptyMocker = () -> {};
         ArexContext context = Mockito.mock(ArexContext.class);
-        LinkedBlockingQueue<MergeDTO> mergeRecordQueue = new LinkedBlockingQueue<>(1);
+        LinkedBlockingQueue<Mocker> mergeRecordQueue = new LinkedBlockingQueue<>(1);
         Runnable mocker1 = () -> {
-            mergeRecordQueue.offer(new MergeDTO());
+            mergeRecordQueue.offer(new ArexMocker());
             Mockito.when(context.getMergeRecordQueue()).thenReturn(mergeRecordQueue);
             Mockito.when(ContextManager.currentContext()).thenReturn(context);
         };
@@ -121,7 +121,7 @@ class MergeRecordReplayUtilTest {
     @ParameterizedTest
     @MethodSource("recordRemainCase")
     void recordRemain(ArexContext context, Predicate<ArexContext> asserts) {
-        MergeRecordReplayUtil.recordRemain(context);
+        MergeRecordUtil.recordRemain(context);
         asserts.test(context);
     }
 
@@ -129,7 +129,7 @@ class MergeRecordReplayUtilTest {
         Supplier<ArexContext> contextSupplier1 = () -> ArexContext.of("mock");
         Supplier<ArexContext> contextSupplier2 = () -> {
             ArexContext arexContext = contextSupplier1.get();
-            arexContext.getMergeRecordQueue().offer(new MergeDTO());
+            arexContext.getMergeRecordQueue().offer(new ArexMocker());
             return arexContext;
         };
 
@@ -139,42 +139,6 @@ class MergeRecordReplayUtilTest {
                 arguments(null, asserts1),
                 arguments(contextSupplier1.get(), asserts2),
                 arguments(contextSupplier2.get(), asserts2)
-        );
-    }
-
-    @ParameterizedTest
-    @MethodSource("mergeReplayCase")
-    void mergeReplay(Runnable mocker) {
-        mocker.run();
-        assertDoesNotThrow(MergeRecordReplayUtil::mergeReplay);
-    }
-
-    static Stream<Arguments> mergeReplayCase() {
-        Runnable emptyMocker = () -> {};
-        Runnable mocker1 = () -> {
-            Mockito.when(ContextManager.needReplay()).thenReturn(true);
-            ArexContext context = Mockito.mock(ArexContext.class);
-            Mockito.when(ContextManager.currentContext()).thenReturn(context);
-            Map<Integer, List<MergeDTO>> cachedReplayResultMap = new HashMap<>();
-            Mockito.when(context.getCachedReplayResultMap()).thenReturn(cachedReplayResultMap);
-        };
-        Runnable mocker2 = () -> {
-            Mockito.when(MockUtils.checkResponseMocker(any())).thenReturn(true);
-            requestMocker.getTargetResponse().setBody("mock");
-            Mockito.when(MockUtils.executeReplay(any(), any())).thenReturn(requestMocker);
-        };
-        Runnable mocker3 = () -> {
-            List<MergeDTO> mergeReplayList = new ArrayList<>();
-            MergeDTO mergeDTO = new MergeDTO();
-            mergeDTO.setMethodRequestTypeHash(1);
-            mergeReplayList.add(mergeDTO);
-            Mockito.when(Serializer.deserialize(anyString(), anyString())).thenReturn(mergeReplayList);
-        };
-        return Stream.of(
-                arguments(emptyMocker),
-                arguments(mocker1),
-                arguments(mocker2),
-                arguments(mocker3)
         );
     }
 }

@@ -1,12 +1,21 @@
 package io.arex.inst.extension.matcher;
 
+import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.agent.bootstrap.util.StringUtil;
+import java.util.List;
 import net.bytebuddy.matcher.ElementMatcher;
 
 public class IgnoreClassloaderMatcher extends ElementMatcher.Junction.AbstractBase<ClassLoader> {
 
     static final String BYTE_BUDDY_PREFIX = StringUtil.removeShadePrefix("net.bytebuddy.");
-    private final ElementMatcher<ClassLoader> matcher;
+
+    private static final List<String> IGNORED_CLASSLOADER_PREFIXES = CollectionUtil.newArrayList(
+        "sun.reflect.", "jdk.internal.reflect.", IgnoreClassloaderMatcher.BYTE_BUDDY_PREFIX);
+    private ElementMatcher<ClassLoader> matcher;
+
+    public IgnoreClassloaderMatcher(List<String> ignoreClassLoaderPrefixes) {
+        IGNORED_CLASSLOADER_PREFIXES.addAll(ignoreClassLoaderPrefixes);
+    }
 
     public IgnoreClassloaderMatcher(ElementMatcher<ClassLoader> matcher) {
         this.matcher = matcher;
@@ -19,9 +28,14 @@ public class IgnoreClassloaderMatcher extends ElementMatcher.Junction.AbstractBa
         }
 
         String loaderName = loader.getClass().getName();
-        if (loaderName.startsWith("sun.reflect") ||
-            loaderName.startsWith("jdk.internal.reflect")  ||
-            loaderName.startsWith(BYTE_BUDDY_PREFIX)) {
+
+        for (String ignored : IGNORED_CLASSLOADER_PREFIXES) {
+            if (loaderName.startsWith(ignored)) {
+                return true;
+            }
+        }
+
+        if (matcher == null) {
             return false;
         }
 

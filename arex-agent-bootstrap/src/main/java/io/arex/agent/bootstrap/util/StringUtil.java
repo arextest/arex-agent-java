@@ -106,6 +106,20 @@ public class StringUtil {
         }
     }
 
+    public static String mapToString(Map<String, String> map) {
+        if (MapUtils.isEmpty(map)) {
+            return StringUtil.EMPTY;
+        }
+        StringBuilder stringBuilder = new StringBuilder();
+        for (Map.Entry<String, String> entry : map.entrySet()) {
+            stringBuilder.append(entry.getKey())
+                    .append("=")
+                    .append(entry.getValue())
+                    .append(";");
+        }
+        return stringBuilder.toString();
+    }
+
     public static Map<String, String> asMap(String content) {
         if (isEmpty(content)) {
             return Collections.emptyMap();
@@ -591,6 +605,14 @@ public class StringUtil {
         }
         String[] strs = split(str, separatorChars);
         return new HashSet<>(Arrays.asList(strs));
+    }
+
+    public static List<String> splitToList(String str, char separatorChars) {
+        if (isEmpty(str)) {
+            return Collections.emptyList();
+        }
+        String[] strs = split(str, separatorChars);
+        return Arrays.asList(strs);
     }
 
     public static boolean isNumeric(final String cs) {
