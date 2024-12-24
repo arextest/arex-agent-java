@@ -137,10 +137,10 @@ public class JedisWrapper extends Jedis {
         return call("setnx", key, () -> super.setnx(key, value), 0L);
     }
 
-    //@Override
-    //public String setex(String key, long seconds, String value) {
-    //    return call("setex", key, () -> super.setex(key, seconds, value), null);
-    //}
+    @Override
+    public String setex(String key, long seconds, String value) {
+        return call("setex", key, () -> super.setex(key, seconds, value), null);
+    }
 
     @Override
     public String mset(String... keysvalues) {
