@@ -67,7 +67,8 @@ public class AggregateInstrumentation extends TypeInstrumentation {
                 }
                 return;
             }
-            if (ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate()) {
+
+            if (ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate("mongo aggregate repeat record")) {
                 MongoHelper.record("Aggregate", namespace, pipeline, result, throwable);
             }
         }

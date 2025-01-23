@@ -101,7 +101,7 @@ class SpringCacheInstrumentationTest {
             Mockito.doReturn(true).when(extractor).recordResponse(throwable);
         }))) {
             Mockito.when(ContextManager.needRecord()).thenReturn(true);
-            Mockito.when(RepeatedCollectManager.exitAndValidate()).thenReturn(true);
+            Mockito.when(RepeatedCollectManager.exitAndValidate(Mockito.anyString())).thenReturn(true);
             DynamicClassExtractor extractor = new DynamicClassExtractor(test1, new Object[]{"mock"}, "#val", null);
             SpringCacheInstrumentation.SpringCacheAdvice.onExit(test1, extractor, null, null, throwable);
             Mockito.verify(extractor, Mockito.times(1)).recordResponse(throwable);

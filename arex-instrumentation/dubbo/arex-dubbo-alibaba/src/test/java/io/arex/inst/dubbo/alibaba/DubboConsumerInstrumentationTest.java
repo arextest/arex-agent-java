@@ -11,6 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.ArgumentMatchers;
 import org.mockito.MockedConstruction;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -74,7 +75,7 @@ class DubboConsumerInstrumentationTest {
     static Stream<Arguments> onExitCase() {
         Runnable emptyMocker = () -> {};
         Runnable exitAndValidate = () -> {
-            Mockito.when(RepeatedCollectManager.exitAndValidate()).thenReturn(true);
+            Mockito.when(RepeatedCollectManager.exitAndValidate(ArgumentMatchers.anyString())).thenReturn(true);
         };
         Runnable needRecord = () -> {
             Mockito.when(ContextManager.needRecord()).thenReturn(true);

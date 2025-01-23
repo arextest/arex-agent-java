@@ -85,7 +85,7 @@ public class DubboStreamConsumerInstrumentation extends TypeInstrumentation {
                                   @Advice.FieldValue("listener") ClientCall.Listener listener,
                                   @Advice.Local("extractor") DubboStreamConsumerExtractor extractor,
                                   @Advice.Local("mockResult") List<MockResult> mockResults) {
-            if (extractor == null || !RepeatedCollectManager.exitAndValidate()) {
+            if (extractor == null || !RepeatedCollectManager.exitAndValidate("dubbo stream consumer repeat record")) {
                 return;
             }
 

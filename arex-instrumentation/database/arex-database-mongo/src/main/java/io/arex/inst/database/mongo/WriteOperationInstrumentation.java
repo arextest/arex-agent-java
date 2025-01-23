@@ -58,7 +58,7 @@ public class WriteOperationInstrumentation extends TypeInstrumentation {
         @Advice.OnMethodExit(suppress = Throwable.class)
         public static void onExit() {
             if (ContextManager.needRecord()) {
-                RepeatedCollectManager.exitAndValidate();
+                RepeatedCollectManager.exitAndValidate("mongo void operation repeat record");
             }
         }
     }
@@ -97,7 +97,7 @@ public class WriteOperationInstrumentation extends TypeInstrumentation {
                 return;
             }
 
-            if (ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate()) {
+            if (ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate("mongo write operation repeat record")) {
                 MongoHelper.record(methodName, namespace, filter, result, throwable);
             }
         }
