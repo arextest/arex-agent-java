@@ -9,7 +9,10 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 import java.lang.reflect.Field;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -72,7 +75,7 @@ class CacheLoaderUtilTest {
         try (MockedStatic<Config> configMockedStatic = Mockito.mockStatic(Config.class)) {
             Config config = Mockito.mock(Config.class);
             Mockito.when(Config.get()).thenReturn(config);
-            Mockito.when(config.getCoveragePackages()).thenReturn(new String[]{"io.arex.inst"});
+            Mockito.when(config.getCoveragePackages()).thenReturn(Collections.singleton("io.arex.inst.cache.util"));
             // method in coverage packages
             assertTrue(CacheLoaderUtil.needRecordOrReplay(CacheLoaderUtilTest.class.getDeclaredMethod("getLocatedClass")));
 
@@ -82,13 +85,16 @@ class CacheLoaderUtilTest {
             assertTrue(CacheLoaderUtil.needRecordOrReplay(cacheLoader));
 
             // loader is not in coverage packages
-            Mockito.when(config.getCoveragePackages()).thenReturn(new String[]{});
+            Mockito.when(config.getCoveragePackages()).thenReturn(Collections.EMPTY_SET);
             assertFalse(CacheLoaderUtil.needRecordOrReplay(cacheLoader));
 
-            Mockito.when(config.getCoveragePackages()).thenReturn(new String[]{"io.arexs"});
+            Mockito.when(config.getCoveragePackages()).thenReturn(Collections.singleton("io.arexs"));
             assertFalse(CacheLoaderUtil.needRecordOrReplay(cacheLoader));
 
-            Mockito.when(config.getCoveragePackages()).thenReturn(new String[]{"io.arexs","io.arex.inst.cache.util"});
+            Set<String> coveragePackages = new HashSet<>();
+            coveragePackages.add("io.arex.inst.cache.util");
+            coveragePackages.add("io.arexs");
+            Mockito.when(config.getCoveragePackages()).thenReturn(coveragePackages);
             assertTrue(CacheLoaderUtil.needRecordOrReplay(cacheLoader));
         }
     }

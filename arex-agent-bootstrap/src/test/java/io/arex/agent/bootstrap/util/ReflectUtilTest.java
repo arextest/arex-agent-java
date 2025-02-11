@@ -9,6 +9,8 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.TreeSet;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -58,5 +60,31 @@ class ReflectUtilTest {
     @Test
     void getConstructor() {
         assertNotNull(ReflectUtil.getConstructor(String.class));
+    }
+
+    @ParameterizedTest
+    @CsvSource(value ={
+            "java.lang.String, indexOf, int",
+            "java.lang.String, hashCode, null",
+            "java.lang.String, noExistMethod, null",
+            "noExistClass, noExistMethod, null"
+    }, nullValues={"null"})
+    void getMethodWithoutClassType(String className, String methodName, String argTypes) {
+        if (argTypes == null) {
+            assertDoesNotThrow(() -> ReflectUtil.getMethodWithoutClassType(className, methodName));
+        } else {
+            assertDoesNotThrow(() -> ReflectUtil.getMethodWithoutClassType(className, methodName, argTypes));
+        }
+    }
+
+    @ParameterizedTest
+    @CsvSource(value ={
+            "null, instance, param",
+            "hashCode, instance, param",
+            "hashCode, instance, param"
+    }, nullValues={"null"})
+    void invoke(String methodName, String instance, String param) throws Exception {
+        assertDoesNotThrow(() ->
+                ReflectUtil.invoke(methodName == null ? null : String.class.getDeclaredMethod(methodName), instance, param));
     }
 }

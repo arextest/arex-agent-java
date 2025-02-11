@@ -51,7 +51,7 @@ import java.util.function.Supplier;
 public class ApolloConfigHelper {
     private static Field configInstancesField;
 
-    public static void initAndRecord(Supplier<String> recordIdSpl, Supplier<String> versionSpl) {
+    public static void replayConfigs(Supplier<String> recordIdSpl, Supplier<String> versionSpl) {
         String recordId = recordIdSpl.get();
         if (StringUtil.isEmpty(recordId)) {
             return;
@@ -160,7 +160,7 @@ public class ApolloConfigHelper {
                     localRepository.getClass().getDeclaredField("m_upstream"), localRepository);
             if (remoteRepositoryObj instanceof RemoteConfigRepository) {
                 RemoteConfigRepository remoteRepository = (RemoteConfigRepository) remoteRepositoryObj;
-                // sync -> loadApolloConfig(by arex transformed)
+                // sync -> RemoteConfigRepository#loadApolloConfig(by arex transformed) -> ApolloConfigHelper#getReplayConfig
                 ReflectUtil.getFieldOrInvokeMethod(() ->
                         remoteRepository.getClass().getDeclaredMethod("sync"), remoteRepository);
             }

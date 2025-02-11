@@ -4,6 +4,8 @@ import com.google.common.annotations.VisibleForTesting;
 import io.arex.agent.bootstrap.util.ArrayUtils;
 import io.arex.agent.bootstrap.util.MapUtils;
 import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.foundation.logger.AgentLogger;
+import io.arex.foundation.logger.AgentLoggerFactory;
 import io.arex.foundation.model.ConfigQueryResponse.DynamicClassConfiguration;
 import io.arex.foundation.model.ConfigQueryResponse.ResponseBody;
 import io.arex.foundation.model.ConfigQueryResponse.ServiceCollectConfig;
@@ -16,8 +18,6 @@ import io.arex.inst.runtime.model.DynamicClassStatusEnum;
 import io.arex.agent.bootstrap.util.ServiceLoader;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -34,7 +34,7 @@ import static io.arex.agent.bootstrap.constants.ConfigConstants.*;
 
 public class ConfigManager {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ConfigManager.class);
+    private static final AgentLogger LOGGER = AgentLoggerFactory.getAgentLogger(ConfigManager.class);
     public static final ConfigManager INSTANCE = new ConfigManager();
     public static final AtomicBoolean FIRST_TRANSFORM = new AtomicBoolean(false);
     private static final int DEFAULT_RECORDING_RATE = 1;
@@ -53,6 +53,8 @@ public class ConfigManager {
     private EnumSet<DayOfWeek> allowDayOfWeeks;
     private LocalTime allowTimeOfDayFrom;
     private LocalTime allowTimeOfDayTo;
+    private List<String> ignoreTypePrefixes;
+    private List<String> ignoreClassLoaderPrefixes;
     private List<String> disabledModules;
     private List<String> retransformModules;
     private Set<String> excludeServiceOperations;
@@ -263,6 +265,8 @@ public class ConfigManager {
         setAllowDayOfWeeks(Integer.parseInt(System.getProperty(ALLOW_DAY_WEEKS, "127")));
         setAllowTimeOfDayFrom(System.getProperty(ALLOW_TIME_FROM, "00:01"));
         setAllowTimeOfDayTo(System.getProperty(ALLOW_TIME_TO, "23:59"));
+        setIgnoreTypePrefixes(System.getProperty(IGNORED_TYPE_PREFIXES));
+        setIgnoreClassLoaderPrefixes(System.getProperty(IGNORED_CLASS_LOADER_PREFIXES));
         setDisabledModules(System.getProperty(DISABLE_MODULE));
         setRetransformModules(System.getProperty(RETRANSFORM_MODULE, "dynamic-class"));
         setExcludeServiceOperations(System.getProperty(EXCLUDE_SERVICE_OPERATION));
@@ -498,6 +502,30 @@ public class ConfigManager {
         }
         LocalDateTime nextTime = LocalDateTime.of(dateTime.toLocalDate(), allowTimeOfDayFrom);
         return Duration.between(LocalDateTime.now(), nextTime).toMillis();
+    }
+
+    public List<String> getIgnoreTypePrefixes() {
+        return ignoreTypePrefixes;
+    }
+
+    private void setIgnoreTypePrefixes(String ignoredTypes) {
+        if (StringUtil.isEmpty(ignoredTypes)) {
+            this.ignoreTypePrefixes = Collections.emptyList();
+        } else {
+            this.ignoreTypePrefixes = Arrays.asList(StringUtil.split(ignoredTypes, ','));
+        }
+    }
+
+    public List<String> getIgnoreClassLoaderPrefixes() {
+        return ignoreClassLoaderPrefixes;
+    }
+
+    private void setIgnoreClassLoaderPrefixes(String ignoreClassLoaderPrefixes) {
+        if (StringUtil.isEmpty(ignoreClassLoaderPrefixes)) {
+            this.ignoreClassLoaderPrefixes = Collections.emptyList();
+        } else {
+            this.ignoreClassLoaderPrefixes = Arrays.asList(StringUtil.split(ignoreClassLoaderPrefixes, ','));
+        }
     }
 
     public List<String> getDisabledModules() {

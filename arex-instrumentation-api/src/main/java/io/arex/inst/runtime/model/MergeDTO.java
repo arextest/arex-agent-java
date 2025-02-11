@@ -1,7 +1,6 @@
 package io.arex.inst.runtime.model;
 
 import java.util.Map;
-import java.util.Objects;
 
 public class MergeDTO {
     private String category;

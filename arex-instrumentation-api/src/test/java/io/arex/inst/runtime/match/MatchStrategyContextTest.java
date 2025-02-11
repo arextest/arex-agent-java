@@ -24,13 +24,13 @@ class MatchStrategyContextTest {
     }
 
     @Test
-    void getMergeReplayList() {
-        assertNull(context.getMergeReplayList());
+    void getReplayList() {
+        assertNull(context.getReplayList());
     }
 
     @Test
-    void setMergeReplayList() {
-        assertDoesNotThrow(() -> context.setMergeReplayList(null));
+    void setReplayList() {
+        assertDoesNotThrow(() -> context.setReplayList(null));
     }
 
     @Test
@@ -61,5 +61,25 @@ class MatchStrategyContextTest {
     @Test
     void setMatchMocker() {
         assertDoesNotThrow(() -> context.setMatchMocker(null));
+    }
+
+    @Test
+    void getMatchStrategy() {
+        assertNull(context.getMatchStrategy());
+    }
+
+    @Test
+    void setMatchStrategy() {
+        assertDoesNotThrow(() -> context.setMatchStrategy(null));
+    }
+
+    @Test
+    void getReason() {
+        assertNull(context.getReason());
+    }
+
+    @Test
+    void setReason() {
+        assertDoesNotThrow(() -> context.setReason(null));
     }
 }

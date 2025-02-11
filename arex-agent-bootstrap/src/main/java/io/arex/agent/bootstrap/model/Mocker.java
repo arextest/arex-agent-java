@@ -117,7 +117,19 @@ public interface Mocker extends Serializable {
         return "replay." + getCategoryType().getName();
     }
 
-    public boolean isNeedMerge();
+    boolean isNeedMerge();
 
-    public void setNeedMerge(boolean needMerge);
+    void setNeedMerge(boolean needMerge);
+
+    boolean isMatched();
+
+    void setMatched(boolean matched);
+
+    int getAccurateMatchKey();
+
+    void setAccurateMatchKey(int accurateMatchKey);
+
+    int getFuzzyMatchKey();
+
+    void setFuzzyMatchKey(int fuzzyMatchKey);
 }

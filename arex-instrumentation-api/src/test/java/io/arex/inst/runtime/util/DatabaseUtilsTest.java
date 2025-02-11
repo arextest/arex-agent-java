@@ -1,5 +1,6 @@
 package io.arex.inst.runtime.util;
 
+import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
 import org.junit.jupiter.api.AfterAll;
@@ -27,6 +28,10 @@ class DatabaseUtilsTest {
     static void setUp() throws IOException {
         Mockito.mockStatic(ContextManager.class);
         largeSql = new String(Files.readAllBytes(Paths.get("src/test/resources/test_sql.txt")));
+        Mockito.mockStatic(Config.class);
+        Config config = Mockito.mock(Config.class);
+        Mockito.when(Config.get()).thenReturn(config);
+        Mockito.when(config.isLocalStorage()).thenReturn(true);
     }
 
     @AfterAll
@@ -64,7 +69,9 @@ class DatabaseUtilsTest {
         };
 
         Predicate<String> predicate1 = "@"::equals;
-        Predicate<String> predicate2 = "database1@table1@Select@query"::equals;
+        Predicate<String> predicate2 = "query"::equals;
+        Predicate<String> predicate3 = "database1@table1@Select@query"::equals;
+
 
         String normalSql = "select * from table1";
 
@@ -72,8 +79,8 @@ class DatabaseUtilsTest {
                 arguments("database1", "@", normalSql, noExcludeMockTemplateMocker, predicate1),
                 arguments("database1", "@", normalSql, noOperationSetMocker, predicate1),
                 arguments("database1", "@", normalSql, hasOperationSetMocker, predicate1),
-                arguments("database1", "@", largeSql, needRegenerateMocker, predicate1),
-                arguments("database1", "query", normalSql, needRegenerateMocker, predicate2),
+                arguments("database1", "query", largeSql, needRegenerateMocker, predicate2),
+                arguments("database1", "query", normalSql, needRegenerateMocker, predicate3),
                 arguments("database1", "@", "wrong sql", needRegenerateMocker, predicate1)
         );
     }
