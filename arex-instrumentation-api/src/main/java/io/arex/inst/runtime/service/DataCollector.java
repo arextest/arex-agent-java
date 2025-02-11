@@ -10,6 +10,8 @@ public interface DataCollector {
 
     void save(List<Mocker> mockerList);
 
+    void saveReplayCompareResult(String postData);
+
     void invalidCase(String postData);
 
     String query(String postData, MockStrategyEnum mockStrategy);
