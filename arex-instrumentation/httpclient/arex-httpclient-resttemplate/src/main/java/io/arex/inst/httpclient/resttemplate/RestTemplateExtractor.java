@@ -15,6 +15,7 @@ import io.arex.inst.runtime.util.TypeUtil;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RequestCallback;
@@ -108,7 +109,7 @@ public class RestTemplateExtractor {
         Map<String, Object> attributes = new HashMap<>(2);
 
         mocker.getTargetRequest().setAttributes(attributes);
-        attributes.put(ArexConstants.HTTP_METHOD, httpMethod);
+        attributes.put(ArexConstants.HTTP_METHOD, Objects.isNull(httpMethod) ? null : httpMethod.name());
         attributes.put(ArexConstants.HTTP_QUERY_STRING, uri.getQuery());
 
         mocker.getTargetRequest().setBody(request);
