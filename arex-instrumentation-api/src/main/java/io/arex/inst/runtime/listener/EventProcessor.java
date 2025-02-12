@@ -1,11 +1,15 @@
 package io.arex.inst.runtime.listener;
 
 import io.arex.agent.bootstrap.cache.TimeCache;
+import io.arex.agent.bootstrap.constants.ConfigConstants;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.AdviceClassesCollector;
 import io.arex.agent.bootstrap.util.NumberUtil;
+import io.arex.agent.bootstrap.util.ReflectUtil;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.agent.bootstrap.util.ServiceLoader;
+import io.arex.inst.runtime.config.Config;
+import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.model.InitializeEnum;
 import io.arex.inst.runtime.request.RequestHandlerManager;
 import io.arex.inst.runtime.log.LogManager;
@@ -16,9 +20,13 @@ import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.serializer.StringSerializable;
 import io.arex.inst.runtime.util.MockUtils;
 
+import java.lang.reflect.Method;
 import java.util.List;
 
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.arex.inst.runtime.util.ReplayUtil;
@@ -30,8 +38,13 @@ public class EventProcessor {
     private static final String CLOCK_METHOD = "currentTimeMillis";
     public static final String EXCLUDE_MOCK_TYPE = "java.util.HashMap-java.lang.String,java.util.HashSet";
     private static final AtomicReference<InitializeEnum> INIT_DEPENDENCY = new AtomicReference<>(InitializeEnum.START);
+    private static final Method FIND_LOADED_METHOD = ReflectUtil.getMethod(ClassLoader.class, "findLoadedClass", String.class);
     private static boolean existJacksonDependency = true;
+
+    private static final ScheduledThreadPoolExecutor SCHEDULER =
+            new ScheduledThreadPoolExecutor(1, r -> new Thread(r, "arex-replay-manager-thread"));
     public static ClassLoader CONTEXT_CLASS_LOADER = null;
+
     static {
         try {
             Class.forName("com.fasterxml.jackson.databind.ObjectMapper",true, Thread.currentThread().getContextClassLoader());
@@ -49,7 +62,7 @@ public class EventProcessor {
             return;
         }
         initContext(source);
-        loadReplayData();
+        initReplay();
         initClock();
         addEnterLog();
     }
@@ -107,7 +120,15 @@ public class EventProcessor {
     }
 
     public static void onExit(){
+        ReplayUtil.saveReplayCompareResult();
         ContextManager.remove();
+        // if replay plan complete end(the last replay case), delay clear context (include async thread context)
+        ArexContext context = ContextManager.currentContext();
+        if (context.getAttachment(ArexConstants.REPLAY_END_FLAG) != null
+                && Boolean.parseBoolean(String.valueOf(context.getAttachment(ArexConstants.REPLAY_END_FLAG)))) {
+            // must contain LatencyContextHashMap#overdueCleanUp time(1 minutes)
+            SCHEDULER.schedule(ContextManager::clear, 2, TimeUnit.MINUTES);
+        }
     }
 
     /**
@@ -121,6 +142,7 @@ public class EventProcessor {
             ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
             // https://bugs.openjdk.org/browse/JDK-8172726
             CompletableFuture.runAsync(() -> {
+                initClass(contextClassLoader);
                 initSerializer(contextClassLoader);
                 initLog(contextClassLoader);
                 RequestHandlerManager.init(contextClassLoader);
@@ -129,6 +151,38 @@ public class EventProcessor {
         }
         TimeCache.remove();
         ContextManager.remove();
+    }
+
+    /**
+     * To prevent class initialization failure during request replay,
+     * it is advisable to perform early initialization of classes that rely on external dependencies.
+     * This helps to avoid triggering the class initialization logic when replaying requests.
+     */
+    private static void initClass(ClassLoader contextClassLoader) {
+        boolean disableReplay = Config.get().getBoolean(ConfigConstants.DISABLE_REPLAY, false);
+        if (disableReplay) {
+            return;
+        }
+        String arexStaticClassInit = Config.get().getString(ConfigConstants.AREX_STATIC_CLASS_INIT);
+        if (StringUtil.isBlank(arexStaticClassInit)) {
+            return;
+        }
+        Set<String> initClassNameSet = StringUtil.splitToSet(arexStaticClassInit, ',');
+        for (String initClass : initClassNameSet) {
+            try {
+                if (isClassLoaded(initClass, contextClassLoader)) {
+                    continue;
+                }
+                Class.forName(initClass, true, contextClassLoader);
+            } catch (Throwable e) {
+                // if the class init fails, the next class init will continue
+                LOGGER.warn(LogManager.buildTitle("init.class"), e);
+            }
+        }
+    }
+
+    private static boolean isClassLoaded(String className, ClassLoader classLoader) {
+        return FIND_LOADED_METHOD == null || ReflectUtil.invoke(FIND_LOADED_METHOD, classLoader, className) != null;
     }
 
     private static void initLog(ClassLoader contextClassLoader) {
@@ -140,7 +194,8 @@ public class EventProcessor {
         return InitializeEnum.COMPLETE.equals(INIT_DEPENDENCY.get());
     }
 
-    private static void loadReplayData() {
+    private static void initReplay() {
+        // init replay and cached all mockers within case
         ReplayUtil.queryMockers();
     }
 }

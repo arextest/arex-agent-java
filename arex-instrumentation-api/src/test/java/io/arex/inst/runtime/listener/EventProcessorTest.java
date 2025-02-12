@@ -1,23 +1,24 @@
 package io.arex.inst.runtime.listener;
 
-import static org.mockito.ArgumentMatchers.any;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import io.arex.agent.bootstrap.constants.ConfigConstants;
 import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.inst.runtime.config.ConfigBuilder;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.log.Logger;
-import io.arex.inst.runtime.serializer.Serializer;
+import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.serializer.StringSerializable;
 import io.arex.agent.bootstrap.util.ServiceLoader;
+
+import java.lang.reflect.Method;
 import java.lang.reflect.Type;
-import java.util.Arrays;
-import java.util.Collections;
+
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -33,12 +34,16 @@ public class EventProcessorTest {
     static Logger logger = null;
     static MockedStatic<LogManager> mockedStatic = null;
     static MockedStatic<ContextManager> contextMockedStatic = null;
+    static ConfigBuilder configBuilder;
     @BeforeAll
     static void setUp() {
         contextMockedStatic = Mockito.mockStatic(ContextManager.class);
         Mockito.mockStatic(ServiceLoader.class);
         logger = Mockito.mock(Logger.class);
         mockedStatic = Mockito.mockStatic(LogManager.class);
+        configBuilder = ConfigBuilder.create("testInitClass");
+        // disPlay
+        configBuilder.build();
     }
 
     @AfterAll
@@ -47,6 +52,8 @@ public class EventProcessorTest {
         mockedStatic = null;
         contextMockedStatic = null;
         Mockito.clearAllCaches();
+        configBuilder.build();
+        configBuilder = null;
     }
 
     @Test
@@ -81,7 +88,31 @@ public class EventProcessorTest {
     }
 
     @Test
+    @Order(3)
+    void testInitClass() throws Exception {
+        Method initClassMethod = EventProcessor.class.getDeclaredMethod("initClass", ClassLoader.class);
+        initClassMethod.setAccessible(true);
+        // disPlay
+        initClassMethod.invoke(null, Thread.currentThread().getContextClassLoader());
+        mockedStatic.verify(() -> LogManager.buildTitle("init.class"), Mockito.never());
+        // not display but no initClass
+        configBuilder.addProperty(ConfigConstants.DISABLE_REPLAY, "true");
+        configBuilder.build();
+        initClassMethod.invoke(null, Thread.currentThread().getContextClassLoader());
+        mockedStatic.verify(() -> LogManager.buildTitle("init.class"), Mockito.never());
+        // no display and initClass
+        configBuilder.addProperty(ConfigConstants.DISABLE_REPLAY, "false");
+        configBuilder.addProperty(ConfigConstants.AREX_STATIC_CLASS_INIT, "test1,io.arex.inst.runtime.listener.EventProcessorTest");
+        configBuilder.build();
+        initClassMethod.invoke(null, Thread.currentThread().getContextClassLoader());
+        mockedStatic.verify(() -> LogManager.buildTitle("init.class"), Mockito.times(1));
+    }
+
+    @Test
     void onExit() {
+        ArexContext context = Mockito.mock(ArexContext.class);
+        Mockito.when(ContextManager.currentContext()).thenReturn(context);
+        Mockito.when(context.getAttachment(ArexConstants.REPLAY_END_FLAG)).thenReturn(true);
         Assertions.assertDoesNotThrow(EventProcessor::onExit);
     }
 

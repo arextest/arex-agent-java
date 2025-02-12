@@ -1,5 +1,6 @@
 package io.arex.inst.runtime.config;
 
+import io.arex.inst.runtime.model.CompareConfigurationEntity;
 import io.arex.inst.runtime.model.DynamicClassEntity;
 
 import java.util.*;
@@ -12,6 +13,7 @@ public class ConfigBuilder {
     private Set<String> excludeServiceOperations;
     private int dubboStreamReplayThreshold;
     private int recordRate;
+    private CompareConfigurationEntity compareConfigurationEntity;
 
     public static ConfigBuilder create(String serviceName) {
         return new ConfigBuilder(serviceName);
@@ -34,6 +36,11 @@ public class ConfigBuilder {
 
     public ConfigBuilder excludeServiceOperations(Set<String> excludeServiceOperations) {
         this.excludeServiceOperations = excludeServiceOperations;
+        return this;
+    }
+
+    public ConfigBuilder compareConfiguration(CompareConfigurationEntity compareConfigurationEntity) {
+        this.compareConfigurationEntity = compareConfigurationEntity;
         return this;
     }
 
@@ -70,7 +77,8 @@ public class ConfigBuilder {
     }
 
     public void build() {
-        Config.update(enableDebug, serviceName, dynamicClassList, Collections.unmodifiableMap(new HashMap<>(properties)),
-            excludeServiceOperations, dubboStreamReplayThreshold, recordRate);
+        Config.update(enableDebug, serviceName, dubboStreamReplayThreshold, recordRate,
+                ConfigExtendEntity.of(dynamicClassList, Collections.unmodifiableMap(new HashMap<>(properties)),
+                        excludeServiceOperations, compareConfigurationEntity));
     }
 }

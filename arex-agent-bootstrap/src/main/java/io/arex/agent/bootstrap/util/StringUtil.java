@@ -106,6 +106,20 @@ public class StringUtil {
         }
     }
 
+    public static String mapToString(Map<String, String> map) {
+        if (MapUtils.isEmpty(map)) {
+            return StringUtil.EMPTY;
+        }
+        StringBuilder stringBuilder = new StringBuilder();
+        for (Map.Entry<String, String> entry : map.entrySet()) {
+            stringBuilder.append(entry.getKey())
+                    .append("=")
+                    .append(entry.getValue())
+                    .append(";");
+        }
+        return stringBuilder.toString();
+    }
+
     public static Map<String, String> asMap(String content) {
         if (isEmpty(content)) {
             return Collections.emptyMap();
@@ -269,11 +283,11 @@ public class StringUtil {
         return new String[]{str.substring(0, index), str.substring(index + 1)};
     }
 
-    public static int encodeAndHash(String str){
-        if (isBlank(str)) {
+    public static int encodeAndHash(String... str){
+        if (ArrayUtils.isEmpty(str)) {
             return 0;
         }
-        return Base64.getEncoder().encodeToString(str.getBytes(StandardCharsets.UTF_8)).hashCode();
+        return Base64.getEncoder().encodeToString(String.join("_", str).getBytes(StandardCharsets.UTF_8)).hashCode();
     }
 
     public static String replace(final String text, final String searchString, final String replacement) {

@@ -33,6 +33,10 @@
             <groupId>${project.groupId}</groupId>
             <artifactId>arex-third-party</artifactId>
         </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>arex-compare</artifactId>
+        </dependency>
 
         <!--Agent instrumentation start-->
         <dependency>
@@ -209,6 +213,11 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>arex-httpclient-resttemplate</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>arex-component-scan</artifactId>
             <version>${project.version}</version>
         </dependency>
         <!--Agent instrumentation end-->

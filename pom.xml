@@ -50,11 +50,12 @@
         <module>arex-integration-tests</module>
         <module>arex-instrumentation-api</module>
         <module>arex-third-party</module>
+        <module>arex-compare</module>
     </modules>
 
     <properties>
         <!-- Maven CI Friendly Versions https://maven.apache.org/maven-ci-friendly.html -->
-        <revision>0.4.6</revision>
+        <revision>0.4.8</revision>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
@@ -81,6 +82,7 @@
             **/constants/**,
             **/thirdparty/**,
             **/integrationtest/**,
+            **/compare/**,
             **/*Instrumentation.java,
             **/JJWTGenerator.java
         </sonar.exclusions>
@@ -102,6 +104,7 @@
             **/wrapper/**,
             **/thirdparty/**,
             **/integrationtest/**,
+            **/compare/**,
             **/RedisCommandBuilderImpl.java,
             **/HttpResponseWrapper.java,
             **/RFutureWrapper.java
@@ -138,6 +141,11 @@
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>arex-third-party</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>arex-compare</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

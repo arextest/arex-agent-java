@@ -16,18 +16,18 @@ public class ArexMocker implements Mocker {
     private long creationTime;
     private Mocker.Target targetRequest;
     private Mocker.Target targetResponse;
-    private transient boolean needMerge;
     private String operationName;
-    private Map<String, String> tags;
+    private transient boolean needMerge;
     private final transient AtomicBoolean matched = new AtomicBoolean(false);
-    /**
-     * replay match need
-     */
     private transient int fuzzyMatchKey;
-    /**
-     * replay match need
-     */
     private transient int accurateMatchKey;
+    private transient Map<Integer, Long> eigenMap;
+    private Map<String, String> tags;
+
+    // original compressed text for request
+    private transient String request;
+    // original compressed text for response
+    private transient String response;
 
     /**
      * The default constructor is for deserialization
@@ -39,7 +39,6 @@ public class ArexMocker implements Mocker {
         this.categoryType = categoryType;
         this.appId = System.getProperty(ConfigConstants.SERVICE_NAME);
         this.recordVersion = System.getProperty(ConfigConstants.AGENT_VERSION);
-        this.tags = (Map<String, String>) System.getProperties().getOrDefault(ConfigConstants.MOCKER_TAGS, Collections.emptyMap());
     }
 
     /**
@@ -103,6 +102,7 @@ public class ArexMocker implements Mocker {
     public String getOperationName() {
         return this.operationName;
     }
+
 
     public void setId(String id) {
         this.id = id;
@@ -178,5 +178,31 @@ public class ArexMocker implements Mocker {
     @Override
     public void setFuzzyMatchKey(int fuzzyMatchKey) {
         this.fuzzyMatchKey = fuzzyMatchKey;
+    }
+
+    @Override
+    public Map<Integer, Long> getEigenMap() {
+        return eigenMap;
+    }
+
+    @Override
+    public void setEigenMap(Map<Integer, Long> eigenMap) {
+        this.eigenMap = eigenMap;
+    }
+
+    public String getRequest() {
+        return request;
+    }
+
+    public void setRequest(String request) {
+        this.request = request;
+    }
+
+    public String getResponse() {
+        return response;
+    }
+
+    public void setResponse(String response) {
+        this.response = response;
     }
 }
