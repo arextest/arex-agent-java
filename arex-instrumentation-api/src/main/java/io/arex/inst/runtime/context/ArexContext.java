@@ -20,6 +20,8 @@ public class ArexContext {
     private Set<Integer> methodSignatureHashList;
     private Map<Integer, List<Mocker>> cachedReplayResultMap;
     private Map<String, Set<String>> excludeMockTemplate;
+    private Map<String, Set<String>> recordInReplayMockTemplate;
+
 
     private Map<String, Object> attachments = null;
 
@@ -90,6 +92,14 @@ public class ArexContext {
         this.excludeMockTemplate = excludeMockTemplate;
     }
 
+    public Map<String, Set<String>> getRecordInReplayMockTemplate() {
+        return recordInReplayMockTemplate;
+    }
+
+    public void setRecordInReplayMockTemplate(Map<String, Set<String>> recordInReplayMockTemplate) {
+        this.recordInReplayMockTemplate = recordInReplayMockTemplate;
+    }
+
     public void setAttachment(String key, Object value) {
         if (value == null) {
             return;
@@ -128,6 +138,14 @@ public class ArexContext {
 
     public boolean isInvalidCase() {
         return isInvalidCase;
+    }
+
+    public boolean isPinnedCase() {
+        if (StringUtil.isEmpty(this.caseId)) {
+            return false;
+        }
+        String regex = "^.{1,30}-\\d{13}-\\d{1,2}$";
+        return this.caseId.matches(regex);
     }
 
     public void setInvalidCase(boolean invalidCase) {

@@ -15,6 +15,7 @@ import io.arex.inst.runtime.listener.CaseEvent;
 import io.arex.inst.runtime.listener.CaseEventDispatcher;
 import io.arex.inst.runtime.listener.EventSource;
 import io.arex.inst.runtime.model.ArexConstants;
+import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.util.IgnoreUtils;
 import io.arex.inst.runtime.log.LogManager;
 import java.util.HashSet;
@@ -117,7 +118,8 @@ public class ServletAdviceHelper {
             CaseEventDispatcher.onEvent(CaseEvent.ofEnterEvent());
             String caseId = adapter.getRequestHeader(httpServletRequest, ArexConstants.RECORD_ID);
             String excludeMockTemplate = adapter.getRequestHeader(httpServletRequest, ArexConstants.HEADER_EXCLUDE_MOCK);
-            CaseEventDispatcher.onEvent(CaseEvent.ofCreateEvent(EventSource.of(caseId, excludeMockTemplate)));
+            String recordInReplayMockTemplate = adapter.getRequestHeader(httpServletRequest, ArexConstants.HEADER_RECORD_IN_REPLAY_MOCK);
+            CaseEventDispatcher.onEvent(CaseEvent.ofCreateEvent(EventSource.of(caseId, excludeMockTemplate, recordInReplayMockTemplate)));
             addAttachmentsToContext(adapter, httpServletRequest);
             RequestHandlerManager.handleAfterCreateContext(httpServletRequest, adapter.getServletVersion());
         }

@@ -34,7 +34,8 @@ public class RequestTracingHandler extends SimpleChannelUpstreamHandler {
                 }
 
                 String excludeMockTemplate = NettyHelper.getHeader(request, ArexConstants.HEADER_EXCLUDE_MOCK);
-                CaseEventDispatcher.onEvent(CaseEvent.ofCreateEvent(EventSource.of(caseId, excludeMockTemplate)));
+                String recordInReplayMockTemplate = NettyHelper.getHeader(request, ArexConstants.HEADER_RECORD_IN_REPLAY_MOCK);
+                CaseEventDispatcher.onEvent(CaseEvent.ofCreateEvent(EventSource.of(caseId, excludeMockTemplate, recordInReplayMockTemplate)));
                 ContextManager.currentContext().setAttachment(ArexConstants.FORCE_RECORD, NettyHelper.getHeader(request, ArexConstants.FORCE_RECORD));
                 if (ContextManager.needRecordOrReplay()) {
                     Mocker mocker = MockUtils.createNettyProvider(request.getUri());

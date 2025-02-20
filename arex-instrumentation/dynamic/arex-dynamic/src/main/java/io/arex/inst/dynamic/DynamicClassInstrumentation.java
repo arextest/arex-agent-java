@@ -158,6 +158,9 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
             }
             if (ContextManager.needReplay()) {
                 mockResult = extractor.replay();
+                if (mockResult != null && mockResult.isNeedRecord()) {
+                    RepeatedCollectManager.enter();
+                }
                 return mockResult != null && mockResult.notIgnoreMockResult();
             }
             return false;
@@ -180,7 +183,7 @@ public class DynamicClassInstrumentation extends TypeInstrumentation {
                 }
                 return;
             }
-            if (ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate() && extractor != null) {
+            if ((ContextManager.needRecord() || mockResult.isNeedRecord()) && RepeatedCollectManager.exitAndValidate() && extractor != null) {
                 result = extractor.recordResponse(throwable != null ? throwable : result);
             }
         }

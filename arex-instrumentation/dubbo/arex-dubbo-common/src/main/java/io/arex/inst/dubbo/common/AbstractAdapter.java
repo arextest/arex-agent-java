@@ -88,6 +88,10 @@ public abstract class AbstractAdapter {
         return getAttachment(ArexConstants.HEADER_EXCLUDE_MOCK);
     }
 
+    public String getRecordInReplayMockTemplate() {
+        return getAttachment(ArexConstants.HEADER_RECORD_IN_REPLAY_MOCK);
+    }
+
     public String getCaseId() {
         return getAttachment(ArexConstants.RECORD_ID);
     }
