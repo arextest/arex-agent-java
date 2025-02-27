@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.jsontype.TypeResolverBuilder;
 import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.google.auto.service.AutoService;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.foundation.serializer.gson.adapter.FastUtilAdapterFactory;
@@ -31,8 +32,6 @@ import io.arex.foundation.serializer.jackson.adapter.TimestampAdapter;
 import io.arex.foundation.serializer.jackson.adapter.XMLGregorianCalendarAdapter;
 import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.serializer.StringSerializable;
-
-import javax.xml.datatype.XMLGregorianCalendar;
 import java.lang.reflect.Type;
 import java.sql.Time;
 import java.sql.Timestamp;
@@ -44,9 +43,11 @@ import java.time.OffsetDateTime;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 @AutoService(StringSerializable.class)
 public final class JacksonSerializer implements StringSerializable {
+
     private final ObjectMapper MAPPER = new ArexObjectMapper();
     private static final SimpleModule MODULE = new JacksonSimpleModule();
 
@@ -65,6 +66,7 @@ public final class JacksonSerializer implements StringSerializable {
         customTimeFormatDeserializer(MODULE);
         customTypeResolver();
         MAPPER.registerModule(MODULE);
+        MAPPER.registerModule(new GuavaModule());
     }
 
     private void customTypeResolver() {
@@ -179,6 +181,7 @@ public final class JacksonSerializer implements StringSerializable {
 
     @JsonIgnoreType
     static class IgnoreType {
+
     }
 
     private static class CustomTypeResolverBuilder extends DefaultTypeResolverBuilder {
@@ -194,7 +197,7 @@ public final class JacksonSerializer implements StringSerializable {
         public boolean useForType(JavaType type) {
             Class<?> rawClass = type.getRawClass();
             return rawClass.isInterface() &&
-                    StringUtil.startWith(rawClass.getName(), FastUtilAdapterFactory.FASTUTIL_PACKAGE);
+                StringUtil.startWith(rawClass.getName(), FastUtilAdapterFactory.FASTUTIL_PACKAGE);
         }
     }
 }
