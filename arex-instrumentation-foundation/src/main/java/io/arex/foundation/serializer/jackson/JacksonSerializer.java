@@ -12,14 +12,15 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.jsontype.TypeResolverBuilder;
 import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.google.auto.service.AutoService;
+import com.google.common.collect.ImmutableList;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.foundation.serializer.gson.adapter.FastUtilAdapterFactory;
 import io.arex.foundation.serializer.jackson.adapter.CalendarAdapter;
 import io.arex.foundation.serializer.jackson.adapter.CustomBeanModifier;
 import io.arex.foundation.serializer.jackson.adapter.DateAdapter;
 import io.arex.foundation.serializer.jackson.adapter.GregorianCalendarAdapter;
+import io.arex.foundation.serializer.jackson.adapter.ImmutableListAdapter;
 import io.arex.foundation.serializer.jackson.adapter.InstantAdapter;
 import io.arex.foundation.serializer.jackson.adapter.JacksonExclusion;
 import io.arex.foundation.serializer.jackson.adapter.LocalDateAdapter;
@@ -66,7 +67,6 @@ public final class JacksonSerializer implements StringSerializable {
         customTimeFormatDeserializer(MODULE);
         customTypeResolver();
         MAPPER.registerModule(MODULE);
-        MAPPER.registerModule(new GuavaModule());
     }
 
     private void customTypeResolver() {
@@ -168,6 +168,7 @@ public final class JacksonSerializer implements StringSerializable {
         module.addDeserializer(OffsetDateTime.class, new OffsetDateTimeAdapter.Deserializer());
         module.addDeserializer(java.sql.Date.class, new SqlDateAdapter.Deserializer());
         module.addDeserializer(Time.class, new SqlTimeAdapter.Deserializer());
+        module.addDeserializer(ImmutableList.class, new ImmutableListAdapter.Deserializer());
     }
 
     public static class JacksonSimpleModule extends SimpleModule {
