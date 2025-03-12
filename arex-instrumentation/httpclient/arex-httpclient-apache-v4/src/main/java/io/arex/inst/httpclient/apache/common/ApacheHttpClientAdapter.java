@@ -158,7 +158,7 @@ public class ApacheHttpClientAdapter implements HttpClientAdapter<HttpRequest, H
     }
 
     private byte[] getEntityBytes(HttpEntity entity) {
-        if (!(entity instanceof BufferedHttpEntity)) {
+        if (!(entity instanceof ArexBufferedHttpEntity)) {
             return ZERO_BYTE;
         }
         try {
