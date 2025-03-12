@@ -142,7 +142,7 @@ public class ApacheHttpClientAdapter implements HttpClientAdapter<HttpRequest, H
         try {
             enclosingRequest.setEntity(new ArexBufferedHttpEntity(enclosingRequest.getEntity()));
         } catch (Exception ignore) {
-            // ignore exception
+            // ignore exception, fallback to original entity and ignore recording
         }
     }
 
@@ -153,7 +153,7 @@ public class ApacheHttpClientAdapter implements HttpClientAdapter<HttpRequest, H
         try {
             EntityUtils.updateEntity(response, new ArexBufferedHttpEntity(response.getEntity()));
         } catch (Exception e) {
-            // ignore exception
+            // ignore exception, fallback to original entity and ignore recording
         }
     }
 
