@@ -140,7 +140,7 @@ public class ApacheHttpClientAdapter implements HttpClientAdapter<HttpRequest, H
             return;
         }
         try {
-            enclosingRequest.setEntity(new BufferedHttpEntity(enclosingRequest.getEntity()));
+            enclosingRequest.setEntity(new ArexBufferedHttpEntity(enclosingRequest.getEntity()));
         } catch (Exception ignore) {
             // ignore exception
         }
@@ -151,7 +151,7 @@ public class ApacheHttpClientAdapter implements HttpClientAdapter<HttpRequest, H
             return;
         }
         try {
-            EntityUtils.updateEntity(response, new BufferedHttpEntity(response.getEntity()));
+            EntityUtils.updateEntity(response, new ArexBufferedHttpEntity(response.getEntity()));
         } catch (Exception e) {
             // ignore exception
         }
