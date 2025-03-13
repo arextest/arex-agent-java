@@ -142,9 +142,9 @@ public class AsyncHttpClientUtil {
 
     static class ClientConfig {
 
-        private static final int DEFAULT_CONNECTION_REQUEST_TIMEOUT = 5000;
-        private static final int DEFAULT_CONNECT_TIMEOUT = 5000;
-        private static final int DEFAULT_SOCKET_TIMEOUT = 5000;
+        private static final int DEFAULT_CONNECTION_REQUEST_TIMEOUT = 10000;
+        private static final int DEFAULT_CONNECT_TIMEOUT = 10000;
+        private static final int DEFAULT_SOCKET_TIMEOUT = 10000;
         private static final String APPLICATION_ZSTD_JSON = "application/zstd-json;charset=UTF-8";
         private static final String APPLICATION_JSON = "application/json;charset=UTF-8";
 
