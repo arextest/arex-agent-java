@@ -425,4 +425,12 @@ class StringUtilTest {
         actualResult = StringUtil.splitByLastSeparator(val, ',');
         assertArrayEquals(new String[] {"x,,y", "z"}, actualResult);
     }
+
+    @Test
+    void mapToString() {
+        Map<String, String> map = new HashMap<>();
+        map.put("a", "b");
+        map.put("c", "d");
+        assertEquals("a=b;c=d;", StringUtil.mapToString(map));
+    }
 }

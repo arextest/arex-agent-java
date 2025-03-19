@@ -6,6 +6,7 @@ import feign.Request;
 import feign.Response;
 import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.inst.httpclient.common.HttpClientExtractor;
+import io.arex.inst.runtime.config.ConfigBuilder;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.context.RepeatedCollectManager;
 import io.arex.inst.runtime.util.IgnoreUtils;
@@ -24,6 +25,7 @@ class FeignClientInstrumentationTest {
         Mockito.mockStatic(IgnoreUtils.class);
         Mockito.mockStatic(ContextManager.class);
         Mockito.mockStatic(RepeatedCollectManager.class);
+        ConfigBuilder.create("test").build();
     }
 
     @AfterAll
