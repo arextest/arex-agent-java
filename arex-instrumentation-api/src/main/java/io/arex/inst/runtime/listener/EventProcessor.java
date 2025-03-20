@@ -5,6 +5,7 @@ import io.arex.agent.bootstrap.constants.ConfigConstants;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.AdviceClassesCollector;
 import io.arex.agent.bootstrap.util.NumberUtil;
+import io.arex.agent.bootstrap.util.ReflectUtil;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.agent.bootstrap.util.ServiceLoader;
 import io.arex.inst.runtime.config.Config;
@@ -18,6 +19,7 @@ import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.serializer.StringSerializable;
 import io.arex.inst.runtime.util.MockUtils;
 
+import java.lang.reflect.Method;
 import java.util.List;
 
 import java.util.Set;
@@ -33,6 +35,7 @@ public class EventProcessor {
     private static final String CLOCK_METHOD = "currentTimeMillis";
     public static final String EXCLUDE_MOCK_TYPE = "java.util.HashMap-java.lang.String,java.util.HashSet";
     private static final AtomicReference<InitializeEnum> INIT_DEPENDENCY = new AtomicReference<>(InitializeEnum.START);
+    private static final Method FIND_LOADED_METHOD = ReflectUtil.getMethod(ClassLoader.class, "findLoadedClass", String.class);
     private static boolean existJacksonDependency = true;
     static {
         try {
@@ -154,19 +157,15 @@ public class EventProcessor {
                     continue;
                 }
                 Class.forName(initClass, true, contextClassLoader);
-            } catch (ClassNotFoundException e) {
+            } catch (Throwable e) {
+                // if the class init fails, the next class init will continue
                 LOGGER.warn(LogManager.buildTitle("init.class"), e);
             }
         }
     }
 
     private static boolean isClassLoaded(String className, ClassLoader classLoader) {
-        try {
-            Class<?> clazz = classLoader.loadClass(className);
-            return clazz != null;
-        } catch (ClassNotFoundException e) {
-            return false;
-        }
+        return FIND_LOADED_METHOD == null || ReflectUtil.invoke(FIND_LOADED_METHOD, classLoader, className) != null;
     }
 
     private static void initLog(ClassLoader contextClassLoader) {
