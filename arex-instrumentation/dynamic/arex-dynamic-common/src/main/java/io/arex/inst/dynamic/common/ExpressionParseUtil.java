@@ -42,13 +42,15 @@ public class ExpressionParseUtil {
         if (expression == null) {
             return null;
         }
+        // create root object
+        MethodRootObject rootObject = new MethodRootObject(method, args);
 
         try {
             String[] parameterNames = NAME_DISCOVERER.getParameterNames(method);
             if (parameterNames == null || args.length != parameterNames.length) {
                 return null;
             }
-            EvaluationContext context = new StandardEvaluationContext();
+            EvaluationContext context = new StandardEvaluationContext(rootObject);
             for (int i = 0; i < args.length; i++) {
                 context.setVariable(parameterNames[i], args[i]);
             }
@@ -60,6 +62,30 @@ public class ExpressionParseUtil {
         } catch (Exception e) {
             return null;
         }
+    }
+
+
+    private static class MethodRootObject {
+        private final Method method;
+        private final Object[] args;
+
+        private MethodRootObject(Method method, Object[] args) {
+            this.method = method;
+            this.args = args;
+        }
+
+        public String getMethodName() {
+            return method.getName();
+        }
+
+        public Method getMethod() {
+            return this.method;
+        }
+
+        public Object[] getArgs() {
+            return this.args;
+        }
+
     }
 
     public static String replaceToExpression(Method method, String additionalSignature) {
