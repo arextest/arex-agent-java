@@ -30,6 +30,7 @@ import static net.bytebuddy.matcher.ElementMatchers.isMethod;
 import static net.bytebuddy.matcher.ElementMatchers.isPublic;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 import static net.bytebuddy.matcher.ElementMatchers.takesArgument;
+import static net.bytebuddy.matcher.ElementMatchers.takesArguments;
 import static net.bytebuddy.matcher.ElementMatchers.takesNoArguments;
 
 /**
@@ -57,7 +58,8 @@ public class RedissonInstrumentation extends TypeInstrumentation {
     public static class GetBucketAdvice {
         public static MethodInstrumentation getMethodInstrumentation() {
             ElementMatcher.Junction<MethodDescription> matcher =
-                isMethod().and(isPublic()).and(named("getBucket")).and(takesArgument(0, String.class));
+                isMethod().and(isPublic()).and(named("getBucket")).and(takesArgument(0, String.class))
+                        .and(takesArguments(1));
 
             String advice = GetBucketAdvice.class.getName();
 
