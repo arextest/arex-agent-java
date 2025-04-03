@@ -287,5 +287,6 @@ public class ServletAdviceHelper {
     private static <TRequest, TResponse> void addAttachmentsToContext(ServletAdapter<TRequest, TResponse> adapter, TRequest request) {
         ContextManager.setAttachment(ArexConstants.FORCE_RECORD, adapter.getRequestHeader(request, ArexConstants.FORCE_RECORD, ArexConstants.HEADER_X_PREFIX));
         ContextManager.setAttachment(ArexConstants.SCHEDULE_REPLAY, adapter.getRequestHeader(request, ArexConstants.SCHEDULE_REPLAY));
+        ContextManager.setAttachment(ArexConstants.REPLAY_END_FLAG, adapter.getRequestHeader(request, ArexConstants.REPLAY_END_FLAG));
     }
 }

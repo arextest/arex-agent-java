@@ -2,6 +2,7 @@ package io.arex.inst.httpclient.common;
 
 import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.agent.bootstrap.model.Mocker;
+import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.util.IgnoreUtils;
 import io.arex.inst.runtime.util.MockUtils;
@@ -69,9 +70,9 @@ public class HttpClientExtractor<TRequest, TResponse> {
         Map<String, Object> attributes = new HashMap<>();
 
         mocker.getTargetRequest().setAttributes(attributes);
-        attributes.put("HttpMethod", httpMethod);
-        attributes.put("QueryString", adapter.getUri().getQuery());
-        attributes.put("ContentType", adapter.getRequestContentType());
+        attributes.put(ArexConstants.HTTP_METHOD, httpMethod);
+        attributes.put(ArexConstants.HTTP_QUERY_STRING, adapter.getUri().getQuery());
+        attributes.put(ArexConstants.HTTP_CONTENT_TYPE, adapter.getRequestContentType());
 
         mocker.getTargetRequest().setBody(this.encodeRequest(httpMethod));
         return mocker;

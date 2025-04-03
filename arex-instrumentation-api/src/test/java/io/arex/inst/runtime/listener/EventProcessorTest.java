@@ -1,7 +1,5 @@
 package io.arex.inst.runtime.listener;
 
-import static org.mockito.ArgumentMatchers.any;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -14,10 +12,10 @@ import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.log.Logger;
+import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.serializer.StringSerializable;
 import io.arex.agent.bootstrap.util.ServiceLoader;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 
@@ -112,6 +110,9 @@ public class EventProcessorTest {
 
     @Test
     void onExit() {
+        ArexContext context = Mockito.mock(ArexContext.class);
+        Mockito.when(ContextManager.currentContext()).thenReturn(context);
+        Mockito.when(context.getAttachment(ArexConstants.REPLAY_END_FLAG)).thenReturn(true);
         Assertions.assertDoesNotThrow(EventProcessor::onExit);
     }
 

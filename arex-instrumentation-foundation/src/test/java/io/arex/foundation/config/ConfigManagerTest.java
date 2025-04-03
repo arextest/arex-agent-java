@@ -8,7 +8,6 @@ import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.model.DynamicClassEntity;
 import io.arex.inst.runtime.model.DynamicClassStatusEnum;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -315,5 +314,16 @@ class ConfigManagerTest {
         System.setProperty(ConfigConstants.COVERAGE_PACKAGES, "com.a.c");
         appendCoveragePackages.invoke(configManager, "com.a.b");
         assertEquals("com.a.b", System.getProperty(ConfigConstants.COVERAGE_PACKAGES));
+    }
+
+    @Test
+    void setCompareConfiguration() {
+        assertDoesNotThrow(() -> configManager.setCompareConfiguration(null));
+        ConfigQueryResponse.CompareConfiguration compareConfiguration = new ConfigQueryResponse.CompareConfiguration();
+        List<ConfigQueryResponse.ConfigComparisonExclusions> comparisonExclusions = new ArrayList<>();
+        ConfigQueryResponse.ConfigComparisonExclusions exclusion = new ConfigQueryResponse.ConfigComparisonExclusions();
+        comparisonExclusions.add(exclusion);
+        compareConfiguration.setComparisonExclusions(comparisonExclusions);
+        assertDoesNotThrow(() -> configManager.setCompareConfiguration(compareConfiguration));
     }
 }

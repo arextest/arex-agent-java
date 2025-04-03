@@ -34,6 +34,12 @@ final class LatencyContextHashMap extends ConcurrentHashMap<String, ArexContext>
         return super.get(key);
     }
 
+    @Override
+    public void clear() {
+        overdueCleanUp();
+        super.clear();
+    }
+
     private void overdueCleanUp() {
         if (CLEANUP_LOCK.tryLock()) {
             try {
