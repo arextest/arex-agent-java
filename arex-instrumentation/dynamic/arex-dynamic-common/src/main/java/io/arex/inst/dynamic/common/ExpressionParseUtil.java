@@ -42,14 +42,16 @@ public class ExpressionParseUtil {
         if (expression == null) {
             return null;
         }
-        // create root object
-        MethodRootObject rootObject = new MethodRootObject(method, args);
+
 
         try {
             String[] parameterNames = NAME_DISCOVERER.getParameterNames(method);
             if (parameterNames == null || args.length != parameterNames.length) {
                 return null;
             }
+
+            MethodRootObject rootObject = new MethodRootObject(method, args);
+
             EvaluationContext context = new StandardEvaluationContext(rootObject);
             for (int i = 0; i < args.length; i++) {
                 context.setVariable(parameterNames[i], args[i]);
@@ -64,7 +66,10 @@ public class ExpressionParseUtil {
         }
     }
 
-
+    /**
+     * the root object used during the expression evaluation. It contains the method and its
+     * arguments.
+     */
     private static class MethodRootObject {
         private final Method method;
         private final Object[] args;
