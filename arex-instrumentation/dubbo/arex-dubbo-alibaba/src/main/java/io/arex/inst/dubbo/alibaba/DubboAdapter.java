@@ -1,22 +1,22 @@
 package io.arex.inst.dubbo.alibaba;
 
+import com.alibaba.dubbo.common.URL;
 import com.alibaba.dubbo.remoting.exchange.ResponseCallback;
 import com.alibaba.dubbo.remoting.exchange.ResponseFuture;
 import com.alibaba.dubbo.rpc.*;
 import com.alibaba.dubbo.rpc.protocol.dubbo.FutureAdapter;
+import com.alibaba.dubbo.rpc.support.ProtocolUtils;
 import com.alibaba.dubbo.rpc.support.RpcUtils;
 import io.arex.agent.bootstrap.ctx.TraceTransmitter;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.ReflectUtil;
 import io.arex.inst.dubbo.common.AbstractAdapter;
 import io.arex.inst.runtime.log.LogManager;
-import com.alibaba.dubbo.common.URL;
-import com.alibaba.dubbo.rpc.support.ProtocolUtils;
-import java.util.Collections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.Future;
 
@@ -38,7 +38,11 @@ public class DubboAdapter extends AbstractAdapter {
 
     @Override
     public String getServiceName() {
-        return getUrl().getServiceInterface();
+        /*
+          format：group/interface:version
+          method：org.apache.dubbo.common.BaseServiceMetadata#buildServiceKey() | org.apache.dubbo.common.URL#buildKey()
+         */
+        return getUrl().getServiceKey();
     }
 
     /**
