@@ -1,4 +1,4 @@
-package io.arex.inst.jedis.v2;
+package io.arex.inst.jedis.v3;
 
 import com.google.auto.service.AutoService;
 import io.arex.inst.extension.ModuleDescription;
@@ -13,9 +13,8 @@ import static java.util.Collections.singletonList;
 @AutoService(ModuleInstrumentation.class)
 public class JedisModuleInstrumentation extends ModuleInstrumentation {
     public JedisModuleInstrumentation() {
-        super("jedis-v2", ModuleDescription.builder()
-                .name("Jedis").supportFrom(ComparableVersion.of("2.0")).supportTo(ComparableVersion.of("2.99")).build());
-        // todo: check this version
+        super("jedis-v3", ModuleDescription.builder()
+                .name("Jedis").supportFrom(ComparableVersion.of("3.0")).supportTo(ComparableVersion.of("3.99")).build());
     }
 
     @Override
