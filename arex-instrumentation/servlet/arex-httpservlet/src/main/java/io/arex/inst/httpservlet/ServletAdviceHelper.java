@@ -109,6 +109,11 @@ public class ServletAdviceHelper {
             return null;
         }
 
+        // skip operation for excludeServiceOperations、includeServiceOperations
+        if (shouldSkipOperation(adapter, httpServletRequest)) {
+            CaseEventDispatcher.onEvent(CaseEvent.ofEnterEvent());
+            return null;
+        }
         // 302 Redirect request
         String redirectRecordId = getRedirectRecordId(adapter, httpServletRequest);
         if (StringUtil.isNotEmpty(redirectRecordId)) {
@@ -237,17 +242,6 @@ public class ServletAdviceHelper {
             return false;
         }
         String pattern = adapter.getPattern(httpServletRequest);
-        // As long as one parameter is hit in includeServiceOperations, the operation will not be skipped
-        if (CollectionUtil.isNotEmpty(Config.get().getIncludeServiceOperations()) &&
-            !(IgnoreUtils.includeOperation(pattern) ||
-                IgnoreUtils.includeOperation(requestURI))) {
-            return true;
-        }
-        // As long as one parameter is hit in excludeServiceOperations, the operation will be skipped
-        if (IgnoreUtils.excludeOperation(pattern) ||
-            IgnoreUtils.excludeOperation(requestURI)) {
-            return true;
-        }
 
         // Filter invalid servlet path suffix
         if (FILTERED_GET_URL_SUFFIX.stream().anyMatch(requestURI::endsWith)) {
@@ -261,6 +255,38 @@ public class ServletAdviceHelper {
         }
 
         return Config.get().invalidRecord(pattern);
+    }
+
+    private static <TRequest> boolean shouldSkipOperation(ServletAdapter<TRequest, ?> adapter,
+        TRequest httpServletRequest) {
+        String caseId = adapter.getRequestHeader(httpServletRequest, ArexConstants.RECORD_ID);
+        // Replay scene
+        if (StringUtil.isNotEmpty(caseId)) {
+            return Config.get().getBoolean(ConfigConstants.DISABLE_REPLAY, false);
+        }
+
+        String forceRecord = adapter.getRequestHeader(httpServletRequest,
+            ArexConstants.FORCE_RECORD, ArexConstants.HEADER_X_PREFIX);
+        // Do not skip if header with arex-force-record=true
+        if (Boolean.parseBoolean(forceRecord)) {
+            return false;
+        }
+
+        String requestURI = adapter.getRequestURI(httpServletRequest);
+        if (StringUtil.isEmpty(requestURI)) {
+            return false;
+        }
+
+        String pattern = adapter.getPattern(httpServletRequest);
+        // As long as one parameter is hit in includeServiceOperations, the operation will not be skipped
+        if (CollectionUtil.isNotEmpty(Config.get().getIncludeServiceOperations()) &&
+            !(IgnoreUtils.includeOperation(pattern) ||
+                IgnoreUtils.includeOperation(requestURI))) {
+            return true;
+        }
+        // As long as one parameter is hit in excludeServiceOperations, the operation will be skipped
+        return IgnoreUtils.excludeOperation(pattern) ||
+            IgnoreUtils.excludeOperation(requestURI);
     }
 
     private static <TRequest, TResponse> String getRedirectRecordId(ServletAdapter<TRequest, TResponse> adapter,
