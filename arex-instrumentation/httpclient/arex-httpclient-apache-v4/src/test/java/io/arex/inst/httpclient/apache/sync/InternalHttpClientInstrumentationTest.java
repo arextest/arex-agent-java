@@ -83,7 +83,7 @@ class InternalHttpClientInstrumentationTest {
     static Stream<Arguments> onExitCase() {
         Exception throwable2 = new NullPointerException();
 
-        Mockito.when(RepeatedCollectManager.exitAndValidate()).thenReturn(true);
+        Mockito.when(RepeatedCollectManager.exitAndValidate(Mockito.anyString())).thenReturn(true);
         HttpClientExtractor<HttpRequest, HttpResponse> extractor2 = Mockito.mock(HttpClientExtractor.class);
 
         Mockito.when(ContextManager.needRecord()).thenReturn(true);
