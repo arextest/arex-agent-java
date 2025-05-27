@@ -4,15 +4,18 @@ import io.arex.foundation.serializer.FastUtilAdapterFactoryTest.TestType;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import io.arex.foundation.serializer.gson.GsonSerializer;
 import io.arex.foundation.serializer.jackson.JacksonSerializer;
 import io.arex.inst.runtime.util.TypeUtil;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
 import java.sql.Time;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 import org.springframework.aop.aspectj.MethodInvocationProceedingJoinPoint;
@@ -34,6 +37,13 @@ class JacksonSerializerTest {
         String json = JacksonSerializer.INSTANCE.serialize(now);
         LocalDateTime actualResult = JacksonSerializer.INSTANCE.deserialize(json, LocalDateTime.class);
         assertEquals(now, actualResult);
+    }
+
+    @Test
+    public void testDecimal() throws Throwable {
+        String expectedJson = "{\"percentage\": 0E-8}";
+        Map<String,Object> map = JacksonSerializer.INSTANCE.deserialize(expectedJson, Map.class);
+        assert map != null;
     }
 
     @Test

@@ -1,4 +1,5 @@
 package io.arex.foundation.serializer;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -7,15 +8,15 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.google.gson.internal.LinkedTreeMap;
 import io.arex.agent.bootstrap.internal.Pair;
 import io.arex.foundation.serializer.gson.GsonSerializer;
+import io.arex.foundation.serializer.jackson.JacksonSerializer;
 import io.arex.inst.runtime.util.TypeUtil;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
-
 import java.lang.reflect.Type;
+import java.math.BigDecimal;
 import java.sql.Time;
 import java.time.LocalDateTime;
 import java.util.Map;
-
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 
@@ -30,6 +31,13 @@ class GsonSerializerTest {
         String actualJson = GsonSerializer.INSTANCE.serialize(actualSqlDate);
         assertEquals(expectedSqlDate, actualSqlDate);
         assertEquals(expectedJson, actualJson);
+    }
+
+    @Test
+    public void testDecimal() {
+        String expectedJson = "{\"percentage\": 1.23E2}";
+        Map<String,Object> map = GsonSerializer.INSTANCE.deserialize(expectedJson, Map.class);
+        assert map != null;
     }
 
     @Test
@@ -102,7 +110,7 @@ class GsonSerializerTest {
         assertNull(GsonSerializer.INSTANCE.deserialize("", null));
 
         // deserialize object
-        String json  = GsonSerializer.INSTANCE.serialize(LocalDateTime.now());
+        String json = GsonSerializer.INSTANCE.serialize(LocalDateTime.now());
         assertNotNull(GsonSerializer.INSTANCE.deserialize(json, LocalDateTime.class));
     }
 
@@ -115,8 +123,9 @@ class GsonSerializerTest {
         assertNull(GsonSerializer.INSTANCE.deserialize("", TypeUtil.forName(null)));
 
         // deserialize object
-        String json  = GsonSerializer.INSTANCE.serialize(LocalDateTime.now());
-        assertNotNull(GsonSerializer.INSTANCE.deserialize(json, TypeUtil.forName(TypeUtil.getName(LocalDateTime.now()))));
+        String json = GsonSerializer.INSTANCE.serialize(LocalDateTime.now());
+        assertNotNull(
+            GsonSerializer.INSTANCE.deserialize(json, TypeUtil.forName(TypeUtil.getName(LocalDateTime.now()))));
     }
 
     @Test
@@ -128,7 +137,6 @@ class GsonSerializerTest {
         assertEquals("{}", json);
         final LinkedTreeMap deserialize = GsonSerializer.INSTANCE.deserialize(json, LinkedTreeMap.class);
         assertEquals(map, deserialize);
-
 
         map.put("key", "AREX-101-202");
         map.put("long", 2L);

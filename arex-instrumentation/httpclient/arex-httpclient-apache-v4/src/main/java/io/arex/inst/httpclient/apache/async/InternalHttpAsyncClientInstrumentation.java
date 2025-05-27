@@ -1,28 +1,28 @@
 package io.arex.inst.httpclient.apache.async;
 
-import io.arex.agent.bootstrap.model.MockResult;
-import io.arex.inst.httpclient.apache.common.ApacheHttpClientHelper;
-import io.arex.inst.runtime.context.ContextManager;
-import io.arex.inst.runtime.context.RepeatedCollectManager;
-import io.arex.inst.extension.MethodInstrumentation;
-import io.arex.inst.extension.TypeInstrumentation;
-import java.io.IOException;
-import net.bytebuddy.asm.Advice;
-import net.bytebuddy.description.type.TypeDescription;
-import net.bytebuddy.matcher.ElementMatcher;
-import org.apache.http.HttpException;
-import org.apache.http.concurrent.FutureCallback;
-
-import java.util.List;
-import java.util.concurrent.Future;
-import org.apache.http.nio.protocol.HttpAsyncRequestProducer;
-
 import static java.util.Collections.singletonList;
 import static net.bytebuddy.matcher.ElementMatchers.isMethod;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 import static net.bytebuddy.matcher.ElementMatchers.namedOneOf;
 import static net.bytebuddy.matcher.ElementMatchers.takesArgument;
 import static net.bytebuddy.matcher.ElementMatchers.takesArguments;
+
+import io.arex.agent.bootstrap.model.MockResult;
+import io.arex.inst.extension.MethodInstrumentation;
+import io.arex.inst.extension.TypeInstrumentation;
+import io.arex.inst.httpclient.apache.common.ApacheHttpClientHelper;
+import io.arex.inst.httpclient.apache.common.NextBuilderApacheHelper;
+import io.arex.inst.runtime.context.ContextManager;
+import io.arex.inst.runtime.context.RepeatedCollectManager;
+import java.io.IOException;
+import java.util.List;
+import java.util.concurrent.Future;
+import net.bytebuddy.asm.Advice;
+import net.bytebuddy.description.type.TypeDescription;
+import net.bytebuddy.matcher.ElementMatcher;
+import org.apache.http.HttpException;
+import org.apache.http.concurrent.FutureCallback;
+import org.apache.http.nio.protocol.HttpAsyncRequestProducer;
 
 public class InternalHttpAsyncClientInstrumentation extends TypeInstrumentation {
 
@@ -35,17 +35,18 @@ public class InternalHttpAsyncClientInstrumentation extends TypeInstrumentation 
     @Override
     public List<MethodInstrumentation> methodAdvices() {
         return singletonList(new MethodInstrumentation(
-                isMethod().and(named("execute"))
-                        .and(takesArguments(4))
-                        .and(takesArgument(0, named("org.apache.http.nio.protocol.HttpAsyncRequestProducer")))
-                        .and(takesArgument(1, named("org.apache.http.nio.protocol.HttpAsyncResponseConsumer")))
-                        .and(takesArgument(2, named("org.apache.http.protocol.HttpContext")))
-                        .and(takesArgument(3, named("org.apache.http.concurrent.FutureCallback"))),
-                this.getClass().getName() + "$ExecuteAdvice"));
+            isMethod().and(named("execute"))
+                .and(takesArguments(4))
+                .and(takesArgument(0, named("org.apache.http.nio.protocol.HttpAsyncRequestProducer")))
+                .and(takesArgument(1, named("org.apache.http.nio.protocol.HttpAsyncResponseConsumer")))
+                .and(takesArgument(2, named("org.apache.http.protocol.HttpContext")))
+                .and(takesArgument(3, named("org.apache.http.concurrent.FutureCallback"))),
+            this.getClass().getName() + "$ExecuteAdvice"));
     }
 
     @SuppressWarnings("unused")
     public static class ExecuteAdvice {
+
         @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class, suppress = Throwable.class)
         public static boolean onEnter(@Advice.Argument(0) HttpAsyncRequestProducer producer,
             @Advice.Argument(value = 3, readOnly = false) FutureCallback<?> callback,
@@ -61,16 +62,28 @@ public class InternalHttpAsyncClientInstrumentation extends TypeInstrumentation 
                 if (callbackWrapper != null) {
                     if (ContextManager.needRecord()) {
                         // recording works in callback wrapper
-                        ((FutureCallbackWrapper<?>)callbackWrapper).setNeedRecord(true);
+                        ((FutureCallbackWrapper<?>) callbackWrapper).setNeedRecord(true);
                         callback = callbackWrapper;
                     } else if (ContextManager.needReplay()) {
-                        mockResult = ((FutureCallbackWrapper<?>)callbackWrapper).replay();
+                        mockResult = ((FutureCallbackWrapper<?>) callbackWrapper).replay();
                         boolean result = mockResult != null && mockResult.notIgnoreMockResult();
                         // callback wrapper only set when mock result is not ignored
                         if (result) {
                             callback = callbackWrapper;
                             return true;
                         }
+                    }
+                }
+            } else if (NextBuilderApacheHelper.openMock()) {
+                FutureCallback<?> callbackWrapper = NextBuilderCallbackWrapper.wrap(producer.generateRequest(),
+                    callback);
+                if (callbackWrapper != null) {
+                    mockResult = ((NextBuilderCallbackWrapper<?>) callbackWrapper).mock();
+                    boolean result = mockResult != null && mockResult.notIgnoreMockResult();
+                    // callback wrapper only set when mock result is not ignored
+                    if (result) {
+                        callback = callbackWrapper;
+                        return true;
                     }
                 }
             }
@@ -87,6 +100,11 @@ public class InternalHttpAsyncClientInstrumentation extends TypeInstrumentation 
                 mockResult != null && mockResult.notIgnoreMockResult()) {
                 FutureCallbackWrapper<?> callbackWrapper = (FutureCallbackWrapper<?>) callback;
                 future = callbackWrapper.replay(mockResult);
+            }
+            if (callback instanceof NextBuilderCallbackWrapper &&
+                mockResult != null && mockResult.notIgnoreMockResult()) {
+                NextBuilderCallbackWrapper<?> callbackWrapper = (NextBuilderCallbackWrapper<?>) callback;
+                future = callbackWrapper.mock(mockResult);
             }
         }
     }

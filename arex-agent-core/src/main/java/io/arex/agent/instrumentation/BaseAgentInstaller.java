@@ -3,28 +3,28 @@ package io.arex.agent.instrumentation;
 import io.arex.agent.bootstrap.AgentInstaller;
 import io.arex.agent.bootstrap.TraceContextManager;
 import io.arex.agent.bootstrap.util.FileUtils;
+import io.arex.agent.bootstrap.util.ServiceLoader;
 import io.arex.foundation.config.ConfigManager;
 import io.arex.foundation.healthy.HealthManager;
-import io.arex.foundation.logger.AgentLoggerFactory;
 import io.arex.foundation.logger.AgentLogger;
+import io.arex.foundation.logger.AgentLoggerFactory;
 import io.arex.foundation.services.ConfigService;
 import io.arex.foundation.services.TimerService;
 import io.arex.foundation.util.NetUtils;
 import io.arex.inst.runtime.context.RecordLimiter;
 import io.arex.inst.runtime.service.DataCollector;
 import io.arex.inst.runtime.service.DataService;
-
-import io.arex.agent.bootstrap.util.ServiceLoader;
+import io.arex.inst.runtime.service.NextBuilderDataCollector;
+import io.arex.inst.runtime.service.NextBuilderDataService;
+import java.io.File;
+import java.lang.instrument.Instrumentation;
 import java.util.List;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-
-import java.io.File;
-import java.lang.instrument.Instrumentation;
-
 import net.bytebuddy.dynamic.scaffold.TypeWriter;
 
 public abstract class BaseAgentInstaller implements AgentInstaller {
+
     private static final AgentLogger LOGGER = AgentLoggerFactory.getAgentLogger(BaseAgentInstaller.class);
     private static final String BYTECODE_DUMP_DIR = "/bytecode-dump";
     protected final Instrumentation instrumentation;
@@ -44,7 +44,8 @@ public abstract class BaseAgentInstaller implements AgentInstaller {
         ClassLoader savedContextClassLoader = Thread.currentThread().getContextClassLoader();
         try {
             Thread.currentThread().setContextClassLoader(getClassLoader());
-            Runtime.getRuntime().addShutdownHook(new Thread(ConfigService.INSTANCE::shutdown, "arex-agent-shutdown-hook"));
+            Runtime.getRuntime()
+                .addShutdownHook(new Thread(ConfigService.INSTANCE::shutdown, "arex-agent-shutdown-hook"));
             // Timed load config for dynamic retransform
             long delayMinutes = ConfigService.INSTANCE.loadAgentConfig(agentArgs);
             if (!allowStartAgent()) {
@@ -56,7 +57,8 @@ public abstract class BaseAgentInstaller implements AgentInstaller {
             }
 
             if (delayMinutes > 0 && loadConfigTask == null) {
-                loadConfigTask = TimerService.scheduleAtFixedRate(this::install, delayMinutes, delayMinutes, TimeUnit.MINUTES);
+                loadConfigTask = TimerService.scheduleAtFixedRate(this::install, delayMinutes, delayMinutes,
+                    TimeUnit.MINUTES);
                 timedReportStatus();
             }
 
@@ -111,9 +113,17 @@ public abstract class BaseAgentInstaller implements AgentInstaller {
         RecordLimiter.init(HealthManager::acquire);
         initDataCollector();
     }
+
     private void initDataCollector() {
         List<DataCollector> collectorList = ServiceLoader.load(DataCollector.class, getClassLoader());
         DataService.setDataCollector(collectorList);
+
+        List<NextBuilderDataCollector> nextBuilderCollectorList = ServiceLoader.load(NextBuilderDataCollector.class,
+            getClassLoader());
+        NextBuilderDataService.setDataCollector(nextBuilderCollectorList);
+
+//        List<ZstdInterface> zstdInterfaces = ServiceLoader.load(ZstdInterface.class, getClassLoader());
+//        ZstdManager.setInstance(zstdInterfaces);
     }
 
     /**
@@ -148,7 +158,8 @@ public abstract class BaseAgentInstaller implements AgentInstaller {
             if (exists || mkdir) {
                 System.setProperty(TypeWriter.DUMP_PROPERTY, bytecodeDumpPath.getPath());
             }
-            LOGGER.info("[arex] bytecode dump path exists: {}, mkdir: {}, path: {}", exists, mkdir, bytecodeDumpPath.getPath());
+            LOGGER.info("[arex] bytecode dump path exists: {}, mkdir: {}, path: {}", exists, mkdir,
+                bytecodeDumpPath.getPath());
         } catch (Exception e) {
             LOGGER.warn("[arex] Failed to create directory to instrumented bytecode: ", e);
         }

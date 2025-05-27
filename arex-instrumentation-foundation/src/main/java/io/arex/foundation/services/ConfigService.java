@@ -3,14 +3,22 @@ package io.arex.foundation.services;
 import com.google.gson.Gson;
 import io.arex.agent.bootstrap.constants.ConfigConstants;
 import io.arex.agent.bootstrap.util.MapUtils;
+import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.foundation.config.ConfigManager;
+import io.arex.foundation.config.NextBuilderConfigManager;
 import io.arex.foundation.logger.AgentLogger;
 import io.arex.foundation.logger.AgentLoggerFactory;
-import io.arex.foundation.model.*;
-import io.arex.foundation.config.ConfigManager;
-import io.arex.foundation.util.httpclient.AsyncHttpClientUtil;
+import io.arex.foundation.model.AgentStatusEnum;
+import io.arex.foundation.model.AgentStatusRequest;
+import io.arex.foundation.model.ConfigQueryRequest;
+import io.arex.foundation.model.ConfigQueryResponse;
+import io.arex.foundation.model.DecelerateReasonEnum;
+import io.arex.foundation.model.HttpClientResponse;
+import io.arex.foundation.model.NextBuilderMockConfigRequest;
+import io.arex.foundation.model.NextBuilderMockConfigResponse;
 import io.arex.foundation.util.NetUtils;
-import io.arex.agent.bootstrap.util.StringUtil;
-
+import io.arex.foundation.util.httpclient.AsyncHttpClientUtil;
+import io.arex.inst.runtime.config.Config;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -32,6 +40,7 @@ public class ConfigService {
     private static final String TAGS_PREFIX = "arex.tags.";
     private static final String CONFIG_LOAD_URI =
         String.format("http://%s/api/config/agent/load", ConfigManager.INSTANCE.getConfigServiceHost());
+    private static final String NEXT_BUILDER_CONFIG_URI = "http://ts-agg-service.fat-1.qa.nt.ctripcorp.com/workflowdesign/getArexNodeMockUrl";
 
     private final AtomicBoolean firstLoad = new AtomicBoolean(false);
     private final AtomicBoolean reloadConfig = new AtomicBoolean(false);
@@ -52,6 +61,7 @@ public class ConfigService {
         }
         // Load agent config according to last modified time
         loadAgentConfig();
+        loadNextBuilderConfig();
         return DELAY_MINUTES;
     }
 
@@ -60,7 +70,8 @@ public class ConfigService {
             ConfigQueryRequest request = buildConfigQueryRequest();
             String requestJson = serialize(request);
 
-            HttpClientResponse clientResponse = AsyncHttpClientUtil.postAsyncWithJson(CONFIG_LOAD_URI, requestJson, null).join();
+            HttpClientResponse clientResponse = AsyncHttpClientUtil.postAsyncWithJson(CONFIG_LOAD_URI, requestJson,
+                null).join();
             if (clientResponse == null) {
                 LOGGER.warn("[AREX] Load agent config, response is null, pause recording");
                 ConfigManager.INSTANCE.setConfigInvalid();
@@ -83,6 +94,38 @@ public class ConfigService {
                 return;
             }
             ConfigManager.INSTANCE.updateConfigFromService(configResponse.getBody());
+        } catch (Throwable e) {
+            LOGGER.warn("[AREX] Load agent config error, pause recording. exception message: {}", e.getMessage(), e);
+            ConfigManager.INSTANCE.setConfigInvalid();
+        }
+    }
+
+    public void loadNextBuilderConfig() {
+        try {
+            NextBuilderMockConfigRequest request = new NextBuilderMockConfigRequest();
+            request.setAppId(ConfigManager.INSTANCE.getServiceName());
+            String requestJson = serialize(request);
+            HttpClientResponse clientResponse = AsyncHttpClientUtil.postAsyncWithJson(
+                NEXT_BUILDER_CONFIG_URI,
+                requestJson,
+                null).join();
+
+            if (clientResponse == null || StringUtil.isEmpty(clientResponse.getBody())) {
+                LOGGER.warn("[AREX] Load next builder config, response is null");
+                return;
+            }
+            NextBuilderMockConfigResponse response = deserialize(clientResponse.getBody(),
+                NextBuilderMockConfigResponse.class);
+            if (response == null || response.getData() == null) {
+                LOGGER.warn("[AREX] Load next builder config, deserialize response is null");
+                return;
+            }
+            NextBuilderConfigManager.INSTANCE.updateConfig(
+                ConfigManager.INSTANCE.getServiceName(),
+                response.getData().getOpenMock(),
+                response.getData().getRequestList(),
+                response.getData().getMainServiceUrls(),
+                response.getData().getMockDataQueryUri());
         } catch (Throwable e) {
             LOGGER.warn("[AREX] Load agent config error, pause recording. exception message: {}", e.getMessage(), e);
             ConfigManager.INSTANCE.setConfigInvalid();
@@ -194,6 +237,7 @@ public class ConfigService {
     }
 
     private static class AgentStatusService {
+
         private static final AgentStatusService INSTANCE = new AgentStatusService();
 
         private String prevLastModified;
@@ -218,9 +262,9 @@ public class ConfigService {
             AgentStatusRequest request = new AgentStatusRequest(ConfigManager.INSTANCE.getServiceName(),
                 NetUtils.getIpAddress(), agentStatus.name());
             request.setCurrentRate(System.getProperty(ConfigConstants.CURRENT_RATE,
-                    String.valueOf(ConfigManager.INSTANCE.getRecordRate())));
+                String.valueOf(ConfigManager.INSTANCE.getRecordRate())));
             request.setDecelerateCode(Integer.parseInt(System.getProperty(ConfigConstants.DECELERATE_CODE,
-                    DecelerateReasonEnum.NORMAL.getCodeStr())));
+                DecelerateReasonEnum.NORMAL.getCodeStr())));
 
             String requestJson = ConfigService.INSTANCE.serialize(request);
 
