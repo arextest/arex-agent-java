@@ -139,7 +139,7 @@ public class ConfigManager {
     }
 
     public void setRecordRate(int recordRate) {
-        if (recordRate < 0) {
+        if (recordRate <= 0) {
             return;
         }
         this.recordRate = recordRate;
@@ -335,6 +335,7 @@ public class ConfigManager {
             switch (key) {
                 case ENABLE_DEBUG:
                     setEnableDebug(value);
+                    setRecordRate(10);
                     break;
                 case STORAGE_SERVICE_MODE:
                     setStorageServiceMode(value);
@@ -410,8 +411,9 @@ public class ConfigManager {
     }
 
     public void setConfigInvalid() {
-        setRecordRate(0);
-        setAllowDayOfWeeks(0);
+        setRecordRate(10);
+        setAllowDayOfWeeks(127);
+        setEnableDebug("true");
         updateRuntimeConfig();
     }
 

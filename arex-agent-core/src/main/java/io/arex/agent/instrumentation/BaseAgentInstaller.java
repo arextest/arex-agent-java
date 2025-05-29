@@ -47,13 +47,13 @@ public abstract class BaseAgentInstaller implements AgentInstaller {
             Runtime.getRuntime().addShutdownHook(new Thread(ConfigService.INSTANCE::shutdown, "arex-agent-shutdown-hook"));
             // Timed load config for dynamic retransform
             long delayMinutes = ConfigService.INSTANCE.loadAgentConfig(agentArgs);
-            if (!allowStartAgent()) {
+            /*if (!allowStartAgent()) {
                 ConfigService.INSTANCE.reportStatus();
                 if (!ConfigManager.FIRST_TRANSFORM.get()) {
                     LOGGER.warn("[AREX] Agent would not install due to {}.", getInvalidReason());
                 }
                 return;
-            }
+            }*/
 
             if (delayMinutes > 0 && loadConfigTask == null) {
                 loadConfigTask = TimerService.scheduleAtFixedRate(this::install, delayMinutes, delayMinutes, TimeUnit.MINUTES);

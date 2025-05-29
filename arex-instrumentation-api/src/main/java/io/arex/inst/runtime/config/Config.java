@@ -30,6 +30,8 @@ public class Config {
         INSTANCE = new Config(enableDebug, serviceName, dynamicClassList, properties,
             excludeServiceOperations,
             dubboStreamReplayThreshold, recordRate, compareConfigurationEntity);
+
+        System.out.println("[AREX] Config loaded by: " + Config.class.getClassLoader());
     }
 
     public static Config get() {

@@ -42,8 +42,10 @@ public class ConfigService {
     }
 
     public long loadAgentConfig(String agentArgs) {
+        ConfigManager.INSTANCE.setConfigInvalid();
+        return -1;
         // AREX cli may pass arguments to agent
-        if (StringUtil.isNotEmpty(agentArgs)) {
+        /*if (StringUtil.isNotEmpty(agentArgs)) {
             ConfigManager.INSTANCE.parseAgentConfig(agentArgs);
             return -1;
         }
@@ -52,7 +54,7 @@ public class ConfigService {
         }
         // Load agent config according to last modified time
         loadAgentConfig();
-        return DELAY_MINUTES;
+        return DELAY_MINUTES;*/
     }
 
     public void loadAgentConfig() {
