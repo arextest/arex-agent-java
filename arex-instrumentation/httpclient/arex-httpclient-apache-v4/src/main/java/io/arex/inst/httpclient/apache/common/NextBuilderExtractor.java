@@ -11,11 +11,15 @@ import io.arex.inst.httpclient.common.HttpResponseWrapper;
 import io.arex.inst.httpclient.common.HttpResponseWrapper.StringTuple;
 import io.arex.inst.runtime.config.NextBuilderConfig;
 import io.arex.inst.runtime.util.NextBuilderMockUtils;
+import io.arex.inst.runtime.util.ZstdService;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Locale;
+import java.util.zip.GZIPInputStream;
 import javax.annotation.Nonnull;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
@@ -71,16 +75,27 @@ public class NextBuilderExtractor<TRequest, TResponse> {
     private NextBuilderMock makeMocker() {
         String httpMethod = adapter.getMethod();
         NextBuilderMock mocker = NextBuilderMockUtils.createApacheHttpClientMock(adapter.getUri().toString());
-        mocker.setOriginRequestBody(this.encodeRequest(httpMethod));
+        mocker.setOriginRequestBody(ZstdService.getInstance().serialize(this.getRequestBody(httpMethod)));
         mocker.setRequestMethod(httpMethod);
         return mocker;
     }
 
-    private String encodeRequest(String httpMethod) {
+    private String getRequestBody(String httpMethod) {
         if (ALLOW_HTTP_METHOD_BODY_SETS.contains(httpMethod)) {
             byte[] bytes = adapter.getRequestBytes();
-            if (bytes != null) {
-                return Base64.getEncoder().encodeToString(bytes);
+
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            ByteArrayInputStream in = new ByteArrayInputStream(bytes);
+            try {
+                GZIPInputStream gzipin = new GZIPInputStream(in);
+                byte[] buffer = new byte[1024];
+                int offset = -1;
+                while ((offset = gzipin.read(buffer)) != -1) {
+                    out.write(buffer, 0, offset);
+                }
+                return out.toString();
+            }catch (Exception ex){
+
             }
         }
         return adapter.getUri().getQuery();
