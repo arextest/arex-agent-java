@@ -114,6 +114,42 @@ class ExpressionParseUtilTest {
                     Foo1.class),
                 "T(io.arex.inst.dynamic.common.ExpressionParseUtilTest).getMapKey(#f1.f1, #f1.f2)",
                 (Predicate<String>) "getMapKey-p1-1"::equals
+            ),
+            Arguments.of(
+                new Object[]{
+                    new Foo2("p1", 1),
+                    new Foo2("p2", 2),
+                    new Foo1(new Foo2("p3", 3))
+                },
+                ExpressionParseUtilTest.class.getDeclaredMethod("testParseMethodKey3", Foo2.class,
+                    Foo2.class,
+                    Foo1.class),
+                "#root.methodName + #f1.getF2() + #f2.getF2().toString() + #f3.getFoo2().f1",
+                (Predicate<String>) "testParseMethodKey312p3"::equals
+            ),
+            Arguments.of(
+                new Object[]{
+                    new Foo2("p1", 1),
+                    new Foo2("p2", 2),
+                    new Foo1(new Foo2("p3", 3))
+                },
+                ExpressionParseUtilTest.class.getDeclaredMethod("testParseMethodKey3", Foo2.class,
+                    Foo2.class,
+                    Foo1.class),
+                "#root.method.name + #f1.getF2() + #f2.getF2().toString() + #f3.getFoo2().f1",
+                (Predicate<String>) "testParseMethodKey312p3"::equals
+            ),
+            Arguments.of(
+                new Object[]{
+                    new Foo2("p1", 1),
+                    new Foo2("p2", 2),
+                    new Foo1(new Foo2("p3", 3))
+                },
+                ExpressionParseUtilTest.class.getDeclaredMethod("testParseMethodKey3", Foo2.class,
+                    Foo2.class,
+                    Foo1.class),
+                "#root.args[0].getF2().toString + #f1.getF2() + #f2.getF2().toString() + #f3.getFoo2().f1",
+                (Predicate<String>) "112p3"::equals
             )
         );
     }

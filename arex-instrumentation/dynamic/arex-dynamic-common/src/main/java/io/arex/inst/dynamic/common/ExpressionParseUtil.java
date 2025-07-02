@@ -43,12 +43,16 @@ public class ExpressionParseUtil {
             return null;
         }
 
+
         try {
             String[] parameterNames = NAME_DISCOVERER.getParameterNames(method);
             if (parameterNames == null || args.length != parameterNames.length) {
                 return null;
             }
-            EvaluationContext context = new StandardEvaluationContext();
+
+            MethodRootObject rootObject = new MethodRootObject(method, args);
+
+            EvaluationContext context = new StandardEvaluationContext(rootObject);
             for (int i = 0; i < args.length; i++) {
                 context.setVariable(parameterNames[i], args[i]);
             }
@@ -60,6 +64,33 @@ public class ExpressionParseUtil {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    /**
+     * the root object used during the expression evaluation. It contains the method and its
+     * arguments.
+     */
+    private static class MethodRootObject {
+        private final Method method;
+        private final Object[] args;
+
+        private MethodRootObject(Method method, Object[] args) {
+            this.method = method;
+            this.args = args;
+        }
+
+        public String getMethodName() {
+            return method.getName();
+        }
+
+        public Method getMethod() {
+            return this.method;
+        }
+
+        public Object[] getArgs() {
+            return this.args;
+        }
+
     }
 
     public static String replaceToExpression(Method method, String additionalSignature) {
