@@ -44,6 +44,33 @@ public class IgnoreUtils {
         return false;
     }
 
+    public static boolean ignorePinnedCaseMockResult(String serviceKey, String operationKey) {
+        if (StringUtil.isEmpty(serviceKey)) {
+            return false;
+        }
+        ArexContext context = ContextManager.currentContext();
+        if (context == null || context.getRecordInReplayMockTemplate() == null) {
+            return false;
+        }
+        Map<String, Set<String>> recordInReplayMockTemplate = context.getRecordInReplayMockTemplate();
+        if (!recordInReplayMockTemplate.containsKey(serviceKey)) {
+            return false;
+        }
+        Set<String> operationSet = recordInReplayMockTemplate.get(serviceKey);
+        // If empty, this service all operations ignore mock result
+        if (operationSet == null || operationSet.isEmpty()) {
+            LogManager.info("ignorePinnedCaseMock", StringUtil.format("service:%s all operations ignore mock result", serviceKey));
+            return true;
+        }
+        // Specified operation ignore mock result
+        if (operationSet.contains(operationKey)) {
+            LogManager.info("ignorePinnedCaseMock", StringUtil.format("operation:%s.%s ignore mock result", serviceKey, operationKey));
+            return true;
+        }
+        return false;
+    }
+
+
     /**
      * Include the operation that need to record or replay
      */

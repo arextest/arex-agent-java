@@ -16,6 +16,7 @@ import io.arex.inst.dynamic.common.listener.ResponseConsumer;
 import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.context.ArexContext;
 import io.arex.inst.runtime.context.ContextManager;
+import io.arex.inst.runtime.context.RepeatedCollectManager;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.model.DynamicClassEntity;
 import io.arex.inst.runtime.serializer.Serializer;
@@ -165,6 +166,11 @@ public class DynamicClassExtractor {
         }
         replayResult = restoreResponse(replayResult);
         boolean ignoreMockResult = IgnoreUtils.ignoreMockResult(clazzName, methodName);
+        if (!ignoreMockResult && !MockUtils.checkResponseMocker(replayMocker)
+                && (IgnoreUtils.ignorePinnedCaseMockResult(clazzName, methodName)
+                && ContextManager.currentContext().isPinnedCase())) {
+            return MockResult.success(true, replayResult, true);
+        }
         return MockResult.success(ignoreMockResult, replayResult);
     }
 

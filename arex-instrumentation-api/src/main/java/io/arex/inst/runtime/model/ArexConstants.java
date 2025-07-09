@@ -26,6 +26,11 @@ public class ArexConstants {
      */
     public static final String HEADER_EXCLUDE_MOCK = "X-AREX-Exclusion-Operations";
     /**
+     * mock template for record in replay
+     */
+    public static final String HEADER_RECORD_IN_REPLAY_MOCK = "X-AREX-Record-in-Replay-Operations";
+
+    /**
      * dubbo stream protocol:triple
      */
     public static final String DUBBO_STREAM_PROTOCOL = ":tri";
@@ -72,4 +77,6 @@ public class ArexConstants {
     public static final int DB_SQL_MAX_LEN = 5000;
     public static final String DISABLE_SQL_PARSE = "arex.disable.sql.parse";
     public static final String SPRING_SCAN_PACKAGES = "arex.spring.scan.packages";
+    public static final String EXCLUDE_MOCK_TYPE = "java.util.HashMap-java.lang.String,java.util.HashSet";
+
 }

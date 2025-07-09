@@ -88,6 +88,7 @@ public class EventProcessor {
         ArexContext context = ContextManager.currentContext(true, source.getCaseId());
         if (context != null) {
             context.setExcludeMockTemplate(Serializer.deserialize(source.getExcludeMockTemplate(), EXCLUDE_MOCK_TYPE));
+            context.setRecordInReplayMockTemplate(Serializer.deserialize(source.getRecordInReplayMockTemplate(), EXCLUDE_MOCK_TYPE));
         }
     }
 
