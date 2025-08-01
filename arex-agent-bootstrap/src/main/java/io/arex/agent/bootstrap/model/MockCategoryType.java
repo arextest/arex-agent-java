@@ -4,10 +4,11 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class MockCategoryType implements Serializable {
 
-    private static final Map<String, MockCategoryType> CATEGORY_TYPE_MAP = new HashMap<>();
+    private static final Map<String, MockCategoryType> CATEGORY_TYPE_MAP = new ConcurrentHashMap<>(16);
     public static final MockCategoryType SERVLET = createEntryPoint("Servlet");
     public static final MockCategoryType DATABASE = createDependency("Database");
     public static final MockCategoryType HTTP_CLIENT = createDependency("HttpClient");
