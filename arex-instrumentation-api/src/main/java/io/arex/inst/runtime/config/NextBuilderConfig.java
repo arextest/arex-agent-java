@@ -1,9 +1,9 @@
 package io.arex.inst.runtime.config;
 
 
+import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.service.NextBuilderExtensionParameterService;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * NextBuilderConfig
@@ -56,6 +56,13 @@ public class NextBuilderConfig {
         return openMock
             && (NextBuilderExtensionParameterService.getInstance() != null
             && !"Prod".equalsIgnoreCase(NextBuilderExtensionParameterService.getInstance().getEnvironment()));
+    }
+
+    public boolean inValidMockUrl(String mockUrl) {
+        if (StringUtil.isEmpty(mockUrl) || getRequestList() == null || getRequestList().isEmpty()) {
+            return false;
+        }
+        return !getRequestList().stream().anyMatch(mockUrl::contains);
     }
 
     public List<String> getMockServiceUrls() {

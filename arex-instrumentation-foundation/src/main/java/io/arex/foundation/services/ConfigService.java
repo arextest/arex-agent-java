@@ -40,7 +40,7 @@ public class ConfigService {
     private static final String TAGS_PREFIX = "arex.tags.";
     private static final String CONFIG_LOAD_URI =
         String.format("http://%s/api/config/agent/load", ConfigManager.INSTANCE.getConfigServiceHost());
-    private static final String NEXT_BUILDER_CONFIG_URI = "http://ts-agg-service.fat-1.qa.nt.ctripcorp.com/workflowdesign/getArexNodeMockUrl";
+    private static final String NEXT_BUILDER_CONFIG_URI = "http://nextbuilder.configuration.uat.qa.nt.ctripcorp.com/api/queryConfiguration";
 
     private final AtomicBoolean firstLoad = new AtomicBoolean(false);
     private final AtomicBoolean reloadConfig = new AtomicBoolean(false);
@@ -104,6 +104,7 @@ public class ConfigService {
         try {
             NextBuilderMockConfigRequest request = new NextBuilderMockConfigRequest();
             request.setAppId(ConfigManager.INSTANCE.getServiceName());
+            request.setSubEnv(System.getenv().get("subenv"));
             String requestJson = serialize(request);
             HttpClientResponse clientResponse = AsyncHttpClientUtil.postAsyncWithJson(
                 NEXT_BUILDER_CONFIG_URI,
@@ -120,6 +121,7 @@ public class ConfigService {
                 LOGGER.warn("[AREX] Load next builder config, deserialize response is null");
                 return;
             }
+            LOGGER.info("[AREX] Load agent next Builder config\nrequest: {}\nresponse: {}", requestJson, clientResponse.getBody());
             NextBuilderConfigManager.INSTANCE.updateConfig(
                 ConfigManager.INSTANCE.getServiceName(),
                 response.getData().getOpenMock(),
@@ -127,7 +129,7 @@ public class ConfigService {
                 response.getData().getMainServiceUrls(),
                 response.getData().getMockDataQueryUri());
         } catch (Throwable e) {
-            LOGGER.warn("[AREX] Load agent config error, pause recording. exception message: {}", e.getMessage(), e);
+            LOGGER.warn("[AREX] Load agent next Builder config error, pause recording. exception message: {}", e.getMessage(), e);
             ConfigManager.INSTANCE.setConfigInvalid();
         }
     }

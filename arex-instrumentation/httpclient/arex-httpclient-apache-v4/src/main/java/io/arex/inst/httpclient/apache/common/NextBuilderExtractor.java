@@ -16,7 +16,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 import java.util.Locale;
 import java.util.zip.GZIPInputStream;
@@ -36,9 +35,17 @@ import org.slf4j.LoggerFactory;
  */
 public class NextBuilderExtractor<TRequest, TResponse> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(NextBuilderExtractor.class);
-
     private final HttpClientAdapter<TRequest, TResponse> adapter;
+
+    private static final List<String> ALLOW_HTTP_METHOD_BODY_SETS;
+
+    static {
+        ALLOW_HTTP_METHOD_BODY_SETS = new ArrayList<>(4);
+        ALLOW_HTTP_METHOD_BODY_SETS.add("POST");
+        ALLOW_HTTP_METHOD_BODY_SETS.add("PUT");
+        ALLOW_HTTP_METHOD_BODY_SETS.add("PATCH");
+        ALLOW_HTTP_METHOD_BODY_SETS.add("DELETE");
+    }
 
     public NextBuilderExtractor(@Nonnull HttpClientAdapter<TRequest, TResponse> adapter) {
         this.adapter = adapter;
@@ -51,7 +58,9 @@ public class NextBuilderExtractor<TRequest, TResponse> {
             return MockResult.success(true, null);
         }
         NextBuilderMockDataQueryResponse mockDataResponse = NextBuilderMockUtils.queryMock(makeMocker());
-        if (mockDataResponse == null || StringUtil.isEmpty(mockDataResponse.getResponseContent())) {
+        if (mockDataResponse == null
+            || mockDataResponse.getResult() == null
+            || StringUtil.isEmpty(mockDataResponse.getResult().getData())) {
             return MockResult.success(true, null);
         }
         HttpResponseWrapper responseWrapper = getHttpResponseWrapper(mockDataResponse);
@@ -60,7 +69,7 @@ public class NextBuilderExtractor<TRequest, TResponse> {
     }
 
     private static HttpResponseWrapper getHttpResponseWrapper(NextBuilderMockDataQueryResponse mockDataResponse) {
-        String mockResponse = mockDataResponse.getResponseContent();
+        String mockResponse = mockDataResponse.getResult().getData();
         byte[] responseBody = mockResponse.getBytes(StandardCharsets.UTF_8);
         StatusLine statusLine = new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, null);
         Locale locale = Locale.getDefault();
@@ -94,20 +103,11 @@ public class NextBuilderExtractor<TRequest, TResponse> {
                     out.write(buffer, 0, offset);
                 }
                 return out.toString();
-            }catch (Exception ex){
-
+            } catch (Exception ex) {
+                // 如果抛出异常，则说明不是gzip压缩，直接按原始内容返回
+                return new String(bytes, StandardCharsets.UTF_8);
             }
         }
         return adapter.getUri().getQuery();
-    }
-
-    private static final List<String> ALLOW_HTTP_METHOD_BODY_SETS;
-
-    static {
-        ALLOW_HTTP_METHOD_BODY_SETS = new ArrayList<>(4);
-        ALLOW_HTTP_METHOD_BODY_SETS.add("POST");
-        ALLOW_HTTP_METHOD_BODY_SETS.add("PUT");
-        ALLOW_HTTP_METHOD_BODY_SETS.add("PATCH");
-        ALLOW_HTTP_METHOD_BODY_SETS.add("DELETE");
     }
 }

@@ -9,6 +9,7 @@ package io.arex.foundation.model;
 public class NextBuilderMockConfigRequest {
 
     private String appId;
+    private String subEnv;
 
     public void setAppId(String appId) {
         this.appId = appId;
@@ -16,5 +17,13 @@ public class NextBuilderMockConfigRequest {
 
     public String getAppId() {
         return appId;
+    }
+
+    public String getSubEnv() {
+        return subEnv;
+    }
+
+    public void setSubEnv(String subEnv) {
+        this.subEnv = subEnv;
     }
 }

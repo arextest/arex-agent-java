@@ -11,7 +11,7 @@ public class NextBuilderMockDataQueryResponse {
     private MockDataResponseHead responseHead;
     private ErrorResult errorResult;
 
-    private String responseContent;
+    private NextBuilderMockResult result;
 
     public void setResponseHead(
         MockDataResponseHead responseHead) {
@@ -22,10 +22,6 @@ public class NextBuilderMockDataQueryResponse {
         this.errorResult = errorResult;
     }
 
-    public void setResponseContent(String responseContent) {
-        this.responseContent = responseContent;
-    }
-
     public MockDataResponseHead getResponseHead() {
         return responseHead;
     }
@@ -34,7 +30,11 @@ public class NextBuilderMockDataQueryResponse {
         return errorResult;
     }
 
-    public String getResponseContent() {
-        return responseContent;
+    public NextBuilderMockResult getResult() {
+        return result;
+    }
+
+    public void setResult(NextBuilderMockResult result) {
+        this.result = result;
     }
 }
