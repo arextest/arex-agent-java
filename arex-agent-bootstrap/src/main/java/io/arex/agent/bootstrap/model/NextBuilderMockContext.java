@@ -14,6 +14,15 @@ public class NextBuilderMockContext {
     private String mockResponseBody;
     private String acceptEncoding;
     private Object soaMockResponse;
+    private boolean interruptOriginalRequest;
+
+    public boolean isInterruptOriginalRequest() {
+        return interruptOriginalRequest;
+    }
+
+    public void setInterruptOriginalRequest(boolean interruptOriginalRequest) {
+        this.interruptOriginalRequest = interruptOriginalRequest;
+    }
 
     public String getMockResponseBody() {
         return mockResponseBody;

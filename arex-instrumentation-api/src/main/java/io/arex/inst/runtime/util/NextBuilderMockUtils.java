@@ -5,8 +5,8 @@ import io.arex.agent.bootstrap.model.NextBuilderMock;
 import io.arex.agent.bootstrap.model.NextBuilderMockContext;
 import io.arex.agent.bootstrap.model.NextBuilderMockDataQueryResponse;
 import io.arex.agent.bootstrap.util.StringUtil;
-import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.serializer.Serializer;
+import io.arex.inst.runtime.service.ExtensionLogService;
 import io.arex.inst.runtime.service.NextBuilderDataService;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -58,7 +58,7 @@ public final class NextBuilderMockUtils {
         );
 
         if (StringUtil.isEmpty(data) || EMPTY_JSON.equals(data)) {
-            LogManager.warn("load next build mock data", StringUtil.format("response body is null. request: %s", data));
+            ExtensionLogService.getInstance().warn("AREX-NextBuilder", "Load queryMockData error, response data is empty");
             return null;
         }
         return Serializer.deserialize(data, NextBuilderMockDataQueryResponse.class);
@@ -72,16 +72,13 @@ public final class NextBuilderMockUtils {
         nextBuilderMock.setOriginRequestBody(ZstdService.getInstance().serialize(body));
         nextBuilderMock.setRequestMethod(requestMethod);
 
-        LOGGER.info("[AREX-NextBuilder] txid:{} Query Mock Data Request: {}", transactionId,
-            Serializer.serialize(nextBuilderMock));
         NextBuilderMockDataQueryResponse response = queryMock(nextBuilderMock);
-        LOGGER.info("[AREX-NextBuilder] txid:{} Query Mock Data Response: {}", transactionId,
-            Serializer.serialize(response));
 
         if (response == null
             || response.getResult() == null
             || StringUtil.isEmpty(response.getResult().getData())) {
-            LOGGER.warn("[AREX-NextBuilder] Load queryMockData error mock Response data is null");
+            ExtensionLogService.getInstance().warn("AREX-NextBuilder",
+                "Load queryMockData error mock Response data is null");
             return null;
         }
 

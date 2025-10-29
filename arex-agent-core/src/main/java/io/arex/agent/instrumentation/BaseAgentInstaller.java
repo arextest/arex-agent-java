@@ -14,6 +14,8 @@ import io.arex.foundation.util.NetUtils;
 import io.arex.inst.runtime.context.RecordLimiter;
 import io.arex.inst.runtime.service.DataCollector;
 import io.arex.inst.runtime.service.DataService;
+import io.arex.inst.runtime.service.ExtensionLogCollector;
+import io.arex.inst.runtime.service.ExtensionLogService;
 import io.arex.inst.runtime.service.NextBuilderDataCollector;
 import io.arex.inst.runtime.service.NextBuilderDataService;
 import java.io.File;
@@ -118,12 +120,9 @@ public abstract class BaseAgentInstaller implements AgentInstaller {
         List<DataCollector> collectorList = ServiceLoader.load(DataCollector.class, getClassLoader());
         DataService.setDataCollector(collectorList);
 
-        List<NextBuilderDataCollector> nextBuilderCollectorList = ServiceLoader.load(NextBuilderDataCollector.class,
+        List<NextBuilderDataCollector> nextBuilderCollectors = ServiceLoader.load(NextBuilderDataCollector.class,
             getClassLoader());
-        NextBuilderDataService.setDataCollector(nextBuilderCollectorList);
-
-//        List<ZstdInterface> zstdInterfaces = ServiceLoader.load(ZstdInterface.class, getClassLoader());
-//        ZstdManager.setInstance(zstdInterfaces);
+        NextBuilderDataService.setDataCollector(nextBuilderCollectors);
     }
 
     /**
