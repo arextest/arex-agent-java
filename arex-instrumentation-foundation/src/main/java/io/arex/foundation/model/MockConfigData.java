@@ -14,6 +14,7 @@ public class MockConfigData {
     private Boolean openMock;
     private String mockDataQueryUri;
     private List<String> mainServiceUrls;
+    private boolean originalResponse;
 
     public List<String> getRequestList() {
         return requestList;
@@ -45,5 +46,13 @@ public class MockConfigData {
 
     public List<String> getMainServiceUrls() {
         return mainServiceUrls;
+    }
+
+    public boolean isOriginalResponse() {
+        return originalResponse;
+    }
+
+    public void setOriginalResponse(boolean originalResponse) {
+        this.originalResponse = originalResponse;
     }
 }

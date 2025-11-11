@@ -26,7 +26,7 @@ import java.util.UUID;
 public class NextBuilderService implements NextBuilderDataCollector {
 
     public static final NextBuilderService INSTANCE = new NextBuilderService();
-    private static final String LOGGER_TITLE = "AREX-NextBuilder";
+    private static final String LOGGER_TITLE = "NextBuilder-mockDataQuery";
 
     @Override
     public String query(

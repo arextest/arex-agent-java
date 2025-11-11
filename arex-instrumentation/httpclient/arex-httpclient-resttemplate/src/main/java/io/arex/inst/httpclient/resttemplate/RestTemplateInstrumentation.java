@@ -1,5 +1,10 @@
 package io.arex.inst.httpclient.resttemplate;
 
+import static net.bytebuddy.matcher.ElementMatchers.isMethod;
+import static net.bytebuddy.matcher.ElementMatchers.isProtected;
+import static net.bytebuddy.matcher.ElementMatchers.named;
+import static net.bytebuddy.matcher.ElementMatchers.takesArguments;
+
 import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.inst.extension.MethodInstrumentation;
 import io.arex.inst.extension.TypeInstrumentation;
@@ -8,14 +13,18 @@ import io.arex.inst.runtime.context.RepeatedCollectManager;
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
-import net.bytebuddy.asm.Advice.*;
+import net.bytebuddy.asm.Advice.Argument;
+import net.bytebuddy.asm.Advice.Local;
+import net.bytebuddy.asm.Advice.OnMethodEnter;
+import net.bytebuddy.asm.Advice.OnMethodExit;
+import net.bytebuddy.asm.Advice.OnNonDefaultValue;
+import net.bytebuddy.asm.Advice.Return;
+import net.bytebuddy.asm.Advice.Thrown;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.implementation.bytecode.assign.Assigner.Typing;
 import net.bytebuddy.matcher.ElementMatcher;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.client.RequestCallback;
-
-import static net.bytebuddy.matcher.ElementMatchers.*;
 
 public class RestTemplateInstrumentation extends TypeInstrumentation {
 
@@ -27,17 +36,17 @@ public class RestTemplateInstrumentation extends TypeInstrumentation {
     @Override
     public List<MethodInstrumentation> methodAdvices() {
         return Collections.singletonList(new MethodInstrumentation(isMethod().and(isProtected()).
-                and(named("doExecute")).and(takesArguments(4)), ExecuteAdvice.class.getName()));
+            and(named("doExecute")).and(takesArguments(4)), ExecuteAdvice.class.getName()));
     }
 
     public static class ExecuteAdvice {
 
         @OnMethodEnter(skipOn = OnNonDefaultValue.class, suppress = Throwable.class)
         public static boolean onEnter(@Argument(0) URI uri,
-                                      @Argument(1) HttpMethod httpMethod,
-                                      @Argument(2) RequestCallback requestCallback,
-                                      @Local("extractor") RestTemplateExtractor extractor,
-                                      @Local("mockResult") MockResult mockResult) {
+            @Argument(1) HttpMethod httpMethod,
+            @Argument(2) RequestCallback requestCallback,
+            @Local("extractor") RestTemplateExtractor extractor,
+            @Local("mockResult") MockResult mockResult) {
             if (ContextManager.needRecordOrReplay()) {
                 extractor = new RestTemplateExtractor(uri, httpMethod, requestCallback);
                 if (ContextManager.needReplay()) {
@@ -45,15 +54,18 @@ public class RestTemplateInstrumentation extends TypeInstrumentation {
                     return mockResult != null && mockResult.notIgnoreMockResult();
                 }
                 RepeatedCollectManager.enter();
+            } else if (NextBuilderRestTemplateExtractor.openMock()) {
+                mockResult = new NextBuilderRestTemplateExtractor().mock(uri, httpMethod, requestCallback);
+                return mockResult != null && mockResult.notIgnoreMockResult();
             }
             return false;
         }
 
         @OnMethodExit(onThrowable = Throwable.class, suppress = Throwable.class)
         public static void onExit(@Return(readOnly = false, typing = Typing.DYNAMIC) Object result,
-                                  @Thrown(readOnly = false) Throwable throwable,
-                                  @Local("extractor") RestTemplateExtractor extractor,
-                                  @Local("mockResult") MockResult mockResult) {
+            @Thrown(readOnly = false) Throwable throwable,
+            @Local("extractor") RestTemplateExtractor extractor,
+            @Local("mockResult") MockResult mockResult) {
             if (mockResult != null && mockResult.notIgnoreMockResult()) {
                 if (mockResult.getThrowable() != null) {
                     throwable = mockResult.getThrowable();

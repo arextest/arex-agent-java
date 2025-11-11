@@ -21,7 +21,7 @@ public class NextBuilderConfig {
 
     private final String serviceName;
     private final boolean openMock;
-
+    private final boolean originalResponse;
     private final List<String> mockServiceUrls;
 
     private final String mockDataQueryUri;
@@ -31,21 +31,29 @@ public class NextBuilderConfig {
         boolean openMock,
         List<String> mockServiceUrls,
         String mockDataQueryUri,
-        List<String> requestList) {
+        List<String> requestList,
+        boolean originalResponse) {
         this.serviceName = serviceName;
         this.openMock = openMock;
         this.mockServiceUrls = mockServiceUrls;
         this.mockDataQueryUri = mockDataQueryUri;
         this.requestList = requestList;
+        this.originalResponse = originalResponse;
     }
 
     public static void update(String serviceName,
         boolean openMock,
         List<String> mockServiceUrls,
         String mockDataQueryUri,
-        List<String> requestList) {
-        INSTANCE = new NextBuilderConfig(serviceName, openMock,
-            mockServiceUrls, mockDataQueryUri, requestList);
+        List<String> requestList,
+        boolean originalResponse) {
+
+        INSTANCE = new NextBuilderConfig(serviceName,
+            openMock,
+            mockServiceUrls,
+            mockDataQueryUri,
+            requestList,
+            originalResponse);
     }
 
     public String getServiceName() {
@@ -75,5 +83,9 @@ public class NextBuilderConfig {
 
     public List<String> getRequestList() {
         return requestList;
+    }
+
+    public boolean isOriginalResponse() {
+        return originalResponse;
     }
 }

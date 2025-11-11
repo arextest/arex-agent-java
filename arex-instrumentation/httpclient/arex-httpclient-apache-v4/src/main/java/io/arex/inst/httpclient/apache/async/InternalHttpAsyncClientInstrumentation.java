@@ -11,7 +11,6 @@ import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.inst.extension.MethodInstrumentation;
 import io.arex.inst.extension.TypeInstrumentation;
 import io.arex.inst.httpclient.apache.common.ApacheHttpClientHelper;
-import io.arex.inst.httpclient.apache.common.NextBuilderApacheHelper;
 import io.arex.inst.runtime.context.ContextManager;
 import io.arex.inst.runtime.context.RepeatedCollectManager;
 import java.io.IOException;
@@ -74,7 +73,7 @@ public class InternalHttpAsyncClientInstrumentation extends TypeInstrumentation 
                         }
                     }
                 }
-            } else if (NextBuilderApacheHelper.openMock()) {
+            } else if (NextBuilderCallbackWrapper.openMock()) {
                 FutureCallback<?> callbackWrapper = NextBuilderCallbackWrapper.wrap(producer.generateRequest(),
                     callback);
                 if (callbackWrapper != null) {

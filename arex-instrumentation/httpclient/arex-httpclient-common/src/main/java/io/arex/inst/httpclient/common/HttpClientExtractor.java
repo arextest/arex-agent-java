@@ -6,17 +6,17 @@ import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.util.IgnoreUtils;
 import io.arex.inst.runtime.util.MockUtils;
 import io.arex.inst.runtime.util.TypeUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Nonnull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class HttpClientExtractor<TRequest, TResponse> {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpClientExtractor.class);
 
     private final HttpClientAdapter<TRequest, TResponse> adapter;

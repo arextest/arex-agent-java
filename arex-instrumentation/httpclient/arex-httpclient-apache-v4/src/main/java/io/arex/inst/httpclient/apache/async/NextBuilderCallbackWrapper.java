@@ -5,6 +5,7 @@ import io.arex.agent.bootstrap.ctx.TraceTransmitter;
 import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.inst.httpclient.apache.common.ApacheHttpClientAdapter;
 import io.arex.inst.httpclient.apache.common.NextBuilderExtractor;
+import io.arex.inst.runtime.config.NextBuilderConfig;
 import java.util.concurrent.Future;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
@@ -24,12 +25,6 @@ public class NextBuilderCallbackWrapper<T> implements FutureCallback<T> {
 
     // Maybe null, Just to pass the trace
     private final NextBuilderExtractor<HttpRequest, HttpResponse> extractor;
-
-    private boolean needMock;
-
-    public NextBuilderCallbackWrapper(FutureCallback<T> delegate) {
-        this(null, delegate);
-    }
 
     public NextBuilderCallbackWrapper(NextBuilderExtractor<HttpRequest, HttpResponse> extractor,
         FutureCallback<T> delegate) {
@@ -65,14 +60,6 @@ public class NextBuilderCallbackWrapper<T> implements FutureCallback<T> {
         }
     }
 
-    public void setNeedMock(boolean needMock) {
-        this.needMock = needMock;
-    }
-
-    public boolean isNeedMock() {
-        return needMock;
-    }
-
     public MockResult mock() {
         return extractor.mock();
     }
@@ -98,13 +85,7 @@ public class NextBuilderCallbackWrapper<T> implements FutureCallback<T> {
         return new NextBuilderCallbackWrapper<>(new NextBuilderExtractor<>(adapter), delegate);
     }
 
-    /**
-     * Wrap the delegate with NextBuilderCallbackWrapper for arex trace propagation
-     */
-    public static <T> FutureCallback<T> wrap(FutureCallback<T> delegate) {
-        if (delegate instanceof NextBuilderCallbackWrapper) {
-            return delegate;
-        }
-        return new NextBuilderCallbackWrapper<>(delegate);
+    public static boolean openMock() {
+        return NextBuilderConfig.get().isOpenMock();
     }
 }

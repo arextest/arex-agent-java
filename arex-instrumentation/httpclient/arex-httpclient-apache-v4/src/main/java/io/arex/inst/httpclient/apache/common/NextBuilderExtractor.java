@@ -3,13 +3,14 @@ package io.arex.inst.httpclient.apache.common;
 
 import io.arex.agent.bootstrap.model.MockResult;
 import io.arex.agent.bootstrap.model.NextBuilderMock;
+import io.arex.agent.bootstrap.model.NextBuilderMockContext;
 import io.arex.agent.bootstrap.model.NextBuilderMockDataQueryResponse;
-import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.httpclient.common.HttpClientAdapter;
 import io.arex.inst.httpclient.common.HttpResponseWrapper;
 import io.arex.inst.httpclient.common.HttpResponseWrapper.StringTuple;
 import io.arex.inst.runtime.config.NextBuilderConfig;
+import io.arex.inst.runtime.service.ExtensionLogService;
 import io.arex.inst.runtime.util.NextBuilderMockUtils;
 import io.arex.inst.runtime.util.ZstdService;
 import java.io.ByteArrayInputStream;
@@ -24,8 +25,6 @@ import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
 import org.apache.http.StatusLine;
 import org.apache.http.message.BasicStatusLine;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * NextBuilderExtractor
@@ -35,6 +34,7 @@ import org.slf4j.LoggerFactory;
  */
 public class NextBuilderExtractor<TRequest, TResponse> {
 
+    private static final String LOGGER_TITLE = "NextBuilder-apacheHttpclient";
     private final HttpClientAdapter<TRequest, TResponse> adapter;
 
     private static final List<String> ALLOW_HTTP_METHOD_BODY_SETS;
@@ -52,24 +52,27 @@ public class NextBuilderExtractor<TRequest, TResponse> {
     }
 
     public MockResult mock() {
-        boolean ignoreResult = true;
-        if (CollectionUtil.isEmpty(NextBuilderConfig.get().getRequestList())
-            || !NextBuilderConfig.get().getRequestList().contains(adapter.getUri().toString())) {
+        String sourceUrl = adapter.getUri().toString();
+        if (NextBuilderConfig.get().inValidMockUrl(sourceUrl)) {
+            ExtensionLogService.getInstance().info(LOGGER_TITLE,
+                "current uri dont need mock, currentUri:" + sourceUrl,
+                NextBuilderMockUtils.buildLogTag(sourceUrl));
             return MockResult.success(true, null);
         }
-        NextBuilderMockDataQueryResponse mockDataResponse = NextBuilderMockUtils.queryMock(makeMocker());
-        if (mockDataResponse == null
-            || mockDataResponse.getResult() == null
-            || StringUtil.isEmpty(mockDataResponse.getResult().getData())) {
-            return MockResult.success(true, null);
+        NextBuilderMockContext nextBuilderMockContext = NextBuilderMockUtils.getNextBuilderMockContext(sourceUrl,
+            adapter.getMethod(),
+            this.getRequestBody(adapter.getMethod()));
+
+        if (nextBuilderMockContext.getMockResponseBody() == null) {
+            return MockResult.success(nextBuilderMockContext.isInterruptOriginalRequest(), null);
         }
-        HttpResponseWrapper responseWrapper = getHttpResponseWrapper(mockDataResponse);
+        HttpResponseWrapper responseWrapper = getHttpResponseWrapper(nextBuilderMockContext);
         TResponse response = this.adapter.unwrap(responseWrapper);
         return MockResult.success(false, response);
     }
 
-    private static HttpResponseWrapper getHttpResponseWrapper(NextBuilderMockDataQueryResponse mockDataResponse) {
-        String mockResponse = mockDataResponse.getResult().getData();
+    private static HttpResponseWrapper getHttpResponseWrapper(NextBuilderMockContext nextBuilderMockContext) {
+        String mockResponse = nextBuilderMockContext.getMockResponseBody();
         byte[] responseBody = mockResponse.getBytes(StandardCharsets.UTF_8);
         StatusLine statusLine = new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, null);
         Locale locale = Locale.getDefault();
@@ -79,14 +82,6 @@ public class NextBuilderExtractor<TRequest, TResponse> {
             responseBody,
             new StringTuple(locale.getLanguage(), locale.getCountry()),
             new ArrayList<StringTuple>());
-    }
-
-    private NextBuilderMock makeMocker() {
-        String httpMethod = adapter.getMethod();
-        NextBuilderMock mocker = NextBuilderMockUtils.createApacheHttpClientMock(adapter.getUri().toString());
-        mocker.setOriginRequestBody(ZstdService.getInstance().serialize(this.getRequestBody(httpMethod)));
-        mocker.setRequestMethod(httpMethod);
-        return mocker;
     }
 
     private String getRequestBody(String httpMethod) {

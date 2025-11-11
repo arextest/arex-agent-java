@@ -31,7 +31,8 @@ public class NextBuilderConfigManager {
         boolean openMock,
         List<String> mockServiceUrls,
         List<String> mainServiceUrls,
-        String mockDataQueryUri) {
+        String mockDataQueryUri,
+        boolean originalResponse) {
         this.openMock = openMock;
         this.mockServiceUrls = mockServiceUrls;
         this.mainServiceUrls = mainServiceUrls;
@@ -41,7 +42,8 @@ public class NextBuilderConfigManager {
             openMock,
             mainServiceUrls,
             mockDataQueryUri,
-            mockServiceUrls
+            mockServiceUrls,
+            originalResponse
         );
 
     }

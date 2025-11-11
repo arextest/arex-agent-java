@@ -18,7 +18,6 @@ import io.arex.foundation.model.NextBuilderMockConfigRequest;
 import io.arex.foundation.model.NextBuilderMockConfigResponse;
 import io.arex.foundation.util.NetUtils;
 import io.arex.foundation.util.httpclient.AsyncHttpClientUtil;
-import io.arex.inst.runtime.config.Config;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -121,15 +120,18 @@ public class ConfigService {
                 LOGGER.warn("[AREX] Load next builder config, deserialize response is null");
                 return;
             }
-            LOGGER.info("[AREX] Load agent next Builder config\nrequest: {}\nresponse: {}", requestJson, clientResponse.getBody());
+            LOGGER.info("[AREX] Load agent next Builder config\nrequest: {}\nresponse: {}", requestJson,
+                clientResponse.getBody());
             NextBuilderConfigManager.INSTANCE.updateConfig(
                 ConfigManager.INSTANCE.getServiceName(),
                 response.getData().getOpenMock(),
                 response.getData().getRequestList(),
                 response.getData().getMainServiceUrls(),
-                response.getData().getMockDataQueryUri());
+                response.getData().getMockDataQueryUri(),
+                response.getData().isOriginalResponse());
         } catch (Throwable e) {
-            LOGGER.warn("[AREX] Load agent next Builder config error, pause recording. exception message: {}", e.getMessage(), e);
+            LOGGER.warn("[AREX] Load agent next Builder config error, pause recording. exception message: {}",
+                e.getMessage(), e);
             ConfigManager.INSTANCE.setConfigInvalid();
         }
     }
