@@ -30,7 +30,11 @@ public class DubboAdapter extends AbstractAdapter {
 
     @Override
     public String getServiceName() {
-        return getUrl().getServiceInterface();
+        /*
+          format：group/interface:version
+          method：org.apache.dubbo.common.BaseServiceMetadata#buildServiceKey() | org.apache.dubbo.common.URL#buildKey()
+         */
+        return getUrl().getServiceKey();
     }
 
     /**

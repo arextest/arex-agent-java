@@ -118,7 +118,31 @@ public abstract class AbstractAdapter {
     }
 
     public String getPath() {
-        return StringUtil.defaultIfEmpty(getAttachment("path"), getServiceName());
+        return StringUtil.defaultIfEmpty(this.getServiceNameWithVersion(), this.getServiceName());
+    }
+
+    /**
+     * <p>Illustrate: Splicing serviceName and version
+     * <p>Fix Bug: https://github.com/arextest/arex-agent-java/issues/490
+     * <p>Notice: This method maybe affect ignore [path] config！ Especially when a dubbo service exists multiple versions！
+     */
+    protected String getServiceNameWithVersion(){
+        String serviceName = this.getAttachment("path");
+        if (StringUtil.isBlank(serviceName)){
+            return null;
+        }
+        String group = this.getValByKey("group");
+        String version = this.getAttachment("version");
+        // splicing：group/interface:version
+        StringBuilder serviceKey = new StringBuilder();
+        if (!StringUtil.isBlank(group)) {
+            serviceKey.append(group).append("/");
+        }
+        serviceKey.append(serviceName);
+        if (!StringUtil.isBlank(version)) {
+            serviceKey.append(":").append(version);
+        }
+        return serviceKey.toString();
     }
 
     /**
