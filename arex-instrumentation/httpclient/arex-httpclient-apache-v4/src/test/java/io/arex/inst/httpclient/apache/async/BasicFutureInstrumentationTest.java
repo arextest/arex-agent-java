@@ -2,6 +2,7 @@ package io.arex.inst.httpclient.apache.async;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import io.arex.inst.httpclient.apache.common.ArexBufferedHttpEntity;
 import io.arex.inst.runtime.context.ContextManager;
 import java.io.IOException;
 import net.bytebuddy.description.method.MethodDescription;
@@ -54,7 +55,7 @@ class BasicFutureInstrumentationTest {
         ((FutureCallbackWrapper<?>) wrapper).setNeedRecord(true);
         BasicFutureInstrumentation.FutureAdvice.completed(httpResponse, wrapper);
 
-        assertInstanceOf(BufferedHttpEntity.class, httpResponse.getEntity());
+        assertInstanceOf(ArexBufferedHttpEntity.class, httpResponse.getEntity());
 
         BasicFutureInstrumentation.FutureAdvice.completed(httpResponse, null);
     }
