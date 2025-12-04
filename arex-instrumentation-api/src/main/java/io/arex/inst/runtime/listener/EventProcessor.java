@@ -77,8 +77,7 @@ public class EventProcessor {
      */
     private static void initSerializer(ClassLoader contextClassLoader) {
         if (!existJacksonDependency) {
-            AdviceClassesCollector.INSTANCE.appendToClassLoaderSearch("jackson",
-                    contextClassLoader);
+            AdviceClassesCollector.INSTANCE.appendToSystemClassLoaderSearch("jackson");
         }
         final List<StringSerializable> serializableList = ServiceLoader.load(StringSerializable.class, contextClassLoader);
         Serializer.builder(serializableList).build();
