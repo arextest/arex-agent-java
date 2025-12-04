@@ -4,6 +4,7 @@ import io.arex.agent.bootstrap.model.ArexMocker;
 import io.arex.agent.bootstrap.model.MockCategoryType;
 import io.arex.agent.bootstrap.model.MockStrategyEnum;
 import io.arex.agent.bootstrap.model.Mocker;
+import io.arex.inst.runtime.match.strategy.AccurateMatchStrategy;
 import io.arex.inst.runtime.util.MockUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -47,29 +48,44 @@ class AccurateMatchStrategyTest {
 
     static Stream<Arguments> processCase() {
         Supplier<MatchStrategyContext> contextSupplier1 = () -> {
-            ArexMocker mocker = new ArexMocker();
-            mocker.setTargetResponse(new Mocker.Target());
+            ArexMocker mocker = new ArexMocker(MockCategoryType.DYNAMIC_CLASS);
+            mocker.setOperationName("mock");
             mocker.setTargetRequest(new Mocker.Target());
-            mocker.setCategoryType(MockCategoryType.DYNAMIC_CLASS);
+            mocker.getTargetRequest().setBody("mock");
+            mocker.setTargetResponse(new Mocker.Target());
+            mocker.setAccurateMatchKey(MatchKeyFactory.INSTANCE.getAccurateMatchKey(mocker));
             List<Mocker> mergeReplayList = new ArrayList<>();
-            mergeReplayList.add(new ArexMocker());
-            return new MatchStrategyContext(mocker, mergeReplayList, MockStrategyEnum.FIND_LAST);
+            mergeReplayList.add(mocker);
+            MatchStrategyContext context = new MatchStrategyContext(mocker, MockStrategyEnum.FIND_LAST);
+            context.setRecordList(mergeReplayList);
+            return context;
         };
         Supplier<MatchStrategyContext> contextSupplier2 = () -> {
             MatchStrategyContext context = contextSupplier1.get();
-            context.getReplayList().get(0).setMatched(true);
+            context.getRecordList().get(0).setMatched(true);
             context.setMockStrategy(MockStrategyEnum.STRICT_MATCH);
             return context;
         };
         Supplier<MatchStrategyContext> contextSupplier3 = () -> {
             MatchStrategyContext context = contextSupplier1.get();
-            context.getReplayList().add(new ArexMocker());
+            context.getRecordList().add(new ArexMocker());
             return context;
         };
         Supplier<MatchStrategyContext> contextSupplier4 = () -> {
             MatchStrategyContext context = contextSupplier1.get();
-            context.getReplayList().get(0).setAccurateMatchKey(1);
+            context.getRecordList().get(0).setFuzzyMatchKey(1);
             context.setMockStrategy(MockStrategyEnum.STRICT_MATCH);
+            return context;
+        };
+        Supplier<MatchStrategyContext> multiMatchResult = () -> {
+            MatchStrategyContext context = contextSupplier1.get();
+            ArexMocker mocker = new ArexMocker(MockCategoryType.DYNAMIC_CLASS);
+            mocker.setOperationName("mock");
+            mocker.setTargetRequest(new Mocker.Target());
+            mocker.getTargetRequest().setBody("mock");
+            mocker.setTargetResponse(new Mocker.Target());
+            mocker.setAccurateMatchKey(MatchKeyFactory.INSTANCE.getAccurateMatchKey(mocker));
+            context.getRecordList().add(mocker);
             return context;
         };
 
@@ -80,7 +96,8 @@ class AccurateMatchStrategyTest {
                 arguments(contextSupplier1.get(), asserts1),
                 arguments(contextSupplier2.get(), asserts2),
                 arguments(contextSupplier3.get(), asserts1),
-                arguments(contextSupplier4.get(), asserts2)
+                arguments(contextSupplier4.get(), asserts2),
+                arguments(multiMatchResult.get(), asserts2)
         );
     }
 
@@ -88,6 +105,6 @@ class AccurateMatchStrategyTest {
     void internalCheck() {
         ArexMocker mocker = new ArexMocker();
         mocker.setTargetRequest(new Mocker.Target());
-        assertFalse(accurateMatchStrategy.internalCheck(new MatchStrategyContext(mocker, null, null)));
+        assertFalse(accurateMatchStrategy.internalCheck(new MatchStrategyContext(mocker, null)));
     }
 }

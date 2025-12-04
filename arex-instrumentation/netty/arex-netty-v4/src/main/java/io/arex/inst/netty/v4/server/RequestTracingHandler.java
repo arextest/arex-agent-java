@@ -38,6 +38,8 @@ public class RequestTracingHandler extends ChannelInboundHandlerAdapter {
                 String excludeMockTemplate = request.headers().get(ArexConstants.HEADER_EXCLUDE_MOCK);
                 CaseEventDispatcher.onEvent(CaseEvent.ofCreateEvent(EventSource.of(caseId, excludeMockTemplate)));
                 ContextManager.currentContext().setAttachment(ArexConstants.FORCE_RECORD, request.headers().get(ArexConstants.FORCE_RECORD));
+                ContextManager.currentContext().setAttachment(ArexConstants.SCHEDULE_REPLAY, request.headers().get(ArexConstants.SCHEDULE_REPLAY));
+                ContextManager.currentContext().setAttachment(ArexConstants.REPLAY_END_FLAG, request.headers().get(ArexConstants.REPLAY_END_FLAG));
                 if (ContextManager.needRecordOrReplay()) {
                     Mocker mocker = MockUtils.createNettyProvider(request.getUri());
                     Mocker.Target target = mocker.getTargetRequest();

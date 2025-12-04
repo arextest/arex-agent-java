@@ -9,10 +9,14 @@ import io.arex.foundation.logger.AgentLoggerFactory;
 import io.arex.foundation.model.ConfigQueryResponse.DynamicClassConfiguration;
 import io.arex.foundation.model.ConfigQueryResponse.ResponseBody;
 import io.arex.foundation.model.ConfigQueryResponse.ServiceCollectConfig;
+import io.arex.foundation.model.ConfigQueryResponse.CompareConfiguration;
+import io.arex.foundation.model.ConfigQueryResponse.ConfigComparisonExclusions;
 import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.inst.runtime.config.Config;
 import io.arex.inst.runtime.config.ConfigBuilder;
 import io.arex.inst.runtime.config.listener.ConfigListener;
+import io.arex.inst.runtime.model.CompareConfigurationEntity;
+import io.arex.inst.runtime.model.CompareConfigurationEntity.ConfigComparisonExclusionsEntity;
 import io.arex.inst.runtime.model.DynamicClassEntity;
 import io.arex.inst.runtime.model.DynamicClassStatusEnum;
 import io.arex.agent.bootstrap.util.ServiceLoader;
@@ -64,6 +68,7 @@ public class ConfigManager {
     private List<ConfigListener> listeners = new ArrayList<>();
     private Map<String, String> extendField;
     private int bufferSize;
+    private CompareConfigurationEntity compareConfigurationEntity;
 
     private ConfigManager() {
         init();
@@ -356,6 +361,7 @@ public class ConfigManager {
         setAgentEnabled(serviceConfig.isAgentEnabled());
         setExtendField(serviceConfig.getExtendField());
         setMessage(serviceConfig.getMessage());
+        setCompareConfiguration(serviceConfig.getCompareConfiguration());
 
         updateRuntimeConfig();
     }
@@ -385,6 +391,7 @@ public class ConfigManager {
             .excludeServiceOperations(getExcludeServiceOperations())
             .dubboStreamReplayThreshold(getDubboStreamReplayThreshold())
             .recordRate(getRecordRate())
+            .compareConfiguration(getCompareConfiguration())
             .build();
         publish(Config.get());
     }
@@ -628,6 +635,31 @@ public class ConfigManager {
         }
         this.bufferSize = Integer.parseInt(bufferSize);
         System.setProperty(BUFFER_SIZE, bufferSize);
+    }
+
+    public void setCompareConfiguration(CompareConfiguration compareConfiguration) {
+        if (compareConfiguration == null) {
+            return;
+        }
+        List<ConfigComparisonExclusions> comparisonExclusions = compareConfiguration.getComparisonExclusions();
+        List<ConfigComparisonExclusionsEntity> comparisonExclusionsEntities = new ArrayList<>();
+        if (CollectionUtil.isNotEmpty(comparisonExclusions)) {
+            for (ConfigComparisonExclusions comparisonExclusion : comparisonExclusions) {
+                ConfigComparisonExclusionsEntity exclusionsEntity = new ConfigComparisonExclusionsEntity();
+                exclusionsEntity.setCategoryType(comparisonExclusion.getCategoryType());
+                exclusionsEntity.setOperationName(comparisonExclusion.getOperationName());
+                exclusionsEntity.setExclusionList(comparisonExclusion.getExclusionList());
+                comparisonExclusionsEntities.add(exclusionsEntity);
+            }
+        }
+        compareConfigurationEntity = new CompareConfigurationEntity();
+        compareConfigurationEntity.setComparisonExclusions(comparisonExclusionsEntities);
+        compareConfigurationEntity.setGlobalExclusionList(compareConfiguration.getGlobalExclusionList());
+        compareConfigurationEntity.setIgnoreNodeSet(compareConfiguration.getIgnoreNodeSet());
+    }
+
+    public CompareConfigurationEntity getCompareConfiguration() {
+        return compareConfigurationEntity;
     }
 
     @Override

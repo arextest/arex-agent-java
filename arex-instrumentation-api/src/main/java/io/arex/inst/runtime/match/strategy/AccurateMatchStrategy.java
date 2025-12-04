@@ -1,10 +1,11 @@
-package io.arex.inst.runtime.match;
+package io.arex.inst.runtime.match.strategy;
 
 import io.arex.agent.bootstrap.model.MockStrategyEnum;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.inst.runtime.match.MatchKeyFactory;
+import io.arex.inst.runtime.match.MatchStrategyContext;
 import io.arex.inst.runtime.model.MatchStrategyEnum;
-import io.arex.inst.runtime.util.MockUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,50 +16,46 @@ public class AccurateMatchStrategy extends AbstractMatchStrategy{
      * priority:
      * 1. if matching and not matched before return directly
      * 2. if matched before and find-last mode, return matched one
-     * 3. if matched multiple result, give next fuzzy match
+     * 3. if matched multiple result, give next match
      * 4. if strict match mode and not matched, interrupt
      */
-    void process(MatchStrategyContext context) {
+    public void process(MatchStrategyContext context) {
         context.setMatchStrategy(MatchStrategyEnum.ACCURATE);
         Mocker requestMocker = context.getRequestMocker();
-        List<Mocker> replayList = context.getReplayList();
+        List<Mocker> recordList = context.getRecordList();
         // operationName + requestBody
-        int methodSignatureHash = MockUtils.methodSignatureHash(requestMocker);
-        List<Mocker> matchedList = new ArrayList<>(replayList.size());
-        for (Mocker mocker : replayList) {
-            if (methodSignatureHash == mocker.getAccurateMatchKey()) {
-                matchedList.add(mocker);
+        requestMocker.setAccurateMatchKey(MatchKeyFactory.INSTANCE.getAccurateMatchKey(requestMocker));
+        List<Mocker> matchedList = new ArrayList<>(recordList.size());
+        for (Mocker recordMocker : recordList) {
+            if (requestMocker.getAccurateMatchKey() == recordMocker.getAccurateMatchKey()) {
+                matchedList.add(recordMocker);
             }
         }
         int matchedCount = matchedList.size();
-
         if (matchedCount == 1) {
             Mocker matchMocker = matchedList.get(0);
             // unmatched or matched but find-last mode (eg: dynamicClass)
             if (!matchMocker.isMatched() || MockStrategyEnum.FIND_LAST == context.getMockStrategy()) {
                 matchMocker.setMatched(true);
                 context.setMatchMocker(matchMocker);
-            } else {
-                context.setReason("accurate match one result, but it has already been matched before, so cannot be used");
+                context.setInterrupt(true);
+                return;
             }
-            // other modes can only be matched once, so interrupt and not continue next fuzzy match
-            context.setInterrupt(true);
-            return;
         }
-        // matched multiple result(like as redis: incr、decr) only retain matched item for next fuzzy match
+        // matched multiple result(like as redis: incr、decr) only retain matched item for next match
         if (matchedCount > 1) {
-            context.setReplayList(matchedList);
+            context.setRecordList(matchedList);
             return;
         }
-        // if strict match mode and not matched, interrupt and not continue next fuzzy match
+        // if strict match mode and not matched, interrupt and not continue next match
         if (MockStrategyEnum.STRICT_MATCH == context.getMockStrategy()) {
             context.setInterrupt(true);
         }
     }
 
     @Override
-    boolean internalCheck(MatchStrategyContext context) {
-        // if no request params, do next fuzzy match directly
+    public boolean internalCheck(MatchStrategyContext context) {
+        // if no request params, do next match directly
         return StringUtil.isNotEmpty(context.getRequestMocker().getTargetRequest().getBody());
     }
 }
