@@ -69,7 +69,7 @@ public class AsyncHttpClientInstrumentation extends TypeInstrumentation {
                 }
                 return;
             }
-            if (ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate() && extractor != null) {
+            if (ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate("ning http client repeat record") && extractor != null) {
                 if (throwable != null) {
                     extractor.record(throwable);
                 } else {

@@ -83,7 +83,7 @@ class RestTemplateInstrumentationTest {
 
         // record
         Mockito.when(ContextManager.needRecord()).thenReturn(true);
-        Mockito.when(RepeatedCollectManager.exitAndValidate()).thenReturn(true);
+        Mockito.when(RepeatedCollectManager.exitAndValidate(Mockito.anyString())).thenReturn(true);
         RestTemplateInstrumentation.ExecuteAdvice.onExit(result, throwable, extractor, null);
         Mockito.verify(extractor, Mockito.times(1)).record(result, throwable);
 

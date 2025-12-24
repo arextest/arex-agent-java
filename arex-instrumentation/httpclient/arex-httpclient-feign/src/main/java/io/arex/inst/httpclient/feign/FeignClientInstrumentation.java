@@ -82,7 +82,7 @@ public class FeignClientInstrumentation extends TypeInstrumentation {
                 return;
             }
 
-            if (ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate()) {
+            if (ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate("feign http client repeat record")) {
                 response = adapter.copyResponse(response);
                 if (throwable != null) {
                     extractor.record(throwable);

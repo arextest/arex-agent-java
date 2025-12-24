@@ -64,7 +64,7 @@ public class WebClientInstrumentation extends TypeInstrumentation {
                 @Advice.Local("wrapper") WebClientWrapper wrapper,
                 @Advice.Local("mockResult") MockResult mockResult,
                 @Advice.Return(readOnly = false) Mono<ClientResponse> response) {
-            if (wrapper == null || !RepeatedCollectManager.exitAndValidate()) {
+            if (wrapper == null || !RepeatedCollectManager.exitAndValidate("webclient repeat record")) {
                 return;
             }
 

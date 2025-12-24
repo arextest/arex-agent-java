@@ -204,7 +204,7 @@ class DynamicClassInstrumentationTest {
             Mockito.doReturn(true).when(extractor).recordResponse(throwable);
         }))) {
             Mockito.when(ContextManager.needRecord()).thenReturn(true);
-            Mockito.when(RepeatedCollectManager.exitAndValidate()).thenReturn(true);
+            Mockito.when(RepeatedCollectManager.exitAndValidate(Mockito.anyString())).thenReturn(true);
             Method test1 = DynamicTestClass.class.getDeclaredMethod("testWithArexMock", String.class);
             DynamicClassExtractor extractor = new DynamicClassExtractor(test1, new Object[]{"mock"}, "#val", null);
             DynamicClassInstrumentation.MethodAdvice.onExit(extractor, null, null, throwable);

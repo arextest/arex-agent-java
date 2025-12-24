@@ -618,7 +618,7 @@ public class JedisWrapper extends Jedis {
         try {
             result = callable.call();
         } catch (Exception e) {
-            if (ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate()) {
+            if (ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate("jedis exception repeat record")) {
                 RedisExtractor extractor = new RedisExtractor(this.url, command, key, field);
                 extractor.record(e);
             }
@@ -630,7 +630,7 @@ public class JedisWrapper extends Jedis {
             return defaultValue;
         }
 
-        if (ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate()) {
+        if (ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate("jedis repeat record")) {
             RedisExtractor extractor = new RedisExtractor(this.url, command, key, field);
             extractor.record(result);
         }

@@ -104,7 +104,7 @@ class GuavaCacheInstrumentationTest {
         // record
         AtomicReference<DynamicClassExtractor> atomicReference = new AtomicReference<>();
         Mockito.when(ContextManager.needRecord()).thenReturn(true);
-        Mockito.when(RepeatedCollectManager.exitAndValidate()).thenReturn(true);
+        Mockito.when(RepeatedCollectManager.exitAndValidate(Mockito.anyString())).thenReturn(true);
         // record
         try(MockedConstruction ignored = Mockito.mockConstruction(DynamicClassExtractor.class, ((extractor, context) -> {
             atomicReference.set(extractor);

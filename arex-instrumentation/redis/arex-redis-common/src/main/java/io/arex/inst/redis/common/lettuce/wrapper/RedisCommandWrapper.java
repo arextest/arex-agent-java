@@ -725,7 +725,7 @@ public class RedisCommandWrapper<K, V> {
 
         RedisFuture<T> resultFuture = supplier.get();
 
-        if (ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate()) {
+        if (ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate("redis repeat record")) {
             try (TraceTransmitter traceTransmitter = TraceTransmitter.create()) {
                 resultFuture.whenComplete((v, throwable) -> {
                     RedisExtractor extractor = new RedisExtractor(redisUri, cmd.getType().name(), key, field);

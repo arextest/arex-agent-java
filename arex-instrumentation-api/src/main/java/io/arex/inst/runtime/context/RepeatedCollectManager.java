@@ -2,6 +2,8 @@ package io.arex.inst.runtime.context;
 
 import io.arex.agent.bootstrap.ctx.ArexThreadLocal;
 import io.arex.agent.bootstrap.internal.CallDepth;
+import io.arex.inst.runtime.config.Config;
+import io.arex.inst.runtime.log.LogManager;
 
 /**
  * Avoid collecting data multiple times on the call chain
@@ -22,7 +24,7 @@ public class RepeatedCollectManager {
         return Context.get() == null;
     }
 
-    public static boolean exitAndValidate() {
+    public static boolean exitAndValidate(String repeatMessage) {
         CallDepth callDepth = Context.get();
         if (callDepth == null) {
             return true;
@@ -31,6 +33,10 @@ public class RepeatedCollectManager {
         if (callDepth.decrementAndGet() <= 0) {
             Context.remove();
             return true;
+        }
+
+        if (Config.get().isEnableDebug()) {
+            LogManager.info("repeat", repeatMessage);
         }
         return false;
     }

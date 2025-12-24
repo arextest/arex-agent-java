@@ -36,7 +36,7 @@ public class RedissonWrapperCommon {
 
         RFuture<R> resultFuture = futureSupplier.get();
 
-        if (resultFuture != null && ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate()) {
+        if (resultFuture != null && ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate("redis repeat record")) {
             try (TraceTransmitter traceTransmitter = TraceTransmitter.create()) {
                 resultFuture.whenComplete((v, throwable) -> {
                     traceTransmitter.transmit();

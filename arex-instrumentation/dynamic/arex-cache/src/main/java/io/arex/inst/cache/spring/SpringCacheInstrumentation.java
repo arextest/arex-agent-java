@@ -81,7 +81,7 @@ public class SpringCacheInstrumentation extends TypeInstrumentation {
                 }
                 return;
             }
-            if (ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate() && extractor != null) {
+            if (ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate("spring cache repeat record") && extractor != null) {
                 extractor.recordResponse(throwable != null ? throwable : result);
             }
         }

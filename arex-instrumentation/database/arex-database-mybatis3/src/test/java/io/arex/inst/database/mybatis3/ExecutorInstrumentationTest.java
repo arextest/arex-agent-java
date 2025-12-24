@@ -7,6 +7,8 @@ import io.arex.inst.database.common.DatabaseExtractor;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import net.bytebuddy.matcher.ElementMatchers;
 import org.apache.ibatis.builder.StaticSqlSource;
 import org.apache.ibatis.executor.BatchExecutor;
 import org.apache.ibatis.executor.BatchResult;
@@ -21,6 +23,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -81,10 +84,10 @@ class ExecutorInstrumentationTest {
     static Stream<Arguments> onExitCase() {
         Runnable emptyMocker = () -> {};
         Runnable exitAndValidate = () -> {
-            Mockito.when(RepeatedCollectManager.exitAndValidate()).thenReturn(false);
+            Mockito.when(RepeatedCollectManager.exitAndValidate(ArgumentMatchers.anyString())).thenReturn(false);
         };
         Runnable needRecord = () -> {
-            Mockito.when(RepeatedCollectManager.exitAndValidate()).thenReturn(true);
+            Mockito.when(RepeatedCollectManager.exitAndValidate(ArgumentMatchers.anyString())).thenReturn(true);
             Mockito.when(ContextManager.needRecord()).thenReturn(true);
         };
         Predicate<MockResult> predicate1 = Objects::isNull;
@@ -107,10 +110,10 @@ class ExecutorInstrumentationTest {
 
     static Stream<Arguments> onUpdateExitCase() {
         Runnable needReplay = () -> {
-            Mockito.when(RepeatedCollectManager.exitAndValidate()).thenReturn(false);
+            Mockito.when(RepeatedCollectManager.exitAndValidate(ArgumentMatchers.anyString())).thenReturn(false);
         };
         Runnable exitAndValidate = () -> {
-            Mockito.when(RepeatedCollectManager.exitAndValidate()).thenReturn(true);
+            Mockito.when(RepeatedCollectManager.exitAndValidate(ArgumentMatchers.anyString())).thenReturn(true);
         };
         Runnable needRecord = () -> {
             Mockito.when(ContextManager.needRecord()).thenReturn(true);

@@ -78,7 +78,7 @@ class AsyncHttpClientInstrumentationTest {
     @Test
     void onExit() {
         Mockito.when(ContextManager.needRecord()).thenReturn(true);
-        Mockito.when(RepeatedCollectManager.exitAndValidate()).thenReturn(true);
+        Mockito.when(RepeatedCollectManager.exitAndValidate(Mockito.anyString())).thenReturn(true);
         // replay result
         MockResult mockResult = MockResult.success("testMockResult");
         HttpClientExtractor extractorMock = Mockito.mock(HttpClientExtractor.class);

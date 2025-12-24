@@ -63,7 +63,7 @@ public class LoaderInstrumentation extends TypeInstrumentation {
                                   @Advice.Return(readOnly = false) List<?> list,
                                   @Advice.Local("mockResult") MockResult mockResult,
                                   @Advice.Local("extractor") DatabaseExtractor extractor) throws HibernateException {
-            if (!RepeatedCollectManager.exitAndValidate()) {
+            if (!RepeatedCollectManager.exitAndValidate("db query repeat record")) {
                 return;
             }
 
