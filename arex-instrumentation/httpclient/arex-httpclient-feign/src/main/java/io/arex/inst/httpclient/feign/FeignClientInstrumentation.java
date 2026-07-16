@@ -52,10 +52,13 @@ public class FeignClientInstrumentation extends TypeInstrumentation {
                 if (IgnoreUtils.excludeOperation(uri.getPath())) {
                     return false;
                 }
+                // check outermost before enter() so nested http clients (e.g. Feign -> Apache)
+                // skip replay and avoid request body double consumption
+                boolean isOutermost = RepeatedCollectManager.validate();
                 RepeatedCollectManager.enter();
                 adapter = new FeignClientAdapter(request, uri);
                 extractor = new HttpClientExtractor(adapter);
-                if (ContextManager.needReplay()) {
+                if (ContextManager.needReplay() && isOutermost) {
                     mockResult = extractor.replay();
                     return mockResult != null && mockResult.notIgnoreMockResult();
                 }
@@ -73,6 +76,9 @@ public class FeignClientInstrumentation extends TypeInstrumentation {
                 return;
             }
 
+            // pair enter() unconditionally to keep CallDepth balanced across replay/record mixed flows
+            boolean isOutermost = RepeatedCollectManager.exitAndValidate();
+
             if (mockResult != null && mockResult.notIgnoreMockResult()) {
                 if (mockResult.getThrowable() != null) {
                     throwable = mockResult.getThrowable();
@@ -82,7 +88,7 @@ public class FeignClientInstrumentation extends TypeInstrumentation {
                 return;
             }
 
-            if (ContextManager.needRecord() && RepeatedCollectManager.exitAndValidate()) {
+            if (ContextManager.needRecord() && isOutermost) {
                 response = adapter.copyResponse(response);
                 if (throwable != null) {
                     extractor.record(throwable);

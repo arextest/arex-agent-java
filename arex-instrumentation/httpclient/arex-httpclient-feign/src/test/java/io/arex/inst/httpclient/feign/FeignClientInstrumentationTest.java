@@ -66,7 +66,12 @@ class FeignClientInstrumentationTest {
 
         // need replay and not exclude operation
         Mockito.when(ContextManager.needReplay()).thenReturn(true);
+        Mockito.when(RepeatedCollectManager.validate()).thenReturn(true);
         assertTrue(FeignClientInstrumentation.ExecuteAdvice.onEnter(request, null, null, null));
+
+        // nested call: outer already entered, inner replay should be skipped
+        Mockito.when(RepeatedCollectManager.validate()).thenReturn(false);
+        assertFalse(FeignClientInstrumentation.ExecuteAdvice.onEnter(request, null, null, null));
     }
 
     @Test
