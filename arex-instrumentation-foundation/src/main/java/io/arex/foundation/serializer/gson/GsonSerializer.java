@@ -13,6 +13,7 @@ import io.arex.inst.runtime.serializer.StringSerializable;
 import java.sql.Time;
 import java.time.Instant;
 import java.time.OffsetDateTime;
+import java.time.ZonedDateTime;
 import com.google.gson.*;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -72,6 +73,8 @@ public class GsonSerializer implements StringSerializable {
                 .registerTypeAdapter(Class.class, new ClassAdapter.Deserializer())
                 .registerTypeAdapter(OffsetDateTime.class, new OffsetDateTimeAdapter.Serializer())
                 .registerTypeAdapter(OffsetDateTime.class, new OffsetDateTimeAdapter.Deserializer())
+                .registerTypeAdapter(ZonedDateTime.class, new ZonedDateTimeAdapter.Serializer())
+                .registerTypeAdapter(ZonedDateTime.class, new ZonedDateTimeAdapter.Deserializer())
                 .registerTypeHierarchyAdapter(TimeZone.class, new TimeZoneAdapter.Serializer())
                 .registerTypeAdapter(TimeZone.class, new TimeZoneAdapter.Deserializer())
                 .registerTypeAdapterFactory(new FastUtilAdapterFactory())

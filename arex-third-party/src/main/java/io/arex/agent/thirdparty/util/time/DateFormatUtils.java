@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.Date;
@@ -40,6 +41,10 @@ public class DateFormatUtils {
 
     public static String format(final OffsetDateTime offsetDateTime, final String pattern) {
         return offsetDateTime.format(DateTimeFormatter.ofPattern(pattern));
+    }
+
+    public static String format(final ZonedDateTime zonedDateTime, final String pattern) {
+        return zonedDateTime.format(DateTimeFormatter.ofPattern(pattern));
     }
 
     public static String format(final Instant instant, final String pattern) {

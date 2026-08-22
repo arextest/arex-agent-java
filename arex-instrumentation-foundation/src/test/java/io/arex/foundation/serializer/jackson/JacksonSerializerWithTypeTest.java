@@ -57,6 +57,7 @@ class JacksonSerializerWithTypeTest {
         map.put("jodaLocalDateTime", timeTestInfo.getJodaLocalDateTime());
         map.put("dateTime", timeTestInfo.getDateTime());
         map.put("offsetDateTime", timeTestInfo.getOffsetDateTime());
+        map.put("zonedDateTime", timeTestInfo.getZonedDateTime());
         String json = JacksonSerializerWithType.INSTANCE.serialize(map);
         Map<String, Object> actualResult = (Map<String, Object>) JacksonSerializerWithType.INSTANCE.deserialize(json, Object.class);
         assertEquals(actualResult.get("localDateTime"), map.get("localDateTime"));
@@ -68,6 +69,7 @@ class JacksonSerializerWithTypeTest {
         assertEquals(actualResult.get("gregorianCalendar"), map.get("gregorianCalendar"));
         assertEquals(actualResult.get("xmlGregorianCalendar"), map.get("xmlGregorianCalendar"));
         assertEquals(actualResult.get("instant"), map.get("instant"));
+        assertEquals(actualResult.get("zonedDateTime"), map.get("zonedDateTime"));
         assertEquals(actualResult.get("jodaLocalDate"), map.get("jodaLocalDate"));
         assertEquals(actualResult.get("jodaLocalTime"), map.get("jodaLocalTime"));
         assertEquals(actualResult.get("jodaLocalDateTime"), map.get("jodaLocalDateTime"));

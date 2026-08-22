@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.Date;
@@ -98,6 +99,11 @@ public class DenoisingUtil {
         String timeZone = DateFormatUtils.format(offsetDateTime, TimePatternConstants.TIME_ZONE_REQUEST);
         String time = DateFormatUtils.format(offsetDateTime, TimePatternConstants.SIMPLE_DATE_FORMAT_MILLIS_WITH_ZONE_REQUEST);
         return time + TimePatternConstants.ZERO_SECOND_TIME_REQUEST + timeZone;
+    }
+
+    public static String zeroSecondTime(ZonedDateTime zonedDateTime) {
+        // the zone id is placed at the end of the pattern, format the zeroed value instead of concat
+        return DateFormatUtils.format(zonedDateTime.withSecond(0).withNano(0), TimePatternConstants.zonedDateTimeFormat);
     }
 
     public static String zeroSecondTime(Instant instant) {
