@@ -37,6 +37,7 @@ class JacksonRequestSerializerTest {
         assertEquals(testInfo.getLocalDate(), zeroSecondTimeTestInfo.getLocalDate());
         assertEquals(testInfo.getLocalTime(), zeroSecondTimeTestInfo.getLocalTime());
         assertEquals(testInfo.getOffsetDateTime(), zeroSecondTimeTestInfo.getOffsetDateTime());
+        assertEquals(testInfo.getZonedDateTime(), zeroSecondTimeTestInfo.getZonedDateTime());
         assertEquals(testInfo.getTimeZone1(), zeroSecondTimeTestInfo.getTimeZone1());
     }
 

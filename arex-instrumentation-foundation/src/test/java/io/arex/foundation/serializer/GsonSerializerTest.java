@@ -7,17 +7,26 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.google.gson.internal.LinkedTreeMap;
 import io.arex.agent.bootstrap.internal.Pair;
 import io.arex.foundation.serializer.gson.GsonSerializer;
+import io.arex.foundation.serializer.jackson.JacksonSerializer;
 import io.arex.inst.runtime.util.TypeUtil;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
 import java.lang.reflect.Type;
 import java.sql.Time;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.Map;
 
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 class GsonSerializerTest {
 
@@ -41,6 +50,50 @@ class GsonSerializerTest {
         String actualJson = GsonSerializer.INSTANCE.serialize(actualTime);
         assertEquals(expectedTime, actualTime);
         assertEquals(expectedJson, actualJson);
+    }
+
+    /**
+     * https://github.com/arextest/arex-agent-java/issues/588
+     */
+    @ParameterizedTest
+    @MethodSource("zonedDateTimeCase")
+    public void testZonedDateTime(ZonedDateTime expected) {
+        String json = GsonSerializer.INSTANCE.serialize(expected);
+        ZonedDateTime actualResult = GsonSerializer.INSTANCE.deserialize(json, ZonedDateTime.class);
+        assertEquals(expected, actualResult);
+        // the zone id should not be replaced by the zone offset
+        assertEquals(expected.getZone(), actualResult.getZone());
+        // the offset keeps the local time repeated in a dst overlap distinguishable
+        assertEquals(expected.getOffset(), actualResult.getOffset());
+        assertEquals(json, GsonSerializer.INSTANCE.serialize(actualResult));
+    }
+
+    static Stream<Arguments> zonedDateTimeCase() {
+        // 2025-11-02T01:30 of America/New_York happens twice, once with -04:00 and once with -05:00
+        ZonedDateTime dstOverlap = ZonedDateTime.of(2025, 11, 2, 1, 30, 0, 0, ZoneId.of("America/New_York"));
+        return Stream.of(
+                Arguments.arguments(ZonedDateTime.of(2020, 6, 9, 9, 0, 0, 123456789, ZoneId.of("Asia/Shanghai"))),
+                Arguments.arguments(ZonedDateTime.now(ZoneId.of("Asia/Shanghai"))),
+                Arguments.arguments(ZonedDateTime.now(ZoneOffset.UTC)),
+                Arguments.arguments(ZonedDateTime.now(ZoneId.of("GMT-01:00"))),
+                Arguments.arguments(dstOverlap.withEarlierOffsetAtOverlap()),
+                Arguments.arguments(dstOverlap.withLaterOffsetAtOverlap()),
+                // zones that still had an offset with seconds, dropping them shifts the instant
+                Arguments.arguments(ZonedDateTime.of(1900, 1, 1, 12, 0, 0, 0, ZoneId.of("Asia/Shanghai"))),
+                Arguments.arguments(Instant.EPOCH.atZone(ZoneId.of("Africa/Monrovia"))),
+                Arguments.arguments(ZonedDateTime.of(2026, 1, 1, 9, 0, 0, 0, ZoneOffset.ofTotalSeconds(8 * 3600 + 30))),
+                // year of era would turn this into the year 100 AD
+                Arguments.arguments(ZonedDateTime.of(-100, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC)));
+    }
+
+    /**
+     * both serializers must emit the same bytes, a case can be recorded with one and replayed with
+     * the other
+     */
+    @Test
+    public void testZonedDateTimeSameFormatAsJackson() throws Throwable {
+        ZonedDateTime expected = ZonedDateTime.of(2020, 6, 9, 9, 0, 0, 123456789, ZoneId.of("Asia/Shanghai"));
+        assertEquals(JacksonSerializer.INSTANCE.serialize(expected), GsonSerializer.INSTANCE.serialize(expected));
     }
 
     @Test
@@ -71,6 +124,7 @@ class GsonSerializerTest {
         assert expectedTimeTest.getDate().equals(deserializedTimeTest.getDate());
 
         assert expectedTimeTest.getInstant().equals(deserializedTimeTest.getInstant());
+        assert expectedTimeTest.getZonedDateTime().equals(deserializedTimeTest.getZonedDateTime());
 
         assert expectedTimeTest.getJodaLocalDate().equals(deserializedTimeTest.getJodaLocalDate());
         assert expectedTimeTest.getJodaLocalTime().equals(deserializedTimeTest.getJodaLocalTime());

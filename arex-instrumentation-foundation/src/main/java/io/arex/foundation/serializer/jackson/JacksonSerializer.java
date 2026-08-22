@@ -29,6 +29,7 @@ import io.arex.foundation.serializer.jackson.adapter.SqlDateAdapter;
 import io.arex.foundation.serializer.jackson.adapter.SqlTimeAdapter;
 import io.arex.foundation.serializer.jackson.adapter.TimestampAdapter;
 import io.arex.foundation.serializer.jackson.adapter.XMLGregorianCalendarAdapter;
+import io.arex.foundation.serializer.jackson.adapter.ZonedDateTimeAdapter;
 import io.arex.inst.runtime.log.LogManager;
 import io.arex.inst.runtime.serializer.StringSerializable;
 
@@ -41,6 +42,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
+import java.time.ZonedDateTime;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -151,6 +153,7 @@ public final class JacksonSerializer implements StringSerializable {
         module.addSerializer(Date.class, dateSerializer);
         module.addSerializer(Instant.class, new InstantAdapter.Serializer());
         module.addSerializer(OffsetDateTime.class, new OffsetDateTimeAdapter.Serializer());
+        module.addSerializer(ZonedDateTime.class, new ZonedDateTimeAdapter.Serializer());
     }
 
     private void customTimeFormatDeserializer(SimpleModule module) {
@@ -164,6 +167,7 @@ public final class JacksonSerializer implements StringSerializable {
         module.addDeserializer(Date.class, new DateAdapter.Deserializer());
         module.addDeserializer(Instant.class, new InstantAdapter.Deserializer());
         module.addDeserializer(OffsetDateTime.class, new OffsetDateTimeAdapter.Deserializer());
+        module.addDeserializer(ZonedDateTime.class, new ZonedDateTimeAdapter.Deserializer());
         module.addDeserializer(java.sql.Date.class, new SqlDateAdapter.Deserializer());
         module.addDeserializer(Time.class, new SqlTimeAdapter.Deserializer());
     }

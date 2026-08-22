@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -33,6 +34,7 @@ public class TimeTestInfo {
     private Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("GMT-01:00"));
     private XMLGregorianCalendar xmlGregorianCalendar;
     private OffsetDateTime offsetDateTime = OffsetDateTime.now(ZoneId.of("GMT-01:00"));
+    private ZonedDateTime zonedDateTime = ZonedDateTime.now(ZoneId.of("Asia/Shanghai"));
     private TimeZone timeZone1 = TimeZone.getDefault();
 
     public OffsetDateTime getOffsetDateTime() {
@@ -41,6 +43,14 @@ public class TimeTestInfo {
 
     public void setOffsetDateTime(OffsetDateTime offsetDateTime) {
         this.offsetDateTime = offsetDateTime;
+    }
+
+    public ZonedDateTime getZonedDateTime() {
+        return zonedDateTime;
+    }
+
+    public void setZonedDateTime(ZonedDateTime zonedDateTime) {
+        this.zonedDateTime = zonedDateTime;
     }
 
     {

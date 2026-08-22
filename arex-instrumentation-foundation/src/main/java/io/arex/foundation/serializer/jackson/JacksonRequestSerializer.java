@@ -16,6 +16,7 @@ import io.arex.foundation.serializer.jackson.adapter.LocalDateTimeAdapter;
 import io.arex.foundation.serializer.jackson.adapter.LocalTimeAdapter;
 import io.arex.foundation.serializer.jackson.adapter.OffsetDateTimeAdapter;
 import io.arex.foundation.serializer.jackson.adapter.XMLGregorianCalendarAdapter;
+import io.arex.foundation.serializer.jackson.adapter.ZonedDateTimeAdapter;
 import io.arex.inst.runtime.serializer.StringSerializable;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -26,6 +27,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
+import java.time.ZonedDateTime;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -57,6 +59,7 @@ public class JacksonRequestSerializer implements StringSerializable {
         module.addSerializer(Date.class, dateRequestSerializer);
         module.addSerializer(Instant.class, new InstantAdapter.RequestSerializer());
         module.addSerializer(OffsetDateTime.class, new OffsetDateTimeAdapter.RequestSerializer());
+        module.addSerializer(ZonedDateTime.class, new ZonedDateTimeAdapter.RequestSerializer());
         module.addSerializer(String.class, new StringAdapter.Serializer());
     }
 

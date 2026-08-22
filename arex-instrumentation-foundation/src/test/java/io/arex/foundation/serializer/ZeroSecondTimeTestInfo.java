@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -33,6 +34,7 @@ public class ZeroSecondTimeTestInfo {
     private Calendar calendar;
     private XMLGregorianCalendar xmlGregorianCalendar;
     private OffsetDateTime offsetDateTime;
+    private ZonedDateTime zonedDateTime;
     private TimeZone timeZone1;
 
     public OffsetDateTime getOffsetDateTime() {
@@ -41,6 +43,14 @@ public class ZeroSecondTimeTestInfo {
 
     public void setOffsetDateTime(OffsetDateTime offsetDateTime) {
         this.offsetDateTime = offsetDateTime;
+    }
+
+    public ZonedDateTime getZonedDateTime() {
+        return zonedDateTime;
+    }
+
+    public void setZonedDateTime(ZonedDateTime zonedDateTime) {
+        this.zonedDateTime = zonedDateTime;
     }
 
 //    {
@@ -102,6 +112,7 @@ public class ZeroSecondTimeTestInfo {
 
 
         this.offsetDateTime = timeTestInfo.getOffsetDateTime().withSecond(0).withNano(0);
+        this.zonedDateTime = timeTestInfo.getZonedDateTime().withSecond(0).withNano(0);
         this.timeZone1 = timeTestInfo.getTimeZone1();
 
         // zero second timestamp
