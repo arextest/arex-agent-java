@@ -18,6 +18,7 @@ import java.util.Map;
 
 public class HttpClientExtractor<TRequest, TResponse> {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpClientExtractor.class);
+    private static final String HTTP_RESPONSE_WRAPPER_TYPE = HttpResponseWrapper.class.getName();
 
     private final HttpClientAdapter<TRequest, TResponse> adapter;
 
@@ -38,7 +39,7 @@ public class HttpClientExtractor<TRequest, TResponse> {
         }
 
         Mocker mocker = makeMocker();
-        mocker.getTargetResponse().setType(HttpResponseWrapper.class.getName());
+        mocker.getTargetResponse().setType(HTTP_RESPONSE_WRAPPER_TYPE);
         mocker.getTargetResponse().setBody(Serializer.serialize(wrapped));
         MockUtils.recordMocker(mocker);
     }
@@ -87,7 +88,7 @@ public class HttpClientExtractor<TRequest, TResponse> {
         return adapter.getUri().getQuery();
     }
 
-    private static final List<String> ALLOW_HTTP_METHOD_BODY_SETS;
+    public static final List<String> ALLOW_HTTP_METHOD_BODY_SETS;
 
     static {
         ALLOW_HTTP_METHOD_BODY_SETS = new ArrayList<>(4);
