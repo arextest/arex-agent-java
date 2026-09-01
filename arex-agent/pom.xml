@@ -88,6 +88,11 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
+            <artifactId>arex-jedis-v3</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
             <artifactId>arex-jedis-v4</artifactId>
             <version>${project.version}</version>
         </dependency>
