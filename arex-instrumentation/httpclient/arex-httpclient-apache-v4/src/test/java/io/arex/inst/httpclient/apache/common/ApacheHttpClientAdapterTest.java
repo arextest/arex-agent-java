@@ -79,7 +79,7 @@ class ApacheHttpClientAdapterTest {
         HttpPost nullEntityRequest = new HttpPost();
 
         return Stream.of(
-                arguments(httpPostWithGzipEntity, new byte[]{31, -117, 8, 0, 0, 0, 0, 0, 0, -1, -53, -51, 79, -50, 6, 0, 107, -4, 51, 63, 4, 0, 0, 0}),
+                arguments(httpPostWithGzipEntity, new byte[]{31, -117, 8, 0, 0, 0, 0, 0, 0, 0, -53, -51, 79, -50, 6, 0, 107, -4, 51, 63, 4, 0, 0, 0}),
                 arguments(request, new byte[0]),
                 arguments(httpPost, "mock".getBytes()),
                 arguments(httpPostWithoutContent, new byte[0]),
