@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.mockito.Mockito.mockStatic;
 
 import io.arex.inst.httpclient.apache.async.RequestProducerInstrumentation.ConstructorAdvice;
+import io.arex.inst.httpclient.apache.common.ArexBufferedHttpEntity;
 import io.arex.inst.runtime.context.ContextManager;
 import java.lang.reflect.Constructor;
 import net.bytebuddy.description.method.MethodDescription.ForLoadedConstructor;
@@ -58,7 +59,7 @@ class RequestProducerInstrumentationTest {
             HttpPost request = new HttpPost();
             request.setEntity(new ByteArrayEntity("test".getBytes()));
             ConstructorAdvice.onEnter(request);
-            assertInstanceOf(BufferedHttpEntity.class, request.getEntity());
+            assertInstanceOf(ArexBufferedHttpEntity.class, request.getEntity());
         }
     }
 }

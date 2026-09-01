@@ -140,9 +140,9 @@ public class ApacheHttpClientAdapter implements HttpClientAdapter<HttpRequest, H
             return;
         }
         try {
-            enclosingRequest.setEntity(new BufferedHttpEntity(enclosingRequest.getEntity()));
+            enclosingRequest.setEntity(new ArexBufferedHttpEntity(enclosingRequest.getEntity()));
         } catch (Exception ignore) {
-            // ignore exception
+            // ignore exception, fallback to original entity and ignore recording
         }
     }
 
@@ -151,14 +151,14 @@ public class ApacheHttpClientAdapter implements HttpClientAdapter<HttpRequest, H
             return;
         }
         try {
-            EntityUtils.updateEntity(response, new BufferedHttpEntity(response.getEntity()));
+            EntityUtils.updateEntity(response, new ArexBufferedHttpEntity(response.getEntity()));
         } catch (Exception e) {
-            // ignore exception
+            // ignore exception, fallback to original entity and ignore recording
         }
     }
 
     private byte[] getEntityBytes(HttpEntity entity) {
-        if (!(entity instanceof BufferedHttpEntity)) {
+        if (!(entity instanceof ArexBufferedHttpEntity)) {
             return ZERO_BYTE;
         }
         try {
