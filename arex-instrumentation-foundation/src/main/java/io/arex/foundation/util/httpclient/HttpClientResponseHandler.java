@@ -1,8 +1,9 @@
 package io.arex.foundation.util.httpclient;
 
-import io.arex.foundation.util.CompressUtil;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+
+import io.arex.agent.thirdparty.util.CompressUtil;
 import org.apache.http.HttpEntity;
 import org.apache.http.util.EntityUtils;
 

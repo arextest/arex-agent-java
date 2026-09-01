@@ -3,6 +3,7 @@ package io.arex.foundation.services;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 
 import io.arex.agent.bootstrap.model.ArexMocker;
 import io.arex.agent.bootstrap.model.MockStrategyEnum;
@@ -19,7 +20,10 @@ import io.arex.inst.runtime.context.ContextManager;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 
+import io.arex.inst.runtime.log.LogManager;
+import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.model.QueryAllMockerDTO;
+import io.arex.inst.runtime.model.ReplayCompareResultDTO;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.util.CaseManager;
 import org.junit.jupiter.api.AfterAll;
@@ -37,6 +41,7 @@ class DataCollectorServiceTest {
         Mockito.mockStatic(ContextManager.class);
         Mockito.mockStatic(Serializer.class);
         caseManagerMocked = Mockito.mockStatic(CaseManager.class);
+        Mockito.mockStatic(LogManager.class);
     }
 
     @AfterAll
@@ -136,5 +141,19 @@ class DataCollectorServiceTest {
     @Test
     void order() {
         assertEquals(0, DataCollectorService.INSTANCE.order());
+    }
+
+    @Test
+    void saveReplayCompareResult() {
+        Mockito.when(AsyncHttpClientUtil.postAsyncWithZstdJson(anyString(), anyString(), any()))
+                .thenReturn(CompletableFuture.completedFuture(null));
+        assertDoesNotThrow(() -> DataCollectorService.INSTANCE.saveReplayCompareResult("mock"));
+        // exception
+        CompletableFuture<HttpClientResponse> mockException = new CompletableFuture<>();
+        mockException.completeExceptionally(new RuntimeException("mock exception"));
+        Mockito.when(AsyncHttpClientUtil.postAsyncWithZstdJson(anyString(), any(), any())).thenReturn(mockException);
+        Mockito.when(Serializer.deserialize(any(), eq(ArexConstants.REPLAY_COMPARE_TYPE))).
+                thenReturn(Collections.singletonList(new ReplayCompareResultDTO()));
+        assertDoesNotThrow(() -> DataCollectorService.INSTANCE.saveReplayCompareResult("mock"));
     }
 }

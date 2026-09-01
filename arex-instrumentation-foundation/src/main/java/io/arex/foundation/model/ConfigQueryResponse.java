@@ -63,6 +63,7 @@ public class ConfigQueryResponse {
         private List<DynamicClassConfiguration> dynamicClassConfigurationList;
         private boolean agentEnabled;
         private Map<String, String> extendField;
+        private CompareConfiguration compareConfiguration;
 
         public ServiceCollectConfig getServiceCollectConfiguration() {
             return serviceCollectConfiguration;
@@ -112,6 +113,14 @@ public class ConfigQueryResponse {
 
         public void setExtendField(Map<String, String> extendField) {
             this.extendField = extendField;
+        }
+
+        public CompareConfiguration getCompareConfiguration() {
+            return compareConfiguration;
+        }
+
+        public void setCompareConfiguration(CompareConfiguration compareConfiguration) {
+            this.compareConfiguration = compareConfiguration;
         }
     }
 
@@ -219,6 +228,68 @@ public class ConfigQueryResponse {
 
         public void setKeyFormula(String keyFormula) {
             this.keyFormula = keyFormula;
+        }
+    }
+
+    public static class CompareConfiguration {
+        private List<ConfigComparisonExclusions> comparisonExclusions;
+
+        private Set<List<String>> globalExclusionList;
+
+        private Set<String> ignoreNodeSet;
+
+        public List<ConfigComparisonExclusions> getComparisonExclusions() {
+            return comparisonExclusions;
+        }
+
+        public void setComparisonExclusions(List<ConfigComparisonExclusions> comparisonExclusions) {
+            this.comparisonExclusions = comparisonExclusions;
+        }
+
+        public Set<List<String>> getGlobalExclusionList() {
+            return globalExclusionList;
+        }
+
+        public void setGlobalExclusionList(Set<List<String>> globalExclusionList) {
+            this.globalExclusionList = globalExclusionList;
+        }
+
+        public Set<String> getIgnoreNodeSet() {
+            return ignoreNodeSet;
+        }
+
+        public void setIgnoreNodeSet(Set<String> ignoreNodeSet) {
+            this.ignoreNodeSet = ignoreNodeSet;
+        }
+    }
+
+    public static class ConfigComparisonExclusions {
+        private String operationName;
+        private String categoryType;
+        private Set<List<String>> exclusionList;
+
+        public String getOperationName() {
+            return operationName;
+        }
+
+        public void setOperationName(String operationName) {
+            this.operationName = operationName;
+        }
+
+        public String getCategoryType() {
+            return categoryType;
+        }
+
+        public void setCategoryType(String categoryType) {
+            this.categoryType = categoryType;
+        }
+
+        public Set<List<String>> getExclusionList() {
+            return exclusionList;
+        }
+
+        public void setExclusionList(Set<List<String>> exclusionList) {
+            this.exclusionList = exclusionList;
         }
     }
 }

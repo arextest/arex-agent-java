@@ -112,7 +112,7 @@ public abstract class BaseAgentInstaller implements AgentInstaller {
         initDataCollector();
     }
     private void initDataCollector() {
-        List<DataCollector> collectorList = ServiceLoader.load(DataCollector.class, getClassLoader());
+        List<DataCollector> collectorList = ServiceLoader.load(DataCollector.class, Thread.currentThread().getContextClassLoader());
         DataService.setDataCollector(collectorList);
     }
 

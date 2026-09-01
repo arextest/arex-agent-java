@@ -4,7 +4,8 @@ import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.util.ConcurrentHashSet;
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.model.ArexConstants;
-import io.arex.inst.runtime.util.MergeRecordUtil;
+import io.arex.inst.runtime.model.ReplayCompareResultDTO;
+import io.arex.inst.runtime.util.MockManager;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -30,6 +31,8 @@ public class ArexContext {
 
     private static final AtomicIntegerFieldUpdater<ArexContext> SEQUENCE_UPDATER =
             AtomicIntegerFieldUpdater.newUpdater(ArexContext.class, "sequence");
+
+    private LinkedBlockingQueue<ReplayCompareResultDTO> replayCompareResultQueue;
 
     public static ArexContext of(String caseId) {
         return of(caseId, null);
@@ -161,11 +164,19 @@ public class ArexContext {
         return mergeRecordQueue;
     }
 
+    public LinkedBlockingQueue<ReplayCompareResultDTO> getReplayCompareResultQueue() {
+        if (replayCompareResultQueue == null) {
+            replayCompareResultQueue = new LinkedBlockingQueue<>();
+        }
+        return replayCompareResultQueue;
+    }
+
     public void clear() {
         if (methodSignatureHashList != null) {
             methodSignatureHashList.clear();
         }
         if (cachedReplayResultMap != null) {
+            MockManager.saveReplayRemainCompareRelation(this);
             cachedReplayResultMap.clear();
         }
         if (excludeMockTemplate != null) {
@@ -176,8 +187,11 @@ public class ArexContext {
         }
         if (mergeRecordQueue != null) {
             // async thread merge record (main entry has ended)
-            MergeRecordUtil.recordRemain(this);
+            MockManager.recordRemain(this);
             mergeRecordQueue.clear();
+        }
+        if (replayCompareResultQueue != null) {
+            replayCompareResultQueue.clear();
         }
     }
 }

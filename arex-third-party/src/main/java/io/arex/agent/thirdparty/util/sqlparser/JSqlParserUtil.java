@@ -17,20 +17,23 @@ public class JSqlParserUtil {
      * @param sql sql
      * @return table schema info
      */
-    public static TableSchema parse(String sql) throws Exception {
-        sql = PATTERN.matcher(sql).replaceAll(" ");
-
-        Statement statement = CCJSqlParserUtil.parse(sql);
-
-        List<String> tableNameList = new TablesNamesFinder().getTableList(statement);
-        // sort table name
-        if (tableNameList != null && tableNameList.size() > 1) {
-            Collections.sort(tableNameList);
-        }
-
+    public static TableSchema parse(String sql) {
         TableSchema tableSchema = new TableSchema();
-        tableSchema.setAction(getAction(statement));
-        tableSchema.setTableNames(tableNameList);
+        try {
+            sql = PATTERN.matcher(sql).replaceAll(" ");
+
+            Statement statement = CCJSqlParserUtil.parse(sql);
+            tableSchema.setAction(getAction(statement));
+
+            List<String> tableNameList = new TablesNamesFinder().getTableList(statement);
+            // sort table name
+            if (tableNameList != null && !tableNameList.isEmpty()) {
+                Collections.sort(tableNameList);
+            }
+            tableSchema.setTableNames(tableNameList);
+        } catch (Throwable e) {
+            // ignore error
+        }
         return tableSchema;
     }
 

@@ -16,7 +16,7 @@ public class MockCategoryType implements Serializable {
     public static final MockCategoryType DYNAMIC_CLASS = createSkipComparison("DynamicClass");
     public static final MockCategoryType REDIS = createSkipComparison("Redis");
     public static final MockCategoryType MESSAGE_PRODUCER = createDependency("QMessageProducer");
-    public static final MockCategoryType MESSAGE_CONSUMER = createEntryPoint("QMessageConsumer");
+    public static final MockCategoryType MESSAGE_CONSUMER = create("QMessageConsumer",true,true);
     public static final MockCategoryType DUBBO_CONSUMER = createDependency("DubboConsumer");
     public static final MockCategoryType DUBBO_PROVIDER = createEntryPoint("DubboProvider");
     public static final MockCategoryType DUBBO_STREAM_PROVIDER = createDependency("DubboStreamProvider");

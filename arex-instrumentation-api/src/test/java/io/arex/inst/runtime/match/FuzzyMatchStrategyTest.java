@@ -5,6 +5,7 @@ import io.arex.agent.bootstrap.model.MockCategoryType;
 import io.arex.agent.bootstrap.model.MockStrategyEnum;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.inst.runtime.config.Config;
+import io.arex.inst.runtime.match.strategy.FuzzyMatchStrategy;
 import io.arex.inst.runtime.util.MockUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -35,29 +36,27 @@ class FuzzyMatchStrategyTest {
 
     @Test
     void process() {
-        ArexMocker mocker = new ArexMocker();
-        mocker.setTargetResponse(new Mocker.Target());
+        ArexMocker mocker = new ArexMocker(MockCategoryType.DYNAMIC_CLASS);
+        mocker.setOperationName("mock");
         mocker.setTargetRequest(new Mocker.Target());
-        mocker.setCategoryType(MockCategoryType.DYNAMIC_CLASS);
+        mocker.getTargetRequest().setBody("mock");
+        mocker.setTargetResponse(new Mocker.Target());
+        mocker.setAccurateMatchKey(MatchKeyFactory.INSTANCE.getAccurateMatchKey(mocker));
         List<Mocker> mergeReplayList = new ArrayList<>();
-        Mocker mergeDTO = new ArexMocker();
-        mergeReplayList.add(mergeDTO);
-        MatchStrategyContext context =new MatchStrategyContext(mocker, mergeReplayList, MockStrategyEnum.FIND_LAST);
+        mergeReplayList.add(mocker);
+        MatchStrategyContext context = new MatchStrategyContext(mocker, MockStrategyEnum.FIND_LAST);
+        context.setRecordList(mergeReplayList);
         Mockito.when(Config.get().isEnableDebug()).thenReturn(true);
         fuzzyMatchStrategy.process(context);
         assertNotNull(context.getMatchMocker());
 
-        mergeDTO.setMatched(true);
+        mocker.setMatched(true);
         fuzzyMatchStrategy.process(context);
         assertNotNull(context.getMatchMocker());
-
-        // fuzzy match no result
-        MatchStrategyContext context1 =new MatchStrategyContext(mocker, mergeReplayList, MockStrategyEnum.OVER_BREAK);
-        fuzzyMatchStrategy.process(context1);
     }
 
     @Test
     void internalCheck() {
-        assertFalse(fuzzyMatchStrategy.internalCheck(new MatchStrategyContext(null, null, null)));
+        assertFalse(fuzzyMatchStrategy.internalCheck(new MatchStrategyContext(null, null)));
     }
 }

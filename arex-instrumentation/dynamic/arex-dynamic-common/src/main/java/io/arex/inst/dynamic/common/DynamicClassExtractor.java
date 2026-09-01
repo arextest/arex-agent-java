@@ -397,9 +397,9 @@ public class DynamicClassExtractor {
 
     private int buildNoArgMethodSignatureHash(boolean isNeedResult) {
         if (isNeedResult) {
-            return StringUtil.encodeAndHash(String.format("%s_%s_%s", this.clazzName, this.methodName, getSerializedResult()));
+            return StringUtil.encodeAndHash(this.clazzName, this.methodName, getSerializedResult());
         }
-        return StringUtil.encodeAndHash(String.format("%s_%s_%s", this.clazzName, this.methodName, null));
+        return StringUtil.encodeAndHash(this.clazzName, this.methodName, null);
     }
 
     /**

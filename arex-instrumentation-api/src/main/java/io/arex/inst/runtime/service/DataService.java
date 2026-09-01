@@ -20,6 +20,10 @@ public class DataService {
         saver.save(mockerList);
     }
 
+    public void saveReplayCompareResult(String postData) {
+        saver.saveReplayCompareResult(postData);
+    }
+
     public void invalidCase(String postData) {
         saver.invalidCase(postData);
     }

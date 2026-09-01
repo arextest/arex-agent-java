@@ -14,9 +14,7 @@ import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
- * To solve the problem of insufficient consume capacity of downstream DataServices.
- * by controlling the speed at which producers produce mockers.
- * multiple producer -> single consumer
+ * merge record and replay util
  */
 public class MergeRecordUtil {
     private static final AgentSizeOf agentSizeOf = AgentSizeOf.newInstance();
@@ -26,7 +24,7 @@ public class MergeRecordUtil {
     public static void mergeRecord(Mocker requestMocker) {
         List<List<Mocker>> mergeList = merge(requestMocker);
         for (List<Mocker> mergeRecords : mergeList) {
-            MockUtils.executeRecord(mergeRecords);
+            MockManager.executeRecord(mergeRecords);
         }
     }
 
@@ -130,7 +128,7 @@ public class MergeRecordUtil {
             mergeRecordQueue.drainTo(mergeRecordList);
             List<List<Mocker>> splitList = checkAndSplit(mergeRecordList);
             for (List<Mocker> mergeRecords : splitList) {
-                MockUtils.executeRecord(mergeRecords);
+                MockManager.executeRecord(mergeRecords);
             }
         } catch (Exception e) {
             LogManager.warn("merge.record.remain.error", e);

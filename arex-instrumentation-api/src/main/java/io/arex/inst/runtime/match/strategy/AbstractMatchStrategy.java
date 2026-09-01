@@ -1,6 +1,8 @@
-package io.arex.inst.runtime.match;
+package io.arex.inst.runtime.match.strategy;
 
+import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.inst.runtime.log.LogManager;
+import io.arex.inst.runtime.match.MatchStrategyContext;
 
 public abstract class AbstractMatchStrategy {
     static final String MATCH_TITLE = "replay.match.fail";
@@ -22,8 +24,18 @@ public abstract class AbstractMatchStrategy {
         return internalCheck(context);
     }
 
-    boolean internalCheck(MatchStrategyContext context) {
+    public boolean internalCheck(MatchStrategyContext context) {
         return true;
     }
-    abstract void process(MatchStrategyContext context) throws Exception;
+
+    public abstract void process(MatchStrategyContext context) throws Exception;
+
+    public void setContextResult(MatchStrategyContext context, Mocker resultMocker, String failReason) {
+        if (resultMocker != null) {
+            resultMocker.setMatched(true);
+        } else {
+            context.setReason(failReason);
+        }
+        context.setMatchMocker(resultMocker);
+    }
 }

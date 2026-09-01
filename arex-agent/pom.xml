@@ -33,6 +33,10 @@
             <groupId>${project.groupId}</groupId>
             <artifactId>arex-third-party</artifactId>
         </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>arex-compare</artifactId>
+        </dependency>
 
         <!--Agent instrumentation start-->
         <dependency>
