@@ -58,6 +58,38 @@ class WeakCacheTest {
         assertFalse(Cache.CAPTURED_CACHE.contains(null));
     }
 
+    /**
+     * Explicit remove: the ForkJoinTask exec/run exit uses it to hand the snapshot back right
+     * away instead of waiting for a GC cycle. Also pins the identity semantics -- remove must
+     * only drop the entry for that same object, never one that merely compares equal.
+     */
+    @Test
+    void testRemove() {
+        WeakCache<Object, String> cache = new WeakCache<>();
+        Object key = new Object();
+        cache.put(key, "value");
+        assertTrue(cache.contains(key));
+
+        assertEquals("value", cache.remove(key));
+        assertFalse(cache.contains(key));
+        assertNull(cache.remove(key));
+    }
+
+    @Test
+    void testRemoveIsIdentityBasedNotEquals() {
+        WeakCache<Object, String> cache = new WeakCache<>();
+        String first = new StringBuilder("same").toString();
+        String second = new StringBuilder("same").toString();
+        cache.put(first, "first-value");
+        cache.put(second, "second-value");
+
+        assertEquals("first-value", cache.remove(first));
+
+        assertFalse(cache.contains(first));
+        assertTrue(cache.contains(second));
+        assertEquals("second-value", cache.get(second));
+    }
+
     @Test
     void testWeakReferenceKeyEqualsReturnsFalse() {
         WeakCache.WeakReferenceKey<String> key = new WeakCache.WeakReferenceKey<>("test", new ReferenceQueue<>());
