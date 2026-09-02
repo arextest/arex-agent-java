@@ -41,6 +41,18 @@ public class WeakCache<K, V> extends ReferenceQueue<K> implements Cache<K, V> {
         target.put(new WeakReferenceKey<>(key, this), value);
     }
 
+    /**
+     * Drops the entry for {@code key} and returns its previous value, or null if there was none.
+     *
+     * <p>Weak keys are still collected on their own, but an explicit remove lets a caller that
+     * knows the key is done reclaim the entry immediately instead of waiting for a GC cycle
+     * followed by whatever put/get happens to drain the queue next.
+     */
+    public V remove(K key) {
+        check();
+        return target.remove(new WeakReferenceKey<>(key));
+    }
+
     public void clear() {
         target.clear();
     }
