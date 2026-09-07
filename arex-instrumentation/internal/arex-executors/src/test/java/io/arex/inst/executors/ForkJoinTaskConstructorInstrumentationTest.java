@@ -1,10 +1,14 @@
 package io.arex.inst.executors;
 
+import io.arex.agent.bootstrap.TraceContextManager;
 import io.arex.agent.bootstrap.ctx.ArexThreadLocal;
+import io.arex.agent.bootstrap.internal.Cache;
+import io.arex.agent.bootstrap.util.VirtualThreadUtil;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -41,5 +45,19 @@ class ForkJoinTaskConstructorInstrumentationTest {
     void onEnter() {
         Mockito.when(ArexThreadLocal.Transmitter.capture()).thenReturn("mock");
         assertDoesNotThrow(() -> ForkJoinTaskConstructorInstrumentation.ConstructorAdvice.onExit(null));
+    }
+
+    @Test
+    void onExit_skipCarrierThread() {
+        try (MockedStatic<VirtualThreadUtil> mocked = Mockito.mockStatic(VirtualThreadUtil.class);
+             MockedStatic<TraceContextManager> traces = Mockito.mockStatic(TraceContextManager.class)) {
+            mocked.when(VirtualThreadUtil::isCarrierThread).thenReturn(true);
+            traces.when(TraceContextManager::get).thenReturn("carrier-context");
+            Object task = new Object();
+            assertDoesNotThrow(() -> ForkJoinTaskConstructorInstrumentation.ConstructorAdvice.onExit(task));
+            traces.verifyNoInteractions();
+            // must not touch the weak cache(ReferenceQueue) on a carrier thread
+            assertFalse(Cache.CAPTURED_CACHE.contains(task));
+        }
     }
 }

@@ -2,6 +2,7 @@ package io.arex.inst.executors;
 
 import io.arex.agent.bootstrap.ctx.ArexThreadLocal;
 import io.arex.agent.bootstrap.internal.Cache;
+import io.arex.agent.bootstrap.util.VirtualThreadUtil;
 import io.arex.inst.extension.MethodInstrumentation;
 import io.arex.inst.extension.TypeInstrumentation;
 import net.bytebuddy.asm.Advice;
@@ -33,6 +34,10 @@ public class ForkJoinTaskInstrumentation extends TypeInstrumentation {
         public static void onEnter(
                 @Advice.This Object task,
                 @Advice.Local("backup") Object backup) {
+            // A carrier must stay available to resume VTs waiting on the shared reference queue's lock.
+            if (VirtualThreadUtil.isCarrierThread()) {
+                return;
+            }
             final Object captured = Cache.CAPTURED_CACHE.get(task);
             backup = ArexThreadLocal.Transmitter.replay(captured);
         }

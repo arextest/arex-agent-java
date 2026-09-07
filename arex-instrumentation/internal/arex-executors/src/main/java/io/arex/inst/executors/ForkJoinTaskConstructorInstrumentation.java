@@ -3,6 +3,7 @@ package io.arex.inst.executors;
 import io.arex.agent.bootstrap.TraceContextManager;
 import io.arex.agent.bootstrap.ctx.ArexThreadLocal;
 import io.arex.agent.bootstrap.internal.Cache;
+import io.arex.agent.bootstrap.util.VirtualThreadUtil;
 import io.arex.inst.extension.MethodInstrumentation;
 import io.arex.inst.extension.TypeInstrumentation;
 import net.bytebuddy.asm.Advice;
@@ -32,6 +33,10 @@ public class ForkJoinTaskConstructorInstrumentation extends TypeInstrumentation 
     public static class ConstructorAdvice {
         @Advice.OnMethodExit(suppress = Throwable.class)
         public static void onExit(@Advice.This Object task) {
+            // Do not capture carrier context or poll the shared reference queue while scheduling a VT.
+            if (VirtualThreadUtil.isCarrierThread()) {
+                return;
+            }
             if (TraceContextManager.get() == null) {
                 return;
             }
